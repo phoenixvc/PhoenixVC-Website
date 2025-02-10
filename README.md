@@ -130,6 +130,10 @@ tree -a
 ```
 *Note: The tree command is included so that you or automated systems (like AI tools) can quickly review the full file structure of the repository.*
 
+## Deployment
+
+For detailed instructions on how to deploy the project—both locally using our deployment script and via our CI/CD pipeline through GitHub Actions—please refer to our [DEPLOYMENT.md](DEPLOYMENT.md) guide.
+
 ## License
 
 This project is proprietary and confidential. See the [LICENSE](LICENSE) file for details. All rights reserved.
