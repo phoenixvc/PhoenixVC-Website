@@ -1,93 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Meta Information -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PhoenixVC - Modernized</title>
-  
-  <!-- Font and Stylesheets -->
-  <link rel="stylesheet" href="//img1.wsimg.com/blobby/go/font/LeagueSpartan/league-spartan.css">
-  <link rel="stylesheet" href="css/main.css">
-  
-  <!-- You can add additional modern CSS frameworks or resets here -->
   <meta property="og:title" content="Phoenix VC | Empowering Innovation">
   <meta property="og:description" content="Strategic investments and partnerships empowering innovation and shaping the future of technology.">
   <meta property="og:url" content="https://phoenixvc.tech">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
+
+  <!-- Tailwind CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <!-- League Spartan Font -->
+  <link rel="stylesheet" href="//img1.wsimg.com/blobby/go/font/LeagueSpartan/league-spartan.css">
 </head>
-<body>
-  <!-- Skip to content link for accessibility -->
+<body class="font-sans">
+  <!-- Accessibility: Skip to content -->
   <a href="#main-content" class="sr-only focus:not-sr-only">Skip to content</a>
 
   <header>
-    <h1>Welcome to PhoenixVC</h1>
-    <nav class="gradient-bg fixed w-full z-50" aria-label="Main Navigation">
-      <div class="container mx-auto px-6 py-4 flex items-center justify-between">
-        <div class="flex items-center">
-          <img src="https://img1.wsimg.com/isteam/ip/8be1bd14-1a40-41ca-9ac2-125946263a65/PHOENIX%20VC%20LOGO%20V3_MAIN%20LOGO%20COLOUR%20DARK%20(002).png" alt="Phoenix VC Logo" class="h-12">
-        </div>
-        <button id="menu-toggle" class="md:hidden text-gray-300 focus:outline-none" aria-label="Toggle navigation">
-          <!-- Simple hamburger icon -->
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-          </svg>
-        </button>
-        <div id="nav-links" class="hidden md:flex items-center space-x-8">
-          <a href="#home" class="text-gray-300 hover:text-white">Home</a>
-          <a href="#about" class="text-gray-300 hover:text-white">About Us</a>
-          <a href="#contact" class="text-gray-300 hover:text-white">Contact</a>
-          <a href="#alternative" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700">Alternative Version</a>
-        </div>
-      </div>
-      <!-- Mobile Navigation Menu -->
-      <div id="mobile-menu" class="md:hidden hidden bg-gray-900 px-6 pt-4 pb-6">
-        <a href="#home" class="block text-gray-300 hover:text-white mb-4">Home</a>
-        <a href="#about" class="block text-gray-300 hover:text-white mb-4">About Us</a>
-        <a href="#contact" class="block text-gray-300 hover:text-white mb-4">Contact</a>
-        <a href="#alternative" class="block bg-purple-600 text-white px-6 py-2 rounded-lg text-center hover:bg-purple-700">Alternative Version</a>
-      </div>
+    <!-- Site Header -->
+    <h1 class="text-center text-3xl font-bold py-4">Welcome to PhoenixVC</h1>
+    
+    <!-- Navigation -->
+    <nav aria-label="Main Navigation" class="bg-gray-800 p-4">
+      <ul class="flex justify-center gap-4 list-none">
+        <li>
+          <a href="#home" class="text-white font-bold hover:text-[#ff6347]">
+            Home
+          </a>
+        </li>
+        <li>
+          <a href="#about" class="text-white font-bold hover:text-[#ff6347]">
+            About Us
+          </a>
+        </li>
+        <li>
+          <a href="#contact" class="text-white font-bold hover:text-[#ff6347]">
+            Contact
+          </a>
+        </li>
+        <li>
+          <a href="#alternative" class="text-[#00ff00] font-bold hover:text-[#00cc00]">
+            Alternative Version
+          </a>
+        </li>
+      </ul>
     </nav>
-    <section class="hero">
-      <div class="hero-content">
-        <h2>Your Future Starts Here</h2>
-        <p>Join us in revolutionizing the venture capital industry.</p>
-        <button>Get Started</button>
+
+    <!-- Hero Section -->
+    <section class="text-white text-center py-20" 
+             style="background-image: url('../images/hero-bg.jpg'); background-size: cover; background-position: center;">
+      <div class="max-w-xl mx-auto">
+        <h2 class="text-[2.5rem] mb-4">Your Future Starts Here</h2>
+        <p class="text-xl mb-8">Join us in revolutionizing the venture capital industry.</p>
+        <button class="bg-[#ff6347] hover:bg-[#ff4500] text-white py-3 px-6 text-base font-semibold cursor-pointer">
+          Get Started
+        </button>
       </div>
     </section>
   </header>
-  
+
   <main id="main-content">
-    <section id="about">
-      <h2>About Us</h2>
-      <p>At PhoenixVC, we are committed to driving innovation and supporting the next generation of entrepreneurs. Our team of experienced professionals works tirelessly to provide the resources and guidance needed to turn great ideas into successful businesses.</p>
+    <!-- About Us Section -->
+    <section id="about" class="py-8 px-4 bg-gray-100 text-gray-800 text-center">
+      <h2 class="text-2xl mb-4">About Us</h2>
+      <p class="text-lg leading-relaxed max-w-3xl mx-auto">
+        At PhoenixVC, we are committed to driving innovation and supporting the next generation of entrepreneurs. Our team of experienced professionals works tirelessly to provide the resources and guidance needed to turn great ideas into successful businesses.
+      </p>
     </section>
-    <section id="alternative">
-      <h2>Alternative Version</h2>
-      <p>This is an alternative version of the content.</p>
+
+    <!-- Alternative Version Section -->
+    <section id="alternative" class="py-8 px-4 bg-gray-200 text-gray-800 text-center">
+      <h2 class="text-2xl mb-4">Alternative Version</h2>
+      <p class="text-lg leading-relaxed max-w-3xl mx-auto">
+        This is an alternative version of the content.
+      </p>
     </section>
   </main>
-  
-  <footer>
+
+  <footer class="text-center py-4 bg-gray-800 text-white">
     <p>&copy; <span id="currentYear"></span> Micah Rich. All rights reserved.</p>
-    <p>
-      Font: League Spartan. Licensed under the SIL Open Font License, Version 1.1. 
-      <a href="http://scripts.sil.org/OFL" target="_blank" rel="noopener">More info</a>.
+    <p class="mt-2">
+      Font: League Spartan. Licensed under the SIL Open Font License, Version 1.1.
+      <a href="http://scripts.sil.org/OFL" target="_blank" rel="noopener" class="text-blue-300 hover:text-blue-400">
+        More info
+      </a>.
     </p>
   </footer>
-  
-  <!-- Optional JavaScript to update copyright -->
+
+  <!-- JavaScript to update copyright -->
   <script>
     document.getElementById('currentYear').textContent = new Date().getFullYear();
-  </script>
-
-  <!-- Mobile Menu Toggle Script -->
-  <script>
-    const menuToggle = document.getElementById('menu-toggle');
-    const mobileMenu = document.getElementById('mobile-menu');
-    menuToggle.addEventListener('click', () => {
-      mobileMenu.classList.toggle('hidden');
-    });
   </script>
 </body>
 </html>
