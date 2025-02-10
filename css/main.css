@@ -79,3 +79,32 @@ nav ul li a:hover {
   max-width: 800px;
   margin: 0 auto;
 }
+
+/* Alternative Version Link */
+nav ul li a.alternative-version {
+  color: #00ff00;
+}
+
+nav ul li a.alternative-version:hover {
+  color: #00cc00;
+}
+
+/* Alternative Version Section */
+#alternative {
+  padding: 2rem 1rem;
+  background-color: #e0e0e0;
+  color: #333;
+  text-align: center;
+}
+
+#alternative h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+#alternative p {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  max-width: 800px;
+  margin: 0 auto;
+}
