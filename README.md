@@ -1,4 +1,4 @@
-# Phoenix VC - Modernized  
+# Phoenix VC - Website 
 **Empowering innovation through strategic investments and visionary partnerships**
 
 [![Build Status](https://img.shields.io/github/workflow/status/JustAGhosT/PhoenixVC-Modernized/Deploy%20Azure%20Static%20Web%20App)](https://github.com/JustAGhosT/PhoenixVC-Modernized/actions)
