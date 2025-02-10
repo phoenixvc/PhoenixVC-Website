@@ -1,0 +1,38 @@
+/* Mobile Navigation Menu */
+#mobile-menu {
+  display: none;
+  background-color: #333;
+  padding: 1rem;
+}
+
+#mobile-menu a {
+  display: block;
+  color: #fff;
+  text-decoration: none;
+  margin-bottom: 1rem;
+}
+
+#mobile-menu a:hover {
+  color: #ff6347;
+}
+
+/* Skip to content link */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.sr-only.focus:not-sr-only {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+}
