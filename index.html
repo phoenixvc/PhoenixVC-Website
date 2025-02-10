@@ -3,120 +3,161 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Phoenix VC | Empowering Innovation</title>
+  <title>Phoenix VC | Dynamic Design</title>
   <meta name="description" content="Phoenix VC - Strategic investments and partnerships empowering innovation and shaping the future of technology.">
   
   <!-- Tailwind CSS CDN -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <!-- Google Fonts (Inter) -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Google Fonts (Outfit) -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- ScrollReveal -->
+  <script src="https://unpkg.com/scrollreveal"></script>
   
-  <!-- Custom CSS for unique styles -->
+  <!-- Custom CSS -->
   <style>
     body {
-      font-family: 'Inter', sans-serif;
-      background-color: #170d25;
+      font-family: 'Outfit', sans-serif;
+      background-color: #0f172a;
       color: #ffffff;
     }
-    .gradient-bg {
-      background: linear-gradient(135deg, #170d25 0%, #2d1b3d 100%);
+    .gradient-text {
+      background: linear-gradient(45deg, #60a5fa, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
-    .card-hover {
-      transition: transform 0.3s ease;
+    .card-glow {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
-    .card-hover:hover {
-      transform: translateY(-5px);
+    .card-glow:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 0 30px rgba(96, 165, 250, 0.2);
     }
   </style>
 </head>
 <body>
-  <!-- Navigation -->
-  <nav class="gradient-bg fixed w-full z-50">
-    <div class="container mx-auto px-6 py-4">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center">
-          <img src="https://img1.wsimg.com/isteam/ip/8be1bd14-1a40-41ca-9ac2-125946263a65/PHOENIX%20VC%20LOGO%20V3_MAIN%20LOGO%20COLOUR%20DARK%20(002).png" alt="Phoenix VC Logo" class="h-12">
-        </div>
+  <!-- Skip to content for accessibility -->
+  <a href="#main-content" class="sr-only focus:not-sr-only">Skip to content</a>
+  
+  <!-- Header & Navigation -->
+  <header>
+    <nav class="fixed w-full z-50 bg-opacity-80 backdrop-filter backdrop-blur-lg bg-gray-900">
+      <div class="container mx-auto px-6 py-4 flex items-center justify-between">
+        <a href="#" aria-label="Homepage">
+          <img src="https://img1.wsimg.com/isteam/ip/8be1bd14-1a40-41ca-9ac2-125946263a65/PHOENIX%20VC%20LOGO%20V3_MAIN%20LOGO%20COLOUR%20DARK%20(002).png" alt="Phoenix VC Logo" class="h-10">
+        </a>
+        <!-- Desktop Navigation -->
         <div class="hidden md:flex items-center space-x-8">
-          <a href="#about" class="text-gray-300 hover:text-white">About</a>
-          <a href="#investment" class="text-gray-300 hover:text-white">Investment Focus</a>
-          <a href="#approach" class="text-gray-300 hover:text-white">Approach</a>
-          <a href="#contact" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700">Contact</a>
+          <a href="#vision" class="text-gray-300 hover:text-white">Vision</a>
+          <a href="#investments" class="text-gray-300 hover:text-white">Investments</a>
+          <a href="#contact" class="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-2 rounded-full hover:opacity-90">Connect</a>
+        </div>
+        <!-- Mobile Menu Button -->
+        <button id="mobile-menu-button" class="md:hidden text-gray-300 focus:outline-none" aria-label="Toggle Navigation">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+          </svg>
+        </button>
+      </div>
+      <!-- Mobile Navigation Menu -->
+      <div id="mobile-menu" class="md:hidden hidden bg-gray-900">
+        <div class="px-6 py-4 space-y-2">
+          <a href="#vision" class="block text-gray-300 hover:text-white">Vision</a>
+          <a href="#investments" class="block text-gray-300 hover:text-white">Investments</a>
+          <a href="#contact" class="block bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-2 rounded-full text-center hover:opacity-90">Connect</a>
         </div>
       </div>
-    </div>
-  </nav>
-
-  <!-- Hero Section -->
-  <section class="pt-32 pb-20 gradient-bg">
-    <div class="container mx-auto px-6">
-      <div class="flex flex-col items-center text-center">
-        <h1 class="text-5xl md:text-6xl font-bold mb-8">Empowering Innovation</h1>
-        <p class="text-xl md:text-2xl text-gray-300 max-w-3xl mb-12">
-          Shaping the future through strategic investments and partnerships in transformative technologies.
-        </p>
-        <a href="#contact" class="bg-purple-600 text-white px-8 py-3 rounded-lg text-lg hover:bg-purple-700 transition-colors">
-          Partner With Us
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- Investment Focus -->
-  <section id="investment" class="py-20">
-    <div class="container mx-auto px-6">
-      <h2 class="text-3xl md:text-4xl font-bold mb-16 text-center">Investment Focus</h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div class="bg-gray-900 p-8 rounded-xl card-hover">
-          <h3 class="text-xl font-semibold mb-4">Technology Innovation</h3>
-          <p class="text-gray-400">
-            Investing in breakthrough technologies that reshape industries and create new possibilities.
-          </p>
-        </div>
-        <div class="bg-gray-900 p-8 rounded-xl card-hover">
-          <h3 class="text-xl font-semibold mb-4">Sustainable Future</h3>
-          <p class="text-gray-400">
-            Supporting ventures that prioritize environmental and social impact alongside financial returns.
-          </p>
-        </div>
-        <div class="bg-gray-900 p-8 rounded-xl card-hover">
-          <h3 class="text-xl font-semibold mb-4">Digital Transformation</h3>
-          <p class="text-gray-400">
-            Enabling businesses to thrive in the digital age through innovative solutions.
-          </p>
+    </nav>
+  </header>
+  
+  <!-- Main Content -->
+  <main id="main-content">
+    <!-- Hero Section -->
+    <section class="min-h-screen flex items-center pt-20">
+      <div class="container mx-auto px-6">
+        <div class="max-w-4xl mx-auto text-center">
+          <h1 class="text-6xl md:text-7xl font-bold mb-8 gradient-text reveal-on-scroll">Shaping Tomorrow's Technology</h1>
+          <p class="text-xl md:text-2xl text-gray-300 mb-12 reveal-on-scroll">We invest in visionary founders building the next generation of transformative companies.</p>
+          <div class="reveal-on-scroll">
+            <a href="#contact" class="inline-block bg-gradient-to-r from-blue-500 to-purple-500 text-white px-8 py-4 rounded-full text-lg hover:opacity-90 transition-opacity">
+              Start Your Journey
+            </a>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
-
-  <!-- Contact Section -->
-  <section id="contact" class="py-20 gradient-bg">
-    <div class="container mx-auto px-6">
-      <div class="max-w-2xl mx-auto text-center">
-        <h2 class="text-3xl md:text-4xl font-bold mb-8">Let's Build the Future Together</h2>
-        <p class="text-gray-300 mb-12">
-          Connect with us to explore partnership opportunities and discuss how we can help bring your vision to life.
-        </p>
-        <a href="mailto:info@phoenixvc.tech" class="bg-purple-600 text-white px-8 py-3 rounded-lg text-lg hover:bg-purple-700 transition-colors">
-          Contact Us
-        </a>
+    </section>
+  
+    <!-- Investment Focus -->
+    <section class="py-20">
+      <div class="container mx-auto px-6">
+        <h2 class="text-4xl font-bold mb-16 text-center reveal-on-scroll">Investment Focus</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div class="card-glow p-8 rounded-2xl transition-all duration-300 reveal-on-scroll">
+            <div class="text-blue-400 text-4xl mb-6">⚡</div>
+            <h3 class="text-xl font-semibold mb-4">Deep Tech</h3>
+            <p class="text-gray-400">Advancing breakthrough technologies in AI, quantum computing, and biotechnology.</p>
+          </div>
+          <div class="card-glow p-8 rounded-2xl transition-all duration-300 reveal-on-scroll">
+            <div class="text-purple-400 text-4xl mb-6">🌱</div>
+            <h3 class="text-xl font-semibold mb-4">Sustainability</h3>
+            <p class="text-gray-400">Supporting innovations that drive environmental and social impact.</p>
+          </div>
+          <div class="card-glow p-8 rounded-2xl transition-all duration-300 reveal-on-scroll">
+            <div class="text-indigo-400 text-4xl mb-6">🔮</div>
+            <h3 class="text-xl font-semibold mb-4">Future of Work</h3>
+            <p class="text-gray-400">Enabling the next generation of workplace solutions and tools.</p>
+          </div>
+        </div>
       </div>
-    </div>
-  </section>
-
+    </section>
+  
+    <!-- Contact Section -->
+    <section id="contact" class="py-20 bg-gradient-to-b from-gray-900 to-blue-900">
+      <div class="container mx-auto px-6">
+        <div class="max-w-2xl mx-auto text-center reveal-on-scroll">
+          <h2 class="text-4xl font-bold mb-8">Let's Build the Future Together</h2>
+          <p class="text-gray-300 mb-12">Ready to take your vision to the next level? We're here to help.</p>
+          <a href="mailto:info@phoenixvc.tech" class="inline-block bg-white text-gray-900 px-8 py-4 rounded-full text-lg hover:bg-gray-100 transition-colors">
+            Get in Touch
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+  
   <!-- Footer -->
   <footer class="py-12 bg-gray-900">
     <div class="container mx-auto px-6">
       <div class="flex flex-col md:flex-row justify-between items-center">
-        <div class="mb-8 md:mb-0">
-          <img src="https://img1.wsimg.com/isteam/ip/8be1bd14-1a40-41ca-9ac2-125946263a65/PHOENIX%20VC%20LOGO%20V3_MAIN%20LOGO%20COLOUR%20DARK%20(002).png" alt="Phoenix VC Logo" class="h-10">
-        </div>
+        <img src="https://img1.wsimg.com/isteam/ip/8be1bd14-1a40-41ca-9ac2-125946263a65/PHOENIX%20VC%20LOGO%20V3_MAIN%20LOGO%20COLOUR%20DARK%20(002).png" alt="Phoenix VC Logo" class="h-8 mb-6 md:mb-0">
         <div class="text-center md:text-right">
           <p class="text-gray-400">© 2024 Phoenix VC. All rights reserved.</p>
-          <a href="mailto:info@phoenixvc.tech" class="text-purple-400 hover:text-purple-300">info@phoenixvc.tech</a>
+          <a href="mailto:info@phoenixvc.tech" class="text-blue-400 hover:text-blue-300">info@phoenixvc.tech</a>
         </div>
       </div>
     </div>
   </footer>
+  
+  <!-- Scripts -->
+  <script>
+    // Initialize ScrollReveal animations
+    ScrollReveal().reveal('.reveal-on-scroll', {
+      delay: 200,
+      distance: '20px',
+      origin: 'bottom',
+      opacity: 0,
+      duration: 1000,
+      easing: 'cubic-bezier(0.5, 0, 0, 1)',
+      interval: 100
+    });
+    
+    // Mobile navigation toggle
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    mobileMenuButton.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+    });
+  </script>
 </body>
 </html>
