@@ -16,7 +16,7 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy Bicep Template
+      - name: Create Resource Group and Deploy Bicep Template
         run: |
           az group create --name prod-za-rg-phoenixvc --location "South Africa North"
           az deployment group create --resource-group prod-za-rg-phoenixvc --template-file ./infra/bicep/main.bicep --parameters @./infra/bicep/parameters.json
