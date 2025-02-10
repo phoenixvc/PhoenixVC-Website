@@ -1,0 +1,22 @@
+name: Deploy Azure Static Web App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Login to Azure CLI
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Create Resource Group and Deploy Bicep Template
+        run: |
+          az group create --name prod-za-rg-phoenixvc --location "South Africa North"
+          az deployment group create --resource-group prod-za-rg-phoenixvc --template-file ./infra/bicep/main.bicep --parameters @./infra/bicep/parameters.json
