@@ -1,80 +1,185 @@
-# Troubleshooting Guide
+# Troubleshooting Guide for Phoenix VC - Modernized (Windows & Linux)
 
-This document provides troubleshooting steps for common issues encountered during the deployment of the Phoenix VC project. If you run into errors, please refer to the relevant section below.
+This guide provides steps to resolve common issues encountered during the development and deployment of the Phoenix VC project. It covers verifying prerequisites, resolving Azure authentication errors, addressing general deployment problems, and offers alternatives for local development.
 
 ---
 
-## Issue: Azure Login Failed with Error:  
-**"Using auth-type: SERVICE_PRINCIPAL. Not all values are present. Ensure 'client-id' and 'tenant-id' are supplied. Double check if the 'auth-type' is correct. Refer to https://github.com/Azure/login#readme for more information."**
+## 1. Verify Prerequisites
 
-### Error Description
+Ensure all required tools are installed on your machine.
 
-When attempting to deploy the project (either via GitHub Actions or locally), you might see an error indicating that the login failed due to missing values required for a Service Principal authentication.
+### Windows (Using PowerShell or Git Bash)
 
-### Possible Causes
+**Using Chocolatey (if installed):**
+- **Node.js:**  
+  Check with:
+  ```powershell
+  node --version
+  ```
+  If missing, install:
+  ```powershell
+  choco install nodejs -y
+  ```
+- **Git:**  
+  Check with:
+  ```powershell
+  git --version
+  ```
+  If missing, install:
+  ```powershell
+  choco install git -y
+  ```
+- **Azure CLI:**  
+  Check with:
+  ```powershell
+  az --version
+  ```
+  If missing, install:
+  ```powershell
+  choco install azure-cli -y
+  ```
+- **Python 3 (Optional):**  
+  Check with:
+  ```powershell
+  python --version
+  ```
+  If missing, install:
+  ```powershell
+  choco install python -y
+  ```
 
-- **Incomplete Azure Credentials:**  
-  The `AZURE_CREDENTIALS` secret may be missing required keys such as `clientId` and `tenantId`.
+*Note: If the `choco` command is not found, Chocolatey is not installed. Install it by opening an elevated PowerShell window and running:*
+```powershell
+Set-ExecutionPolicy Bypass -Scope Process -Force; `
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; `
+iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+```
 
-- **Service Principal Misconfiguration:**  
-  The Service Principal might not have been created correctly, or the values were not copied accurately.
+### Linux (e.g., GitHub Codespace or Local VM)
 
-- **Workflow Configuration Issues:**  
-  The GitHub Actions workflow might be referencing the secret incorrectly.
+Run the following commands in your terminal:
+- **Update Package List:**
+  ```bash
+  sudo apt-get update
+  ```
+- **Node.js:**
+  ```bash
+  node --version || sudo apt-get install -y nodejs npm
+  ```
+  *Note: For the latest Node.js version, consider using the NodeSource repository.*
+- **Git:**
+  ```bash
+  git --version || sudo apt-get install -y git
+  ```
+- **Azure CLI:**
+  ```bash
+  az --version || curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+  ```
+- **Python 3 (Optional):**
+  ```bash
+  python3 --version || sudo apt-get install -y python3
+  ```
 
-### Troubleshooting Steps
+---
 
-1. **Verify Service Principal Creation:**
+## 2. Azure Login Issues
 
-   Ensure you have created the Service Principal with all required parameters. In the Azure CLI, run:
+If you encounter an error such as:
+```
+Using auth-type: SERVICE_PRINCIPAL. Not all values are present. Ensure 'client-id' and 'tenant-id' are supplied.
+Double check if the 'auth-type' is correct.
+Refer to https://github.com/Azure/login#readme for more information.
+```
+
+### Steps to Resolve:
+
+1. **Verify Service Principal Creation:**  
+   Run (replace `<your-subscription-id>` with your actual subscription ID):
    ```bash
    az ad sp create-for-rbac --name "github-actions-deploy" --role contributor --scopes /subscriptions/<your-subscription-id> --sdk-auth
    ```
-   The output JSON should include keys such as:
-   - `clientId`
-   - `clientSecret`
-   - `tenantId`
-   - `subscriptionId`
+   Ensure the output JSON includes `clientId`, `clientSecret`, `tenantId`, and `subscriptionId`.
 
-2. **Check the AZURE_CREDENTIALS Secret in GitHub:**
+2. **Check GitHub Secrets:**  
+   Verify that the secret `AZURE_CREDENTIALS` in your repository’s **Settings > Secrets** contains the full JSON output.
 
-   - Navigate to your repository’s **Settings > Secrets**.
-   - Verify that the secret named `AZURE_CREDENTIALS` contains the complete JSON output from the Service Principal creation.
-   - The JSON should have at least the following structure:
-     ```json
-     {
-       "clientId": "your-client-id",
-       "clientSecret": "your-client-secret",
-       "tenantId": "your-tenant-id",
-       "subscriptionId": "your-subscription-id"
-     }
-     ```
+3. **Review Your Workflow:**  
+   Confirm that the GitHub Actions workflow in `.github/workflows/deploy.yml` correctly references `AZURE_CREDENTIALS`.
 
-3. **Review Your GitHub Actions Workflow:**
-
-   - Open the workflow file located at `.github/workflows/deploy.yml`.
-   - Ensure that it correctly references the `AZURE_CREDENTIALS` secret.
-   - Double-check for typos in the secret name or any misconfiguration in the action parameters.
-
-4. **Test Locally with Azure CLI:**
-
-   Confirm that your Service Principal credentials are valid by attempting to log in locally:
+4. **Test Locally:**  
+   Validate your credentials by running:
    ```bash
    az login --service-principal -u <clientId> -p <clientSecret> --tenant <tenantId>
    ```
-   If the login is successful, it confirms that the credentials are correct.
+   A successful login confirms that your credentials are correct.
 
-5. **Consult Documentation:**
-
-   For additional configuration details and troubleshooting tips, refer to the [Azure/login GitHub Action documentation](https://github.com/Azure/login#readme).
-
-### Additional Help
-
-If you continue to experience issues after following these steps:
-- Review the GitHub Actions logs for additional context and error details.
-- Reach out via your internal support channels or contact your system administrator for further assistance.
-- Update this guide with any new resolutions that work for your specific environment.
+5. **Consult Documentation:**  
+   Refer to the [Azure/login GitHub Action documentation](https://github.com/Azure/login#readme) for further details.
 
 ---
 
-*Note: This troubleshooting guide covers common issues related to Azure Service Principal authentication during deployment. As new issues arise or configurations change, please update this document accordingly.*
+## 3. General Deployment Issues
+
+- **Review Logs:**  
+  Check GitHub Actions logs or the output of your deployment script (`./scripts/deploy.sh` on Linux or `.\scripts\deploy.sh` on Windows) for error messages.
+- **Verify Resource Group Creation:**  
+  Ensure the resource group is created by running:
+  ```bash
+  az group list --output table
+  ```
+- **Check the Parameter File:**  
+  Verify that `infra/bicep/parameters.json` is correctly formatted and contains all required values.
+- **Permissions & Network:**  
+  Confirm your Azure account has the necessary permissions and that your network connection is stable.
+
+---
+
+## 4. Linting and Build Errors
+
+Run these commands to catch code quality issues before deployment:
+- **ESLint:**  
+  ```bash
+  npm run lint
+  ```
+- **Stylelint:**  
+  ```bash
+  npm run lint:css
+  ```
+- **Prettier:**  
+  ```bash
+  npm run format
+  ```
+Address any errors or warnings reported by these tools.
+
+---
+
+## 5. Local Development Alternatives
+
+If you prefer not to use the GitHub Codespace virtual workspace, consider these alternatives:
+- **Local Linux VM:**  
+  Set up a virtual machine (e.g., using VirtualBox or VMware) running Ubuntu and follow the Linux prerequisites.
+- **Docker Containers:**  
+  Create a Docker environment for your project to ensure consistency in development.
+- **WSL (Windows Subsystem for Linux):**  
+  Use WSL on Windows to run a Linux environment directly on your machine.
+
+These alternatives allow you to develop locally while following the same deployment and testing processes.
+
+---
+
+## 6. Additional Resources
+
+- [Azure CLI Troubleshooting](https://docs.microsoft.com/en-us/cli/azure/troubleshooting)
+- [GitHub Actions Debugging](https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+
+---
+
+## 7. Additional Help
+
+If issues persist after following these steps:
+- Review the logs for additional context.
+- Contact internal support or your system administrator.
+- Update this guide with new solutions as they emerge.
+
+*Note: This guide covers common issues related to tool installations, Azure authentication, deployment, and local development alternatives. Please update it as new issues or solutions arise.*
