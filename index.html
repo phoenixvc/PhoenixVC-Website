@@ -1,99 +1,122 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Meta Information -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PhoenixVC - Modernized</title>
-  <meta property="og:title" content="Phoenix VC | Empowering Innovation">
-  <meta property="og:description" content="Strategic investments and partnerships empowering innovation and shaping the future of technology.">
-  <meta property="og:url" content="https://phoenixvc.tech">
-  <meta name="twitter:card" content="summary_large_image">
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
-
+  <title>Phoenix VC | Empowering Innovation</title>
+  <meta name="description" content="Phoenix VC - Strategic investments and partnerships empowering innovation and shaping the future of technology.">
+  
   <!-- Tailwind CSS CDN -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <!-- League Spartan Font -->
-  <link rel="stylesheet" href="//img1.wsimg.com/blobby/go/font/LeagueSpartan/league-spartan.css">
+  <!-- Google Fonts (Inter) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Custom CSS for unique styles -->
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #170d25;
+      color: #ffffff;
+    }
+    .gradient-bg {
+      background: linear-gradient(135deg, #170d25 0%, #2d1b3d 100%);
+    }
+    .card-hover {
+      transition: transform 0.3s ease;
+    }
+    .card-hover:hover {
+      transform: translateY(-5px);
+    }
+  </style>
 </head>
-<body class="font-sans">
-  <!-- Accessibility: Skip to content -->
-  <a href="#main-content" class="sr-only focus:not-sr-only">Skip to content</a>
-
-  <header>
-    <!-- Site Header -->
-    <h1 class="text-center text-3xl font-bold py-4">Welcome to PhoenixVC</h1>
-    
-    <!-- Navigation -->
-    <nav aria-label="Main Navigation" class="bg-gray-800 p-4">
-      <ul class="flex justify-center gap-4 list-none">
-        <li>
-          <a href="#home" class="text-white font-bold hover:text-[#ff6347]">
-            Home
-          </a>
-        </li>
-        <li>
-          <a href="#about" class="text-white font-bold hover:text-[#ff6347]">
-            About Us
-          </a>
-        </li>
-        <li>
-          <a href="#contact" class="text-white font-bold hover:text-[#ff6347]">
-            Contact
-          </a>
-        </li>
-        <li>
-          <a href="#alternative" class="text-[#00ff00] font-bold hover:text-[#00cc00]">
-            Alternative Version
-          </a>
-        </li>
-      </ul>
-    </nav>
-
-    <!-- Hero Section -->
-    <section class="text-white text-center py-20" 
-             style="background-image: url('../images/hero-bg.jpg'); background-size: cover; background-position: center;">
-      <div class="max-w-xl mx-auto">
-        <h2 class="text-[2.5rem] mb-4">Your Future Starts Here</h2>
-        <p class="text-xl mb-8">Join us in revolutionizing the venture capital industry.</p>
-        <button class="bg-[#ff6347] hover:bg-[#ff4500] text-white py-3 px-6 text-base font-semibold cursor-pointer">
-          Get Started
-        </button>
+<body>
+  <!-- Navigation -->
+  <nav class="gradient-bg fixed w-full z-50">
+    <div class="container mx-auto px-6 py-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center">
+          <img src="https://img1.wsimg.com/isteam/ip/8be1bd14-1a40-41ca-9ac2-125946263a65/PHOENIX%20VC%20LOGO%20V3_MAIN%20LOGO%20COLOUR%20DARK%20(002).png" alt="Phoenix VC Logo" class="h-12">
+        </div>
+        <div class="hidden md:flex items-center space-x-8">
+          <a href="#about" class="text-gray-300 hover:text-white">About</a>
+          <a href="#investment" class="text-gray-300 hover:text-white">Investment Focus</a>
+          <a href="#approach" class="text-gray-300 hover:text-white">Approach</a>
+          <a href="#contact" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700">Contact</a>
+        </div>
       </div>
-    </section>
-  </header>
+    </div>
+  </nav>
 
-  <main id="main-content">
-    <!-- About Us Section -->
-    <section id="about" class="py-8 px-4 bg-gray-100 text-gray-800 text-center">
-      <h2 class="text-2xl mb-4">About Us</h2>
-      <p class="text-lg leading-relaxed max-w-3xl mx-auto">
-        At PhoenixVC, we are committed to driving innovation and supporting the next generation of entrepreneurs. Our team of experienced professionals works tirelessly to provide the resources and guidance needed to turn great ideas into successful businesses.
-      </p>
-    </section>
+  <!-- Hero Section -->
+  <section class="pt-32 pb-20 gradient-bg">
+    <div class="container mx-auto px-6">
+      <div class="flex flex-col items-center text-center">
+        <h1 class="text-5xl md:text-6xl font-bold mb-8">Empowering Innovation</h1>
+        <p class="text-xl md:text-2xl text-gray-300 max-w-3xl mb-12">
+          Shaping the future through strategic investments and partnerships in transformative technologies.
+        </p>
+        <a href="#contact" class="bg-purple-600 text-white px-8 py-3 rounded-lg text-lg hover:bg-purple-700 transition-colors">
+          Partner With Us
+        </a>
+      </div>
+    </div>
+  </section>
 
-    <!-- Alternative Version Section -->
-    <section id="alternative" class="py-8 px-4 bg-gray-200 text-gray-800 text-center">
-      <h2 class="text-2xl mb-4">Alternative Version</h2>
-      <p class="text-lg leading-relaxed max-w-3xl mx-auto">
-        This is an alternative version of the content.
-      </p>
-    </section>
-  </main>
+  <!-- Investment Focus -->
+  <section id="investment" class="py-20">
+    <div class="container mx-auto px-6">
+      <h2 class="text-3xl md:text-4xl font-bold mb-16 text-center">Investment Focus</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="bg-gray-900 p-8 rounded-xl card-hover">
+          <h3 class="text-xl font-semibold mb-4">Technology Innovation</h3>
+          <p class="text-gray-400">
+            Investing in breakthrough technologies that reshape industries and create new possibilities.
+          </p>
+        </div>
+        <div class="bg-gray-900 p-8 rounded-xl card-hover">
+          <h3 class="text-xl font-semibold mb-4">Sustainable Future</h3>
+          <p class="text-gray-400">
+            Supporting ventures that prioritize environmental and social impact alongside financial returns.
+          </p>
+        </div>
+        <div class="bg-gray-900 p-8 rounded-xl card-hover">
+          <h3 class="text-xl font-semibold mb-4">Digital Transformation</h3>
+          <p class="text-gray-400">
+            Enabling businesses to thrive in the digital age through innovative solutions.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-  <footer class="text-center py-4 bg-gray-800 text-white">
-    <p>&copy; <span id="currentYear"></span> Micah Rich. All rights reserved.</p>
-    <p class="mt-2">
-      Font: League Spartan. Licensed under the SIL Open Font License, Version 1.1.
-      <a href="http://scripts.sil.org/OFL" target="_blank" rel="noopener" class="text-blue-300 hover:text-blue-400">
-        More info
-      </a>.
-    </p>
+  <!-- Contact Section -->
+  <section id="contact" class="py-20 gradient-bg">
+    <div class="container mx-auto px-6">
+      <div class="max-w-2xl mx-auto text-center">
+        <h2 class="text-3xl md:text-4xl font-bold mb-8">Let's Build the Future Together</h2>
+        <p class="text-gray-300 mb-12">
+          Connect with us to explore partnership opportunities and discuss how we can help bring your vision to life.
+        </p>
+        <a href="mailto:info@phoenixvc.tech" class="bg-purple-600 text-white px-8 py-3 rounded-lg text-lg hover:bg-purple-700 transition-colors">
+          Contact Us
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-12 bg-gray-900">
+    <div class="container mx-auto px-6">
+      <div class="flex flex-col md:flex-row justify-between items-center">
+        <div class="mb-8 md:mb-0">
+          <img src="https://img1.wsimg.com/isteam/ip/8be1bd14-1a40-41ca-9ac2-125946263a65/PHOENIX%20VC%20LOGO%20V3_MAIN%20LOGO%20COLOUR%20DARK%20(002).png" alt="Phoenix VC Logo" class="h-10">
+        </div>
+        <div class="text-center md:text-right">
+          <p class="text-gray-400">© 2024 Phoenix VC. All rights reserved.</p>
+          <a href="mailto:info@phoenixvc.tech" class="text-purple-400 hover:text-purple-300">info@phoenixvc.tech</a>
+        </div>
+      </div>
+    </div>
   </footer>
-
-  <!-- JavaScript to update copyright -->
-  <script>
-    document.getElementById('currentYear').textContent = new Date().getFullYear();
-  </script>
 </body>
 </html>
