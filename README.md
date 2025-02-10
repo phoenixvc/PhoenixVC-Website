@@ -1,9 +1,9 @@
 # Phoenix VC - Modernized  
 **Empowering innovation through strategic investments and visionary partnerships**
 
-![Build Status](https://img.shields.io/github/workflow/status/JustAGhosT/PhoenixVC-Modernized/Deploy%20Azure%20Static%20Web%20App)
-![Version](https://img.shields.io/badge/version-v1.0.0-blue)
-![License](https://img.shields.io/badge/license-Proprietary-red)
+[![Build Status](https://img.shields.io/github/workflow/status/JustAGhosT/PhoenixVC-Modernized/Deploy%20Azure%20Static%20Web%20App)](https://github.com/JustAGhosT/PhoenixVC-Modernized/actions)
+[![Version](https://img.shields.io/badge/version-v1.0.0-blue)](https://github.com/JustAGhosT/PhoenixVC-Modernized/releases)
+[![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
 
 Phoenix VC is a premier, proprietary venture capital firm dedicated to identifying and investing in transformative technologies. With a rich heritage and a commitment to excellence, our modernized website leverages cutting-edge cloud technologies—including Azure Static Web Apps, Tailwind CSS, and Bicep templates—to deliver a seamless digital experience. Our mission remains focused on driving innovation and fostering growth in tomorrow’s leading industries.
 
