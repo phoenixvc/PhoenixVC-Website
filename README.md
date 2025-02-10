@@ -1,7 +1,25 @@
 # Phoenix VC - Modernized  
 **Empowering innovation through strategic investments and visionary partnerships**
 
-Phoenix VC is a premier venture capital firm dedicated to identifying and investing in transformative technologies. With a rich heritage and a commitment to excellence, our modernized website leverages cutting-edge cloud technologies—including Azure Static Web Apps, Tailwind CSS, and Bicep templates—to deliver a seamless digital experience. Our mission remains focused on driving innovation and fostering growth in tomorrow’s leading industries.
+![Build Status](https://img.shields.io/github/workflow/status/JustAGhosT/PhoenixVC-Modernized/Deploy)
+![Version](https://img.shields.io/badge/version-v1.0.0-blue)
+![License](https://img.shields.io/badge/license-Proprietary-red)
+
+Phoenix VC is a premier, proprietary venture capital firm dedicated to identifying and investing in transformative technologies. With a rich heritage and a commitment to excellence, our modernized website leverages cutting-edge cloud technologies—including Azure Static Web Apps, Tailwind CSS, and Bicep templates—to deliver a seamless digital experience. Our mission remains focused on driving innovation and fostering growth in tomorrow’s leading industries.
+
+## Table of Contents
+- [Prerequisites](#prerequisites)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [Usage](#usage)
+- [Current Projects and Goals](#current-projects-and-goals)
+- [Setting Up Azure Credentials](#setting-up-azure-credentials)
+- [Optional Enhancements](#optional-enhancements)
+- [Contributing](#contributing)
+- [Repository Structure and File Listing](#repository-structure-and-file-listing)
+- [Deployment](#deployment)
+- [Support](#support)
+- [License](#license)
 
 ## Prerequisites
 
@@ -18,6 +36,7 @@ Before getting started, ensure you have the following installed on your developm
 ├── .github
 │   └── workflows
 │       └── deploy.yml         # GitHub Actions workflow for deployment
+├── docs                       # Documentation (Contributing, Deployment, Troubleshooting)
 ├── infra
 │   └── bicep
 │       ├── main.bicep         # Bicep template for Azure resources
@@ -30,8 +49,8 @@ Before getting started, ensure you have the following installed on your developm
 │   │   └── styles.css         # Custom CSS for the web app
 │   └── index.html             # Main HTML file for the web app
 ├── staticwebapp.config.json   # Azure Static Web App configuration (routes, headers)
-├── LICENSE                  # Proprietary license file
-└── README.md                # This file
+├── LICENSE                    # Proprietary license file
+└── README.md                  # This file (project overview)
 ```
 
 ## Getting Started
@@ -54,24 +73,27 @@ Before getting started, ensure you have the following installed on your developm
    npm run prepare
    ```
 4. **Configure Azure Credentials:**  
-   Create a Service Principal using the Azure CLI and store the resulting JSON in GitHub Secrets as `AZURE_CREDENTIALS`. (See the "Setting Up Azure Credentials" section below for details.)
+   Create a Service Principal using the Azure CLI and store the resulting JSON in GitHub Secrets as `AZURE_CREDENTIALS`. (For detailed instructions, see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).)
 5. **Customize Infrastructure Parameters (Optional):**  
    Edit `infra/bicep/parameters.json` if necessary to suit your environment.
-6. **Deploy the Application:**  
-   - Push your changes to the `main` branch to trigger the GitHub Actions workflow, **or**
-   - Run the local deployment script:
-     ```bash
-     ./scripts/deploy.sh
-     ```
+6. **Submit Your Changes:**  
+   **Do not commit directly to the `main` branch.** Create a new branch for your changes and open a pull request for review.
+7. **Deploy the Application:**  
+   Once your pull request is merged, the GitHub Actions workflow will trigger a deployment automatically. Alternatively, for local testing, run:
+   ```bash
+   ./scripts/deploy.sh
+   ```
+
+## Usage
+
+Once deployed, access the Phoenix VC website at [https://phoenixvc.tech](https://phoenixvc.tech) to explore our investment projects and learn more about our strategic goals.
 
 ## Current Projects and Goals
 
 - **Current Projects:**  
-  Visit the [Current Projects](https://your-website.com/current-projects) page to see what we're actively working on.
+  Visit the [Current Projects](https://phoenixvc.tech/current-projects) page to see what we're actively working on.
 - **Our Goals:**  
-  Learn more about our vision and strategic objectives on our [Goals](https://your-website.com/goals) page.
-
-*Note: Replace the placeholder URLs with the actual links to your website's pages.*
+  Learn more about our vision and strategic objectives on the [Goals](https://phoenixvc.tech/goals) page.
 
 ## Setting Up Azure Credentials
 
@@ -97,7 +119,7 @@ For more details on the underlying technologies, please refer to:
 
 ## Contributing
 
-For detailed guidelines on branch naming, commit message conventions, code formatting, linting, and other project policies, please see our [CONTRIBUTING.md](CONTRIBUTING.md) file.
+For detailed guidelines on branch naming, commit message conventions, code formatting, linting, and other project policies, please see our [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) file.
 
 ## Repository Structure and File Listing
 
@@ -132,7 +154,11 @@ tree -a
 
 ## Deployment
 
-For detailed instructions on how to deploy the project—both locally using our deployment script and via our CI/CD pipeline through GitHub Actions—please refer to our [DEPLOYMENT.md](DEPLOYMENT.md) guide.
+For detailed instructions on how to deploy the project—both locally using our deployment script and via our CI/CD pipeline through GitHub Actions—please refer to our [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) guide.
+
+## Support
+
+For support or questions about this project, please contact [support@phoenixvc.com](mailto:support@phoenixvc.com).
 
 ## License
 
