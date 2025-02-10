@@ -139,4 +139,8 @@ tree -a
 
 We use Husky and Commitlint to ensure commit messages follow our conventions. If you prefer using an alternative Git hook framework or additional linting tools, please discuss with the team before integrating them.
 
+## Deployment Information
+
+For information on how the project is deployed and managed in production, please see our [DEPLOYMENT.md](DEPLOYMENT.md) file. This guide covers both local deployment steps and our automated CI/CD workflow, which may be useful when making changes that affect deployment.
+
 We appreciate your contributions and are here to help if you have any questions!
