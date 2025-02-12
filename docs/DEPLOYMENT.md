@@ -96,7 +96,7 @@ No additional manual steps are required for automated deployments.
 
 ## Troubleshooting
 
-For common deployment issues, please refer to our [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) file, which covers error resolution steps (including issues related to Service Principal creation and Azure login).
+For common deployment issues, please refer to our [Troubleshooting](TROUBLESHOOTING.md) file, which covers error resolution steps (including issues related to Service Principal creation and Azure login).
 
 ---
 

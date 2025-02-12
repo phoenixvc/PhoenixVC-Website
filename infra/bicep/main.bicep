@@ -22,7 +22,7 @@ resource staticSite 'Microsoft.Web/staticSites@2021-03-01' = {
 }
 
 resource budget 'Microsoft.Consumption/budgets@2019-10-01' = {
-  name: 'prod-za-rg-phoenixvc-budget'
+  name: 'prod-saf-rg-phoenixvc-budget'
   scope: resourceGroup()
   properties: {
     category: 'Cost'
