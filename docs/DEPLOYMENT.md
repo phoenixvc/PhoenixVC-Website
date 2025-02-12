@@ -26,17 +26,37 @@ Before deploying, ensure you have the following installed:
 
 To enable deployment, you need to create an Azure Service Principal that GitHub Actions will use for authentication.
 
-1. **Create the Service Principal:**  
-   Open your terminal and run the following command. **Replace `<your-subscription-id>` with your actual Azure Subscription ID (without angle brackets).** For example:
+1. **Log in to Azure:**  
+   Before proceeding, make sure you are logged into Azure:
    ```bash
-   az ad sp create-for-rbac --name "github-actions-deploy" --role contributor --scopes /subscriptions/12345678-1234-1234-1234-123456789abc --sdk-auth
+   az login --use-device-code
+   ```
+   Follow the prompts to complete authentication.
+
+2. **Set the Subscription:**  
+   Ensure your Azure CLI is set to the correct subscription by running:
+   ```bash
+   az account set --subscription 22f9eb18-6553-4b7d-9451-47d0195085fe
+   ```
+
+3. **Create the Service Principal:**  
+   Run the following command (using the actual subscription ID):
+   ```bash
+   az ad sp create-for-rbac --name "http://github-actions-deploy.phoenixvc.tech" --role contributor --scopes /subscriptions/22f9eb18-6553-4b7d-9451-47d0195085fe --sdk-auth
    ```
    This command outputs a JSON object containing your Azure credentials (e.g., `clientId`, `clientSecret`, `tenantId`, and `subscriptionId`).
 
-2. **Store in GitHub Secrets:**  
-   Copy the output JSON and add it to your GitHub repository's secrets as `AZURE_CREDENTIALS`.
+   **Important:**  
+   If you receive an error such as:
+   ```
+   The client 'xxx@phoenixvc.tech' with object id '...' does not have authorization to perform action 'Microsoft.Authorization/roleAssignments/write' over scope '...' or the scope is invalid.
+   ```
+   it indicates that your account does not have the required permissions to create role assignments. In that case, please contact your administrator to grant you the necessary permissions (e.g., Owner or User Access Administrator) or ask an admin to create the Service Principal for you.
 
-*Note:* Do not leave `<your-subscription-id>` in the command. Replacing it with your actual subscription ID prevents errors such as:
+4. **Store in GitHub Secrets:**  
+   Copy the output JSON and add it to your GitHub repository's secrets as `AZURE_CREDENTIALS`. The current link to the secrets is https://github.com/JustAGhosT/PhoenixVC-Modernized/settings/secrets/actions.
+
+*Note:* Ensure you replace `<your-subscription-id>` with the actual subscription ID (in this case, `22f9eb18-6553-4b7d-9451-47d0195085fe`) to avoid errors like:
 ```
 bash: your-subscription-id: No such file or directory
 ```

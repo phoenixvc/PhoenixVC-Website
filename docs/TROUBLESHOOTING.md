@@ -1,6 +1,6 @@
-# Troubleshooting Guide for Phoenix VC - Modernized (Windows & Linux)
+# Troubleshooting Guide for Phoenix VC - Modernized (Linux & Windows)
 
-This guide provides steps to resolve common issues encountered during the development and deployment of the Phoenix VC project. It covers verifying prerequisites, resolving Azure authentication errors, addressing general deployment problems, and offers alternatives for local development.
+This guide provides steps to resolve common issues encountered during the development and deployment of the Phoenix VC project. It covers verifying prerequisites (with Linux as the default), resolving Azure authentication errors, addressing general deployment problems, and offers alternatives for local development.
 
 ---
 
@@ -8,9 +8,47 @@ This guide provides steps to resolve common issues encountered during the develo
 
 Ensure all required tools are installed on your machine.
 
+### Linux (Default: GitHub Codespace or Local VM)
+
+Run the following commands in your terminal:
+
+- **Update Package List:**
+  ```bash
+  sudo apt-get update
+  ```
+
+- **Node.js (Recommended - NodeSource):**
+  Check with:
+  ```bash
+  node --version
+  ```
+  If Node.js is not installed, install it using the NodeSource repository (for example, for Node.js 18):
+  ```bash
+  curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+  sudo apt-get install -y nodejs
+  ```
+
+- **Git:**
+  ```bash
+  git --version || sudo apt-get install -y git
+  ```
+
+- **Azure CLI:**
+  ```bash
+  az --version || curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+  ```
+
+- **Python 3 (Optional):**
+  ```bash
+  python3 --version || sudo apt-get install -y python3
+  ```
+
+---
+
 ### Windows (Using PowerShell or Git Bash)
 
-**Using Chocolatey (if installed):**
+If you’re using a Windows environment, follow these steps using Chocolatey:
+
 - **Node.js:**  
   Check with:
   ```powershell
@@ -20,6 +58,7 @@ Ensure all required tools are installed on your machine.
   ```powershell
   choco install nodejs -y
   ```
+
 - **Git:**  
   Check with:
   ```powershell
@@ -29,6 +68,7 @@ Ensure all required tools are installed on your machine.
   ```powershell
   choco install git -y
   ```
+
 - **Azure CLI:**  
   Check with:
   ```powershell
@@ -38,6 +78,7 @@ Ensure all required tools are installed on your machine.
   ```powershell
   choco install azure-cli -y
   ```
+
 - **Python 3 (Optional):**  
   Check with:
   ```powershell
@@ -55,31 +96,6 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; `
 iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 ```
 
-### Linux (e.g., GitHub Codespace or Local VM)
-
-Run the following commands in your terminal:
-- **Update Package List:**
-  ```bash
-  sudo apt-get update
-  ```
-- **Node.js:**
-  ```bash
-  node --version || sudo apt-get install -y nodejs npm
-  ```
-  *Note: For the latest Node.js version, consider using the NodeSource repository.*
-- **Git:**
-  ```bash
-  git --version || sudo apt-get install -y git
-  ```
-- **Azure CLI:**
-  ```bash
-  az --version || curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-  ```
-- **Python 3 (Optional):**
-  ```bash
-  python3 --version || sudo apt-get install -y python3
-  ```
-
 ---
 
 ## 2. Azure Login Issues
@@ -94,14 +110,20 @@ Refer to https://github.com/Azure/login#readme for more information.
 ### Steps to Resolve:
 
 1. **Verify Service Principal Creation:**  
-   Run (replace `<your-subscription-id>` with your actual subscription ID):
+   Run the following command (replace `<your-subscription-id>` with your actual subscription ID; do not include the angle brackets). For example:
    ```bash
-   az ad sp create-for-rbac --name "github-actions-deploy" --role contributor --scopes /subscriptions/<your-subscription-id> --sdk-auth
+   az ad sp create-for-rbac --name "github-actions-deploy" --role contributor --scopes /subscriptions/12345678-1234-1234-1234-123456789abc --sdk-auth
    ```
    Ensure the output JSON includes `clientId`, `clientSecret`, `tenantId`, and `subscriptionId`.
 
+   **Important:**  
+   You must replace `<your-subscription-id>` with your real subscription ID. If you leave the placeholder unchanged, you will receive an error such as:
+   ```
+   bash: your-subscription-id: No such file or directory
+   ```
+
 2. **Check GitHub Secrets:**  
-   Verify that the secret `AZURE_CREDENTIALS` in your repository’s **Settings > Secrets** contains the full JSON output.
+   Verify that the secret `AZURE_CREDENTIALS` in your repository’s **Settings > Secrets** contains the full JSON output from the Service Principal creation.
 
 3. **Review Your Workflow:**  
    Confirm that the GitHub Actions workflow in `.github/workflows/deploy.yml` correctly references `AZURE_CREDENTIALS`.
@@ -113,8 +135,11 @@ Refer to https://github.com/Azure/login#readme for more information.
    ```
    A successful login confirms that your credentials are correct.
 
-5. **Consult Documentation:**  
-   Refer to the [Azure/login GitHub Action documentation](https://github.com/Azure/login#readme) for further details.
+5. **Device Code Authentication (if applicable):**  
+   If using device code authentication (with `az login --use-device-code`), ensure you enter the code exactly as displayed and do so within the allotted time. Re-run the command if the code expires.
+
+6. **Consult Documentation:**  
+   Refer to the [Azure/login GitHub Action documentation](https://github.com/Azure/login#readme) for additional details.
 
 ---
 
@@ -122,15 +147,18 @@ Refer to https://github.com/Azure/login#readme for more information.
 
 - **Review Logs:**  
   Check GitHub Actions logs or the output of your deployment script (`./scripts/deploy.sh` on Linux or `.\scripts\deploy.sh` on Windows) for error messages.
+
 - **Verify Resource Group Creation:**  
   Ensure the resource group is created by running:
   ```bash
   az group list --output table
   ```
+
 - **Check the Parameter File:**  
   Verify that `infra/bicep/parameters.json` is correctly formatted and contains all required values.
+
 - **Permissions & Network:**  
-  Confirm your Azure account has the necessary permissions and that your network connection is stable.
+  Confirm that your Azure account has the necessary permissions and that your network connection is stable.
 
 ---
 
