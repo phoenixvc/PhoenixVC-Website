@@ -26,7 +26,7 @@ resource budget 'Microsoft.Consumption/budgets@2019-10-01' = {
   scope: resourceGroup()
   properties: {
     category: 'Cost'
-    amount: 100.0
+    amount: 100
     timeGrain: 'Monthly'
     timePeriod: {
       startDate: '2025-01-01T00:00:00Z'
@@ -44,3 +44,4 @@ resource budget 'Microsoft.Consumption/budgets@2019-10-01' = {
     }
   }
 }
+
