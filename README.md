@@ -32,7 +32,7 @@ Before getting started, ensure you have the following installed on your developm
 
 ## Project Structure
 
-```
+```bash
 /my-project
 ├── .github
 │   └── workflows

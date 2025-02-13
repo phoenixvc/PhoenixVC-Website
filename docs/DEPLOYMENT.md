@@ -92,6 +92,8 @@ Our GitHub Actions workflow is defined in `.github/workflows/deploy.yml`. When c
 
 No additional manual steps are required for automated deployments.
 
+> Note: The budget resource is optional. Due to our current subscription's offer type not supporting cost management budgets (only available for Enterprise Agreement, Web Direct, or Microsoft Customer Agreement), the deployBudget parameter is set to false by default. Enable it (set it to true) only if your subscription supports cost management budgets.
+
 ---
 
 ## Region Considerations
@@ -99,11 +101,11 @@ No additional manual steps are required for automated deployments.
 Azure Static Web Apps distribute your static assets globally via a CDN, but the managed backend (Azure Functions) is deployed to a specific region. Our deployment strategy supports two scenarios:
 
 - **West Europe (euw):**  
-  - **Managed Deployment:** Use the managed backend provided by Azure Static Web Apps in regions such as "westeurope".  
+  - **Managed Deployment:** Use the managed backend provided by Azure Static Web Apps in "westeurope".  
   - **Resource Naming:** Follow our naming convention: `[env]-[region]-[resourcetype]-projectname` (e.g., `prod-euw-swa-phoenixvc`).
 
 - **South Africa North (saf):**  
-  - **Bring Your Own Functions App (BYOF):** Managed Azure Static Web Apps do not support South Africa North for the managed Functions backend.  
+  - **Bring Your Own Functions App (BYOF):** Managed Azure Static Web Apps do not support South Africa North for the managed backend.  
   - **Alternative Deployment:** If you require your backend in South Africa North, you must deploy your own Azure Functions app (using BYOF) and link it to your static web app.  
   - **Resource Naming:** Use the region identifier `saf` (e.g., `prod-saf-swa-phoenixvc`) when deploying via BYOF.
 

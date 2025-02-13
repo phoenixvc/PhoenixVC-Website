@@ -19,6 +19,9 @@
     },
     "outputLocation": {
       "value": "build"
+    },
+    "deployBudget": {
+      "value": false
     }
   }
 }

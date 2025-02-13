@@ -32,7 +32,7 @@ For more details, see the [Azure CLI Troubleshooting documentation](https://docs
    ```bash
    az ad sp create-for-rbac --name "http://github-actions-deploy.phoenixvc.tech" --role contributor --scopes /subscriptions/22f9eb18-6553-4b7d-9451-47d0195085fe --sdk-auth
    ```
-   Replace any placeholders with your actual subscription ID. If you encounter authorization errors, contact an administrator for the necessary privileges.
+   Replace any placeholders with your actual values. If you encounter authorization errors, contact an administrator for the necessary privileges.
 
 For more detailed instructions, see our [Deployment Guide](../DEPLOYMENT.md).
 
@@ -58,7 +58,7 @@ If you need to deploy your backend in a region not natively supported (e.g., Sou
 
 ## Q5: Can I deploy my Azure Static Web App to South Africa North?
 
-**A:** Managed Azure Static Web Apps do not currently support South Africa North for the managed backend. If you require your backend in South Africa North, you must deploy your own Azure Functions app using the "Bring Your Own Functions App" feature. Refer to the answer above for details.
+**A:** Managed Azure Static Web Apps do not currently support South Africa North for the managed backend. If you require your backend in South Africa North, you must deploy your own Azure Functions app using the "Bring Your Own Functions App" feature. Refer to Q4 for details.
 
 ---
 
@@ -72,7 +72,7 @@ To set your subscription, use:
 ```bash
 az account set --subscription <subscription-id>
 ```
-Replace `<subscription-id>` with your actual subscription ID (e.g., `22f9eb18-6553-4b7d-9451-47d0195085fe`).
+Replace `<subscription-id>` with your actual subscription ID (for example, `22f9eb18-6553-4b7d-9451-47d0195085fe`).
 
 ---
 

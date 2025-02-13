@@ -1,15 +1,19 @@
-param staticSiteName string = 'phoenix-vc-static-web'
+param staticSiteName string = 'prod-euw-swa-phoenixvc'
 param location string = resourceGroup().location
 param repositoryUrl string = 'https://github.com/JustAGhosT/PhoenixVC-Modernized'
 param branch string = 'main'
 param appLocation string = '/'
 param apiLocation string = ''
 param outputLocation string = 'build'
+param deployBudget bool = false
 
 resource staticSite 'Microsoft.Web/staticSites@2021-03-01' = {
   name: staticSiteName
   location: location
   kind: 'static'
+  sku: {
+    name: 'Standard'
+  }
   properties: {
     repositoryUrl: repositoryUrl
     branch: branch
@@ -21,7 +25,7 @@ resource staticSite 'Microsoft.Web/staticSites@2021-03-01' = {
   }
 }
 
-resource budget 'Microsoft.Consumption/budgets@2019-10-01' = {
+resource budget 'Microsoft.Consumption/budgets@2019-10-01' = if (deployBudget) {
   name: 'prod-euw-rg-phoenixvc-budget'
   scope: resourceGroup()
   properties: {

@@ -5,10 +5,49 @@ This document outlines the naming conventions, formatting rules, and overall cod
 ## Naming Conventions
 
 Our naming convention for Azure resources follows the pattern:
+```plaintext
+env_loc_resourcetype_projname[optionalidentifier]
 ```
-[env]-[region]-[resourcetype]-projectname
-```
-**Examples:**
+**Abbreviations:**  
+Refer to the [Azure Cloud Adoption Framework: Resource Abbreviations](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-abbreviations) for standard abbreviations.
+
+**Elements Breakdown:**
+
+- **Environment (env):**  
+  Represents the environment where the resource is deployed.  
+  **Examples:**  
+  - `dev` (Development)  
+  - `uat` (User Acceptance Testing)  
+  - `prod` (Production)
+
+- **Location (loc):**  
+  Represents the Azure region or location where the resource is deployed. Use Azure region codes for consistency.  
+  **Examples:**  
+  - `euw` (West Europe)  
+  - `eus` (East US)  
+  - `saf` (South Africa North)
+
+- **Resource Type (resourcetype):**  
+  Abbreviation of the Azure resource type. Use short and consistent abbreviations for resource types.  
+  **Examples:**  
+  - `rg` (Resource Group)  
+  - `vm` (Virtual Machine)  
+  - `sql` (SQL Database)  
+  - `sa` (Storage Account)  
+  - `swa` (Static Web App)
+
+- **Project Name (projname):**  
+  Identifies the specific project or application associated with the resource.  
+  **Example:**  
+  - `phoenixvc`
+
+- **Optional Identifier (optionalidentifier):**  
+  Used for additional categorization or to distinguish between similar resources within a project.  
+  **Examples:**  
+  - Sequential numbers (e.g., `001`, `002`)  
+  - Specific functionality (e.g., `frontend`, `backend`)
+  
+  **Examples:**
 - **Static Web App:**  
   For a production deployment in West Europe:  
   `prod-euw-swa-phoenixvc`  
@@ -35,7 +74,7 @@ Our naming convention for Azure resources follows the pattern:
 ## Documentation & Comments
 
 - Provide clear inline comments where necessary.
-- Update external documentation (e.g., README, DEPLOYMENT.md, TROUBLESHOOTING.md) whenever significant changes occur.
+- Update external documentation (e.g., README.md, DEPLOYMENT.md, TROUBLESHOOTING.md) whenever significant changes occur.
 - Maintain a consistent style across all documentation.
 
 ## Testing
