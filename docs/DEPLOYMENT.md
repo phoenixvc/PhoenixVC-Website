@@ -93,6 +93,21 @@ No additional manual steps are required for automated deployments.
 
 ---
 
+## Region Considerations
+
+Please note that while Azure Static Web Apps globally distribute your static assets via a CDN, the managed backend (Azure Functions) is deployed to a specific region. The supported regions for the managed backend include:  
+- westus2  
+- centralus  
+- eastus2  
+- westeurope  
+- eastasia  
+
+If you need your Functions app to run in a region not supported (for example, South Africa North), you can use the "Bring Your Own Functions App" feature to deploy your own Functions app and link it to your static web app. For further details, refer to the [Functions: Bring Your Own Functions App documentation](https://learn.microsoft.com/en-us/azure/static-web-apps/functions-bring-your-own).
+
+If you have further region-related questions, please see our [FAQ](../docs/FAQ.md#region-deployment-questions).
+
+---
+
 ## Troubleshooting
 
 For common deployment issues, please refer to our [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) file, which covers error resolution steps (including issues related to Service Principal creation, Azure login errors, and more).
