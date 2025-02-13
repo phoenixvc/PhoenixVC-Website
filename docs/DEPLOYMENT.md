@@ -9,6 +9,7 @@ This document outlines how to deploy the Phoenix VC project to Azure Static Web 
 - [Automated Deployment (CI/CD)](#automated-deployment-cicd)
 - [Troubleshooting](#troubleshooting)
 - [Additional Resources](#additional-resources)
+- [FAQ](#faq)
 
 ---
 
@@ -40,7 +41,7 @@ To enable deployment, you need to create an Azure Service Principal that GitHub 
    ```
 
 3. **Create the Service Principal:**  
-   Run the following command (using the actual subscription ID):
+   Run the following command:
    ```bash
    az ad sp create-for-rbac --name "http://github-actions-deploy.phoenixvc.tech" --role contributor --scopes /subscriptions/22f9eb18-6553-4b7d-9451-47d0195085fe --sdk-auth
    ```
@@ -54,12 +55,10 @@ To enable deployment, you need to create an Azure Service Principal that GitHub 
    it indicates that your account does not have the required permissions to create role assignments. In that case, please contact your administrator to grant you the necessary permissions (e.g., Owner or User Access Administrator) or ask an admin to create the Service Principal for you.
 
 4. **Store in GitHub Secrets:**  
-   Copy the output JSON and add it to your GitHub repository's secrets as `AZURE_CREDENTIALS`. The current link to the secrets is https://github.com/JustAGhosT/PhoenixVC-Modernized/settings/secrets/actions.
+   Copy the output JSON and add it to your GitHub repository's secrets as `AZURE_CREDENTIALS`.  
+   You can add secrets by navigating to [GitHub Secrets](https://github.com/JustAGhosT/PhoenixVC-Modernized/settings/secrets/actions).
 
-*Note:* Ensure you replace `<your-subscription-id>` with the actual subscription ID (in this case, `22f9eb18-6553-4b7d-9451-47d0195085fe`) to avoid errors like:
-```
-bash: your-subscription-id: No such file or directory
-```
+*Note:* Ensure you replace any placeholders with your actual values to avoid errors.
 
 ---
 
@@ -96,7 +95,7 @@ No additional manual steps are required for automated deployments.
 
 ## Troubleshooting
 
-For common deployment issues, please refer to our [Troubleshooting](TROUBLESHOOTING.md) file, which covers error resolution steps (including issues related to Service Principal creation and Azure login).
+For common deployment issues, please refer to our [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) file, which covers error resolution steps (including issues related to Service Principal creation, Azure login errors, and more).
 
 ---
 
@@ -106,3 +105,9 @@ For common deployment issues, please refer to our [Troubleshooting](TROUBLESHOOT
 - [Bicep Documentation](https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/)
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
 - [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+
+---
+
+## FAQ
+
+For answers to common questions about deployment, authentication, and regional availability for Azure Static Web Apps, please refer to our [FAQ](docs/FAQ.md) document.
