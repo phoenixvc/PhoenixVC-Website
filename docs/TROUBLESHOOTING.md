@@ -16,7 +16,6 @@ Run the following commands in your terminal:
   ```bash
   sudo apt-get update
   ```
-
 - **Node.js (Recommended - NodeSource):**
   Check with:
   ```bash
@@ -27,17 +26,14 @@ Run the following commands in your terminal:
   curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
   sudo apt-get install -y nodejs
   ```
-
 - **Git:**
   ```bash
   git --version || sudo apt-get install -y git
   ```
-
 - **Azure CLI:**
   ```bash
   az --version || curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
   ```
-
 - **Python 3 (Optional):**
   ```bash
   python3 --version || sudo apt-get install -y python3
@@ -58,7 +54,6 @@ If you’re using a Windows environment, follow these steps using Chocolatey:
   ```powershell
   choco install nodejs -y
   ```
-
 - **Git:**  
   Check with:
   ```powershell
@@ -68,7 +63,6 @@ If you’re using a Windows environment, follow these steps using Chocolatey:
   ```powershell
   choco install git -y
   ```
-
 - **Azure CLI:**  
   Check with:
   ```powershell
@@ -78,7 +72,6 @@ If you’re using a Windows environment, follow these steps using Chocolatey:
   ```powershell
   choco install azure-cli -y
   ```
-
 - **Python 3 (Optional):**  
   Check with:
   ```powershell
@@ -147,16 +140,13 @@ Refer to https://github.com/Azure/login#readme for more information.
 
 - **Review Logs:**  
   Check GitHub Actions logs or the output of your deployment script (`./scripts/deploy.sh` on Linux or `.\scripts\deploy.sh` on Windows) for error messages.
-
 - **Verify Resource Group Creation:**  
   Ensure the resource group is created by running:
   ```bash
   az group list --output table
   ```
-
 - **Check the Parameter File:**  
   Verify that `infra/bicep/parameters.json` is correctly formatted and contains all required values.
-
 - **Permissions & Network:**  
   Confirm that your Azure account has the necessary permissions and that your network connection is stable.
 
@@ -203,7 +193,13 @@ These alternatives allow you to develop locally while following the same deploym
 
 ---
 
-## 7. Additional Help
+## 7. FAQ
+
+For answers to common questions regarding deployment, authentication, and regional availability for Azure Static Web Apps, please refer to our [FAQ](docs/FAQ.md) document.
+
+---
+
+## 8. Additional Help
 
 If issues persist after following these steps:
 - Review the logs for additional context.
