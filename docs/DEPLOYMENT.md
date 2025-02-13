@@ -7,6 +7,7 @@ This document outlines how to deploy the Phoenix VC project to Azure Static Web 
 - [Service Principal Creation](#service-principal-creation)
 - [Local Deployment](#local-deployment)
 - [Automated Deployment (CI/CD)](#automated-deployment-cicd)
+- [Region Considerations](#region-considerations)
 - [Troubleshooting](#troubleshooting)
 - [Additional Resources](#additional-resources)
 - [FAQ](#faq)
@@ -79,7 +80,7 @@ To enable deployment, you need to create an Azure Service Principal that GitHub 
    ```bash
    ./scripts/deploy.sh
    ```
-   This script creates the resource group (e.g., `prod-za-rg-phoenixvc`) and deploys the Bicep template (`infra/bicep/main.bicep`) using parameters from `infra/bicep/parameters.json`.
+   This script creates the resource group (e.g., `prod-euw-rg-phoenixvc` or `prod-saf-rg-phoenixvc`) and deploys the Bicep template (`infra/bicep/main.bicep`) using parameters from `infra/bicep/parameters.json`.
 
 ---
 
@@ -95,16 +96,20 @@ No additional manual steps are required for automated deployments.
 
 ## Region Considerations
 
-Please note that while Azure Static Web Apps globally distribute your static assets via a CDN, the managed backend (Azure Functions) is deployed to a specific region. The supported regions for the managed backend include:  
-- westus2  
-- centralus  
-- eastus2  
-- westeurope  
-- eastasia  
+Azure Static Web Apps distribute your static assets globally via a CDN, but the managed backend (Azure Functions) is deployed to a specific region. Our deployment strategy supports two scenarios:
 
-If you need your Functions app to run in a region not supported (for example, South Africa North), you can use the "Bring Your Own Functions App" feature to deploy your own Functions app and link it to your static web app. For further details, refer to the [Functions: Bring Your Own Functions App documentation](https://learn.microsoft.com/en-us/azure/static-web-apps/functions-bring-your-own).
+- **West Europe (euw):**  
+  - **Managed Deployment:** Use the managed backend provided by Azure Static Web Apps in regions such as "westeurope".  
+  - **Resource Naming:** Follow our naming convention: `[env]-[region]-[resourcetype]-projectname` (e.g., `prod-euw-swa-phoenixvc`).
 
-If you have further region-related questions, please see our [FAQ](../docs/FAQ.md#region-deployment-questions).
+- **South Africa North (saf):**  
+  - **Bring Your Own Functions App (BYOF):** Managed Azure Static Web Apps do not support South Africa North for the managed Functions backend.  
+  - **Alternative Deployment:** If you require your backend in South Africa North, you must deploy your own Azure Functions app (using BYOF) and link it to your static web app.  
+  - **Resource Naming:** Use the region identifier `saf` (e.g., `prod-saf-swa-phoenixvc`) when deploying via BYOF.
+
+Choose the deployment option that best fits your performance, compliance, and geographic requirements. For more details, refer to the [Functions: Bring Your Own Functions App documentation](https://learn.microsoft.com/en-us/azure/static-web-apps/functions-bring-your-own).
+
+For additional region-related questions, please see our [FAQ](../docs/FAQ.md#region-deployment-questions).
 
 ---
 
@@ -125,4 +130,6 @@ For common deployment issues, please refer to our [TROUBLESHOOTING.md](docs/TROU
 
 ## FAQ
 
-For answers to common questions about deployment, authentication, and regional availability for Azure Static Web Apps, please refer to our [FAQ](docs/FAQ.md) document.
+For answers to common questions about deployment, authentication, and regional availability for Azure Static Web Apps, please refer to our [FAQ](docs/FAQ.md).
+
+---

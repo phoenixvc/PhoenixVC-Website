@@ -18,5 +18,5 @@ jobs:
 
       - name: Create Resource Group and Deploy Bicep Template
         run: |
-          az group create --name prod-za-rg-phoenixvc --location "South Africa North"
-          az deployment group create --resource-group prod-za-rg-phoenixvc --template-file ./infra/bicep/main.bicep --parameters @./infra/bicep/parameters.json
+          az group create --name prod-euw-rg-phoenixvc --location "westeurope"
+          az deployment group create --resource-group prod-euw-rg-phoenixvc --template-file ./infra/bicep/main.bicep --parameters @./infra/bicep/parameters.json

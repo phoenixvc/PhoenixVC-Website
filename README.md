@@ -5,7 +5,7 @@
 [![Version](https://img.shields.io/badge/version-v1.0.0-blue)](https://github.com/JustAGhosT/PhoenixVC-Modernized/releases)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
 
-Phoenix VC is a premier, proprietary venture capital firm dedicated to identifying and investing in transformative technologies. With a rich heritage and a commitment to excellence, our modernized website leverages cutting-edge cloud technologies—including Azure Static Web Apps, Tailwind CSS, and Bicep templates—to deliver a seamless digital experience. Our mission remains focused on driving innovation and fostering growth in tomorrow’s leading industries.
+Phoenix VC is a premier, proprietary venture capital firm dedicated to identifying and investing in transformative technologies. Our modernized website leverages cutting-edge cloud technologies—including Azure Static Web Apps, Tailwind CSS, and Bicep templates—to deliver a seamless digital experience. Our mission is focused on driving innovation and fostering growth in tomorrow’s leading industries.
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
@@ -28,7 +28,7 @@ Before getting started, ensure you have the following installed on your developm
 - [Node.js](https://nodejs.org/) (v14 or higher)
 - [Git](https://git-scm.com/)
 - [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
-- *(Optional)* [Python 3](https://www.python.org/downloads/) (required for running the custom file tree script)
+- *(Optional)* [Python 3](https://www.python.org/downloads/) (for running the custom file tree script)
 
 ## Project Structure
 
@@ -37,10 +37,10 @@ Before getting started, ensure you have the following installed on your developm
 ├── .github
 │   └── workflows
 │       └── deploy.yml         # GitHub Actions workflow for deployment
-├── docs                       # Documentation (Contributing, Deployment, Troubleshooting, FAQ)
+├── docs                       # Documentation (Contributing, Deployment, Troubleshooting, FAQ, Code Style Guidelines)
 ├── infra
 │   └── bicep
-│       ├── main.bicep         # Bicep template for Azure resources
+│       ├── main.bicep         # Bicep template for Azure resources (including budget)
 │       └── parameters.json    # Parameters file for the Bicep template
 ├── scripts
 │   ├── deploy.sh              # Deployment script for local testing
@@ -105,11 +105,11 @@ To enable automated deployments via GitHub Actions:
 1. **Create a Service Principal:**  
    Run the following command in the Azure CLI (replace `<your-subscription-id>` with your subscription ID):
    ```bash
-   az ad sp create-for-rbac --name "github-actions-deploy" --role contributor --scopes /subscriptions/<your-subscription-id> --sdk-auth
+   az ad sp create-for-rbac --name "http://github-actions-deploy.phoenixvc.tech" --role contributor --scopes /subscriptions/<your-subscription-id> --sdk-auth
    ```
    This command outputs a JSON object containing your Azure credentials.
 2. **Store in GitHub Secrets:**  
-   Copy the JSON output and add it to your GitHub repository's secrets as `AZURE_CREDENTIALS`.
+   Copy the output JSON and add it to your GitHub repository's secrets as `AZURE_CREDENTIALS`.
 3. **Reference in Workflow:**  
    The GitHub Actions workflow (located in `.github/workflows/deploy.yml`) uses this secret to authenticate with Azure during deployment.
 
@@ -161,7 +161,7 @@ For detailed instructions on how to deploy the project—both locally using our 
 
 ## FAQ
 
-For answers to common questions about deployment, authentication, and regional availability for Azure Static Web Apps, please see our [docs/FAQ.md](docs/FAQ.md) file.
+For answers to common questions about deployment, authentication, and regional availability for Azure Static Web Apps, please refer to our [docs/FAQ.md](docs/FAQ.md) document.
 
 ## Support
 

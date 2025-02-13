@@ -32,8 +32,7 @@ For more details, see the [Azure CLI Troubleshooting documentation](https://docs
    ```bash
    az ad sp create-for-rbac --name "http://github-actions-deploy.phoenixvc.tech" --role contributor --scopes /subscriptions/22f9eb18-6553-4b7d-9451-47d0195085fe --sdk-auth
    ```
-   Ensure you replace any placeholder values with your actual subscription ID.  
-   If you encounter authorization errors (e.g., lacking the role assignment permission), please contact an administrator to grant the necessary privileges.
+   Replace any placeholders with your actual subscription ID. If you encounter authorization errors, contact an administrator for the necessary privileges.
 
 For more detailed instructions, see our [Deployment Guide](../DEPLOYMENT.md).
 
@@ -41,7 +40,7 @@ For more detailed instructions, see our [Deployment Guide](../DEPLOYMENT.md).
 
 ## Q3: What are the supported regions for deploying Azure Static Web Apps?
 
-**A:** As of the latest information, Azure Static Web Apps support the following regions:
+**A:** The managed backend for Azure Static Web Apps is supported in the following regions:
 - **westus2**
 - **centralus**
 - **eastus2**
@@ -52,20 +51,14 @@ For more detailed instructions, see our [Deployment Guide](../DEPLOYMENT.md).
 
 ## Q4: How do I ensure my app is deployed to a specific Azure region?
 
-**A:** Azure Static Web Apps is a global service—your static assets are distributed via a CDN. However, when you create your app, you select a region where the managed Azure Functions backend is deployed. The supported regions for the managed backend include:
-- westus2  
-- centralus  
-- eastus2  
-- westeurope  
-- eastasia
-
-If you need your backend deployed in a region not supported (e.g., South Africa North), you can use the "Bring Your Own Functions App" feature. This allows you to deploy an Azure Functions app in your desired region and then link it to your static web app. For further details, please see the [Functions: Bring Your Own Functions App documentation](https://learn.microsoft.com/en-us/azure/static-web-apps/functions-bring-your-own).
+**A:** When creating your app, you select a region for the managed Azure Functions backend. For example, if deploying in West Europe, use the region identifier "euw" in your resource names (e.g., `prod-euw-swa-phoenixvc`).  
+If you need to deploy your backend in a region not natively supported (e.g., South Africa North), you must use the "Bring Your Own Functions App" feature. See the [Functions: Bring Your Own Functions App documentation](https://learn.microsoft.com/en-us/azure/static-web-apps/functions-bring-your-own) for details.
 
 ---
 
 ## Q5: Can I deploy my Azure Static Web App to South Africa North?
 
-**A:** Managed Azure Static Web Apps do not currently support South Africa North for the managed backend. If you require your backend in South Africa North, you must deploy your own Azure Functions app using the "Bring Your Own Functions App" feature. Please see the previous answer for details.
+**A:** Managed Azure Static Web Apps do not currently support South Africa North for the managed backend. If you require your backend in South Africa North, you must deploy your own Azure Functions app using the "Bring Your Own Functions App" feature. Refer to the answer above for details.
 
 ---
 
@@ -79,7 +72,7 @@ To set your subscription, use:
 ```bash
 az account set --subscription <subscription-id>
 ```
-Replace `<subscription-id>` with your actual subscription ID (for example, `22f9eb18-6553-4b7d-9451-47d0195085fe`).
+Replace `<subscription-id>` with your actual subscription ID (e.g., `22f9eb18-6553-4b7d-9451-47d0195085fe`).
 
 ---
 
@@ -87,20 +80,20 @@ Replace `<subscription-id>` with your actual subscription ID (for example, `22f9
 
 **A:** While our primary development environment is GitHub Codespaces (a Linux-based virtual workspace), you can also develop locally using:
 - **Local Linux VM:** Set up a virtual machine (e.g., using VirtualBox) running Ubuntu.
-- **Docker Containers:** Containerize the project to ensure a consistent environment.
+- **Docker Containers:** Containerize the project for a consistent environment.
 - **WSL (Windows Subsystem for Linux):** Run a Linux environment on Windows.
-For more information on local development setups, please refer to our [Local Development Alternatives](../CONTRIBUTING.md#local-development-alternatives) section in the CONTRIBUTING guidelines.
+For more details, refer to our [Local Development Alternatives](../CONTRIBUTING.md#local-development-alternatives) section in the CONTRIBUTING guidelines.
 
 ---
 
 ## Q8: Where can I find more detailed documentation?
 
-**A:** For further information on deployment, troubleshooting, and coding standards, please refer to the following documentation within the project:
+**A:** For further information on deployment, troubleshooting, and coding standards, please refer to:
 - [DEPLOYMENT.md](../DEPLOYMENT.md)
 - [TROUBLESHOOTING.md](../TROUBLESHOOTING.md)
-- [CODE_STYLE_GUIDELINES.md](../docs/CODE_STYLE_GUIDELINES.md) (if available)
-
-For official Azure Static Web Apps information, visit the [Azure Static Web Apps Overview](https://learn.microsoft.com/en-us/azure/static-web-apps/overview) and the [Azure Static Web Apps FAQ](https://learn.microsoft.com/en-us/azure/static-web-apps/faq).
+- [CODE_STYLE_GUIDELINES.md](../docs/CODE_STYLE_GUIDELINES.md)
+- [Azure Static Web Apps Overview](https://learn.microsoft.com/en-us/azure/static-web-apps/overview)
+- [Azure Static Web Apps FAQ](https://learn.microsoft.com/en-us/azure/static-web-apps/faq)
 
 ---
 
