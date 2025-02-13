@@ -1,4 +1,4 @@
-# Phoenix VC - Website 
+# Phoenix VC - Website  
 **Empowering innovation through strategic investments and visionary partnerships**
 
 [![Build Status](https://img.shields.io/github/workflow/status/JustAGhosT/PhoenixVC-Modernized/Deploy%20Azure%20Static%20Web%20App)](https://github.com/JustAGhosT/PhoenixVC-Modernized/actions)
@@ -18,6 +18,7 @@ Phoenix VC is a premier, proprietary venture capital firm dedicated to identifyi
 - [Contributing](#contributing)
 - [Repository Structure and File Listing](#repository-structure-and-file-listing)
 - [Deployment](#deployment)
+- [FAQ](#faq)
 - [Support](#support)
 - [License](#license)
 
@@ -36,7 +37,7 @@ Before getting started, ensure you have the following installed on your developm
 ├── .github
 │   └── workflows
 │       └── deploy.yml         # GitHub Actions workflow for deployment
-├── docs                       # Documentation (Contributing, Deployment, Troubleshooting)
+├── docs                       # Documentation (Contributing, Deployment, Troubleshooting, FAQ)
 ├── infra
 │   └── bicep
 │       ├── main.bicep         # Bicep template for Azure resources
@@ -95,6 +96,8 @@ Once deployed, access the Phoenix VC website at [https://phoenixvc.tech](https:/
 - **Our Goals:**  
   Learn more about our vision and strategic objectives on the [Goals](https://phoenixvc.tech/goals) page.
 
+*Note: Replace these placeholder URLs with the actual links when available.*
+
 ## Setting Up Azure Credentials
 
 To enable automated deployments via GitHub Actions:
@@ -106,7 +109,7 @@ To enable automated deployments via GitHub Actions:
    ```
    This command outputs a JSON object containing your Azure credentials.
 2. **Store in GitHub Secrets:**  
-   Copy the JSON output and add it to your GitHub repository's secrets with the name `AZURE_CREDENTIALS`.
+   Copy the JSON output and add it to your GitHub repository's secrets as `AZURE_CREDENTIALS`.
 3. **Reference in Workflow:**  
    The GitHub Actions workflow (located in `.github/workflows/deploy.yml`) uses this secret to authenticate with Azure during deployment.
 
@@ -140,7 +143,7 @@ To view a tree of the repository that **only includes files not ignored by `.git
 ```bash
 git ls-files --cached --others --exclude-standard | python3 scripts/git_tree.py
 ```
-This command pipes Git’s file list into our custom Python script (`scripts/git_tree.py`), which outputs a hierarchical, tree-like structure using conventional symbols (e.g., `├──`, `└──`). This is especially useful when providing an AI or a team member with a clear overview of the repository structure.
+This pipes Git’s file list into our custom Python script (`scripts/git_tree.py`), which outputs a hierarchical, tree-like structure using conventional symbols (e.g., `├──`, `└──`). This is especially useful when providing an AI or team member with a clear overview of the repository structure.
 
 Alternatively, for a complete flat list (excluding ignored files), run:
 ```bash
@@ -155,6 +158,10 @@ tree -a
 ## Deployment
 
 For detailed instructions on how to deploy the project—both locally using our deployment script and via our CI/CD pipeline through GitHub Actions—please refer to our [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) guide.
+
+## FAQ
+
+For answers to common questions about deployment, authentication, and regional availability for Azure Static Web Apps, please see our [docs/FAQ.md](docs/FAQ.md) file.
 
 ## Support
 
