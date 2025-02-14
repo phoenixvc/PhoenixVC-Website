@@ -25,3 +25,4 @@ Thumbs.db
 *.ntvs*
 *.njsproj
 *.sln
+doc_changes_report_*.txt
