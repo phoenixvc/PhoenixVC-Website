@@ -41,3 +41,5 @@ theme: minima
 # Plugins (if needed)
 plugins:
   - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
