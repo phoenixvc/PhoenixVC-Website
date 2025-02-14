@@ -138,6 +138,6 @@ sequenceDiagram
 
 ## Related Documentation
 - [Security Baseline](./azure-security-baseline.md)
-- [Controls Checklist](./controls-checklist.md)
-- [Audit Procedures](./audit-procedures.md)
+- [DNS Policy Checklist](./dns-policy-checklist.md)
+- [SPN Audit & Rotation](./spn-audit-rotation.md)
 - [Network Topology](./network-topology.md)

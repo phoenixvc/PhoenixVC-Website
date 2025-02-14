@@ -1,4 +1,4 @@
-# Azure DNS Policy Implementation Checklist
+# DNS Policy Implementation Checklist
 **Project:** PhoenixVC DNS Compliance Framework  
 **Reference Doc:** [Azure Policy Design Document](#azure-policy-design)
 
