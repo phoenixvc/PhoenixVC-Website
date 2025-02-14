@@ -1,0 +1,8 @@
+[Unit]
+Description=SPN Credential Audit
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bash /opt/spn-manager/audit/log-analyzer.sh -full
+Environment=AZURE_CONFIG_DIR=/etc/spn-manager/.azure

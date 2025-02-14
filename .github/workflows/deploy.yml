@@ -1,22 +1,48 @@
-name: Deploy Azure Static Web App
+name: Phoenix VC Deployment Pipeline
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main, feature/* ]
+  workflow_dispatch:
+
+env:
+  LOC_CODE: 'euw'  # Default to Europe West
+  ENV_SUFFIX: ${{ contains(github.ref, 'feature/') && 'feature' || github.ref == 'refs/heads/main' && 'prod' || 'staging' }}
 
 jobs:
-  deploy:
+  deploy_staging:
+    if: github.ref != 'refs/heads/main'
     runs-on: ubuntu-latest
+    environment: staging
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+      - name: Deploy to Staging
+        run: ./scripts/deploy.sh --env staging
+        env:
+          RG_NAME: staging-${{ env.LOC_CODE }}-rg-phoenixvc
+          SWA_NAME: staging-${{ env.LOC_CODE }}-swa-phoenixvc
 
-      - name: Login to Azure CLI
-        uses: azure/login@v1
+  deploy_prod:
+    if: github.ref == 'refs/heads/main'
+    needs: deploy_staging
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      deployments: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to Production
+        run: ./scripts/deploy.sh --env prod
+        env:
+          RG_NAME: prod-${{ env.LOC_CODE }}-rg-phoenixvc
+          SWA_NAME: prod-${{ env.LOC_CODE }}-swa-phoenixvc
+
+  configure_dns:
+    needs: deploy_prod
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Configure DNS
+        uses: Azure/cli@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Create Resource Group and Deploy Bicep Template
-        run: |
-          az group create --name prod-euw-rg-phoenixvc --location "westeurope"
-          az deployment group create --resource-group prod-euw-rg-phoenixvc --template-file ./infra/bicep/main.bicep --parameters @./infra/bicep/parameters.json
+          inlineScript: ./scripts/configure_dns.sh

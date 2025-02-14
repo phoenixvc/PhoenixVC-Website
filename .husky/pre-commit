@@ -1,0 +1,26 @@
+#!/bin/bash
+# SPN Naming and Date Validation
+
+PATTERN="^web-(prod|staging)-spn$"
+DATE_PATTERN="\d{4}-\d{2}-\d{2}"
+
+check_spn_names() {
+  grep -rE "az ad sp create" . | while read -r line; do
+    if [[ ! $line =~ $PATTERN ]]; then
+      echo "Invalid SPN name: $line"
+      exit 1
+    fi
+  done
+}
+
+validate_dates() {
+  find . -name "*-credentials-*.json" | while read -r file; do
+    if [[ ! $file =~ $DATE_PATTERN ]]; then
+      echo "Invalid date format in: $file"
+      exit 1
+    fi
+  done
+}
+
+check_spn_names
+validate_dates
