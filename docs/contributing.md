@@ -1,183 +1,142 @@
-# Contributing to Phoenix VC - Modernized
+📄 /docs/contributing.md
 
-Thank you for considering contributing to our project! Please review the guidelines below before submitting pull requests.
+# Contributing Guidelines
+
+Thank you for considering contributing to our project! This document outlines the process and guidelines for making contributions to both our codebase and our documentation. By following these guidelines, you'll help us maintain consistency, quality, and clarity across the project.
+
+> **Note:**  
+> When contributing to documentation, please also review the [documentation-roadmap.md](documentation-roadmap.md) and [naming-conventions.md](naming-conventions.md) files to ensure your changes align with our overall guidelines.
+
+## Table of Contents
+
+- [Getting Started](#getting-started)
+- [Branching Strategy](#branching-strategy)
+- [Commit Message Conventions](#commit-message-conventions)
+- [Pull Request Process](#pull-request-process)
+- [Code Review Guidelines](#code-review-guidelines)
+- [Documentation Contributions](#documentation-contributions)
+- [Additional Resources](#additional-resources)
+
+## Getting Started
+
+1. **Fork and Clone**  
+   Begin by forking the repository on GitHub and cloning your fork locally. Replace `<your-username>` with your GitHub username:
+   ```bash
+   git clone https://github.com/<your-username>/phoenixvc-modernized.git
+   cd phoenixvc-modernized
+   git remote add upstream https://github.com/your-organization/phoenixvc-modernized.git
+   ```
+
+2. **Install Dependencies**  
+   Install the necessary dependencies and prepare the project:
+   ```bash
+   npm install
+   npm run prepare   # Sets up the git hooks (commitlint, etc.)
+   ```
+
+3. **Set Up Your Environment**  
+   Copy the example environment file and update it with your values:
+   ```bash
+   cp .env.example .env
+   ```
+
+For more detailed instructions, please refer to [development/development-setup.md](development/development-setup.md).
 
 ## Branching Strategy
 
 - **Feature Branches:**  
-  Create branches for new features. Branch names should follow the pattern:  
-  `feature/<short-description>`  
-  Always base your branch off of the latest `main` branch.
+  Create a new branch for each feature.  
+  **Format:** `feature/<short-description>`  
+  **Example:** `feature/user-authentication`
 
 - **Bugfix Branches:**  
-  For fixes, use the pattern:  
-  `bugfix/<issue-number>-<short-description>`
+  Create branches for bug fixes.  
+  **Format:** `bugfix/<issue-number>-<short-description>`  
+  **Example:** `bugfix/123-fix-login-error`
+
+- **Hotfix Branches:**  
+  Use these for urgent fixes in production.  
+  **Format:** `hotfix/<issue-number>-<short-description>`  
+  **Example:** `hotfix/456-critical-ui-fix`
 
 - **Release Branches:**  
-  If applicable, use release branches (e.g., `release/v1.0.0`).
+  Create a branch when preparing for a new version.  
+  **Format:** `release/v<major>.<minor>.<patch>`  
+  **Example:** `release/v1.2.0`
 
-- **Pull Requests:**  
-  All feature, bugfix, or release branches should be merged into `main` via a pull request.
+## Commit Message Conventions
 
-## Commit Message Guidelines
+We follow the [Conventional Commits](https://www.conventionalcommits.org/) specification. To help maintain consistency and clarity, please use the following commit types with their corresponding icons:
 
-We follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification and include emojis for clarity. For example:
+- ✨ `feat`: New feature  
+- 🐛 `fix`: Bug fix  
+- 📝 `docs`: Documentation  
+- 🎨 `style`: Code style/formatting  
+- ♻️ `refactor`: Code refactoring  
+- ⚡️ `perf`: Performance improvements  
+- ✅ `test`: Testing  
+- 🔧 `chore`: Maintenance or other updates
 
-- **✨ feat:** for new features  
-  _Example:_ `✨ feat: add login functionality 🚀`
-- **🐛 fix:** for bug fixes  
-  _Example:_ `🐛 fix: resolve header alignment issue`
-- **📝 docs:** for documentation updates  
-  _Example:_ `📝 docs: update README with deployment instructions`
-- **🚀 chore:** for dependency updates or maintenance  
-  _Example:_ `🚀 chore: upgrade Tailwind CSS to v2.2.19`
+**Examples:**
 
-We enforce these commit message standards automatically using [Commitlint](https://commitlint.js.org/) with [Husky](https://typicode.github.io/husky/). To set this up:
+- **New Feature:**  
+  `✨ feat(auth): implement Azure AD authentication`
+  
+- **Bug Fix:**  
+  `🐛 fix(api): resolve connection timeout issue`
+  
+- **Documentation Update:**  
+  `📝 docs: update contributing guidelines`
+  
+- **Chore/Maintenance:**  
+  `🔧 chore: update dependencies`
 
-1. **Install Dependencies:**  
-   Run `npm install` at the repository root.
-2. **Initialize Husky:**  
-   Run `npm run prepare` to set up the Git hooks.
-3. **Commit Linting:**  
-   When you commit changes, Husky will trigger Commitlint. If your commit message doesn't follow the guidelines, the commit will be rejected.
-
-## Code Formatting and Linting
-
-We use a set of scripts defined in our `package.json` to maintain code quality and consistency:
-
-- **Prettier (Code Formatting):**  
-  Run:
-  ```bash
-  npm run format
-  ```
-  This script formats all JavaScript, CSS, HTML, and Markdown files under the `src` directory.
-
-- **Stylelint (CSS Linting):**  
-  Run:
-  ```bash
-  npm run lint:css
-  ```
-  This script checks the CSS files in `src/css`.
-
-- **ESLint (JavaScript/HTML Linting):**  
-  Run:
-  ```bash
-  npm run lint
-  ```
-  This script checks files in the `src` directory.
+*Our commit messages are automatically checked by commitlint (see [.github/commitlint.config.js](../../.github/commitlint.config.js)).*
 
 ## Pull Request Process
 
-- Open a pull request against the `main` branch.
-- Ensure your code is well-tested and passes all linting/formatting checks.
-- Use descriptive commit messages that follow the guidelines above.
-- Request reviews from team members before merging.
+1. **Open a Pull Request:**  
+   - Ensure your branch is up-to-date with the latest main branch.
+   - Open a PR against the main branch.
+   - Use a title in the format: `[Type] Short description (Issue-Number)`  
+     _Example:_ `[Feature] Add user authentication (PVC-123)`
 
-## Code Style Guidelines
+2. **PR Description Template:**  
+   Our Pull Request Template (located at [.github/PULL_REQUEST_TEMPLATE.md](../../.github/PULL_REQUEST_TEMPLATE.md)) includes sections for changes, testing, screenshots (if applicable), and a checklist. Please use and fill out that template.
 
-Our guidelines ensure consistency, readability, and maintainability across the project. Key points include:
+3. **Review Process:**  
+   - At least one approval is required before merging.
+   - Ensure all automated checks pass.
+   - Address any reviewer feedback promptly.
 
-- **Indentation:**  
-  Use **4 spaces** per indentation level throughout all files; avoid mixing tabs and spaces.
-- **Readability & Modularity:**  
-  Write clean, modular code. Break complex logic into smaller functions or components and include inline comments for non-obvious sections.
-- **Naming Conventions:**  
-  - **Files & Directories:** Use **kebab-case** (e.g., `my-component.js`, `styles.css`).
-  - **Variables & Functions:** Use **camelCase**.
-  - **Classes & Components:** Use **PascalCase**.
-- **Documentation:**  
-  Provide meaningful inline comments and external documentation where needed.
-- **Testing:**  
-  Ensure your changes do not break existing functionality by writing and running appropriate tests.
-- **Consistency:**  
-  Follow the established coding standards and formatting rules (e.g., ESLint, Stylelint, and Prettier configurations).
+## Code Review Guidelines
 
-For a comprehensive overview of our coding standards, please refer to our full guidelines in [docs/CODE_STYLE_GUIDELINES.md](docs/CODE_STYLE_GUIDELINES.md).
+- **Reviewers:**  
+  - Verify that the code adheres to the [code-style.md](development/code-style.md) guidelines.
+  - Ensure tests are updated or added as needed.
+  - Evaluate the impact on performance, security, and readability.
 
-## Setting Up Azure Credentials
+- **Authors:**  
+  - Respond to feedback promptly.
+  - Make focused changes and avoid unrelated commits.
+  - Update relevant documentation if changes affect the project's setup or usage.
 
-To enable automated deployments via GitHub Actions:
+## Documentation Contributions
 
-1. **Create a Service Principal:**  
-   Run the following command in the Azure CLI (replace `<your-subscription-id>` with your subscription ID):
-   ```bash
-   az ad sp create-for-rbac --name "github-actions-deploy" --role contributor --scopes /subscriptions/<your-subscription-id> --sdk-auth
-   ```
-   This outputs a JSON object with your Azure credentials.
-2. **Store in GitHub Secrets:**  
-   Copy the JSON output and add it to your GitHub repository's secrets as `AZURE_CREDENTIALS`.
-3. **Reference in Workflow:**  
-   The GitHub Actions workflow (in `.github/workflows/deploy.yml`) uses this secret to authenticate with Azure.
+For contributions focused specifically on documentation:
+- Review the [documentation-roadmap.md](documentation-roadmap.md) for planned updates.
+- Follow the naming conventions outlined in [naming-conventions.md](naming-conventions.md).
+- Ensure any documentation changes are accompanied by updates to the version history (if applicable).
+- Consider submitting your documentation changes as a separate PR if they affect multiple files, to maintain clarity.
 
-## Local Development Environments
+## Additional Resources
 
-Our project is primarily developed within GitHub Codespaces, which provides a ready-to-use, Linux-based virtual workspace. You can access your Codespace via the web at:
+- [Code Style Guide](development/code-style.md)
+- [Development Setup Guide](development/development-setup.md)
+- [Naming Conventions](naming-conventions.md)
+- [Documentation Roadmap](documentation-roadmap.md)
+- [GitHub Issue Tracker](https://github.com/your-organization/phoenixvc-modernized/issues)
 
-[https://potential-winner-6wqvgqv7vgcx6rp.github.dev/](https://potential-winner-6wqvgqv7vgcx6rp.github.dev/)
+We appreciate your contributions and are here to help. If you have any questions or need further guidance, please reach out via our project's communication channels.
 
-For a richer development experience, you can also connect to your Codespace using Visual Studio Code:
-1. Install the [GitHub Codespaces extension for VS Code](https://marketplace.visualstudio.com/items?itemName=GitHub.codespaces).
-2. Sign in with your GitHub account.
-3. Open your active Codespace via the **Remote Explorer**.
-
-If you prefer not to use the GitHub Codespace virtual environment, consider these local development alternatives:
-- **Local Linux VM:**  
-  Set up a virtual machine (e.g., using VirtualBox) running Ubuntu and follow the Linux prerequisites.
-- **Docker Containers:**  
-  Create a Docker environment for your project to ensure consistency in development.
-- **WSL (Windows Subsystem for Linux):**  
-  Use WSL on Windows to run a Linux environment directly on your machine.
-
-## Additional Tools
-
-We use Husky and Commitlint to enforce commit message conventions. If you prefer using an alternative Git hook framework or additional linting tools, please discuss with the team before integrating them.
-
-## Deployment Information
-
-For detailed deployment instructions (both local and CI/CD), please see our [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) file.
-
-## Troubleshooting
-
-For help resolving common issues (e.g., Azure login errors, deployment failures), please refer to our [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) file.
-
-## Repository Structure and File Listing
-
-We maintain a clean project structure using a `.gitignore` file to prevent unnecessary files (e.g., `node_modules`, build outputs, and IDE-specific files) from being committed. The contents of our `.gitignore` can be viewed at the repository root.
-
-Our `package.json` includes scripts for linting and formatting:
-- **Stylelint (CSS Linting):**
-  - **Script:** `"lint:css": "stylelint \"src/css/**/*.css\""`
-  - **Usage:** Run `npm run lint:css`
-- **ESLint (JavaScript/HTML Linting):**
-  - **Script:** `"lint": "eslint src"`
-  - **Usage:** Run `npm run lint`
-- **Prettier (Code Formatting):**
-  - **Script:** `"format": "prettier --write \"src/**/*.{js,css,html,md}\""`
-  - **Usage:** Run `npm run format`
-
-To view a tree of the repository that **only includes files not ignored by `.gitignore`**, run:
-```bash
-git ls-files --cached --others --exclude-standard | python3 scripts/git_tree.py
-```
-This pipes Git’s file list into our custom Python script (`scripts/git_tree.py`), which outputs a hierarchical, tree-like structure using conventional symbols (e.g., `├──`, `└──`). This is especially useful when providing an AI or a team member with a clear overview of the repository structure.
-
-Alternatively, for a complete flat list (excluding ignored files), run:
-```bash
-git ls-files --cached --others --exclude-standard
-```
-Or, for a complete tree-like listing (ensure `tree` is installed):
-```bash
-tree -a
-```
-*Note: The tree command is included so that you or automated systems (like AI tools) can quickly review the full file structure of the repository.*
-
-## Additional Documentation
-
-For more detailed documentation, please refer to the files in the `docs/` folder:
-- [DEPLOYMENT.md](docs/DEPLOYMENT.md)
-- [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
-- [Additional guides as needed...]
-
----
-
-We appreciate your contributions and are here to help if you have any questions!
+Happy coding!
