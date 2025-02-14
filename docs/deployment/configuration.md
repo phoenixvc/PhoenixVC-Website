@@ -1,40 +1,35 @@
-# Deployment Configuration Guide
-📄 `/docs/deployment/CONFIGURATION.md`
-**Version 1.3.0** | Last Updated: 2025-02-14
+# Deployment Configuration
+📄 `/docs/deployment/configuration.md`  
+**Version:** 1.3.0  
+**Last Updated:** 2025-02-14
 
 ## Environment Configuration
 
 ### Core Settings
-
 ```bash
 # .env file structure
-ENVIRONMENT="prod|staging"              # Deployment environment
-LOCATION="South Africa North"           # Azure region
-RESOURCE_PREFIX="phoenixvc"             # Resource naming prefix
+ENVIRONMENT="prod|staging"     # Deployment environment
+LOCATION="South Africa North"  # Azure region
+RESOURCE_PREFIX="phoenixvc"    # Resource naming prefix
 
 # Authentication
-AZURE_SUBSCRIPTION_ID="sub-id"          # Azure subscription ID
-AZURE_TENANT_ID="tenant-id"            # Azure tenant ID
-AZURE_CLIENT_ID="client-id"            # Service Principal ID
-AZURE_CLIENT_SECRET="client-secret"    # Service Principal secret
+AZURE_SUBSCRIPTION_ID="sub-id"      # Azure subscription ID
+AZURE_TENANT_ID="tenant-id"         # Azure tenant ID
+AZURE_CLIENT_ID="client-id"         # Service Principal ID
+AZURE_CLIENT_SECRET="client-secret" # Service Principal secret
 
 # Feature Flags
-ENABLE_MONITORING=true                  # Enable monitoring
-ENABLE_BACKUP=true                      # Enable backup
-POLICY_MODE="audit|enforce"             # Policy enforcement mode
+ENABLE_MONITORING=true    # Enable monitoring
+ENABLE_BACKUP=true        # Enable backup
+POLICY_MODE="audit|enforce"  # Policy enforcement mode
 ```
 
 ### Environment-Specific Parameters
-
 ```json
 // parameters-prod.json
 {
-  "environment": {
-    "value": "prod"
-  },
-  "location": {
-    "value": "South Africa North"
-  },
+  "environment": { "value": "prod" },
+  "location": { "value": "South Africa North" },
   "resourceTags": {
     "value": {
       "Environment": "Production",
@@ -46,13 +41,11 @@ POLICY_MODE="audit|enforce"             # Policy enforcement mode
 ```
 
 ## Resource Naming Convention
-
 ```mermaid
 graph LR
   A[Environment] --> B[Location]
   B --> C[Resource Type]
   C --> D[Resource Name]
-  
   A --> E[prod/staging]
   B --> F[saf/euw]
   C --> G[swa/kv/rg]
@@ -139,7 +132,7 @@ Examples:
 # Validate environment variables
 ./scripts/validate-env.sh
 
-# Validate parameters
+# Validate parameters using Bicep
 az deployment group validate \
   --resource-group $RESOURCE_GROUP \
   --template-file main.bicep \
@@ -153,7 +146,7 @@ az keyvault show \
   --name $KEYVAULT_NAME \
   --resource-group $RESOURCE_GROUP
 
-# Verify network rules
+# Verify NSG rules
 az network nsg rule list \
   --nsg-name $NSG_NAME \
   --resource-group $RESOURCE_GROUP
@@ -161,9 +154,9 @@ az network nsg rule list \
 
 ## Version History
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.3.0 | 2025-02-14 | Added monitoring configuration |
-| 1.2.0 | 2025-01-20 | Updated naming convention |
-| 1.1.0 | 2024-12-15 | Added security configuration |
-| 1.0.0 | 2024-12-01 | Initial release |
+| Version | Date       | Changes                       |
+|---------|------------|-------------------------------|
+| 1.3.0   | 2025-02-14 | Added monitoring configuration|
+| 1.2.0   | 2025-01-20 | Updated naming convention     |
+| 1.1.0   | 2024-12-15 | Added security configuration  |
+| 1.0.0   | 2024-12-01 | Initial release               |

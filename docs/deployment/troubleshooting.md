@@ -7,29 +7,31 @@
 ## 📋 Quick Reference
 
 ### Error Code Index
-| Code | Severity | Description | Quick Solution |
-|------|----------|-------------|----------------|
-| AUTH001 | High | Authentication Failed | [Check credentials](#authentication-issues) |
-| DEP001 | High | Deployment Failed | [Verify parameters](#deployment-issues) |
-| NET001 | Medium | Network Connectivity | [Check NSG rules](#network-configuration) |
-| PERM001 | High | Insufficient Permissions | [Verify RBAC](#permissions) |
-| DB001 | High | Database Connection | [Check firewall](#database-issues) |
-| CI001 | Medium | Pipeline Failure | [Check workflow](#cicd-pipeline-issues) |
+| Code    | Severity | Description             | Quick Solution                       |
+|---------|----------|-------------------------|--------------------------------------|
+| AUTH001 | High     | Authentication Failed   | [Check credentials](#authentication-issues) |
+| DEP001  | High     | Deployment Failed       | [Verify parameters](#deployment-issues)     |
+| NET001  | Medium   | Network Connectivity    | [Check NSG rules](#network-configuration)   |
+| PERM001 | High     | Insufficient Permissions| [Verify RBAC](#permissions)                |
+| DB001   | High     | Database Connection     | [Check firewall](#database-issues)         |
+| CI001   | Medium   | Pipeline Failure        | [Check workflow](#cicd-pipeline-issues)    |
 
 ## 🔧 Environment Setup
 
 ### Linux Environment (Default)
 ```bash
 # One-line prerequisites check/install
-for cmd in node git az python3; do command -v $cmd >/dev/null 2>&1 || { 
-  echo "Installing $cmd...";
-  case $cmd in
-    node) curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash - && sudo apt-get install -y nodejs;;
-    git) sudo apt-get install -y git;;
-    az) curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash;;
-    python3) sudo apt-get install -y python3;;
-  esac
-}; done
+for cmd in node git az python3; do 
+  command -v $cmd >/dev/null 2>&1 || { 
+    echo "Installing $cmd...";
+    case $cmd in
+      node) curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash - && sudo apt-get install -y nodejs;;
+      git) sudo apt-get install -y git;;
+      az) curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash;;
+      python3) sudo apt-get install -y python3;;
+    esac
+  }
+done
 ```
 
 ### Windows Environment
@@ -48,9 +50,14 @@ choco install nodejs git azure-cli python -y
 ## 🔐 Authentication Issues
 
 ### Quick Solutions
-1. **No subscriptions found**: `az account set --subscription $SUBSCRIPTION_ID`
-2. **Invalid credentials**: Regenerate service principal
-3. **Token expired**: Re-authenticate
+1. **No subscriptions found:**  
+   ```bash
+   az account set --subscription $SUBSCRIPTION_ID
+   ```
+2. **Invalid credentials:**  
+   Regenerate the service principal.
+3. **Token expired:**  
+   Re-authenticate using `az login`.
 
 ### Detailed Troubleshooting
 
@@ -78,26 +85,29 @@ az ad sp credential reset \
   --append
 
 # Update GitHub Secrets
-# Settings > Secrets > Actions > AZURE_CREDENTIALS
+# (Go to Settings > Secrets > Actions > AZURE_CREDENTIALS)
 ```
 
 ## 🚀 Deployment Issues
 
 ### Quick Solutions
-1. **Resource group missing**: Create with correct location
-2. **Quota exceeded**: Request increase
-3. **Network issues**: Check NSG rules
+1. **Resource group missing:**  
+   Create the resource group in the correct location.
+2. **Quota exceeded:**  
+   Request an increase from Azure support.
+3. **Network issues:**  
+   Check the NSG rules for any misconfigurations.
 
 ### Detailed Commands
 
 #### Resource Management
 ```bash
-# Resource group operations
+# Create a resource group
 az group create \
   --name $RESOURCE_GROUP \
   --location "South Africa North"
 
-# Check deployment status
+# Check deployment status for failed deployments
 az deployment group list \
   --resource-group $RESOURCE_GROUP \
   --query "[?provisioningState=='Failed']"
@@ -106,18 +116,21 @@ az deployment group list \
 ## 💾 Database Issues
 
 ### Quick Solutions
-1. **Connection timeout**: Check firewall rules
-2. **Performance issues**: Update statistics
-3. **Deadlocks**: Check blocking queries
+1. **Connection timeout:**  
+   Verify and adjust firewall rules.
+2. **Performance issues:**  
+   Update statistics on your database.
+3. **Deadlocks:**  
+   Investigate blocking queries and optimize them.
 
 ### Detailed Diagnostics
 ```bash
-# Firewall rules
+# List firewall rules for the SQL server
 az sql server firewall-rule list \
   --server $SERVER_NAME \
   --resource-group $RESOURCE_GROUP
 
-# Performance analysis
+# Analyze database query performance
 az sql db query-performance list \
   --name $DB_NAME \
   --resource-group $RESOURCE_GROUP \
@@ -128,25 +141,25 @@ az sql db query-performance list \
 
 ### CPU & Memory
 ```bash
-# Get all metrics
+# Retrieve CPU and Memory metrics
 az monitor metrics list \
   --resource $RESOURCE_ID \
   --interval PT5M \
   --metrics "CpuPercentage,MemoryPercentage"
 
-# Auto-scale settings
+# List auto-scale settings
 az monitor autoscale-settings list \
   --resource-group $RESOURCE_GROUP
 ```
 
 ### Log Analysis
 ```bash
-# Download all logs
+# Download web app logs
 az webapp log download \
   --name $APP_NAME \
   --resource-group $RESOURCE_GROUP
 
-# Live log streaming
+# Stream live logs
 az webapp log tail \
   --name $APP_NAME \
   --resource-group $RESOURCE_GROUP
@@ -155,19 +168,22 @@ az webapp log tail \
 ## 🔄 Recovery Procedures
 
 ### Quick Recovery Steps
-1. **Application issue**: Restart service
-2. **Deployment failure**: Rollback
-3. **Data corruption**: Restore backup
+1. **Application issue:**  
+   Restart the service.
+2. **Deployment failure:**  
+   Rollback to a previous deployment.
+3. **Data corruption:**  
+   Restore from backup.
 
 ### Detailed Procedures
 ```bash
-# Rollback deployment
+# Rollback to the last known good deployment
 az webapp deployment source rollback \
   --name $APP_NAME \
   --resource-group $RESOURCE_GROUP \
   --slot production
 
-# Restore from backup
+# Restore resources from a backup
 az backup restore restore-disks \
   --vault-name $VAULT_NAME \
   --resource-group $RESOURCE_GROUP \
@@ -193,12 +209,12 @@ graph TD
 
 ## 📝 Version History
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.4.0 | 2025-02-14 | Added flowchart, improved organization |
-| 1.3.0 | 2025-02-14 | Added CI/CD troubleshooting |
-| 1.2.0 | 2025-01-20 | Updated recovery procedures |
-| 1.1.0 | 2024-12-15 | Added database section |
+| Version | Date       | Changes                         |
+|---------|------------|---------------------------------|
+| 1.4.0   | 2025-02-14 | Added flowchart, improved organization |
+| 1.3.0   | 2025-02-14 | Added CI/CD troubleshooting     |
+| 1.2.0   | 2025-01-20 | Updated recovery procedures     |
+| 1.1.0   | 2024-12-15 | Added database section          |
 
 ## 📚 Additional Resources
 - [Azure CLI Documentation](https://docs.microsoft.com/en-us/cli/azure/)
@@ -207,4 +223,6 @@ graph TD
 - [Monitoring Best Practices](https://docs.microsoft.com/en-us/azure/azure-monitor/best-practices)
 
 ---
-Need immediate assistance? Contact support@phoenixvc.za or join our [Slack channel](https://phoenixvc.slack.com/troubleshooting)
+Need immediate assistance?  
+Contact: support@phoenixvc.za  
+Slack: [PhoenixVC Troubleshooting Channel](https://phoenixvc.slack.com/troubleshooting)
