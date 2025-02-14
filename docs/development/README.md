@@ -2,13 +2,15 @@
 
 # Development Documentation
 
-This folder contains all the documentation related to local development, coding standards, and best practices for contributors working on the PhoenixVC-Modernized project.
+This folder contains all the documentation related to local development, coding standards, best practices, and tools for contributors working on the PhoenixVC-Modernized project.
 
 ## Table of Contents
 
 - [Overview](#overview)
 - [Development Setup](#development-setup)
 - [Code Style](#code-style)
+- [Dev Containers](#dev-containers)
+- [Search Functionality](#search-functionality)
 - [Additional Resources](#additional-resources)
 
 ---
@@ -26,6 +28,16 @@ Here you’ll find everything you need to get started contributing to the codeba
 
 - **[code-style.md](code-style.md)**  
   Outlines our conventions for writing clean, maintainable JavaScript/TypeScript code, React components, Node.js services, and more. This guide also details linting (ESLint), formatting (Prettier), and testing conventions.
+
+## Dev Containers
+
+- **[dev-containers.md](dev-containers.md)**  
+  Explains how to set up and use Dev Containers for local development. This guide includes prerequisites, setup steps, customization options, and troubleshooting tips for container-based development.
+
+## Search Functionality
+
+- **[search-functionality.md](search-functionality.md)**  
+  Describes the implementation and usage of the search functionality powered by `jekyll-search-plugin`. This guide covers configuration, customization, and troubleshooting related to the search feature.
 
 ## Additional Resources
 
