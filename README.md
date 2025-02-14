@@ -12,7 +12,7 @@
 [![Version](https://img.shields.io/badge/version-v1.0.0-blue)](https://github.com/JustAGhosT/PhoenixVC-Modernized/releases)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
 
-Phoenix VC is a premier, proprietary venture capital firm dedicated to identifying and investing in transformative technologies. Our modernized website leverages cutting-edge cloud technologies—including Azure Static Web Apps, Tailwind CSS, and Bicep templates—to deliver a seamless digital experience.
+Phoenix VC is a premier, proprietary venture capital firm dedicated to identifying and investing in transformative technologies. Our modernized website leverages cutting‐edge cloud technologies—including Azure Static Web Apps, Tailwind CSS, and Bicep templates—to deliver a seamless digital experience.
 
 ## Quick Links
 - [📚 Documentation](docs/README.md)
@@ -35,27 +35,48 @@ Phoenix VC is a premier, proprietary venture capital firm dedicated to identifyi
 ## Repository Structure
 
 ```bash
-📁 phoenixvc/
-├── 📁 .github/
-│   └── 📁 workflows/          # GitHub Actions CI/CD
-├── 📁 docs/                   # Documentation
-│   ├── 📁 deployment/         # Deployment guides
-│   ├── 📁 security/           # Security policies
-│   ├── 📁 development/        # Development guides & code style
-│   ├── 📁 compliance/         # Compliance frameworks and checklists
-│   ├── 📁 infrastructure/     # Infrastructure docs (architecture, Bicep, etc.)
-│   └── 📁 references/         # Component & network references
-├── 📁 infra/                  # Infrastructure as Code
-│   ├── 📁 bicep/              # Bicep templates
-│   └── 📁 policies/           # Azure policies
-├── 📁 scripts/                # Utility scripts
-├── 📁 src/                    # Source code
-│   ├── 📁 api/                # Azure Functions
-│   ├── 📁 components/         # React components
-│   └── 📁 styles/             # CSS/Tailwind
-├── 📄 .env.example            # Environment template
-├── 📄 LICENSE                 # Proprietary license
-└── 📄 README.md               # This file
+📁 docs/                                 # Documentation (Jekyll pages)
+├── 📄 CHANGELOG.md                      # Changelog for documentation updates
+├── 📄 FAQ.md                            # Frequently Asked Questions
+├── 📄 SECURITY.md                       # Security policies (remains at docs root)
+├── 📁 compliance/                       # Compliance guidelines
+│   ├── 📄 README.md                     # Overview of compliance docs
+│   ├── 📄 azure-security-baseline.md    # Azure security baseline (placeholder)
+│   ├── 📄 dns-policy-checklist.md       # DNS policy checklist
+│   ├── 📄 policy-framework.md           # Enterprise policy framework
+│   └── 📄 spn-audit-rotation.md         # SPN audit & rotation guidelines
+├── 📄 contributing.md                   # How to contribute
+├── 📁 deployment/                       # Deployment-related docs
+│   ├── 📄 README.md                     # Deployment hub overview
+│   ├── 📁 adrs/                         # Architectural Decision Records
+│   │   ├── 📄 adr-001-credential-rotation.md
+│   │   └── 📄 adr-002-disaster-recovery.md
+│   ├── 📄 azure-environment-setup.md    # Azure environment setup
+│   ├── 📄 configuration.md              # Environment & resource configuration
+│   ├── 📄 deploy-script-reference.md    # Deployment scripts reference
+│   ├── 📄 deployment-guide.md           # Step-by-step deployment guide
+│   ├── 📄 operations.md                 # Day-to-day operations
+│   ├── 📄 prerequisites.md              # Deployment prerequisites
+│   ├── 📄 service-principals.md         # SPN best practices
+│   └── 📄 troubleshooting.md            # Troubleshooting guide
+├── 📁 development/                      # Development-specific docs
+│   ├── 📄 README.md                     # Development overview
+│   ├── 📄 code-style.md                 # Code style guidelines
+│   └── 📄 development-setup.md          # Local development setup
+├── 📄 documentation-map.md              # Visual map of all docs
+├── 📄 documentation-roadmap.md          # Future documentation improvements
+├── 📁 infrastructure/                   # Infrastructure-related docs
+│   ├── 📄 README.md                     # Infrastructure overview
+│   ├── 📄 architecture.md               # System architecture diagrams
+│   ├── 📄 bicep-templates.md            # IaC templates
+│   ├── 📄 disaster-recovery.md          # Disaster recovery plan
+│   ├── 📄 docker-workflow.md            # Docker configuration workflow
+│   ├── 📄 infrastructure.md             # General infrastructure documentation
+│   └── 📄 monitoring.md                 # Monitoring & logging setup
+├── 📄 naming-conventions.md             # Naming conventions for docs and code
+└── 📁 references/                       # Technical references
+    ├── 📄 azure-component-versions.md   # Component version reference
+    └── 📄 network-topology.md           # Network topology diagrams
 ```
 
 ## Getting Started
