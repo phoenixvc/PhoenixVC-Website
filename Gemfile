@@ -16,7 +16,7 @@ gem 'jekyll-assets', '~> 3.0.12'          # Asset management
 
 # Optional: GitHub Pages compatibility
 group :jekyll_plugins do
-  gem 'github-pages', group: :jekyll_plugins
+  gem 'github-pages'                      # GitHub Pages compatibility
 end
 
 # Optional: Development and testing tools
