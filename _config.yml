@@ -38,6 +38,14 @@ permalink: pretty
 # Theme (optional, using Minima as an example)
 theme: minima
 
+highlighter: rouge
+
+# Custom syntax highlighting
+rouge:
+  guess_lang: false
+  custom:
+    mermaid: "text"
+
 # Plugins (if needed)
 plugins:
   - jekyll-feed
