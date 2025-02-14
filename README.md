@@ -15,16 +15,18 @@
 Phoenix VC is a premier, proprietary venture capital firm dedicated to identifying and investing in transformative technologies. Our modernized website leverages cutting-edge cloud technologies—including Azure Static Web Apps, Tailwind CSS, and Bicep templates—to deliver a seamless digital experience.
 
 ## Quick Links
-- [📚 Documentation](docs/)
-- [🚀 Deployment Guide](docs/deployment/DEPLOYMENT.md)
-- [💡 Contributing](docs/CONTRIBUTING.md)
+- [📚 Documentation](docs/README.md)
+- [🚀 Deployment Guide](docs/deployment/README.md)
+- [💡 Contributing](docs/contributing.md)
+- [🛡 Security](docs/SECURITY.md)
+- [📜 Compliance](docs/compliance/README.md)
+- [🏗 Infrastructure](docs/infrastructure/README.md)
 - [❓ FAQ](docs/FAQ.md)
-- [🔒 Security](docs/security/SECURITY.md)
 
 ## Prerequisites
 
 | Requirement | Version | Purpose |
-|------------|---------|----------|
+|-------------|---------|---------|
 | [Node.js](https://nodejs.org/) | ≥ 18.x | Runtime environment |
 | [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) | ≥ 2.58.0 | Azure management |
 | [Git](https://git-scm.com/) | ≥ 2.40.0 | Version control |
@@ -38,19 +40,22 @@ Phoenix VC is a premier, proprietary venture capital firm dedicated to identifyi
 │   └── 📁 workflows/          # GitHub Actions CI/CD
 ├── 📁 docs/                   # Documentation
 │   ├── 📁 deployment/         # Deployment guides
-│   ├── 📁 security/          # Security policies
-│   └── 📁 technical/         # Technical specs
-├── 📁 infra/                 # Infrastructure as Code
-│   ├── 📁 bicep/            # Bicep templates
-│   └── 📁 policies/         # Azure policies
-├── 📁 scripts/              # Utility scripts
-├── 📁 src/                  # Source code
-│   ├── 📁 api/             # Azure Functions
-│   ├── 📁 components/      # React components
-│   └── 📁 styles/         # CSS/Tailwind
-├── 📄 .env.example         # Environment template
-├── 📄 LICENSE             # Proprietary license
-└── 📄 README.md           # This file
+│   ├── 📁 security/           # Security policies
+│   ├── 📁 development/        # Development guides & code style
+│   ├── 📁 compliance/         # Compliance frameworks and checklists
+│   ├── 📁 infrastructure/     # Infrastructure docs (architecture, Bicep, etc.)
+│   └── 📁 references/         # Component & network references
+├── 📁 infra/                  # Infrastructure as Code
+│   ├── 📁 bicep/              # Bicep templates
+│   └── 📁 policies/           # Azure policies
+├── 📁 scripts/                # Utility scripts
+├── 📁 src/                    # Source code
+│   ├── 📁 api/                # Azure Functions
+│   ├── 📁 components/         # React components
+│   └── 📁 styles/             # CSS/Tailwind
+├── 📄 .env.example            # Environment template
+├── 📄 LICENSE                 # Proprietary license
+└── 📄 README.md               # This file
 ```
 
 ## Getting Started
@@ -81,17 +86,17 @@ Phoenix VC is a premier, proprietary venture capital firm dedicated to identifyi
 
 ## Development Scripts
 
-| Command | Description |
-|---------|------------|
-| `npm run dev` | Start development server |
-| `npm run build` | Build production bundle |
-| `npm run lint` | Lint code |
-| `npm run test` | Run test suite |
-| `npm run format` | Format code |
+| Command         | Description                  |
+|-----------------|------------------------------|
+| `npm run dev`   | Start development server     |
+| `npm run build` | Build production bundle      |
+| `npm run lint`  | Lint code                    |
+| `npm run test`  | Run test suite               |
+| `npm run format`| Format code                  |
 
 ## Deployment
 
-See [📄 Deployment Guide](docs/deployment/DEPLOYMENT.md) for detailed instructions.
+See [📄 Deployment Guide](docs/deployment/README.md) for detailed instructions.
 
 **Quick Deploy:**
 ```bash
@@ -103,7 +108,7 @@ npm run deploy:prod
 
 - **Technical Support:** [support@phoenixvc.za](mailto:support@phoenixvc.za)
 - **Slack Channel:** #phoenixvc-dev
-- **Documentation:** [📚 Docs](docs/)
+- **Documentation:** [📚 Docs](docs/README.md)
 - **Issues:** [GitHub Issues](https://github.com/JustAGhosT/PhoenixVC-Modernized/issues)
 
 ## License
@@ -111,9 +116,9 @@ npm run deploy:prod
 **PROPRIETARY SOFTWARE**  
 © 2024-2025 Phoenix VC. All Rights Reserved.
 
-This software is the confidential and proprietary information of Phoenix VC.
+This software is the confidential and proprietary information of Phoenix VC.  
 Unauthorized reproduction, distribution, or disclosure is strictly prohibited.
 
 ---
 
-**Confidentiality Notice**: This document contains proprietary information.
+**Confidentiality Notice:** This document contains proprietary information.
