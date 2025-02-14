@@ -1,0 +1,9 @@
+main:
+  - title: "Home"
+    url: "/"
+  - title: "FAQ"
+    url: "/docs/faq/"
+  - title: "Azure Security Baseline"
+    url: "/docs/azure-security-baseline/"
+  - title: "Deployment Guide"
+    url: "/docs/deployment-guide/"
