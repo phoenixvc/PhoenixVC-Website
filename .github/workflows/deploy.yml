@@ -24,6 +24,9 @@ jobs:
         uses: actions/checkout@v4
       - name: Use my Composite Azure Deployment
         uses: ./.github/actions/setup-azure-deployment
+        with:
+          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
       - name: Deploy to Staging
         run: ./scripts/deployment/deploy.sh --env staging
         env:
@@ -72,6 +75,9 @@ jobs:
         uses: actions/checkout@v4
       - name: Use my Composite Azure Deployment
         uses: ./.github/actions/setup-azure-deployment
+        with:
+          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
       - name: Deploy to Production
         run: ./scripts/deployment/deploy.sh --env prod
         env:
