@@ -5,7 +5,12 @@ on:
     branches: [ "main", "release/*", "staging/*" ]
   pull_request:
     branches: [ "main", "release/*", "staging/*" ]
-  workflow_dispatch:
+  workflow_dispatch:    
+    inputs:
+      APPROVAL_STATE:
+        description: 'Set to "true" for manual approval to proceed with production deployment'
+        required: false
+        default: "false"
 
 env:
   LOCATION_CODE: 'euw'  # Default to Europe West
