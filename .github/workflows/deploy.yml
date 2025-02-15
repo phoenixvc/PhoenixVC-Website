@@ -8,7 +8,9 @@ on:
   workflow_dispatch:
 
 env:
-  LOC_CODE: 'euw'  # Default to Europe West
+  LOC_CODE: 'euw'  # Default to Europe Westenv:
+  DOCS_MODE: ${{ secrets.DOCS_MODE }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   deploy_staging:
