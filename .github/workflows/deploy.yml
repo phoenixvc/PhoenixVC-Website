@@ -13,13 +13,10 @@ env:
 jobs:
   # ----------------------------------------------------------------------
   # DEPLOY STAGING:
-  # Trigger on pull_request events when the target branch is main, release/*, or staging/*
-  # and on push events to branches starting with "staging/".
+  # Trigger on pull_request events and push events when the target branch 
+  # is main, release/*, or staging/*
   # ----------------------------------------------------------------------
   deploy_staging:
-    if: >
-      (github.event_name == 'pull_request') ||
-      (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/staging/'))
     runs-on: ubuntu-latest
     environment: staging
     steps:
