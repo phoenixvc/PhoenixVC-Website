@@ -10,7 +10,6 @@ inputs:
   token:
     description: "The token to use for checkout"
     required: false
-    default: ${{ secrets.GITHUB_TOKEN }}
 outputs:
   azure_cli_version:
     description: "The version of the Azure CLI detected."
