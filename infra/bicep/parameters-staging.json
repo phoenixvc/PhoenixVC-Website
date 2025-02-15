@@ -4,7 +4,7 @@
   "parameters": {
     "environment": { "value": "staging" },
     "locCode": { "value": "euw" },
-    "branch": { "value": "dev" },
+    "branch": { "value": "staging" },
     "deployBudget": { "value": false }
   }
 }
