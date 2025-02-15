@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: staging
     steps:
-      - uses: ./.github/actions/setup-azure-deployment/setup-deploymwnt.yml
+      - uses: ./.github/actions/setup-azure-deployment
       - name: Deploy to Staging
         run: ./scripts/deployment/deploy.sh --env staging
         env:
@@ -65,7 +65,7 @@ jobs:
     permissions:
       deployments: write
     steps:
-      - uses: ./.github/actions/setup-azure/deploy-setup.yml
+      - uses: ./.github/actions/setup-azure-deployment
       - name: Deploy to Production
         run: ./scripts/deployment/deploy.sh --env prod
         env:
