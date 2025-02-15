@@ -73,28 +73,21 @@ jobs:
   # DEPLOY PRODUCTION: Runs if APPROVAL_STATE=='true' OR after manual approval
   # ----------------------------------------------------------------------
   deploy_prod:
-    needs: 
-    - log_debug_information
-    - manual_approval
-    if: ${{ github.event.inputs.APPROVAL_STATE == 'true' || needs.manual_approval.result == 'success' }}
     runs-on: ubuntu-latest
     environment: production
     permissions:
       deployments: write
-    steps:    
-      - name: Debug Condition Evaluation
-        run: |
-          echo "GitHub event name: ${{ github.event_name }}"
-          echo "Approval State: ${{ github.event.inputs.APPROVAL_STATE }}"
-          echo "Manual Approval Result: ${{ needs.manual_approval.result }}"
-          
+    if: ${{ github.event.inputs.APPROVAL_STATE == 'true' || needs.manual_approval.result == 'success' }}
+    steps:        
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
+          repository: JustAGhosT/PhoenixVC-Modernized
+          ref: ${{ github.ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-  
-      - name: Use my Composite Azure Deployment
+
+      - name: Use Azure Deployment
         uses: ./.github/actions/setup-azure-deployment
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
