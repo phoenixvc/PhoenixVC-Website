@@ -43,9 +43,19 @@ retry() {
 # ────────────────────────────────────────────────────────────
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR" || error "❌ Failed to switch to script directory: $SCRIPT_DIR"
 log "📍 Script directory: $SCRIPT_DIR"
 
-# Load .env file or fallback to CI/CD environment variables
+# Detect CI/CD mode
+if [[ -n "$GITHUB_ACTIONS" || -n "$CI" || -n "$AZURE_PIPELINES" ]]; then
+    CI_MODE=true
+    log "🔄 Running in CI/CD mode."
+else
+    CI_MODE=false
+    log "💻 Running in local interactive mode."
+fi
+
+# Load .env file for local execution
 if [ -f "$SCRIPT_DIR/.env" ]; then
     log "🔍 Loading .env file..."
     export $(grep -v '^#' "$SCRIPT_DIR/.env" | xargs)
@@ -53,35 +63,23 @@ else
     warn "⚠️ .env file not found, using CI/CD environment variables."
 fi
 
-# Ensure Azure is authenticated
-if ! az account show &>/dev/null; then
-  error "You are not logged into Azure. Run 'az login' first."
+# Ensure Azure authentication
+if [[ "$CI_MODE" == "true" ]]; then
+    log "🔑 Using pre-configured CI/CD authentication."
+else
+    log "🔐 Checking Azure authentication..."
+    if ! az account show &>/dev/null; then
+        error "Azure authentication required. Run 'az login' manually."
+    fi
 fi
 
-# Ensure AZURE_SUB_ID is set
-if [ -z "$AZURE_SUB_ID" ]; then
-    warn "⚠️ AZURE_SUB_ID not set, fetching dynamically..."
-    AZURE_SUB_ID=$(az account show --query id -o tsv) || error "Failed to fetch Azure Subscription ID"
-    export AZURE_SUB_ID
-fi
-
-# Ensure SWA_NAME is set
-if [ -z "$SWA_NAME" ]; then
-    warn "⚠️ SWA_NAME not set, attempting auto-detection..."
-    SWA_NAME=$(az staticwebapp list --query "[0].name" -o tsv) || error "Failed to detect Static Web App"
-    export SWA_NAME
-fi
-
-# Ensure RESOURCE_GROUP is set
-if [ -z "$RESOURCE_GROUP" ]; then
-    warn "⚠️ RESOURCE_GROUP not set, inferring from environment..."
-    RESOURCE_GROUP="prod-${LOCATION_CODE}-rg-phoenixvc-website"
-fi
-
-# Validate required variables
-if [[ -z "$SWA_NAME" || -z "$AZURE_SUB_ID" || -z "$RESOURCE_GROUP" ]]; then
-  error "Missing required environment variables! Please check your configuration."
-fi
+# Ensure required environment variables are set
+REQUIRED_VARS=("AZURE_SUBSCRIPTION_ID" "SWA_NAME" "RESOURCE_GROUP")
+for var in "${REQUIRED_VARS[@]}"; do
+    if [[ -z "${!var}" ]]; then
+        error "❌ Required environment variable '$var' is missing."
+    fi
+done
 
 log "🌍 Configuring DNS for Static Web App: $SWA_NAME in Resource Group: $RESOURCE_GROUP"
 
