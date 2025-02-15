@@ -50,11 +50,9 @@ jobs:
       - name: Await Manual Approval
         run: |
           echo "Staging deployment finished successfully."
-          echo "To proceed with Production deployment, please re-run this job from the Actions tab."
-          echo "If you cancel, the workflow ends."
-        # By default, the job ends with success. You can 
-        # intentionally `exit 1` to force the user to re-run 
-        # if you prefer that approach.
+          echo "Production deployment is paused pending manual approval."
+          echo "Please re-run this job to proceed with production deployment."
+          exit 1
 
   # ----------------------------------------------------------------------
   # DEPLOY PRODUCTION:
