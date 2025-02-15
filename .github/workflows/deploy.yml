@@ -22,6 +22,8 @@ jobs:
     steps:      
       - name: Checkout my Composite Azure Deployment
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Use my Composite Azure Deployment
         uses: ./.github/actions/setup-azure-deployment
         with:
@@ -73,6 +75,8 @@ jobs:
     steps:
       - name: Checkout my Composite Azure Deployment
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Use my Composite Azure Deployment
         uses: ./.github/actions/setup-azure-deployment
         with:
