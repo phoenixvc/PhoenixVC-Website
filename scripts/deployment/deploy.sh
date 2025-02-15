@@ -13,7 +13,7 @@ POLICY_ENFORCEMENT_MODE="${POLICY_ENFORCEMENT_MODE:-enforce}"
 # Path Configuration
 BICEP_FILE="./infra/bicep/main.bicep"
 PARAMETERS_FILE="./infra/bicep/parameters-${ENVIRONMENT}.json"
-RESOURCE_GROUP="${ENVIRONMENT}-${LOCATION_CODE}-rg-phoenixvc"
+RESOURCE_GROUP="${ENVIRONMENT}-${LOCATION_CODE}-rg-phoenixvc-website"
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 
 # Cleanup
