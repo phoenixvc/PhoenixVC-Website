@@ -106,7 +106,15 @@ jobs:
     permissions:
       deployments: write
     if: ${{ github.event.inputs.APPROVAL_STATE == 'true' }}
-    steps:                  
+    steps:   
+      - name: Debug Repository Initialization
+        run: |
+          echo "Checking Git setup..."
+          git --version
+          git branch -a
+          git remote -v
+          ls -la               
+          
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
