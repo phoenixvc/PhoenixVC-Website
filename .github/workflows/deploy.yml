@@ -102,8 +102,9 @@ jobs:
   deploy_prod:
     needs: [log_debug_information]
     runs-on: ubuntu-latest
-    environment: production
+    environment: production   
     permissions:
+      contents: read  # Ensure the token can access repo contents
       deployments: write
     if: ${{ github.event.inputs.APPROVAL_STATE == 'true' }}
     steps:   
