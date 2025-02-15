@@ -21,10 +21,25 @@ jobs:
     steps:
       - name: Show Workflow Inputs
         run: |
-          echo "GitHub event name: ${{ github.event_name }}"
-          echo "Ref:              ${{ github.ref }}"
-          echo "Base Ref:         ${{ github.event.pull_request.base.ref || 'N/A' }}"
-          echo "APPROVAL_STATE:   '${{ github.event.inputs.APPROVAL_STATE }}'"
+          echo "==========================="
+          echo "✅ Logging Deployment Variables"
+          echo "==========================="
+          echo "GitHub Event Name: ${{ github.event_name }}"
+          echo "Ref: ${{ github.ref }}"
+          echo "Base Ref: ${{ github.event.pull_request.base.ref || 'N/A' }}"
+          echo "Approval State: ${{ github.event.inputs.APPROVAL_STATE }}"
+          echo "Location Code: ${LOCATION_CODE}"
+          echo "Resource Group Name: prod-${LOCATION_CODE}-rg-phoenixvc-website"
+          echo "Static Web App Name: prod-${LOCATION_CODE}-swa-phoenixvc-website"
+          echo "Log whether we have a secret: ${{ secrets.GITHUB_TOKEN }}"
+  
+          if [[ "${{ github.event.inputs.APPROVAL_STATE }}" == "true" ]]; then
+            echo "🚀 Deploying to Production - Manual approval was bypassed!"
+          else
+            echo "🔎 Deploying to Production - Manual approval was completed!"
+          fi
+  
+          echo "==========================="
 
   # ----------------------------------------------------------------------
   # DEPLOY STAGING: Runs unless APPROVAL_STATE is 'true'
@@ -74,12 +89,13 @@ jobs:
   # DEPLOY PRODUCTION: Runs if APPROVAL_STATE=='true' OR after manual approval
   # ----------------------------------------------------------------------
   deploy_prod:
+    needs: [log_debug_information]
     runs-on: ubuntu-latest
     environment: production
     permissions:
       deployments: write
     if: ${{ github.event.inputs.APPROVAL_STATE == 'true' || needs.manual_approval.result == 'success' }}
-    steps:        
+    steps:                  
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
