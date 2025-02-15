@@ -1,5 +1,5 @@
 📄 `/README.md`  
-**Version:** 1.0.3 | Last Updated: 2025-02-14
+**Version:** 1.0.4 | Last Updated: 2025-02-15
 
 # Phoenix VC - Website
 **Status:** Production  
