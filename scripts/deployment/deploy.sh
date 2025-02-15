@@ -76,6 +76,23 @@ handle_emergency() {
   fi
 }
 
+# Check if Resource Group exists and is not in a 'Deleting' state
+check_resource_group() {
+  echo "🔍 Checking resource group '$RESOURCE_GROUP'..."
+  if az group exists --name "$RESOURCE_GROUP" | grep -q "true"; then
+    local state
+    state=$(az group show --name "$RESOURCE_GROUP" --query "properties.provisioningState" -o tsv)
+    if [ "$state" = "Deleting" ]; then
+      echo "❌ Resource group '$RESOURCE_GROUP' is currently being deleted. Aborting deployment." >&2
+      exit 1
+    else
+      echo "✅ Resource group exists and is in state: $state"
+    fi
+  else
+    echo "ℹ️ Resource group '$RESOURCE_GROUP' does not exist. It will be created."
+  fi
+}
+
 # Main Deployment Flow
 main() {
   handle_emergency "$@"
@@ -84,7 +101,10 @@ main() {
   
   # Pre-Flight Checks
   policy_precheck
-  
+
+  # Check resource group status before deployment
+  check_resource_group
+
   # Bicep Deployment (Removed unsupported policyEnforcement parameter)
   az deployment sub create \
     --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" \
@@ -108,7 +128,7 @@ main() {
   # Cost Checks
   if [ "$ENABLE_COST_CHECKS" = "true" ]; then
     echo "💰 Cost Baseline Analysis:"
-    az consumption budget list --query "[?name=='${RESOURCE_GROUP}-budget']" -o table
+    az consumption budget list --query "[?name=='${RESOURCE_GROUP}-budget-website']" -o table
   fi
   
   echo "🛡️ Deployment Health Check Complete"
