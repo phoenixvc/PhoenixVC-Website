@@ -1,0 +1,90 @@
+/* PhoenixVc-Styles.css */
+
+/* =====================
+   6. COLOR SCHEME
+===================== */
+:root {
+    --primary-bg: #130A1F;
+    --secondary-bg: #1C0D2B;
+    --header-bg: #6D2E1C;
+    --highlight: #FF6A00;
+    --text-color: #E0E0E0;
+    --border-color: rgba(255, 165, 0, 0.15);
+  }
+  
+  /* =====================
+     7. HEADINGS
+  ===================== */
+  .md-content h1 {
+    text-align: center;
+    font-size: 2rem;
+    color: var(--highlight);
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--highlight);
+  }
+  
+  .md-content h2 {
+    font-size: 1.5rem;
+    color: #FFA94D;
+    margin-top: 30px;
+    border-bottom: 1px solid var(--highlight);
+    padding-bottom: 5px;
+  }
+  
+  .md-content h3 {
+    font-size: 1.3rem;
+    color: #FFD700;
+    margin-top: 20px;
+  }
+  
+  /* =====================
+     8. NAVIGATION LINKS
+  ===================== */
+  .md-nav__link {
+    color: #FFD700;
+    padding: 6px 12px;
+    text-decoration: none;
+    transition: color 0.3s ease, background-color 0.3s ease;
+  }
+  
+  .md-nav__link:hover {
+    color: var(--highlight);
+    background-color: rgba(255, 106, 0, 0.1);
+    border-radius: 4px;
+  }
+  
+  .md-nav__link--active {
+    color: #FFFFFF;
+    font-weight: bold;
+    background-color: var(--highlight);
+    border-radius: 4px;
+    padding: 6px 12px;
+  }
+  
+  /* =====================
+     9. IMAGE & VIDEO CONTAINERS
+  ===================== */
+  .logo-container,
+  .video-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    flex-wrap: wrap;
+  }
+  
+  .logo-container img,
+  .video-container video {
+    width: 500px;
+    height: 280px;
+    object-fit: contain;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+  
+  .logo-container img:hover,
+  .video-container video:hover {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+  
