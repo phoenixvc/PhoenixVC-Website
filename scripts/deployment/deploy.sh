@@ -2,7 +2,7 @@
 set -eo pipefail
 
 # Feature Configuration
-ENVIRONMENT="${ENVIRONMENT:-prod}"
+ENVIRONMENT="${ENVIRONMENT:-staging}"
 # Expected values: "euw" for West Europe, "saf" for South Africa
 LOCATION_CODE="${LOCATION_CODE:-saf}"
 DEPLOY_REGION="westeurope"
