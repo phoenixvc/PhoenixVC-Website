@@ -1,0 +1,82 @@
+# Site Information
+site_name: Phoenix VC Documentation
+site_description: Comprehensive documentation for Phoenix VC
+site_author: Phoenix VC Team
+
+# Theme Configuration
+theme:
+  name: material
+  features:
+    - search.highlight
+    - search.suggest    
+    - navigation.indexes
+    - content.code.annotate
+    - navigation.expand
+  search:
+    placeholder: "Search documentation..."
+  palette:
+    primary: "amber"
+    accent: "blue-grey"
+  font:
+    text: 'Roboto'
+    code: 'Fira Code'
+
+# Navigation
+nav:
+  - Home: index
+  - Documentation:
+      - FAQ: faq
+      - Changelog: changelog
+      - Security: security
+      - Compliance: compliance
+      - Deployment: deployment
+      - Development: development
+      - Infrastructure: infrastructure
+      - References: references
+  - Contributing: contributing
+  - Documentation Map: doc_map
+  - Documentation Roadmap: roadmap
+  - Naming Conventions: naming_conventions
+
+# Markdown Extensions
+markdown_extensions:
+  - toc:
+      permalink: true
+  - admonition
+  - codehilite:
+      guess_lang: false
+  - pymdownx.details
+  - pymdownx.superfences
+
+# Plugins (For GitHub Pages)
+plugins:
+  - search
+  
+
+# Deployment (GitHub Pages)
+site_url: https://JustAGhosT.github.io/PhoenixVC-Modernized/
+repo_url: https://github.com/JustAGhosT/PhoenixVC-Modernized
+repo_name: GitHub
+remote_branch: gh-pages
+remote_name: origin
+
+# Other Options
+use_directory_urls: true
+
+extra_css:
+  - assets/css/PhoenixVc-Styles.css
+  - assets/css/PhoenixVc-Layout.css
+  - assets/css/PhoenixVc-Images.css
+  
+extra_javascript:
+  - assets/js/custom.js
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/JustAGhosT/PhoenixVC-Modernized
+      name: GitHub
+    - icon: fontawesome/solid/envelope
+      link: mailto:jurie@phoenix-vc.com
+      name: Email
+  copyright: "© 2025 Phoenix VC. All rights reserved."
