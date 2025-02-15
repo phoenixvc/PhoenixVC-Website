@@ -1,5 +1,6 @@
 name: "Setup Azure Deployment Environment"
 description: "Makes the deploy script executable, verifies Azure CLI, sets the subscription ID, and logs in to Azure."
+
 inputs:
   azure_subscription_id:
     description: "The Azure Subscription ID to use for the deployment."
@@ -8,18 +9,35 @@ inputs:
     description: "Azure credentials in JSON format."
     required: true
   token:
-    description: "The token to use for checkout"
+    description: "The token to use for checkout."
+    required: true
+  repository:
+    description: "The repository to checkout and setup for deployment."
     required: false
+    default: "JustAGhosT/PhoenixVC-Modernized"
+  ref:
+    description: "Branch or commit to check out."
+    required: false
+    default: "main"
+  fetchDepth:
+    description: "Depth of the checkout. 0 = full history."
+    required: false
+    default: "0"
+
 outputs:
   azure_cli_version:
     description: "The version of the Azure CLI detected."
+
 runs:
   using: "composite"
   steps:
     - name: Checkout Code
       uses: actions/checkout@v4
       with:
+        repository: ${{ inputs.repository }}
+        ref: ${{ inputs.ref }}
         token: ${{ inputs.token }}
+        fetch-depth: ${{ inputs.fetchDepth }}
 
     - name: Make deploy script executable
       run: chmod +x ./scripts/deployment/deploy.sh
@@ -41,7 +59,7 @@ runs:
       with:
         creds: ${{ inputs.azure_credentials }}
 
-    - name: Set Azure CLI Version Output  
+    - name: Set Azure CLI Version Output
       run: |
         cli_version=$(cat cli_version.txt | jq -c '.')
         echo "azure_cli_version=${cli_version}" >> $GITHUB_OUTPUT
