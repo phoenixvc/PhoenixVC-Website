@@ -17,6 +17,16 @@ cp .env.example .env
 ./scripts/deploy.sh
 ```
 
+## Manual Approval Step
+
+Our **manual_approval** job requires an environment variable named `APPROVAL_STATE` to be set to `true`. By default, the job exits with an error (`exit 1`) so the pipeline fails after staging. To continue the workflow:
+
+1. **Re-run** the failed job or workflow.
+2. **Set `APPROVAL_STATE=true`** (for example, by adding it as an environment variable in the re-run interface if available, or by editing the workflow dispatch inputs, etc.).
+3. Once the job sees `APPROVAL_STATE=true`, it skips the `exit 1` and proceeds to the production deployment.
+
+> **Note:** If our GitHub plan supports [Environment Protection Rules](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment), the fail/re-run hack can entirely be avoided and a proper **“Require reviewers”** gate for production can be used.
+
 ## Documentation Structure
 
 Below is an overview of the core deployment files. Each document focuses on a specific aspect of the deployment process:
