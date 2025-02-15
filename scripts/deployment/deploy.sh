@@ -26,7 +26,8 @@ policy_precheck() {
   echo "🔒 Running Pre-Deployment Policy Check..."
   az policy state trigger-scan --subscription "$(az account show --query id -o tsv)" --no-wait
   
-  local non_compliant=$(az policy state list --all --query "[?complianceState == 'NonCompliant' && resourceGroup == '$RESOURCE_GROUP']" -o tsv)
+  local non_compliant
+  non_compliant=$(az policy state list --all --query "[?complianceState == 'NonCompliant' && resourceGroup == '$RESOURCE_GROUP']" -o tsv)
   
   [ -z "$non_compliant" ] || { 
     echo "❌ Pre-Deployment Policy Violations:" >&2
@@ -68,7 +69,7 @@ main() {
   # Pre-Flight Checks
   policy_precheck
   
-  # Bicep Deployment
+  # Bicep Deployment (Removed unsupported policyEnforcement parameter)
   az deployment sub create \
     --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" \
     --location "$DEPLOY_REGION" \
@@ -77,15 +78,14 @@ main() {
     --parameters \
       environment="$ENVIRONMENT" \
       locCode="$LOCATION_CODE" \
-      policyEnforcement="$POLICY_ENFORCEMENT_MODE" \
     --query properties.outputs
   
   # Post-Deployment
   echo "✅ Deployment completed. Running validations..."
-  [ "$(az group exists --name "$RESOURCE_GROUP")" = "true" ] || {
+  if [ "$(az group exists --name "$RESOURCE_GROUP")" != "true" ]; then
     echo "❌ Resource Group missing!" >&2
     exit 1
-  }
+  fi
   
   setup_monitoring
   
