@@ -25,17 +25,17 @@ theme:
 nav:
   - Home: index
   - Documentation:
-      - FAQ: faq
-      - Changelog: changelog
-      - Security: security
+      - FAQ: FAQ
+      - Changelog: CHANGELOG
+      - Security: SECURITY
       - Compliance: compliance
       - Deployment: deployment
       - Development: development
       - Infrastructure: infrastructure
       - References: references
   - Contributing: contributing
-  - Documentation Map: doc_map
-  - Documentation Roadmap: roadmap
+  - Documentation Map: documentation-map
+  - Documentation Roadmap: documentation-roadmap
   - Naming Conventions: naming_conventions
 
 # Markdown Extensions
