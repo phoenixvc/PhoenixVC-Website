@@ -2,23 +2,24 @@ name: Phoenix VC Deployment Pipeline
 
 on:
   push:
-    branches: [ "main", "release/*" ]
+    branches: [ "main", "release/*", "staging/*" ]
   pull_request:
-    branches: [ "staging/*", "feat/*", "feature/*", "bug/*", "fix/*", "bugfix/*", "hotfix/*" ]
+    branches: [ "main", "release/*", "staging/*" ]
   workflow_dispatch:
 
 env:
-  LOC_CODE: 'euw'  # Default to Europe Westenv:
-  DOCS_MODE: ${{ secrets.DOCS_MODE }}
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  LOC_CODE: 'euw'  # Default to Europe West
 
 jobs:
   # ----------------------------------------------------------------------
   # DEPLOY STAGING:
-  # Trigger on pull_request events to branches following our naming conventions.
+  # Trigger on pull_request events when the target branch is main, release/*, or staging/*
+  # and on push events to branches starting with "staging/".
   # ----------------------------------------------------------------------
   deploy_staging:
-    if: github.event_name == 'pull_request'
+    if: >
+      (github.event_name == 'pull_request') ||
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/staging/'))
     runs-on: ubuntu-latest
     environment: staging
     steps:
@@ -30,16 +31,34 @@ jobs:
           SWA_NAME: staging-${{ env.LOC_CODE }}-swa-phoenixvc
 
   # ----------------------------------------------------------------------
+  # MANUAL APPROVAL:
+  # Wait for manual verification of the staging deployment before proceeding.
+  # This job depends on the staging deployment.
+  # ----------------------------------------------------------------------
+  approval:
+    needs: deploy_staging
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      # Production environment protection in GitHub can require manual approval.
+    steps:
+      - name: Await Manual Approval
+        run: echo "Staging verified. Awaiting manual approval to deploy to production..."
+        # This step serves as a placeholder. Configure production environment protection in GitHub settings.
+
+  # ----------------------------------------------------------------------
   # DEPLOY PRODUCTION:
-  # Trigger on push events to main/release branches or PR merges into them.
+  # Trigger on push events to main or release branches or merged PRs into them.
+  # This job will run only after the manual approval step.
   # ----------------------------------------------------------------------
   deploy_prod:
     if: >
-      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/'))) ||
+      (github.event_name == 'push' &&
+        (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/'))) ||
       (github.event_name == 'pull_request' &&
        github.event.pull_request.merged == true &&
        (github.event.pull_request.base.ref == 'main' || startsWith(github.event.pull_request.base.ref, 'refs/heads/release/')))
-    needs: deploy_staging
+    needs: approval
     runs-on: ubuntu-latest
     environment: production
     permissions:
@@ -68,10 +87,15 @@ jobs:
 
   # ----------------------------------------------------------------------
   # DEPLOY DOCS:
-  # Trigger on push to main (or manually via workflow_dispatch).
+  # Trigger on push events to main or release branches and on merged PRs into them.
   # ----------------------------------------------------------------------
   deploy_docs:
-    if: github.ref == 'refs/heads/main'
+    if: >
+      (github.event_name == 'push' &&
+        (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/'))) ||
+      (github.event_name == 'pull_request' &&
+        github.event.pull_request.merged == true &&
+        (github.event.pull_request.base.ref == 'main' || startsWith(github.event.pull_request.base.ref, 'refs/heads/release/')))
     runs-on: ubuntu-latest
     environment: production
     env:
