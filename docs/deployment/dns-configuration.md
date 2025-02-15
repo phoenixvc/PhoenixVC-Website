@@ -47,14 +47,14 @@ Follow these steps to configure DNS for your main domain, www subdomain, and doc
 curl -O https://phoenixvc.tech/scripts/deployment/configure-dns.sh
 chmod +x configure-dns.sh
 
-# Configure main domain records
-az network dns record-set a add-record \
+# Configure main domain (apex) to point to Azure Static Web App
+az network dns record-set cname set-record \
   -g YourResourceGroup \
   -z phoenixvc.tech \
   -n @ \
-  -a 185.199.108.153 185.199.109.153 185.199.110.153 185.199.111.153
+  -c your-swa-name.azurestaticapps.net
 
-# Configure www subdomain
+# Configure www subdomain to point to Azure Static Web App
 az network dns record-set cname set-record \
   -g YourResourceGroup \
   -z phoenixvc.tech \
@@ -70,52 +70,14 @@ az network dns record-set a add-record \
   -z phoenixvc.tech \
   -n docs \
   -a 185.199.108.153 185.199.109.153 185.199.110.153 185.199.111.153
-
-# Alternative: CNAME setup for docs
-az network dns record-set cname set-record \
-  -g YourResourceGroup \
-  -z phoenixvc.tech \
-  -n docs \
-  -c your-username.github.io
 ```
-
-### 3. Verify Configuration (5 minutes)
-```bash
-# Verify apex domain
-dig phoenixvc.tech
-
-# Verify www subdomain
-dig www.phoenixvc.tech
-
-# Verify docs subdomain
-dig docs.phoenixvc.tech
-```
-
-### 4. GitHub Pages Configuration
-1. **Repository Setup**
-   ```markdown
-   - Go to repository Settings > Pages
-   - Set source branch (usually 'main')
-   - Select '/docs' folder as source
-   - Save configuration
-   ```
-
-2. **Domain Verification**
-   ```bash
-   # Add TXT record for GitHub verification if prompted
-   az network dns record-set txt add-record \
-     -g YourResourceGroup \
-     -z phoenixvc.tech \
-     -n @ \
-     -v "github-pages-verification=your-code"
-   ```
 
 ### Expected DNS Records
 ```yaml
 # Final DNS Configuration
 Apex (@):
-  - Type: A
-  - Values: [185.199.108.153, 185.199.109.153, 185.199.110.153, 185.199.111.153]
+  - Type: CNAME
+  - Value: your-swa-name.azurestaticapps.net
   - TTL: 3600
 
 www:
@@ -127,6 +89,23 @@ docs:
   - Type: A
   - Values: [185.199.108.153, 185.199.109.153, 185.199.110.153, 185.199.111.153]
   - TTL: 3600
+```
+
+### Additional Required Records
+```bash
+# Add TXT record for Azure custom domain verification
+az network dns record-set txt add-record \
+  -g YourResourceGroup \
+  -z phoenixvc.tech \
+  -n asuid \
+  -v "YOUR_AZURE_VERIFICATION_ID"
+
+# Add TXT record for GitHub Pages verification (if needed)
+az network dns record-set txt add-record \
+  -g YourResourceGroup \
+  -z phoenixvc.tech \
+  -n @ \
+  -v "github-pages-verification=your-code"
 ```
 
 ### Common Issues and Solutions
@@ -144,7 +123,7 @@ docs:
   - Wait for GitHub Pages build to complete
   - Monitor GitHub Actions for deployment status
 
-  ## **📥 Installation**
+## **📥 Installation**
 ### Local Development Setup
 ```bash
 # Download the script
