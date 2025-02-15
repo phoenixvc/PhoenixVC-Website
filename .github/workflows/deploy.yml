@@ -23,7 +23,10 @@ jobs:
       - name: Checkout my Composite Azure Deployment
         uses: actions/checkout@v4
         with:
+          repository: JustAGhosT/PhoenixVC-Modernized
+          ref: ${{ github.ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
       - name: Use my Composite Azure Deployment
         uses: ./.github/actions/setup-azure-deployment
         with:
@@ -52,7 +55,7 @@ jobs:
           echo "Staging deployment finished successfully."
           echo "Production deployment is paused pending manual approval."
           echo "Please re-run this job to proceed with production deployment."
-          exit 1
+          exit 1https://github.com/JustAGhosT/PhoenixVC-Modernized/tree/main/.github
 
   # ----------------------------------------------------------------------
   # DEPLOY PRODUCTION:
@@ -75,7 +78,10 @@ jobs:
       - name: Checkout my Composite Azure Deployment
         uses: actions/checkout@v4
         with:
+          repository: JustAGhosT/PhoenixVC-Modernized
+          ref: ${{ github.ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
       - name: Use my Composite Azure Deployment
         uses: ./.github/actions/setup-azure-deployment
         with:
