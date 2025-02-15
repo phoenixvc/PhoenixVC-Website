@@ -45,6 +45,7 @@ jobs:
   # DEPLOY STAGING: Runs unless APPROVAL_STATE is 'true'
   # ----------------------------------------------------------------------
   deploy_staging:
+    needs: [log_debug_information]
     if: ${{ github.event.inputs.APPROVAL_STATE != 'true' }}
     runs-on: ubuntu-latest
     environment: staging
@@ -75,9 +76,9 @@ jobs:
   # MANUAL APPROVAL: Waits for user action when APPROVAL_STATE == 'false'
   # ----------------------------------------------------------------------
   manual_approval:
+    needs: [deploy_staging]
     if: ${{ github.event.inputs.APPROVAL_STATE == 'false' }}
     runs-on: ubuntu-latest
-    needs: [deploy_staging]
     steps:
       - name: Notify Manual Approval Ready
         run: |
@@ -94,11 +95,12 @@ jobs:
     environment: production
     permissions:
       deployments: write
-    if: ${{ github.event.inputs.APPROVAL_STATE == 'true' || needs.manual_approval.result == 'success' }}
+    if: ${{ github.event.inputs.APPROVAL_STATE == 'true' }}
     steps:                  
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
+          repository: ${{ github.repository }}
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
