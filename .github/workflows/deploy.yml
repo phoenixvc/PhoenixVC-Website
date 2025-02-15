@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Deploy to Staging
-        run: ./scripts/deploy.sh --env staging
+        run: ./scripts/deployment/deploy.sh --env staging
         env:
           RG_NAME: staging-${{ env.LOC_CODE }}-rg-phoenixvc
           SWA_NAME: staging-${{ env.LOC_CODE }}-swa-phoenixvc
@@ -66,7 +66,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Deploy to Production
-        run: ./scripts/deploy.sh --env prod
+        run: ./scripts/deployment/deploy.sh --env prod
         env:
           RG_NAME: prod-${{ env.LOC_CODE }}-rg-phoenixvc
           SWA_NAME: prod-${{ env.LOC_CODE }}-swa-phoenixvc
