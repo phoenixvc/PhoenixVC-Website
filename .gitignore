@@ -27,5 +27,6 @@ Thumbs.db
 *.sln
 doc_changes_report_*.txt
 
-#mkdocs deployment
-site/deployment/
+/# Ignore the entire MkDocs output
+site/deployment
+site/
