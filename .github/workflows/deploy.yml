@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  LOC_CODE: 'euw'  # Default to Europe West
+  LOCATION_CODE: 'euw'  # Default to Europe West
 
 jobs:
   # ----------------------------------------------------------------------
@@ -30,9 +30,9 @@ jobs:
       - name: Deploy to Staging
         run: ./scripts/deployment/deploy.sh --env staging
         env:
-          LOC_CODE: euw
-          RG_NAME: staging-${{ env.LOC_CODE }}-rg-phoenixvc
-          SWA_NAME: staging-${{ env.LOC_CODE }}-swa-phoenixvc
+          LOCATION_CODE: euw
+          RG_NAME: staging-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
+          SWA_NAME: staging-${{ env.LOCATION_CODE }}-swa-phoenixvc-website
 
 # ------------------------------------------------------
   # MANUAL APPROVAL
@@ -81,8 +81,8 @@ jobs:
       - name: Deploy to Production
         run: ./scripts/deployment/deploy.sh --env prod
         env:
-          RG_NAME: prod-${{ env.LOC_CODE }}-rg-phoenixvc
-          SWA_NAME: prod-${{ env.LOC_CODE }}-swa-phoenixvc
+          RG_NAME: prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
+          SWA_NAME: prod-${{ env.LOCATION_CODE }}-swa-phoenixvc-website
 
   # ----------------------------------------------------------------------
   # CONFIGURE DNS:
