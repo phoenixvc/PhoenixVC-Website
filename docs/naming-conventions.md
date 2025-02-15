@@ -97,16 +97,20 @@ This document outlines the naming conventions we follow for our project document
 
 ## Branch Naming Conventions
 
+- **Staging Branches:**  
+  Format: `staging/<short-description>`
+  *Example:* `staging/feature-user-auth`
+
 - **Feature Branches:**  
-  Format: `feature/<short-description>`  
+  Format: `feature/<short-description>` or `feat/`
   *Example:* `feature/user-authentication`
 
 - **Bugfix Branches:**  
-  Format: `bugfix/<issue-number>-<short-description>`  
+  Format: `bugfix/<issue-number>-<short-description>` or `bug/`
   *Example:* `bugfix/123-fix-login-error`
 
 - **Hotfix Branches:**  
-  Format: `hotfix/<issue-number>-<short-description>`  
+  Format: `hotfix/<issue-number>-<short-description>` or `fix/`
   *Example:* `hotfix/456-critical-ui-fix`
 
 - **Release Branches:**  

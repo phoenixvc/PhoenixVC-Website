@@ -49,19 +49,24 @@ For more detailed instructions, please refer to [development/development-setup.m
 
 ## Branching Strategy
 
+- **Staging Branches:**  
+  For staging deployments, please create branches with the prefix `staging/`.  
+  Example: `staging/feature-user-auth`  
+  Changes in staging branches will trigger staging deployments through our CI pipeline.
+
 - **Feature Branches:**  
   Create a new branch for each feature.  
-  **Format:** `feature/<short-description>`  
+  **Format:** `feature/<short-description>` or `feat/*`
   **Example:** `feature/user-authentication`
 
 - **Bugfix Branches:**  
   Create branches for bug fixes.  
-  **Format:** `bugfix/<issue-number>-<short-description>`  
+  **Format:** `bugfix/<issue-number>-<short-description>`  or `bug/*`
   **Example:** `bugfix/123-fix-login-error`
 
 - **Hotfix Branches:**  
   Use these for urgent fixes in production.  
-  **Format:** `hotfix/<issue-number>-<short-description>`  
+  **Format:** `hotfix/<issue-number>-<short-description>` or  `fix/*` 
   **Example:** `hotfix/456-critical-ui-fix`
 
 - **Release Branches:**  
