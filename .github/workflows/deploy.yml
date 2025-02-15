@@ -19,7 +19,9 @@ jobs:
   deploy_staging:
     runs-on: ubuntu-latest
     environment: staging
-    steps:
+    steps:      
+      - uses: actions/checkout@v4
+      - name: Use My Composite Azure Deployment
       - uses: ./.github/actions/setup-azure-deployment
       - name: Deploy to Staging
         run: ./scripts/deployment/deploy.sh --env staging
@@ -65,6 +67,8 @@ jobs:
     permissions:
       deployments: write
     steps:
+      - uses: actions/checkout@v4
+      - name: Use My Composite Azure Deployment
       - uses: ./.github/actions/setup-azure-deployment
       - name: Deploy to Production
         run: ./scripts/deployment/deploy.sh --env prod
