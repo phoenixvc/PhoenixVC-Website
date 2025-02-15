@@ -26,3 +26,6 @@ Thumbs.db
 *.njsproj
 *.sln
 doc_changes_report_*.txt
+
+#mkdocs deployment
+site/deployment/
