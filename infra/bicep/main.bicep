@@ -2,7 +2,7 @@ targetScope = 'subscription'
 
 param environment string = 'staging'
 param locCode string = 'euw'
-param location string = 'West Europe'
+param location string = 'westeurope'
 param repositoryUrl string = 'https://github.com/JustAGhosT/PhoenixVC-Modernized'
 param branch string = 'main'
 param appLocation string = '/'
@@ -10,8 +10,8 @@ param apiLocation string = ''
 param outputLocation string = 'build'
 param deployBudget bool = false
 
-var resourceGroupName = '${environment}-${locCode}-rg-phoenixvc'
-var staticSiteName = '${environment}-${locCode}-swa-phoenixvc'
+var resourceGroupName = '${environment}-${locCode}-rg-phoenixvc-website'
+var staticSiteName = '${environment}-${locCode}-swa-phoenixvc-website'
 var budgetName = '${environment}-${locCode}-rg-phoenixvc-budget'
 
 // Resource Group Deployment
