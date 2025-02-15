@@ -182,7 +182,7 @@ jobs:
       - name: Configure DNS
         uses: Azure/cli@v1
         with:
-          inlineScript: ./scripts/configure_dns.sh
+          inlineScript: ./scripts/deployment/configure_dns.sh
 
   # ----------------------------------------------------------------------
   # DEPLOY DOCS: Runs on push or merged PRs into main/release
