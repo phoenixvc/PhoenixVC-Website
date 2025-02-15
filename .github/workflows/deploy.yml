@@ -174,15 +174,29 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
+      - name: Use my Composite Azure Deployment
+        uses: ./.github/actions/setup-azure-deployment
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          repository: ${{ github.repository }}
+          ref: ${{ github.ref }}
+
       - name: Verify configure_dns.sh Exists
         run: |
           ls -la ./scripts
           cat ./scripts/configure_dns.sh || echo "⚠️ configure_dns.sh is missing!"
 
+      - name: Ensure configure_dns.sh is executable
+        run: chmod +x ./scripts/deployment/configure_dns.sh
+
       - name: Configure DNS
         uses: Azure/cli@v1
         with:
-          inlineScript: ./scripts/deployment/configure_dns.sh
+          inlineScript: |
+            chmod +x ./scripts/deployment/configure_dns.sh
+            ./scripts/deployment/configure_dns.sh
 
   # ----------------------------------------------------------------------
   # DEPLOY DOCS: Runs on push or merged PRs into main/release
