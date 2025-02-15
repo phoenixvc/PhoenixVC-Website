@@ -42,22 +42,25 @@ jobs:
           RG_NAME: staging-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
           SWA_NAME: staging-${{ env.LOCATION_CODE }}-swa-phoenixvc-website
 
-# ------------------------------------------------------
+  # ------------------------------------------------------
   # MANUAL APPROVAL
-  # Pause after staging completes. 
-  # The job fails by default, so the user must "Re-run job"
-  # (or "Continue") to proceed. 
+  # This job intentionally fails unless APPROVAL_STATE=true.
+  # 1) On first run, it fails with "No approval detected".
+  # 2) To proceed, re-run the job (or the workflow) with
+  #    an environment variable or input set to APPROVAL_STATE=true.
   # ------------------------------------------------------
   manual_approval:
     runs-on: ubuntu-latest
     needs: deploy_staging
     steps:
-      - name: Await Manual Approval
+      - name: Check for manual approval
         run: |
-          echo "Staging deployment finished successfully."
-          echo "Production deployment is paused pending manual approval."
-          echo "Please re-run this job to proceed with production deployment."
-          exit 1
+          if [[ "$APPROVAL_STATE" != "true" ]]; then
+            echo "No approval detected. Exiting with error to wait for manual re-run."
+            exit 1
+          else
+            echo "Manual approval detected. Proceeding..."
+          fi
 
   # ----------------------------------------------------------------------
   # DEPLOY PRODUCTION:
