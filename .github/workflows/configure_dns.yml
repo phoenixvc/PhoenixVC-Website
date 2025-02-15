@@ -1,0 +1,50 @@
+name: Phoenix VC - Configure DNS
+
+on:
+  workflow_dispatch:
+    inputs:
+      ENVIRONMENT:
+        description: "Environment to configure DNS for (staging/prod)"
+        required: true
+        default: "prod"
+
+env:
+  LOCATION_CODE: 'euw'
+
+jobs:
+  configure_dns:
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: refs/heads/main
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Use my Composite Azure Deployment
+        uses: ./.github/actions/setup-azure-deployment
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          repository: ${{ github.repository }}
+          ref: ${{ github.ref }}
+
+      - name: Verify configure_dns.sh Exists
+        run: |
+          ls -la ./scripts
+          if [ ! -f ./scripts/deployment/configure_dns.sh ]; then
+            echo "⚠️ configure_dns.sh is missing!"
+            exit 1
+          fi
+
+      - name: Ensure configure_dns.sh is executable
+        run: chmod +x ./scripts/deployment/configure_dns.sh
+
+      - name: Configure DNS
+        run: ./scripts/deployment/configure_dns.sh --ENVIRONMENT ${{ github.event.inputs.ENVIRONMENT }}
