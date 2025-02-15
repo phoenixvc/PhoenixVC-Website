@@ -2,9 +2,9 @@ name: Phoenix VC Deployment Pipeline
 
 on:
   push:
-    branches: [ "main", "feature/*" ]
+    branches: [ "main", "feat/*", "feature/*", "bug/*", "fix/*", "bugfix/*" ]
   pull_request:
-    branches: [ "main", "feature/*" ]
+    branches: [ "main", "feat/*", "feature/*", "bug/*", "fix/*", "bugfix/*" ]
   workflow_dispatch:
 
 env:
