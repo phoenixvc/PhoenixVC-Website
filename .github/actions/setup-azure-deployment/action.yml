@@ -7,6 +7,10 @@ inputs:
   azure_credentials:
     description: "Azure credentials in JSON format."
     required: true
+  token:
+    description: "The token to use for checkout"
+    required: false
+    default: ${{ secrets.GITHUB_TOKEN }}
 outputs:
   azure_cli_version:
     description: "The version of the Azure CLI detected."
@@ -15,6 +19,8 @@ runs:
   steps:
     - name: Checkout Code
       uses: actions/checkout@v4
+      with:
+        token: ${{ inputs.token }}
 
     - name: Make deploy script executable
       run: chmod +x ./scripts/deployment/deploy.sh
