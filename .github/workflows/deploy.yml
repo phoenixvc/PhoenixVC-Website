@@ -35,6 +35,7 @@ jobs:
           ref: ${{ github.ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
+          
       - name: Use my Composite Azure Deployment
         uses: ./.github/actions/setup-azure-deployment
         with:
@@ -43,6 +44,7 @@ jobs:
           azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
           repository: ${{ github.repository }}  # Or a specific "owner/repo"
           ref: ${{ github.ref }}
+          
       - name: Deploy to Staging
         run: ./scripts/deployment/deploy.sh --env staging
         env:
@@ -50,22 +52,31 @@ jobs:
           RG_NAME: staging-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
           SWA_NAME: staging-${{ env.LOCATION_CODE }}-swa-phoenixvc-website
 
-  # ------------------------------------------------------
-  # MANUAL APPROVAL
-  # This job intentionally fails unless APPROVAL_STATE=true.
-  # 1) On first run, it fails with "No approval detected".
-  # 2) To proceed, re-run the job (or the workflow) with
-  #    an environment variable or input set to APPROVAL_STATE=true.
-  # ------------------------------------------------------
+  ########################################################################
+  # MANUAL APPROVAL:
+  # This job sends a notification that staging deployment has passed.
+  # It exits successfully so that the workflow itself succeeds.
+  # To proceed, re-run the workflow with APPROVAL_STATE=true.
+  ########################################################################
   manual_approval:
-    if: ${{ github.event.inputs.APPROVAL_STATE != 'true' }}
+    if: ${{ github.event.inputs.APPROVAL_STATE == 'false' }}
     runs-on: ubuntu-latest
-    needs: deploy_staging
+    needs: [deploy_staging]
     steps:
-      - name: Check for manual approval
-        run: |
-            echo "No approval detected. Exiting with error to wait for manual re-run."
-            exit 1
+      - name: Notify Manual Approval Ready
+        run: echo "Staging deployment passed. Ready for manual trigger to deploy production."
+
+      - name: Send Email Notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.example.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "Phoenix VC Staging Deployment Passed"
+          body: "Staging deployment has passed successfully. Please re-run the workflow with APPROVAL_STATE set to 'true' to deploy to production."
+          to: "ops-team@phoenixvc.za"
+          from: "ci@phoenixvc.za"
 
   # ----------------------------------------------------------------------
   # DEPLOY PRODUCTION:
@@ -74,11 +85,24 @@ jobs:
   # ----------------------------------------------------------------------
   deploy_prod:
     if: >
-      (github.event_name == 'push' &&
-        (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/'))) ||
-      (github.event_name == 'pull_request' &&
-       github.event.pull_request.merged == true &&
-       (github.event.pull_request.base.ref == 'main' || startsWith(github.event.pull_request.base.ref, 'refs/heads/release/')))
+      (
+        (
+          github.event_name == 'push'
+          &&
+          (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/'))
+        ) 
+        ||
+        (
+          github.event_name == 'pull_request' && github.event.pull_request.merged == true
+          &&
+          (github.event.pull_request.base.ref == 'main' || startsWith(github.event.pull_request.base.ref, 'refs/heads/release/'))
+        )
+      ||
+      (
+        github.event_name == 'workflow_dispatch' 
+        && 
+        github.event.inputs.APPROVAL_STATE == 'true'
+      ))
     needs: [manual_approval]
     runs-on: ubuntu-latest
     environment: production
@@ -93,6 +117,7 @@ jobs:
           azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
           repository: ${{ github.repository }}  # Or a specific "owner/repo"
           ref: ${{ github.ref }}
+      
       - name: Deploy to Production
         run: ./scripts/deployment/deploy.sh --env prod
         env:
