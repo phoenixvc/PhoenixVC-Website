@@ -137,8 +137,23 @@ jobs:
   configure_dns:
     needs: deploy_prod
     runs-on: ubuntu-latest
+    permissions:
+      contents: read, write
     environment: production
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: refs/heads/main
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Verify configure_dns.sh Exists
+        run: |
+          ls -la ./scripts
+          cat ./scripts/configure_dns.sh || echo "⚠️ configure_dns.sh is missing!"
+
       - name: Configure DNS
         uses: Azure/cli@v1
         with:
