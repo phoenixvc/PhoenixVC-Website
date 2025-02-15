@@ -74,12 +74,13 @@ jobs:
           echo "Please re-run the workflow with APPROVAL_STATE set to 'true' to deploy to production."
 
   ################################################################################
-  # deploy_prod_no_approval:
+  # deploy_prod:
   # This job runs when APPROVAL_STATE is 'true' (manual override) and does not
   # depend on staging or manual approval.
   ################################################################################
-  deploy_prod_no_approval:
-    if: ${{ github.event.inputs.APPROVAL_STATE == 'true' }}
+  deploy_prod:
+    if: ${{ github.event.inputs.APPROVAL_STATE == 'true' || needs.manual_approval.result == 'success' }}
+    needs: [manual_approval]
     runs-on: ubuntu-latest
     environment: production
     permissions:
@@ -92,6 +93,7 @@ jobs:
           ref: ${{ github.ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
+          
       - name: Use my Composite Azure Deployment
         uses: ./.github/actions/setup-azure-deployment
         with:
@@ -100,6 +102,7 @@ jobs:
           azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
           repository: ${{ github.repository }}
           ref: ${{ github.ref }}
+          
       - name: Deploy to Production (no approval)
         run: ./scripts/deployment/deploy.sh --env prod
         env:
@@ -137,7 +140,7 @@ jobs:
   # Runs after production deployment(s) are complete.
   # ----------------------------------------------------------------------
   configure_dns:
-    needs: [deploy_prod_no_approval, deploy_prod_with_approval]
+    needs: [deploy_prod, deploy_prod_with_approval]
     runs-on: ubuntu-latest
     environment: production
     steps:
