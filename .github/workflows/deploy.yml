@@ -82,12 +82,10 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          repository: JustAGhosT/PhoenixVC-Modernized
-          ref: ${{ github.ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      - name: Use Azure Deployment
+      - name: Use my Composite Azure Deployment
         uses: ./.github/actions/setup-azure-deployment
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
