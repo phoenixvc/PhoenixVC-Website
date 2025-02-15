@@ -31,17 +31,26 @@ jobs:
           echo "Location Code: ${LOCATION_CODE}"
           echo "Resource Group Name: prod-${LOCATION_CODE}-rg-phoenixvc-website"
           echo "Static Web App Name: prod-${LOCATION_CODE}-swa-phoenixvc-website"
-          echo "Log whether we have a secret: ${{ secrets.GITHUB_TOKEN }}""
-          echo "Log repository :  ${{ github.repository }}"
-  
-          if [[ "${{ github.event.inputs.APPROVAL_STATE }}" == "true" ]]; then
+          echo "Log repository: ${{ github.repository }}"
+
+          # Avoid printing secrets directly, use a masked log:
+          if [[ -n "${{ secrets.GITHUB_TOKEN }}" ]]; then
+            echo "✅ GITHUB_TOKEN is set."
+          else
+            echo "⚠️  GITHUB_TOKEN is missing!"
+          fi
+
+          # Store Approval State in a variable for Bash comparison
+          APPROVAL_STATE="${{ github.event.inputs.APPROVAL_STATE }}"
+
+          if [[ "$APPROVAL_STATE" == "true" ]]; then
             echo "🚀 Deploying to Production - Manual approval was bypassed!"
           else
             echo "🔎 Deploying to Production - Manual approval was completed!"
           fi
-  
-          echo "==========================="
 
+          echo "==========================="
+          
   # ----------------------------------------------------------------------
   # DEPLOY STAGING: Runs unless APPROVAL_STATE is 'true'
   # ----------------------------------------------------------------------
