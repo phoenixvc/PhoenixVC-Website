@@ -5,7 +5,7 @@ set -eo pipefail
 ENVIRONMENT="${ENVIRONMENT:-prod}"
 # Expected values: "euw" for West Europe, "saf" for South Africa
 LOCATION_CODE="${LOCATION_CODE:-saf}"
-DEPLOY_REGION="South Africa North"
+DEPLOY_REGION="westeurope"
 ENABLE_POLICY_CHECKS="${ENABLE_POLICY_CHECKS:-true}"
 ENABLE_MONITORING="${ENABLE_MONITORING:-$([ "$ENVIRONMENT" == "prod" ] && echo "true" || echo "false")}"
 ENABLE_COST_CHECKS="${ENABLE_COST_CHECKS:-false}"
