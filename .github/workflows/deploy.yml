@@ -16,6 +16,9 @@ env:
   LOCATION_CODE: 'euw'  # Default to Europe West
 
 jobs:
+  # ────────────────────────────────────────────
+  # ✅ LOGGING JOB
+  # ────────────────────────────────────────────
   log_debug_information:
     runs-on: ubuntu-latest
     steps:
@@ -33,27 +36,22 @@ jobs:
           echo "Static Web App Name: prod-${LOCATION_CODE}-swa-phoenixvc-website"
           echo "Log repository: ${{ github.repository }}"
 
-          # Avoid printing secrets directly, use a masked log:
           if [[ -n "${{ secrets.GITHUB_TOKEN }}" ]]; then
             echo "✅ GITHUB_TOKEN is set."
           else
             echo "⚠️  GITHUB_TOKEN is missing!"
           fi
 
-          # Store Approval State in a variable for Bash comparison
-          APPROVAL_STATE="${{ github.event.inputs.APPROVAL_STATE }}"
-
-          if [[ "$APPROVAL_STATE" == "true" ]]; then
+          if [[ "${{ github.event.inputs.APPROVAL_STATE }}" == "true" ]]; then
             echo "🚀 Deploying to Production - Manual approval was bypassed!"
           else
             echo "🔎 Deploying to Production - Manual approval was completed!"
           fi
-
           echo "==========================="
-          
-  # ----------------------------------------------------------------------
-  # DEPLOY STAGING: Runs unless APPROVAL_STATE is 'true'
-  # ----------------------------------------------------------------------
+  
+  # ────────────────────────────────────────────
+  # ✅ STAGING DEPLOYMENT
+  # ────────────────────────────────────────────
   deploy_staging:
     needs: [log_debug_information]
     if: ${{ github.event.inputs.APPROVAL_STATE != 'true' }}
@@ -67,7 +65,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      - name: Use my Composite Azure Deployment
+      - name: Use Composite Azure Deployment
         uses: ./.github/actions/setup-azure-deployment
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -83,9 +81,9 @@ jobs:
           RG_NAME: staging-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
           SWA_NAME: staging-${{ env.LOCATION_CODE }}-swa-phoenixvc-website
 
-  # ----------------------------------------------------------------------
-  # MANUAL APPROVAL: Waits for user action when APPROVAL_STATE == 'false'
-  # ----------------------------------------------------------------------
+  # ────────────────────────────────────────────
+  # ✅ MANUAL APPROVAL CHECK
+  # ────────────────────────────────────────────
   manual_approval:
     needs: [deploy_staging]
     if: ${{ github.event.inputs.APPROVAL_STATE == 'false' }}
@@ -93,13 +91,13 @@ jobs:
     steps:
       - name: Notify Manual Approval Ready
         run: |
-          echo "Staging deployment passed successfully."
-          echo "Production deployment is now ready to be triggered."
+          echo "✅ Staging deployment passed successfully."
+          echo "🔎 Production deployment is now ready."
           echo "Please re-run the workflow with APPROVAL_STATE set to 'true' to deploy to production."
 
-  # ----------------------------------------------------------------------
-  # DEPLOY PRODUCTION: Runs if APPROVAL_STATE=='true' OR after manual approval
-  # ----------------------------------------------------------------------
+  # ────────────────────────────────────────────
+  # ✅ PRODUCTION DEPLOYMENT
+  # ────────────────────────────────────────────
   deploy_prod:
     needs: [log_debug_information]
     runs-on: ubuntu-latest
@@ -108,7 +106,7 @@ jobs:
       contents: read  # Ensure the token can access repo contents
       deployments: write
     if: ${{ github.event.inputs.APPROVAL_STATE == 'true' }}
-    steps:   
+    steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
@@ -120,21 +118,20 @@ jobs:
       - name: Log Environment Variables for Debugging
         run: |
           echo "==========================="
-          echo "✅ Logging Deployment Variables"
+          echo "✅ Logging Production Deployment"
           echo "==========================="
           echo "GitHub Event Name: ${{ github.event_name }}"
           echo "Ref: ${{ github.ref }}"
-          echo "Base Ref: ${{ github.event.pull_request.base.ref || 'N/A' }}"
           echo "Approval State: ${{ github.event.inputs.APPROVAL_STATE }}"
           echo "Environment: prod"
           echo "Location Code: ${LOCATION_CODE}"
-          echo "Resource Group Name: prod-${LOCATION_CODE}-rg-phoenixvc-website"
-          echo "Static Web App Name: prod-${LOCATION_CODE}-swa-phoenixvc-website"
+          echo "Resource Group: prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website"
+          echo "Static Web App Name: prod-${{ env.LOCATION_CODE }}-swa-phoenixvc-website"
           echo "✅ GITHUB_TOKEN is set."
           echo "🚀 Deploying to Production"
           echo "==========================="
 
-      - name: Use my Composite Azure Deployment
+      - name: Use Composite Azure Deployment
         uses: ./.github/actions/setup-azure-deployment
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -142,12 +139,6 @@ jobs:
           azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
           repository: ${{ github.repository }}
           ref: ${{ github.ref }}
-
-      - name: Debug Environment Variables
-        run: |
-          echo "LOCATION_CODE: ${{ env.LOCATION_CODE }}"
-          echo "RG_NAME: prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website"
-          echo "SWA_NAME: prod-${{ env.LOCATION_CODE }}-swa-phoenixvc-website"
 
       - name: Deploy to Production
         run: ./scripts/deployment/deploy.sh --ENVIRONMENT prod
@@ -156,54 +147,9 @@ jobs:
           RG_NAME: prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
           SWA_NAME: prod-${{ env.LOCATION_CODE }}-swa-phoenixvc-website
 
-  # ----------------------------------------------------------------------
-  # CONFIGURE DNS: Runs after deploy_prod completes
-  # ----------------------------------------------------------------------
-  configure_dns:
-    needs: deploy_prod
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    environment: production
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ github.repository }}
-          ref: refs/heads/main
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
-
-      - name: Use my Composite Azure Deployment
-        uses: ./.github/actions/setup-azure-deployment
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
-          repository: ${{ github.repository }}
-          ref: ${{ github.ref }}
-
-      - name: Verify configure_dns.sh Exists
-        run: |
-          ls -la ./scripts
-          cat ./scripts/configure_dns.sh || echo "⚠️ configure_dns.sh is missing!"
-
-      - name: Ensure configure_dns.sh is executable
-        run: chmod +x ./scripts/deployment/configure_dns.sh
-
-      - name: Configure DNS
-        uses: Azure/cli@v1
-        with:
-          inlineScript: |
-            chmod +x ./scripts/deployment/configure_dns.sh
-            ./scripts/deployment/configure_dns.sh
-
-  # ----------------------------------------------------------------------
-  # DEPLOY DOCS: Runs on push or merged PRs into main/release
-  # ----------------------------------------------------------------------
-  # ----------------------------------------------------------------------
-  # TRIGGER DNS CONFIGURATION WORKFLOW
-  # ----------------------------------------------------------------------
+  # ────────────────────────────────────────────
+  # ✅ TRIGGER DNS CONFIGURATION WORKFLOW
+  # ────────────────────────────────────────────
   trigger_dns_update:
     needs: deploy_prod
     runs-on: ubuntu-latest
@@ -213,4 +159,30 @@ jobs:
           curl -X POST -H "Accept: application/vnd.github.v3+json" \
           -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           https://api.github.com/repos/${{ github.repository }}/actions/workflows/configure_dns.yml/dispatches \
-          -d '{"ref": "refs/heads/main", "inputs": {"ENVIRONMENT": "prod"}}
+          -d '{"ref": "refs/heads/main", "inputs": {"ENVIRONMENT": "prod"}}'
+
+  # ────────────────────────────────────────────
+  # ✅ DEPLOY DOCUMENTATION
+  # ────────────────────────────────────────────
+  deploy_docs:
+    needs: [log_debug_information]
+    if: >
+      (github.event_name == 'push' &&
+       (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/'))) ||
+      (github.event_name == 'pull_request' &&
+       github.event.pull_request.merged == true &&
+       (github.event.pull_request.base.ref == 'main' || startsWith(github.event.pull_request.base.ref, 'refs/heads/release/')))
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Install MkDocs and Dependencies
+        run: pip install mkdocs mkdocs-material
+      - name: Build MkDocs Site
+        run: mkdocs build
+      - name: Deploy MkDocs Site
+        run: mkdocs gh-deploy --force
