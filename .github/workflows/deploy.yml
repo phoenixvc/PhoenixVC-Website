@@ -2,14 +2,13 @@ name: Phoenix VC Deployment Pipeline
 
 on:
   push:
-    branches: [ "main", "feature/*" ]
+    branches: [ "main", "feat/*", "feature/*", "bug/*", "fix/*", "bugfix/*" ]
   pull_request:
-    branches: [ "main", "feature/*" ]
+    branches: [ "main", "feat/*", "feature/*", "bug/*", "fix/*", "bugfix/*" ]
   workflow_dispatch:
 
 env:
   LOC_CODE: 'euw'  # Default to Europe West
-  # ENV_SUFFIX not strictly needed here since we use --env flags in the deploy script
 
 jobs:
   deploy_staging:
@@ -60,3 +59,30 @@ jobs:
         uses: Azure/cli@v1
         with:
           inlineScript: ./scripts/configure_dns.sh
+
+  deploy_docs:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      DOCS_MODE: ${{ secrets.DOCS_MODE }}  # Set to "serve" for local serving, or leave empty for gh-deploy.
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Install MkDocs and Dependencies
+        run: |
+          pip install mkdocs mkdocs-material
+      - name: Build MkDocs Site
+        run: mkdocs build
+      - name: Deploy or Serve MkDocs Site
+        run: |
+          if [ "${DOCS_MODE}" = "serve" ]; then
+            echo "Serving MkDocs site on 0.0.0.0:8000..."
+            mkdocs serve --dev-addr 0.0.0.0:8000
+          else
+            echo "Deploying MkDocs site via GitHub Pages..."
+            mkdocs gh-deploy --force
+          fi

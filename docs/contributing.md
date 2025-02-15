@@ -5,6 +5,11 @@
 Thank you for considering contributing to our project! This document outlines the process and guidelines for making contributions to both our codebase and our documentation. By following these guidelines, you'll help us maintain consistency, quality, and clarity across the project.
 
 > **Note:**  
+> In addition to our standard guidelines, please be aware that our deployment workflows have been updated:
+> - **Branch Triggers:** Only branches following our naming conventions ("main", "feat/*", "feature/*", "bug/*", "fix/*", "bugfix/*") will trigger deployment workflows.
+> - **MkDocs Integration:** Our documentation is now built and deployed using MkDocs (with custom styles), replacing the previous Jekyll setup.  
+>   - When pushing to `main`, the MkDocs job will build the site and either serve it locally (if the `DOCS_MODE` secret is set to `"serve"`) or deploy it via GitHub Pages.
+>   - The generated site (e.g., in `site/deployment`) is excluded from version control.
 > When contributing to documentation, please also review the [documentation-roadmap.md](documentation-roadmap.md) and [naming-conventions.md](naming-conventions.md) files to ensure your changes align with our overall guidelines.
 
 ## Table of Contents
