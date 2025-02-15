@@ -1,125 +1,204 @@
 #!/bin/bash
-set -eo pipefail  # Stop script on errors
+set -eo pipefail
+
+# ────────────────────────────────────────────────────────────
+# ✅ VERSION AND CONFIG
+# ────────────────────────────────────────────────────────────
+VERSION="3.2.0"
+CONFIG_FILE=".dns-config.json"
 
 # ────────────────────────────────────────────────────────────
 # ✅ HELPER FUNCTIONS
 # ────────────────────────────────────────────────────────────
 
-# Colors for logging
+# Colors and formatting
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+BLUE='\033[0;34m'
+BOLD='\033[1m'
+NC='\033[0m'
 
-log() {
-  echo -e "${GREEN}[$(date +'%Y-%m-%d %H:%M:%S')] ✅ $1${NC}"
+log() { echo -e "${GREEN}[$(date +'%Y-%m-%d %H:%M:%S')] ✅ $1${NC}"; }
+info() { echo -e "${BLUE}[$(date +'%Y-%m-%d %H:%M:%S')] ℹ️ $1${NC}"; }
+warn() { echo -e "${YELLOW}[$(date +'%Y-%m-%d %H:%M:%S')] ⚠️ $1${NC}"; }
+error() { echo -e "${RED}[$(date +'%Y-%m-%d %H:%M:%S')] ❌ $1${NC}" >&2; exit 1; }
+
+# Show help
+show_help() {
+    cat << EOF
+DNS Configuration Script v${VERSION}
+
+Usage: $(basename "$0") [OPTIONS]
+
+Options:
+    --apex              Configure apex domain
+    --www               Configure www subdomain
+    --docs              Configure GitHub Pages DNS
+    --all               Configure all domains
+    --force            Force update existing records
+    --backup           Only create DNS backup
+    --restore FILE     Restore from backup file
+    --verify           Only verify current configuration
+    --help             Show this help message
+    --version          Show version information
+
+Examples:
+    $(basename "$0") --all
+    $(basename "$0") --docs --force
+    $(basename "$0") --www --apex
+    $(basename "$0") --backup
+    $(basename "$0") --restore ./dns_backups/backup-20240215.json
+
+Environment variables:
+    AZURE_SUBSCRIPTION_ID    Azure Subscription ID
+    SWA_NAME                 Static Web App name
+    RESOURCE_GROUP           Resource Group name
+EOF
 }
 
-warn() {
-  echo -e "${YELLOW}[$(date +'%Y-%m-%d %H:%M:%S')] ⚠️ $1${NC}"
+# Show version
+show_version() {
+    echo "DNS Configuration Script v${VERSION}"
 }
 
-error() {
-  echo -e "${RED}[$(date +'%Y-%m-%d %H:%M:%S')] ❌ $1${NC}" >&2
-  exit 1
-}
-
-# Retry function for transient Azure errors
+# Retry function with exponential backoff
 retry() {
-  local retries=3
-  local count=0
-  local delay=5
-  while [ "$count" -lt "$retries" ]; do
-    "$@" && return 0
-    count=$((count + 1))
-    warn "Retrying in $delay seconds... ($count/$retries)"
-    sleep $delay
-  done
-  error "Max retries reached for command: $*"
+    local retries=3
+    local count=0
+    local delay=5
+    local max_delay=30
+    while [ "$count" -lt "$retries" ]; do
+        if "$@"; then
+            return 0
+        fi
+        count=$((count + 1))
+        if [ "$count" -lt "$retries" ]; then
+            delay=$((delay * 2))
+            [ "$delay" -gt "$max_delay" ] && delay=$max_delay
+            warn "Retrying in $delay seconds... ($count/$retries)"
+            sleep $delay
+        fi
+    done
+    return 1
+}
+
+# Validate DNS record
+validate_dns() {
+    local record_type=$1
+    local name=$2
+    local expected_value=$3
+    
+    info "Validating $record_type record for $name..."
+    local current_value
+    current_value=$(dig +short "${name}.${DOMAIN}" "${record_type}" | tr '\n' ' ' | xargs)
+    
+    if [[ "$current_value" == *"$expected_value"* ]]; then
+        log "DNS record validated successfully"
+        return 0
+    else
+        warn "DNS record validation failed. Expected: $expected_value, Got: $current_value"
+        return 1
+    fi
+}
+
+# Create backup
+create_backup() {
+    local backup_file=$1
+    log "Creating DNS backup to $backup_file..."
+    mkdir -p "$(dirname "$backup_file")"
+    retry az network dns zone export \
+        --resource-group "$RESOURCE_GROUP" \
+        --name "$DOMAIN" \
+        --file-name "$backup_file" || error "Backup failed"
+    log "Backup created successfully"
+}
+
+# Restore from backup
+restore_backup() {
+    local backup_file=$1
+    if [[ ! -f "$backup_file" ]]; then
+        error "Backup file not found: $backup_file"
+    }
+    
+    log "Restoring DNS configuration from $backup_file..."
+    retry az network dns zone import \
+        --resource-group "$RESOURCE_GROUP" \
+        --name "$DOMAIN" \
+        --file-name "$backup_file" || error "Restore failed"
+    log "Restore completed successfully"
 }
 
 # ────────────────────────────────────────────────────────────
-# ✅ ENVIRONMENT SETUP
+# ✅ MAIN SCRIPT
 # ────────────────────────────────────────────────────────────
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR" || error "❌ Failed to switch to script directory: $SCRIPT_DIR"
-log "📍 Script directory: $SCRIPT_DIR"
+main() {
+    # Parse command line arguments
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --help) show_help; exit 0 ;;
+            --version) show_version; exit 0 ;;
+            --apex) CONFIGURE_APEX=true ;;
+            --www) CONFIGURE_WWW=true ;;
+            --docs) CONFIGURE_DOCS=true ;;
+            --all) CONFIGURE_APEX=true; CONFIGURE_WWW=true; CONFIGURE_DOCS=true ;;
+            --force) FORCE=true ;;
+            --backup) BACKUP_ONLY=true ;;
+            --restore) RESTORE_FILE="$2"; shift ;;
+            --verify) VERIFY_ONLY=true ;;
+            *) error "Unknown parameter: $1" ;;
+        esac
+        shift
+    done
 
-# Detect CI/CD mode
-if [[ -n "$GITHUB_ACTIONS" || -n "$CI" || -n "$AZURE_PIPELINES" ]]; then
-    CI_MODE=true
-    log "🔄 Running in CI/CD mode."
-else
-    CI_MODE=false
-    log "💻 Running in local interactive mode."
-fi
-
-# Load .env file for local execution
-if [ -f "$SCRIPT_DIR/.env" ]; then
-    log "🔍 Loading .env file..."
-    export $(grep -v '^#' "$SCRIPT_DIR/.env" | xargs)
-else
-    warn "⚠️ .env file not found, using CI/CD environment variables."
-fi
-
-# Ensure Azure authentication
-if [[ "$CI_MODE" == "true" ]]; then
-    log "🔑 Using pre-configured CI/CD authentication."
-else
-    log "🔐 Checking Azure authentication..."
-    if ! az account show &>/dev/null; then
-        error "Azure authentication required. Run 'az login' manually."
+    # Load configuration
+    if [[ -f "$CONFIG_FILE" ]]; then
+        source "$CONFIG_FILE"
     fi
-fi
 
-# Ensure required environment variables are set
-REQUIRED_VARS=("AZURE_SUBSCRIPTION_ID" "SWA_NAME" "RESOURCE_GROUP")
-for var in "${REQUIRED_VARS[@]}"; do
-    if [[ -z "${!var}" ]]; then
-        error "❌ Required environment variable '$var' is missing."
+    # Validate environment
+    [[ -z "$AZURE_SUBSCRIPTION_ID" ]] && error "AZURE_SUBSCRIPTION_ID is required"
+    [[ -z "$SWA_NAME" ]] && error "SWA_NAME is required"
+    [[ -z "$RESOURCE_GROUP" ]] && error "RESOURCE_GROUP is required"
+
+    # Handle backup/restore operations
+    if [[ "$BACKUP_ONLY" == "true" ]]; then
+        create_backup "./dns_backups/backup-$(date +%Y%m%d-%H%M%S).json"
+        exit 0
     fi
-done
 
-log "🌍 Configuring DNS for Static Web App: $SWA_NAME in Resource Group: $RESOURCE_GROUP"
+    if [[ -n "$RESTORE_FILE" ]]; then
+        restore_backup "$RESTORE_FILE"
+        exit 0
+    fi
 
-# ────────────────────────────────────────────────────────────
-# ✅ BACKUP EXISTING DNS CONFIGURATION
-# ────────────────────────────────────────────────────────────
+    # Create backup before changes
+    BACKUP_FILE="./dns_backups/${RESOURCE_GROUP}-$(date +'%Y%m%d-%H%M%S').json"
+    create_backup "$BACKUP_FILE"
 
-BACKUP_FILE="./dns_backups/${RESOURCE_GROUP}-$(date +'%Y%m%d-%H%M%S').json"
-mkdir -p ./dns_backups
-log "📦 Creating backup of current DNS settings..."
-retry az network dns zone export --resource-group "$RESOURCE_GROUP" --name "phoenixvc.tech" --file-name "$BACKUP_FILE"
+    # Configure DNS records
+    if [[ "$CONFIGURE_WWW" == "true" ]]; then
+        configure_www
+    fi
 
-# ────────────────────────────────────────────────────────────
-# ✅ CONFIGURE DNS
-# ────────────────────────────────────────────────────────────
+    if [[ "$CONFIGURE_APEX" == "true" ]]; then
+        configure_apex
+    fi
 
-log "🔧 Updating DNS records..."
-retry az network dns record-set cname set-record \
-  --resource-group "$RESOURCE_GROUP" \
-  --zone-name "phoenixvc.tech" \
-  --record-set-name "www" \
-  --cname "$SWA_NAME.azurestaticapps.net"
+    if [[ "$CONFIGURE_DOCS" == "true" ]]; then
+        configure_docs
+    fi
 
-log "✅ DNS successfully configured for www.phoenixvc.tech -> $SWA_NAME.azurestaticapps.net"
+    # Verify configuration
+    if [[ "$VERIFY_ONLY" == "true" ]] || [[ "$CONFIGURE_WWW$CONFIGURE_APEX$CONFIGURE_DOCS" != "false" ]]; then
+        verify_configuration
+    fi
 
-# ────────────────────────────────────────────────────────────
-# ✅ VERIFY CHANGES
-# ────────────────────────────────────────────────────────────
+    log "DNS configuration completed successfully!"
+    info "Changes may take up to 24 hours to propagate fully"
+    info "Backup saved to: $BACKUP_FILE"
+}
 
-log "🔎 Verifying DNS records..."
-if az network dns record-set cname show --resource-group "$RESOURCE_GROUP" --zone-name "phoenixvc.tech" --name "www" &>/dev/null; then
-  log "✅ DNS record verified!"
-else
-  error "❌ DNS verification failed. Rolling back changes..."
-  retry az network dns zone import --resource-group "$RESOURCE_GROUP" --file-name "$BACKUP_FILE"
-  error "⚠️ Rollback completed. Please check your configuration."
-fi
-
-# ────────────────────────────────────────────────────────────
-# ✅ FINAL SUMMARY
-# ────────────────────────────────────────────────────────────
-
-log "🎉 DNS configuration completed successfully!"
+# Execute main function
+main "$@"

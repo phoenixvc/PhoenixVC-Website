@@ -1,0 +1,349 @@
+# **📖 PhoenixVC DNS Configuration Script Documentation**
+**Version 3.2.0** | [View Script](#) | [Installation](#installation) | [Usage](#usage)
+
+## 📋 Table of Contents
+- [Purpose](#-purpose)
+- [Prerequisites](#️-prerequisites)
+- [Installation](#-installation)
+- [Configuration](#️-configuration)
+- [CI/CD Integration](#-cicd-integration)
+- [Usage](#-usage)
+- [Security](#️-security)
+- [Monitoring](#-monitoring)
+- [Troubleshooting](#️-troubleshooting)
+- [Recovery Procedures](#-recovery-procedures)
+- [Future Enhancements](#-future-enhancements)
+- [Version History](#-version-history)
+
+## **🌟 Purpose**
+This script automates **DNS management for Azure Static Web Apps**, including:
+- **Automated CI/CD integration** (GitHub Actions, Azure DevOps)
+- **Rollback support** for DNS changes
+- **Component-based isolation** (CNAME, TXT, APEX)
+- **Auditable logs** for compliance tracking
+- **Multi-environment support** (Production, Staging, Development)
+
+## **🛠️ Prerequisites**
+
+### Required Software
+```bash
+Azure CLI 2.58.0+
+jq 1.6+
+Bash 5.0+
+dig command-line tool
+```
+
+### Required Permissions
+- Azure subscription with DNS zone access
+- Resource Group contributor access
+- Static Web Apps configuration permissions
+
+## **🚀 Quickstart Guide**
+Follow these steps to configure DNS for your main domain, www subdomain, and docs subdomain.
+
+### 1. Basic Domain Setup (15 minutes)
+```bash
+# Download and setup
+curl -O https://phoenixvc.tech/scripts/deployment/configure-dns.sh
+chmod +x configure-dns.sh
+
+# Configure main domain records
+az network dns record-set a add-record \
+  -g YourResourceGroup \
+  -z phoenixvc.tech \
+  -n @ \
+  -a 185.199.108.153 185.199.109.153 185.199.110.153 185.199.111.153
+
+# Configure www subdomain
+az network dns record-set cname set-record \
+  -g YourResourceGroup \
+  -z phoenixvc.tech \
+  -n www \
+  -c your-swa-name.azurestaticapps.net
+```
+
+### 2. Docs Subdomain Setup (10 minutes)
+```bash
+# Add GitHub Pages A records for docs subdomain
+az network dns record-set a add-record \
+  -g YourResourceGroup \
+  -z phoenixvc.tech \
+  -n docs \
+  -a 185.199.108.153 185.199.109.153 185.199.110.153 185.199.111.153
+
+# Alternative: CNAME setup for docs
+az network dns record-set cname set-record \
+  -g YourResourceGroup \
+  -z phoenixvc.tech \
+  -n docs \
+  -c your-username.github.io
+```
+
+### 3. Verify Configuration (5 minutes)
+```bash
+# Verify apex domain
+dig phoenixvc.tech
+
+# Verify www subdomain
+dig www.phoenixvc.tech
+
+# Verify docs subdomain
+dig docs.phoenixvc.tech
+```
+
+### 4. GitHub Pages Configuration
+1. **Repository Setup**
+   ```markdown
+   - Go to repository Settings > Pages
+   - Set source branch (usually 'main')
+   - Select '/docs' folder as source
+   - Save configuration
+   ```
+
+2. **Domain Verification**
+   ```bash
+   # Add TXT record for GitHub verification if prompted
+   az network dns record-set txt add-record \
+     -g YourResourceGroup \
+     -z phoenixvc.tech \
+     -n @ \
+     -v "github-pages-verification=your-code"
+   ```
+
+### Expected DNS Records
+```yaml
+# Final DNS Configuration
+Apex (@):
+  - Type: A
+  - Values: [185.199.108.153, 185.199.109.153, 185.199.110.153, 185.199.111.153]
+  - TTL: 3600
+
+www:
+  - Type: CNAME
+  - Value: your-swa-name.azurestaticapps.net
+  - TTL: 3600
+
+docs:
+  - Type: A
+  - Values: [185.199.108.153, 185.199.109.153, 185.199.110.153, 185.199.111.153]
+  - TTL: 3600
+```
+
+### Common Issues and Solutions
+| Issue | Solution |
+|-------|----------|
+| Domain not resolving | Wait for DNS propagation (up to 24 hours) |
+| HTTPS not working | Ensure correct A records and wait for GitHub SSL provision |
+| Docs 404 error | Verify '/docs' folder exists in repository root |
+
+### Important Notes
+- DNS propagation can take up to 24 hours
+- GitHub automatically enables HTTPS once domain is verified
+- For docs subdomain:
+  - Ensure documentation is in the `/docs` folder
+  - Wait for GitHub Pages build to complete
+  - Monitor GitHub Actions for deployment status
+
+  ## **📥 Installation**
+### Local Development Setup
+```bash
+# Download the script
+curl -O https://phoenixvc.tech/scripts/deployment/configure-dns.sh
+chmod +x configure-dns.sh
+
+# Create required directories
+mkdir -p .env dns_backups
+```
+
+### Directory Structure
+```
+.
+├── configure-dns.sh
+├── .env
+├── dns_backups/
+│   └── backup-{date}.json
+└── .dns-config.json
+```
+
+## **⚙️ Configuration**
+### Environment Configuration
+Create an `.env` file for local execution:
+```ini
+LOCATION_CODE=za  # Location code (e.g., euw, saf)
+SWA_NAME=phoenixvc-prod
+AZURE_SUBSCRIPTION_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+RESOURCE_GROUP=prod-${LOCATION_CODE}-rg-phoenixvc-website
+```
+
+### DNS Configuration File (.dns-config.json)
+```json
+{
+  "domain": "phoenixvc.tech",
+  "environments": {
+    "production": {
+      "ttl": 3600,
+      "records": {
+        "apex": {
+          "type": "A",
+          "values": ["23.100.x.x"]
+        },
+        "www": {
+          "type": "CNAME",
+          "value": "phoenixvc-prod.azurestaticapps.net"
+        }
+      }
+    }
+  }
+}
+```
+
+## **🚀 CI/CD Integration**
+### GitHub Actions Example
+```yaml
+name: DNS Configuration
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['dns/**']
+
+jobs:
+  configure_dns:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Configure DNS
+        run: ./configure-dns.sh --apply --components "cname,apex"
+        env:
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          SWA_NAME: phoenixvc-prod
+          RESOURCE_GROUP: prod-euw-rg-phoenixvc-website
+```
+
+### Azure DevOps Pipeline
+```yaml
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - dns/**
+
+steps:
+- task: AzureCLI@2
+  inputs:
+    azureSubscription: 'Your-Azure-Connection'
+    scriptType: 'bash'
+    scriptPath: './configure-dns.sh'
+    arguments: '--apply --components "cname,apex"'
+```
+
+## **🔒 Security**
+### Safety Features
+1. **Pre-flight validation checks**
+2. **Immutable backups** before every change
+3. **Component-level isolation**
+4. **Forced overwrites require explicit `--force` flag**
+5. **Automatic rollback on failure**
+
+### Access Control
+```bash
+# Minimum required role assignments
+az role assignment create \
+    --role "DNS Zone Contributor" \
+    --assignee-object-id $USER_OR_SP_ID \
+    --scope $DNS_ZONE_ID
+```
+
+## **📊 Monitoring**
+### Health Checks
+```bash
+# Verify DNS configuration
+./configure-dns.sh --verify
+
+# Check propagation
+for ns in 8.8.8.8 1.1.1.1; do
+    dig @$ns phoenixvc.tech
+done
+```
+
+### Logging
+```bash
+# Enable detailed logging
+export DNS_LOG_LEVEL=DEBUG
+export DNS_LOG_FILE=/var/log/dns-config.log
+```
+
+## **🔄 Recovery Procedures**
+```mermaid
+sequenceDiagram
+    participant User
+    participant Script
+    participant AzureDNS
+    participant Backup
+    
+    User->>Script: Execute with --rollback
+    Script->>Backup: Load latest backup
+    Script->>AzureDNS: Apply backup configuration
+    AzureDNS-->>Script: Confirmation
+    Script-->>User: Success/Failure report
+```
+
+### Rollback Commands
+```bash
+# List available backups
+ls -l dns_backups/
+
+# Restore specific backup
+./configure-dns.sh --rollback --backup-file dns_backups/backup-20240215.json
+```
+
+## **🛠️ Troubleshooting Guide**
+| Error | Solution | Prevention |
+|-------|----------|------------|
+| `Missing .env file` | Create .env with required variables | Use CI/CD secrets |
+| `Record already exists` | Use --force flag | Check existing records first |
+| `Permission denied` | Check Azure role assignments | Use managed identities |
+| `Invalid hostname` | Verify SWA deployment | Add pre-flight checks |
+
+## **📌 Future Enhancements**
+```markdown
+- [ ] **Azure Policy Integration**
+  - DNS naming conventions
+  - TTL enforcement
+  - Record type restrictions
+  
+- [ ] **Monitoring Enhancements**
+  - Azure Monitor integration
+  - Slack/Teams notifications
+  - Cost analysis
+  
+- [ ] **Multi-Cloud Support**
+  - AWS Route53
+  - GCP Cloud DNS
+  
+- [ ] **Infrastructure as Code**
+  - Terraform integration
+  - Pulumi support
+  
+- [ ] **AI/ML Features**
+  - Intelligent error detection
+  - Auto-remediation
+  - Performance optimization
+```
+
+## **📜 Version History**
+| Version | Date | Changes |
+|---------|------|---------|
+| 3.2.0 | 2024-02-15 | Added AI-assisted troubleshooting, Enhanced backup system |
+| 3.1.0 | 2024-01-20 | Improved CI/CD compatibility, Structured error handling |
+| 3.0.0 | 2023-12-15 | Initial rollback system, Component isolation |
+| 2.1.0 | 2023-11-01 | Added interactive & auto modes |
+| 1.0.0 | 2023-10-01 | Initial release |
+
+---

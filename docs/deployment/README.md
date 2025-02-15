@@ -60,6 +60,9 @@ Below is an overview of the core deployment files. Each document focuses on a sp
 8. **[Service Principals](./service-principals.md)** *(Placeholder)*
    - Guidelines for creating and managing SPNs (see ADR 001 for rotation details)
 
+9. **[DNS Configuration](./dns-configuration.md)**
+   - Guidelines for creating and managing DNS
+
 ### ADRs
 
 The `adrs` folder contains Architectural Decision Records:
@@ -69,7 +72,7 @@ The `adrs` folder contains Architectural Decision Records:
 ## Infrastructure Overview
 
 ```mermaid
-graph TD
+graph TDs
     A[Static Web App] --> B[Azure Functions]
     A --> C[Storage Account]
     D[Front Door] --> A
