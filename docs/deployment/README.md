@@ -122,12 +122,16 @@ For production issues:
 ## Contributing
 - See [CONTRIBUTING.md](../../contributing.md) for guidelines
 - Use [Conventional Commits](https://www.conventionalcommits.org/)
-- Submit PRs against the `main` branch
+- **Staging Deployments:** Note that deployments to staging are triggered on 
+  PRs to branches matching our naming conventions (e.g., staging/*, feat/*, bug/*, etc.).
+- **Production Deployments:** Note that deployments to prod are triggered on 
+  PRs to branches matching our naming conventions (main/*, release/*).
 
 ## Version History
 
 | Version | Date       | Changes                                |
 |---------|------------|----------------------------------------|
+| 2.2.0   | 2025-02-15 | Added notes to refer to contributing   |
 | 2.1.0   | 2025-02-14 | Added BYOF deployment docs             |
 | 2.0.0   | 2025-02-10 | Major restructure                      |
 | 1.0.0   | 2024-02-01 | Initial release                        |
