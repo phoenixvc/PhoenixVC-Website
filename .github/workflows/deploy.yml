@@ -2,16 +2,27 @@ name: Phoenix VC Deployment Pipeline
 
 on:
   push:
-    branches: [ main, feature/* ]
+    branches: [ "main", "feature/*" ]
+  pull_request:
+    branches: [ "main", "feature/*" ]
   workflow_dispatch:
 
 env:
   LOC_CODE: 'euw'  # Default to Europe West
-  ENV_SUFFIX: ${{ contains(github.ref, 'feature/') && 'feature' || github.ref == 'refs/heads/main' && 'prod' || 'staging' }}
+  # ENV_SUFFIX not strictly needed here since we use --env flags in the deploy script
 
 jobs:
   deploy_staging:
-    if: github.ref != 'refs/heads/main'
+    if: >
+      (
+        (github.event_name == 'push' && github.ref != 'refs/heads/main') ||
+        (github.event_name == 'pull_request' &&
+         (startsWith(github.event.pull_request.base.ref, 'feature/') ||
+          startsWith(github.event.pull_request.base.ref, 'feat/') ||
+          startsWith(github.event.pull_request.base.ref, 'bug/') ||
+          startsWith(github.event.pull_request.base.ref, 'fix/') ||
+          startsWith(github.event.pull_request.base.ref, 'bugfix/')))
+      )
     runs-on: ubuntu-latest
     environment: staging
     steps:
@@ -23,7 +34,10 @@ jobs:
           SWA_NAME: staging-${{ env.LOC_CODE }}-swa-phoenixvc
 
   deploy_prod:
-    if: github.ref == 'refs/heads/main'
+    if: >
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.base.ref == 'main'
     needs: deploy_staging
     runs-on: ubuntu-latest
     environment: production
