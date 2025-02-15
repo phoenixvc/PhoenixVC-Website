@@ -16,13 +16,24 @@ env:
   LOCATION_CODE: 'euw'  # Default to Europe West
 
 jobs:
+  log_debug_information:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show Workflow Inputs
+        run: |
+          echo "GitHub event name: ${{ github.event_name }}"
+          echo "Ref:              ${{ github.ref }}"
+          echo "Base Ref:         ${{ github.event.pull_request.base.ref || 'N/A' }}"
+          echo "APPROVAL_STATE:   '${{ github.event.inputs.APPROVAL_STATE }}'"
+
   # ----------------------------------------------------------------------
   # DEPLOY STAGING:
   # Trigger on pull_request events and push events when the target branch 
   # is main, release/*, or staging/*
   # This job intentionally gets skippen when APPROVAL_STATE = true since
   # that indicates a manual approval which means it can deploy to prod
-  # ----------------------------------------------------------------------
+  # ----------------------------------------------------------------------   
+
   deploy_staging:
     if: ${{ github.event.inputs.APPROVAL_STATE != 'true' }}
     runs-on: ubuntu-latest
