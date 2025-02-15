@@ -27,6 +27,7 @@ jobs:
       - name: Use my Composite Azure Deployment
         uses: ./.github/actions/setup-azure-deployment
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
       - name: Deploy to Staging
@@ -80,6 +81,7 @@ jobs:
       - name: Use my Composite Azure Deployment
         uses: ./.github/actions/setup-azure-deployment
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
       - name: Deploy to Production
