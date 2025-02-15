@@ -101,31 +101,10 @@ jobs:
   # This job will run only after the manual approval step.
   # ----------------------------------------------------------------------
   deploy_prod:
-    if: ${{ (
-      ---
-      # (1) Push to main or release/*
-      (
-        github.event_name == 'push'
-        && (github.ref == 'refs/heads/main'
-            || startsWith(github.ref, 'refs/heads/release/'))
-      )
-
-      # OR (2) Merged PR to main or release/*
-      || (
-        github.event_name == 'pull_request'
-        && github.event.pull_request.merged == true
-        && (
-          github.event.pull_request.base.ref == 'main'
-          || startsWith(github.event.pull_request.base.ref, 'release/')
-        )
-      )
-
-      # OR (3) Manual dispatch with APPROVAL_STATE=="true"
-      || (
-        github.event_name == 'workflow_dispatch'
-        && github.event.inputs.APPROVAL_STATE == 'true'
-      )
-    ) }}
+    if: ${{ (github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')))
+       || (github.event_name == 'pull_request' && github.event.pull_request.merged == true
+           && (github.event.pull_request.base.ref == 'main' || startsWith(github.event.pull_request.base.ref, 'refs/heads/release/')))
+       || (github.event_name == 'workflow_dispatch' && github.event.inputs.APPROVAL_STATE == 'true') }}
     needs: [manual_approval]
     runs-on: ubuntu-latest
     environment: production
