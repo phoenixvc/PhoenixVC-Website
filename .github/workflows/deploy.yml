@@ -77,13 +77,19 @@ jobs:
       - log_debug_information
       - manual_approval
     if: >
-      github.event.inputs.APPROVAL_STATE == 'true' || 
+      github.event.inputs.APPROVAL_STATE == 'true' ||
       (github.event.inputs.APPROVAL_STATE == 'false' && needs.manual_approval.result == 'success')
     runs-on: ubuntu-latest
     environment: production
     permissions:
       deployments: write
-    steps:
+    steps:    
+      - name: Debug Condition Evaluation
+        run: |
+          echo "GitHub event name: ${{ github.event_name }}"
+          echo "Approval State: ${{ github.event.inputs.APPROVAL_STATE }}"
+          echo "Manual Approval Result: ${{ needs.manual_approval.result }}"
+          
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
