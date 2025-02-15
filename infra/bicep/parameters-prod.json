@@ -4,6 +4,6 @@
   "parameters": {
     "environment": { "value": "prod" },
     "locCode": { "value": "euw" },
-    "deployBudget": { "value": true }
+    "deployBudget": { "value": false }
   }
 }
