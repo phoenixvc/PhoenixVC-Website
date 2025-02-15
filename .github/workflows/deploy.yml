@@ -136,6 +136,7 @@ jobs:
   # DEPLOY DOCS: Runs on push or merged PRs into main/release
   # ----------------------------------------------------------------------
   deploy_docs:
+    needs: [log_debug_information]
     if: >
       (github.event_name == 'push' &&
        (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/'))) ||
