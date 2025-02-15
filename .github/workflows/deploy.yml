@@ -5,7 +5,7 @@ on:
     branches: [ "main", "release/*", "staging/*" ]
   pull_request:
     branches: [ "main", "release/*", "staging/*" ]
-  workflow_dispatch:    
+  workflow_dispatch:
     inputs:
       APPROVAL_STATE:
         description: 'Set to "true" for manual approval to proceed with production deployment'
@@ -28,12 +28,8 @@ jobs:
 
   # ----------------------------------------------------------------------
   # DEPLOY STAGING:
-  # Trigger on pull_request events and push events when the target branch 
-  # is main, release/*, or staging/*
-  # This job intentionally gets skippen when APPROVAL_STATE = true since
-  # that indicates a manual approval which means it can deploy to prod
-  # ----------------------------------------------------------------------   
-
+  # Runs when APPROVAL_STATE is not 'true'
+  # ----------------------------------------------------------------------
   deploy_staging:
     if: ${{ github.event.inputs.APPROVAL_STATE != 'true' }}
     runs-on: ubuntu-latest
@@ -46,16 +42,14 @@ jobs:
           ref: ${{ github.ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-          
       - name: Use my Composite Azure Deployment
         uses: ./.github/actions/setup-azure-deployment
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
-          repository: ${{ github.repository }}  # Or a specific "owner/repo"
+          repository: ${{ github.repository }}
           ref: ${{ github.ref }}
-          
       - name: Deploy to Staging
         run: ./scripts/deployment/deploy.sh --env staging
         env:
@@ -65,46 +59,52 @@ jobs:
 
   ########################################################################
   # MANUAL APPROVAL:
-  # This job sends a notification that staging deployment has passed.
-  # It exits successfully so that the workflow itself succeeds.
-  # To proceed, re-run the workflow with APPROVAL_STATE=true.
+  # This job notifies that staging has passed and instructs the user to
+  # re-run the workflow with APPROVAL_STATE set to 'true' to deploy to prod.
   ########################################################################
   manual_approval:
-    if: ${{ needs.deploy_staging.result == 'success' && github.event.inputs.APPROVAL_STATE == 'false' }}
+    if: ${{ github.event.inputs.APPROVAL_STATE == 'false' }}
     runs-on: ubuntu-latest
     needs: [deploy_staging]
     steps:
-     - name: Notify Manual Approval Ready
-       run: |
-        echo "Staging deployment passed successfully."
-        echo "Production deployment is now ready to be triggered."
-        echo "Please re-run the workflow with APPROVAL_STATE set to 'true' to deploy to production."
+      - name: Notify Manual Approval Ready
+        run: |
+          echo "Staging deployment passed successfully."
+          echo "Production deployment is now ready to be triggered."
+          echo "Please re-run the workflow with APPROVAL_STATE set to 'true' to deploy to production."
 
-  # ----------------------------------------------------------------------
-  # Reinsert enails when password are ready, for noww just echo
-  #   - name: Send Email Notification
-  # uses: dawidd6/action-send-mail@v3
-  # with:
-  # server_address: smtp.example.com
-  # server_port: 587
-  # username: ${{ secrets.EMAIL_USERNAME }}
-  # password: ${{ secrets.EMAIL_PASSWORD }}
-  # subject: "Phoenix VC Staging Deployment Passed"
-  # body: "Staging deployment has passed successfully. Please re-run the workflow with APPROVAL_STATE set to 'true' to deploy to production."
-  # to: "ops-team@phoenixvc.za"
-  # from: "ci@phoenixvc.za"
-  # ----------------------------------------------------------------------
+  ################################################################################
+  # deploy_prod_no_approval:
+  # This job runs when APPROVAL_STATE is 'true' (manual override) and does not
+  # depend on staging or manual approval.
+  ################################################################################
+  deploy_prod_no_approval:
+    if: ${{ github.event.inputs.APPROVAL_STATE == 'true' }}
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      deployments: write
+    steps:
+      - name: Use my Composite Azure Deployment
+        uses: ./.github/actions/setup-azure-deployment
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          repository: ${{ github.repository }}
+          ref: ${{ github.ref }}
+      - name: Deploy to Production (no approval)
+        run: ./scripts/deployment/deploy.sh --env prod
+        env:
+          RG_NAME: prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
+          SWA_NAME: prod-${{ env.LOCATION_CODE }}-swa-phoenixvc-website
 
-  # ----------------------------------------------------------------------
-  # DEPLOY PRODUCTION:
-  # Trigger on push events to main or release branches or merged PRs into them.
-  # This job will run only after the manual approval step.
-  # ----------------------------------------------------------------------
-  deploy_prod:
-    if: ${{ (github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')))
-       || (github.event_name == 'pull_request' && github.event.pull_request.merged == true
-           && (github.event.pull_request.base.ref == 'main' || startsWith(github.event.pull_request.base.ref, 'refs/heads/release/')))
-       || (github.event_name == 'workflow_dispatch' && github.event.inputs.APPROVAL_STATE == 'true') }}
+  ################################################################################
+  # deploy_prod_with_approval:
+  # This job runs in the normal flow (APPROVAL_STATE=='false') after manual approval.
+  ################################################################################
+  deploy_prod_with_approval:
+    if: ${{ github.event.inputs.APPROVAL_STATE == 'false' }}
     needs: [manual_approval]
     runs-on: ubuntu-latest
     environment: production
@@ -117,10 +117,9 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
-          repository: ${{ github.repository }}  # Or a specific "owner/repo"
+          repository: ${{ github.repository }}
           ref: ${{ github.ref }}
-      
-      - name: Deploy to Production
+      - name: Deploy to Production (with approval)
         run: ./scripts/deployment/deploy.sh --env prod
         env:
           RG_NAME: prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
@@ -128,10 +127,10 @@ jobs:
 
   # ----------------------------------------------------------------------
   # CONFIGURE DNS:
-  # Runs after production deployment is complete.
+  # Runs after production deployment(s) are complete.
   # ----------------------------------------------------------------------
   configure_dns:
-    needs: deploy_prod
+    needs: [deploy_prod_no_approval, deploy_prod_with_approval]
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -142,19 +141,19 @@ jobs:
 
   # ----------------------------------------------------------------------
   # DEPLOY DOCS:
-  # Trigger on push events to main or release branches and on merged PRs into them.
+  # Trigger on push or merged PRs into main/release branches.
   # ----------------------------------------------------------------------
   deploy_docs:
     if: >
       (github.event_name == 'push' &&
-        (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/'))) ||
+       (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/'))) ||
       (github.event_name == 'pull_request' &&
-        github.event.pull_request.merged == true &&
-        (github.event.pull_request.base.ref == 'main' || startsWith(github.event.pull_request.base.ref, 'refs/heads/release/')))
+       github.event.pull_request.merged == true &&
+       (github.event.pull_request.base.ref == 'main' || startsWith(github.event.pull_request.base.ref, 'refs/heads/release/')))
     runs-on: ubuntu-latest
     environment: production
     env:
-      DOCS_MODE: ${{ secrets.DOCS_MODE }}  # Set to "serve" for local serving, or leave empty for gh-deploy.
+      DOCS_MODE: ${{ secrets.DOCS_MODE }}
     steps:
       - uses: actions/checkout@v4
       - name: Setup Python
