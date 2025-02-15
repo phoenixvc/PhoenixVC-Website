@@ -1,0 +1,198 @@
+/* =====================
+   1. COLOR SCHEME
+===================== */
+:root {
+  --primary-bg: #130A1F;
+  --secondary-bg: #1C0D2B;
+  --header-bg: #6D2E1C;
+  --highlight: #FF6A00;
+  --text-color: #E0E0E0;
+  --border-color: rgba(255, 165, 0, 0.15);
+  --sidebar-header-bg: #2A1B38;
+  --hover-bg: rgba(255, 106, 0, 0.2);
+  --active-bg: linear-gradient(180deg, #FF6A00, #D35400);
+}
+
+/* =====================
+   2. BASE & BODY
+===================== */
+body {
+  background-color: var(--primary-bg);
+  color: var(--text-color);
+  font-family: 'Inter', Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+/* =====================
+   3. HEADER
+===================== */
+.md-header {
+  background-color: var(--header-bg);
+  padding: 10px 20px;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.md-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.md-header__title {
+  font-size: 1.2rem;
+  margin: 0;
+  color: var(--highlight);
+  font-weight: bold;
+}
+
+/* =====================
+   4. SIDEBARS
+===================== */
+.md-sidebar--primary, .md-sidebar--secondary {
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  padding: 15px;
+  z-index: 999;
+}
+
+.md-sidebar--primary {
+  position: fixed;
+  top: 50px;
+  left: 0;
+  width: 250px;
+  height: calc(100vh - 50px);
+  overflow-y: auto;
+}
+
+.md-sidebar--secondary {
+  position: fixed;
+  top: 50px;
+  right: 0;
+  width: 220px;
+  height: calc(100vh - 50px);
+  overflow-y: auto;
+}
+
+/* Sidebar Titles */
+.md-sidebar__title {
+  font-size: 1rem;
+  font-weight: bold;
+  color: var(--highlight);
+  background-color: var(--sidebar-header-bg);
+  padding: 10px;
+  border-radius: 4px;
+  text-align: center;
+}
+
+/* =====================
+   5. CONTENT
+===================== */
+.md-content {
+  position: relative;
+  margin-left: 270px;
+  margin-right: 240px;
+  padding: 100px 20px 20px;
+  min-height: 100vh;
+  background: var(--primary-bg);
+  flex-grow: 1;
+}
+
+/* =====================
+   6. FOOTER
+===================== */
+.md-footer {
+  background-color: var(--secondary-bg);
+  color: #FFFFFF;
+  border-top: 2px solid var(--highlight);
+  font-size: 0.8rem;
+  padding: 15px;
+  text-align: center;
+  position: relative;
+  width: 100%;
+  height: 60px;
+  bottom: 0;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+}
+
+/* =====================
+   7. HEADINGS
+===================== */
+.md-content h1 {
+  text-align: center;
+  font-size: 2rem;
+  color: var(--highlight);
+  margin-top: 0;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--highlight);
+}
+
+.md-content h2 {
+  font-size: 1.5rem;
+  color: #FFA94D;
+  margin-top: 30px;
+  border-bottom: 1px solid var(--highlight);
+  padding-bottom: 5px;
+}
+
+.md-content h3 {
+  font-size: 1.3rem;
+  color: #FFD700;
+  margin-top: 20px;
+}
+
+/* =====================
+   8. NAVIGATION LINKS
+===================== */
+.md-nav__link {
+  color: #FFD700;
+  padding: 6px 12px;
+  text-decoration: none;
+  transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+.md-nav__link:hover {
+  color: var(--highlight);
+  background-color: var(--hover-bg);
+  border-radius: 4px;
+}
+
+.md-nav__link--active {
+  color: #FFFFFF;
+  font-weight: bold;
+  background: var(--active-bg);
+  border-radius: 4px;
+  padding: 6px 12px;
+}
+
+/* =====================
+   9. IMAGE & VIDEO CONTAINERS
+===================== */
+.logo-container,
+.video-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.logo-container img,
+.video-container video {
+  width: 600px;
+  height: 350px;
+  object-fit: contain;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.logo-container img:hover,
+.video-container video:hover {
+  transform: scale(1.05);
+  opacity: 0.8;
+}

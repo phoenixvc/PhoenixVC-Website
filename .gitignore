@@ -26,3 +26,7 @@ Thumbs.db
 *.njsproj
 *.sln
 doc_changes_report_*.txt
+
+/# Ignore the entire MkDocs output
+site/deployment
+site/
