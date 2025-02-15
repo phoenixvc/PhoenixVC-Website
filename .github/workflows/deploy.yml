@@ -27,21 +27,19 @@ jobs:
           echo "APPROVAL_STATE:   '${{ github.event.inputs.APPROVAL_STATE }}'"
 
   # ----------------------------------------------------------------------
-  # DEPLOY STAGING:
-  # Runs when APPROVAL_STATE is not 'true'
+  # DEPLOY STAGING: Runs unless APPROVAL_STATE is 'true'
   # ----------------------------------------------------------------------
   deploy_staging:
     if: ${{ github.event.inputs.APPROVAL_STATE != 'true' }}
     runs-on: ubuntu-latest
     environment: staging
-    steps:      
-      - name: Checkout my Composite Azure Deployment
+    steps:
+      - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          repository: JustAGhosT/PhoenixVC-Modernized
-          ref: ${{ github.ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
+
       - name: Use my Composite Azure Deployment
         uses: ./.github/actions/setup-azure-deployment
         with:
@@ -50,18 +48,16 @@ jobs:
           azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
           repository: ${{ github.repository }}
           ref: ${{ github.ref }}
+
       - name: Deploy to Staging
         run: ./scripts/deployment/deploy.sh --env staging
         env:
-          LOCATION_CODE: euw
           RG_NAME: staging-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
           SWA_NAME: staging-${{ env.LOCATION_CODE }}-swa-phoenixvc-website
 
-  ########################################################################
-  # MANUAL APPROVAL:
-  # This job notifies that staging has passed and instructs the user to
-  # re-run the workflow with APPROVAL_STATE set to 'true' to deploy to prod.
-  ########################################################################
+  # ----------------------------------------------------------------------
+  # MANUAL APPROVAL: Waits for user action when APPROVAL_STATE == 'false'
+  # ----------------------------------------------------------------------
   manual_approval:
     if: ${{ github.event.inputs.APPROVAL_STATE == 'false' }}
     runs-on: ubuntu-latest
@@ -73,54 +69,23 @@ jobs:
           echo "Production deployment is now ready to be triggered."
           echo "Please re-run the workflow with APPROVAL_STATE set to 'true' to deploy to production."
 
-  ################################################################################
-  # deploy_prod:
-  # This job runs when APPROVAL_STATE is 'true' (manual override) and does not
-  # depend on staging or manual approval.
-  ################################################################################
+  # ----------------------------------------------------------------------
+  # DEPLOY PRODUCTION: Runs if APPROVAL_STATE=='true' OR after manual approval
+  # ----------------------------------------------------------------------
   deploy_prod:
-    if: ${{ github.event.inputs.APPROVAL_STATE == 'true' || needs.manual_approval.result == 'success' }}
-    needs: [manual_approval]
+    if: ${{ github.event.inputs.APPROVAL_STATE == 'true' || (github.event.inputs.APPROVAL_STATE == 'false' && needs.manual_approval.result == 'success') }}
+    needs: ${{ github.event.inputs.APPROVAL_STATE == 'true' && 'log_debug_information' || 'manual_approval' }}
     runs-on: ubuntu-latest
     environment: production
     permissions:
       deployments: write
     steps:
-      - name: Checkout my repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          repository: JustAGhosT/PhoenixVC-Modernized
-          ref: ${{ github.ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-          
-      - name: Use my Composite Azure Deployment
-        uses: ./.github/actions/setup-azure-deployment
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
-          repository: ${{ github.repository }}
-          ref: ${{ github.ref }}
-          
-      - name: Deploy to Production (no approval)
-        run: ./scripts/deployment/deploy.sh --env prod
-        env:
-          RG_NAME: prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
-          SWA_NAME: prod-${{ env.LOCATION_CODE }}-swa-phoenixvc-website
 
-  ################################################################################
-  # deploy_prod_with_approval:
-  # This job runs in the normal flow (APPROVAL_STATE=='false') after manual approval.
-  ################################################################################
-  deploy_prod_with_approval:
-    if: ${{ github.event.inputs.APPROVAL_STATE == 'false' }}
-    needs: [manual_approval]
-    runs-on: ubuntu-latest
-    environment: production
-    permissions:
-      deployments: write
-    steps:
       - name: Use my Composite Azure Deployment
         uses: ./.github/actions/setup-azure-deployment
         with:
@@ -129,18 +94,18 @@ jobs:
           azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
           repository: ${{ github.repository }}
           ref: ${{ github.ref }}
-      - name: Deploy to Production (with approval)
+
+      - name: Deploy to Production
         run: ./scripts/deployment/deploy.sh --env prod
         env:
           RG_NAME: prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
           SWA_NAME: prod-${{ env.LOCATION_CODE }}-swa-phoenixvc-website
 
   # ----------------------------------------------------------------------
-  # CONFIGURE DNS:
-  # Runs after production deployment(s) are complete.
+  # CONFIGURE DNS: Runs after deploy_prod completes
   # ----------------------------------------------------------------------
   configure_dns:
-    needs: [deploy_prod, deploy_prod_with_approval]
+    needs: deploy_prod
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -150,8 +115,7 @@ jobs:
           inlineScript: ./scripts/configure_dns.sh
 
   # ----------------------------------------------------------------------
-  # DEPLOY DOCS:
-  # Trigger on push or merged PRs into main/release branches.
+  # DEPLOY DOCS: Runs on push or merged PRs into main/release
   # ----------------------------------------------------------------------
   deploy_docs:
     if: >
