@@ -73,8 +73,12 @@ jobs:
   # DEPLOY PRODUCTION: Runs if APPROVAL_STATE=='true' OR after manual approval
   # ----------------------------------------------------------------------
   deploy_prod:
-    if: ${{ github.event.inputs.APPROVAL_STATE == 'true' || (github.event.inputs.APPROVAL_STATE == 'false' && needs.manual_approval.result == 'success') }}
-    needs: ${{ github.event.inputs.APPROVAL_STATE == 'true' && 'log_debug_information' || 'manual_approval' }}
+    needs: 
+      - log_debug_information
+      - manual_approval
+    if: >
+      github.event.inputs.APPROVAL_STATE == 'true' || 
+      (github.event.inputs.APPROVAL_STATE == 'false' && needs.manual_approval.result == 'success')
     runs-on: ubuntu-latest
     environment: production
     permissions:
@@ -85,7 +89,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-
+  
       - name: Use my Composite Azure Deployment
         uses: ./.github/actions/setup-azure-deployment
         with:
@@ -94,7 +98,7 @@ jobs:
           azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
           repository: ${{ github.repository }}
           ref: ${{ github.ref }}
-
+  
       - name: Deploy to Production
         run: ./scripts/deployment/deploy.sh --env prod
         env:
