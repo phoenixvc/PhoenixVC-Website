@@ -36,6 +36,8 @@ runs:
       with:
         creds: ${{ inputs.azure_credentials }}
 
-    - name: Set output - Azure CLI Version
-      run: echo "azure_cli_version=$(cat cli_version.txt)" >> $GITHUB_OUTPUT
+    - name: Set Azure CLI Version Output  
+      run: |
+        cli_version=$(cat cli_version.txt | jq -c '.')
+        echo "azure_cli_version=${cli_version}" >> $GITHUB_OUTPUT
       shell: bash
