@@ -3,12 +3,23 @@ set -eo pipefail
 
 # Feature Configuration
 ENVIRONMENT="${ENVIRONMENT:-prod}"
-LOCATION_CODE="${LOCATION_CODE:-za}"
+# Expected values: "euw" for West Europe, "saf" for South Africa
+LOCATION_CODE="${LOCATION_CODE:-saf}"
 DEPLOY_REGION="South Africa North"
 ENABLE_POLICY_CHECKS="${ENABLE_POLICY_CHECKS:-true}"
 ENABLE_MONITORING="${ENABLE_MONITORING:-$([ "$ENVIRONMENT" == "prod" ] && echo "true" || echo "false")}"
 ENABLE_COST_CHECKS="${ENABLE_COST_CHECKS:-false}"
 POLICY_ENFORCEMENT_MODE="${POLICY_ENFORCEMENT_MODE:-enforce}"
+
+# Determine deployment region based on LOCATION_CODE
+if [ "$LOCATION_CODE" = "euw" ]; then
+  DEPLOY_REGION="westeurope"
+elif [ "$LOCATION_CODE" = "saf" ]; then
+  DEPLOY_REGION="southafricanorth"
+else
+  echo "⚠️ Unknown LOCATION_CODE '$LOCATION_CODE', defaulting DEPLOY_REGION to 'westeurope'."
+  DEPLOY_REGION="westeurope"
+fi
 
 # Path Configuration
 BICEP_FILE="./infra/bicep/main.bicep"
