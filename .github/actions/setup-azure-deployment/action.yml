@@ -28,7 +28,7 @@ runs:
       shell: bash
 
     - name: Set up Azure Subscription ID
-      run: echo "AZURE_SUBSCRIPTION_ID=${{ secrets.AZURE_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
+      run: echo "AZURE_SUBSCRIPTION_ID=${{ inputs.azure_subscription_id }}" >> $GITHUB_ENV
       shell: bash
 
     - name: Azure Login
