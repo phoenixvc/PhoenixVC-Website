@@ -112,8 +112,6 @@ jobs:
         with:
           repository: ${{ github.repository }}
           ref: refs/heads/main
-          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
