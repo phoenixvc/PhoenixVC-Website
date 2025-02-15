@@ -48,17 +48,22 @@ policy_precheck() {
 }
 
 # Monitoring Setup
+# Monitoring Setup
 setup_monitoring() {
   [ "$ENABLE_MONITORING" = "true" ] || return 0
   
   echo "📈 Configuring Monitoring..."
-  az monitor activity-log alert create \
-    --name "${RESOURCE_GROUP}-policy-violation" \
-    --resource-group "$RESOURCE_GROUP" \
-    --condition category='Policy' \
-    --action email="security@phoenixvc.za" \
-    --disabled $([ "$POLICY_ENFORCEMENT_MODE" = "enforce" ] && echo "false" || echo "true") \
-    --description "DNS policy violation alerts"
+  
+  if [ "$POLICY_ENFORCEMENT_MODE" = "enforce" ]; then
+    az monitor activity-log alert create \
+      --name "${RESOURCE_GROUP}-policy-violation" \
+      --resource-group "$RESOURCE_GROUP" \
+      --condition category='Policy' \
+      --action email="security@phoenixvc.za" \
+      --description "DNS policy violation alerts"
+  else
+    echo "Policy enforcement is not set to 'enforce'. Skipping monitoring configuration."
+  fi
 }
 
 # Emergency Handling
