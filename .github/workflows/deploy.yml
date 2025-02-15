@@ -60,7 +60,7 @@ jobs:
     steps:
       - name: Check for manual approval
         run: |
-          if [[ "$APPROVAL_STATE" != "true" ]]; then
+          if [ "${{ github.event.inputs.APPROVAL_STATE }}" != "true" ]; then
             echo "No approval detected. Exiting with error to wait for manual re-run."
             exit 1
           else
