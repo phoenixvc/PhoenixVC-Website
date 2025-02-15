@@ -37,6 +37,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
+          repository: JustAGhosT/PhoenixVC-Modernized
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
@@ -46,7 +47,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
-          repository: ${{ github.repository }}
+          repository: JustAGhosT/PhoenixVC-Modernized
           ref: ${{ github.ref }}
 
       - name: Deploy to Staging
