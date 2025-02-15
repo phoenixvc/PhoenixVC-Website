@@ -201,35 +201,16 @@ jobs:
   # ----------------------------------------------------------------------
   # DEPLOY DOCS: Runs on push or merged PRs into main/release
   # ----------------------------------------------------------------------
-  deploy_docs:
-    needs: [log_debug_information]
-    if: >
-      (github.event_name == 'push' &&
-       (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/'))) ||
-      (github.event_name == 'pull_request' &&
-       github.event.pull_request.merged == true &&
-       (github.event.pull_request.base.ref == 'main' || startsWith(github.event.pull_request.base.ref, 'refs/heads/release/')))
+  # ----------------------------------------------------------------------
+  # TRIGGER DNS CONFIGURATION WORKFLOW
+  # ----------------------------------------------------------------------
+  trigger_dns_update:
+    needs: deploy_prod
     runs-on: ubuntu-latest
-    environment: production
-    env:
-      DOCS_MODE: ${{ secrets.DOCS_MODE }}
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-      - name: Install MkDocs and Dependencies
+      - name: Trigger DNS Workflow
         run: |
-          pip install mkdocs mkdocs-material
-      - name: Build MkDocs Site
-        run: mkdocs build
-      - name: Deploy or Serve MkDocs Site
-        run: |
-          if [ "${DOCS_MODE}" = "serve" ]; then
-            echo "Serving MkDocs site on 0.0.0.0:8000..."
-            mkdocs serve --dev-addr 0.0.0.0:8000
-          else
-            echo "Deploying MkDocs site via GitHub Pages..."
-            mkdocs gh-deploy --force
-          fi
+          curl -X POST -H "Accept: application/vnd.github.v3+json" \
+          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          https://api.github.com/repos/${{ github.repository }}/actions/workflows/configure_dns.yml/dispatches \
+          -d '{"ref": "refs/heads/main", "inputs": {"ENVIRONMENT": "prod"}}
