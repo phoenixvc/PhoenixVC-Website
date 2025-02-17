@@ -6,6 +6,8 @@ set -eo pipefail
 # ────────────────────────────────────────────────────────────
 VERSION="3.3.0"
 CONFIG_FILE="./scripts/deployment/.dns-config.sh"
+BACKUP_FILE="./dns_backups/${RESOURCE_GROUP}-$(date +'%Y%m%d-%H%M%S').json"
+LOCATION_CODE=${LOCATION_CODE:-"euw"}  # Default to Europe West
 
 # ────────────────────────────────────────────────────────────
 # 🧪 TODO: Tests to implement
@@ -263,18 +265,43 @@ configure_dnssec() {
         --registration-virtual-networks "" \
         --resolution-virtual-networks "" \
         --tags environment="$ENVIRONMENT" \
-        --if-match "*"
+        --if-match "*" || error "Failed to configure DNSSEC"
+    
+    # Verify DNSSEC is enabled
+    local zone_type=$(az network dns zone show \
+        --resource-group "$RESOURCE_GROUP" \
+        --name "$DOMAIN" \
+        --query "zoneType" -o tsv)
+    
+    if [[ "$zone_type" != "Public" ]]; then
+        error "DNSSEC configuration failed. Zone type is not Public."
+    fi
+    log "DNSSEC configured successfully"
 }
 
 configure_caa_records() {
     info "Configuring CAA records..."
+    # Remove existing CAA records first
+    az network dns record-set caa delete \
+        --resource-group "$RESOURCE_GROUP" \
+        --zone-name "$DOMAIN" \
+        --name "@" \
+        --yes || warn "No existing CAA records to remove"
+        
+    # Add new CAA record
+    az network dns record-set caa create \
+        --resource-group "$RESOURCE_GROUP" \
+        --zone-name "$DOMAIN" \
+        --name "@" \
+        --ttl 3600 || error "Failed to create CAA record-set"
+        
     az network dns record-set caa add-record \
         --resource-group "$RESOURCE_GROUP" \
         --zone-name "$DOMAIN" \
         --record-set-name "@" \
         --flags 0 \
         --tag "issue" \
-        --value "letsencrypt.org"
+        --value "letsencrypt.org" || error "Failed to add CAA record"
 }
 
 rollback_changes() {
