@@ -1,21 +1,40 @@
----
-layout: default
-title: "Documentation Home"
----
+# Phoenix VC Documentation
 
-# Documentation
+Welcome to the comprehensive documentation for Phoenix VC's infrastructure, design system, and development resources.
 
-Welcome to the Phoenix VC Modernized documentation site. Use the navigation links below to explore various topics related to development, deployment, infrastructure, security, compliance, and more.
+## Quick Navigation
 
-## Contents
+### 🚀 Getting Started
+- [Development Setup](guides/development/development-setup.md)
+- [Deployment Guide](guides/deployment/deployment-guide.md)
+- [Design System](../design/components/index.md)
 
-- [Deployment](deployment/README.md)
-- [Security](SECURITY.md)
-- [Development](development/README.md)
-- [Compliance](compliance/README.md)
-- [Infrastructure](infrastructure/README.md)
-- [References](references/README.md)
-- [FAQ](FAQ.md)
-- [Contributing](contributing.md)
-- [Documentation Roadmap](documentation-roadmap.md)
-- [Documentation Map](documentation-map.md)
+### 📚 Key Documentation Areas
+
+#### Infrastructure & Development
+- [Infrastructure Overview](guides/infrastructure/README.md)
+- [Development Guidelines](guides/development/README.md)
+- [Deployment Process](guides/deployment/README.md)
+
+#### Design System
+- [Component Library](design/components/index.md)
+- [Design Guidelines](design/guidelines/principles.md)
+- [Design Tokens](design/tokens/colors.md)
+
+#### Policies & Compliance
+- [Security Guidelines](policies/SECURITY.md)
+- [Compliance Framework](policies/compliance/README.md)
+
+## Latest Updates
+
+Check our [Changelog](meta/CHANGELOG.md) for recent updates and improvements.
+
+## Support & Feedback
+
+- 📘 [FAQ](FAQ.md)
+- 🔍 [Documentation Map](meta/documentation-map.md)
+- 📧 [Contact Support](mailto:jurie@phoenix-vc.com)
+
+## Contributing
+
+We welcome contributions! See our [Contributing Guidelines](design/guidelines/contributing.md) for more information.
