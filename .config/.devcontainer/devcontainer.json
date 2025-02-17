@@ -1,20 +1,43 @@
 {
   "name": "Phoenix VC Dev Environment",
-  "image": "mcr.microsoft.com/devcontainers/javascript-node:18",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12",
   "features": {
     "ghcr.io/devcontainers/features/node:1": {
       "version": "18"
     },
-    "ghcr.io/devcontainers/features/azure-cli:1": {}
+    "ghcr.io/devcontainers/features/azure-cli:1": {},
+    "ghcr.io/devcontainers-contrib/features/poetry:2": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
   },
   "customizations": {
     "vscode": {
       "extensions": [
-        "esbenp.prettier-vscode",
-        "dbaeumer.vscode-eslint",
-        "ms-azuretools.vscode-azurecli"
-      ]
+        "vscode.json-language-features",
+        "vscode.markdown-language-features",
+        "vscode.typescript-language-features",
+        "vscode.git",
+        "vscode.git-base",
+        "vscode.github",
+        "vscode.github-authentication",
+        "vscode.npm",
+        "GitHub.vscode-pull-request-github",
+        "github.vscode-github-actions"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.formatting.provider": "black",
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": true,
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.organizeImports": "always"
+        }
+      }
     }
   },
-  "postCreateCommand": "npm install"
-}
+  "postCreateCommand": "poetry config virtualenvs.in-project true && poetry install && npm install",
+  "remoteUser": "vscode",
+  "mounts": [
+    "source=${localWorkspaceFolder}/.cache,target=/home/vscode/.cache,type=bind,consistency=cached"
+  ]
+  }
