@@ -5,7 +5,8 @@ set -eo pipefail
 # ✅ VERSION AND CONFIG
 # ────────────────────────────────────────────────────────────
 VERSION="3.2.0"
-CONFIG_FILE=".dns-config.json"
+# Updated configuration file path
+CONFIG_FILE="./scripts/deployment/.dns-config.sh"
 
 # ────────────────────────────────────────────────────────────
 # ✅ HELPER FUNCTIONS
@@ -88,11 +89,11 @@ validate_dns() {
     local record_type=$1
     local name=$2
     local expected_value=$3
-    
+
     info "Validating $record_type record for $name..."
     local current_value
     current_value=$(dig +short "${name}.${DOMAIN}" "${record_type}" | tr '\n' ' ' | xargs)
-    
+
     if [[ "$current_value" == *"$expected_value"* ]]; then
         log "DNS record validated successfully"
         return 0
@@ -119,8 +120,8 @@ restore_backup() {
     local backup_file=$1
     if [[ ! -f "$backup_file" ]]; then
         error "Backup file not found: $backup_file"
-    }
-    
+    fi
+
     log "Restoring DNS configuration from $backup_file..."
     retry az network dns zone import \
         --resource-group "$RESOURCE_GROUP" \
@@ -152,15 +153,16 @@ main() {
         shift
     done
 
-    # Load configuration
+    # Load configuration from the shell configuration file
     if [[ -f "$CONFIG_FILE" ]]; then
         source "$CONFIG_FILE"
     fi
 
-    # Validate environment
+    # Validate environment variables
     [[ -z "$AZURE_SUBSCRIPTION_ID" ]] && error "AZURE_SUBSCRIPTION_ID is required"
     [[ -z "$SWA_NAME" ]] && error "SWA_NAME is required"
     [[ -z "$RESOURCE_GROUP" ]] && error "RESOURCE_GROUP is required"
+    [[ -z "$DOMAIN" ]] && error "DOMAIN is required in the configuration file"
 
     # Handle backup/restore operations
     if [[ "$BACKUP_ONLY" == "true" ]]; then
@@ -177,7 +179,7 @@ main() {
     BACKUP_FILE="./dns_backups/${RESOURCE_GROUP}-$(date +'%Y%m%d-%H%M%S').json"
     create_backup "$BACKUP_FILE"
 
-    # Configure DNS records
+    # Configure DNS records (functions like configure_www, configure_apex, configure_docs should be defined below)
     if [[ "$CONFIGURE_WWW" == "true" ]]; then
         configure_www
     fi
