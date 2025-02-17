@@ -169,6 +169,15 @@ main() {
         info "SWA_NAME was not provided. Inferred SWA_NAME as: ${SWA_NAME}"
     fi
 
+    if [[ -z "$RESOURCE_GROUP" ]]; then
+      if [[ "$ENVIRONMENT" == "prod" ]]; then
+        RESOURCE_GROUP="prod-${LOCATION_CODE}-rg-phoenixvc-website"
+      else
+        RESOURCE_GROUP="${ENVIRONMENT}-${LOCATION_CODE}-rg-phoenixvc-website"
+      fi
+      info "RESOURCE_GROUP was not provided. Inferred RESOURCE_GROUP as: ${RESOURCE_GROUP}"
+    fi
+
     # Validate environment variables
     [[ -z "$AZURE_SUBSCRIPTION_ID" ]] && error "AZURE_SUBSCRIPTION_ID is required"
     [[ -z "$SWA_NAME" ]] && error "SWA_NAME is required"
