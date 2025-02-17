@@ -517,6 +517,53 @@ main() {
         shift
     done
 
+    # ────────────────────────────────────────────────────────────
+    # Initialize key variables and create backup directory
+    # ────────────────────────────────────────────────────────────
+    LOCATION_CODE=${LOCATION_CODE:-"euw"}  # Default to Europe West if not set
+    BACKUP_DIR="./dns_backups"
+    mkdir -p "$BACKUP_DIR"
+    BACKUP_FILE="${BACKUP_DIR}/${DOMAIN}-$(date +'%Y%m%d-%H%M%S').json"
+    
+    # Create initial backup before any changes
+    if [[ "$VERIFY_ONLY" != "true" && "$BACKUP_ONLY" != "true" ]]; then
+        info "Creating initial backup before changes..."
+        create_backup "$BACKUP_FILE" || error "Failed to create initial backup"
+    fi
+    
+    # Validate environment
+    [[ -z "$ENVIRONMENT" ]] && error "ENVIRONMENT is required (e.g., prod, dev, staging)"
+    [[ ! "$ENVIRONMENT" =~ ^(prod|dev|staging|test)$ ]] && warn "Non-standard environment: $ENVIRONMENT"
+    
+    # Set default configuration flags if not specified
+    CONFIGURE_APEX=${CONFIGURE_APEX:-false}
+    CONFIGURE_WWW=${CONFIGURE_WWW:-false}
+    CONFIGURE_DOCS=${CONFIGURE_DOCS:-false}
+    CONFIGURE_DESIGN=${CONFIGURE_DESIGN:-false}
+    CONFIGURE_DNSSEC=${CONFIGURE_DNSSEC:-false}
+    CONFIGURE_CAA=${CONFIGURE_CAA:-false}
+    FORCE=${FORCE:-false}
+    
+    # Log configuration summary
+    info "Configuration Summary:"
+    info "- Environment: $ENVIRONMENT"
+    info "- Domain: $DOMAIN"
+    info "- Resource Group: $RESOURCE_GROUP"
+    info "- Location Code: $LOCATION_CODE"
+    info "- Static Web App: $SWA_NAME"
+    info "- Design SWA: ${DESIGN_SWA_NAME:-"(not configured)"}"
+    info "- Force Mode: ${FORCE}"
+    info "- Backup File: $BACKUP_FILE"
+    
+    # Configuration flags summary
+    info "Requested Changes:"
+    [[ "$CONFIGURE_APEX" == "true" ]] && info "- Configure Apex Domain"
+    [[ "$CONFIGURE_WWW" == "true" ]] && info "- Configure WWW Subdomain"
+    [[ "$CONFIGURE_DOCS" == "true" ]] && info "- Configure Docs Subdomain"
+    [[ "$CONFIGURE_DESIGN" == "true" ]] && info "- Configure Design Subdomain"
+    [[ "$CONFIGURE_DNSSEC" == "true" ]] && info "- Configure DNSSEC"
+    [[ "$CONFIGURE_CAA" == "true" ]] && info "- Configure CAA Records"
+
     if [[ -f "$CONFIG_FILE" ]]; then
         source "$CONFIG_FILE"
     fi
