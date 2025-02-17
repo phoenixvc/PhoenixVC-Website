@@ -1,0 +1,32 @@
+name: 'Build Vite App'
+description: 'Builds a Vite application with proper configuration'
+
+inputs:
+  app-name:
+    description: 'Name of the app to build (web/design-system)'
+    required: true
+  node-version:
+    description: 'Node.js version'
+    required: false
+    default: '18'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'npm'
+        
+    - name: Install Dependencies
+      shell: bash
+      run: |
+        cd apps/${{ inputs.app-name }}
+        npm ci
+        
+    - name: Build
+      shell: bash
+      run: |
+        cd apps/${{ inputs.app-name }}
+        npm run build

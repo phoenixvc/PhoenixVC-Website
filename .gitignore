@@ -33,3 +33,4 @@ site/
 git_changes_*.txt
 paths.txt
 project-backup-*.zip
+docs_backup_*/

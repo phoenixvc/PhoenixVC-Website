@@ -49,6 +49,38 @@ jobs:
           fi
           echo "==========================="
   
+
+  # ────────────────────────────────────────────
+  # ✅ STAGING DEPLOYMENT
+  # ────────────────────────────────────────────
+  build_apps:
+    runs-on: ubuntu-latest
+    needs: [log_debug_information]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Build Web App
+        uses: ./.github/actions/build-vite
+        with:
+          app-name: 'web'
+          
+      - name: Build Design System
+        uses: ./.github/actions/build-vite
+        with:
+          app-name: 'design-system'
+          
+      - name: Upload Web App Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: web-dist
+          path: apps/web/dist
+          
+      - name: Upload Design System Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: design-system-dist
+          path: apps/design-system/dist
+
   # ────────────────────────────────────────────
   # ✅ STAGING DEPLOYMENT
   # ────────────────────────────────────────────
