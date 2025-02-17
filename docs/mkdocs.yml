@@ -1,6 +1,6 @@
 # Site Information
 site_name: Phoenix VC Documentation
-site_description: Comprehensive documentation for Phoenix VC
+site_description: Comprehensive documentation for Phoenix VC's website, infrastructure and design system
 site_author: Phoenix VC Team
 site_url: https://JustAGhosT.github.io/PhoenixVC-Modernized/
 
@@ -13,22 +13,38 @@ theme:
     - navigation.sections
     - navigation.expand
     - navigation.indexes
+    - navigation.top
+    - navigation.footer
     - toc.integrate
     - search.suggest
     - search.highlight
+    - search.share
     - content.code.annotate
+    - content.tabs.link
   search:
     placeholder: "Search documentation..."
   palette:
-    scheme: default
-    primary: amber
-    accent: blue-grey
-    toggle:
-      icon: material/brightness-7
-      name: Switch to dark mode
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: amber
+      accent: blue-grey
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: amber
+      accent: blue-grey
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
   font:
     text: 'Roboto'
     code: 'Fira Code'
+  icon:
+    repo: fontawesome/brands/github
 
 # Unified Navigation
 nav:
@@ -36,39 +52,77 @@ nav:
   # Main Documentation
   - Documentation:
       - FAQ: main/FAQ.md
-      - Changelog: main/CHANGELOG.md
-      - Security: main/SECURITY.md
-      - Compliance: main/compliance.md
-      - Deployment: main/deployment.md
-      - Development: main/development.md
-      - Infrastructure: main/infrastructure.md
-      - References: main/references.md
-  - Contributing: main/contributing.md
-  - Documentation Map: main/documentation-map.md
-  - Documentation Roadmap: main/documentation-roadmap.md
-  - Naming Conventions: main/naming_conventions.md
+      - Meta:
+          - Changelog: main/meta/CHANGELOG.md
+          - Documentation Map: main/meta/documentation-map.md
+          - Documentation Roadmap: main/meta/documentation-roadmap.md
+      - Guides:
+          - Deployment:
+              - Overview: main/guides/deployment/README.md
+              - Environment Setup: main/guides/deployment/azure-environment-setup.md
+              - Configuration: main/guides/deployment/configuration.md
+              - Deployment Guide: main/guides/deployment/deployment-guide.md
+              - DNS Configuration: main/guides/deployment/dns-configuration.md
+              - Operations: main/guides/deployment/operations.md
+              - Prerequisites: main/guides/deployment/prerequisites.md
+              - Service Principals: main/guides/deployment/service-principals.md
+              - Troubleshooting: main/guides/deployment/troubleshooting.md
+              - ADRs:
+                  - Credential Rotation: main/guides/deployment/adrs/adr-001-credential-rotation.md
+                  - Disaster Recovery: main/guides/deployment/adrs/adr-002-disaster-recovery.md
+          - Development:
+              - Overview: main/guides/development/README.md
+              - Code Style: main/guides/development/code-style.md
+              - Dev Containers: main/guides/development/dev-containers.md
+              - Development Setup: main/guides/development/development-setup.md
+              - Search Functionality: main/guides/development/search-functionality.md
+          - Infrastructure:
+              - Overview: main/guides/infrastructure/README.md
+              - Architecture: main/guides/infrastructure/architecture.md
+              - Bicep Templates: main/guides/infrastructure/bicep-templates.md
+              - Disaster Recovery: main/guides/infrastructure/disaster-recovery.md
+              - Docker Workflow: main/guides/infrastructure/docker-workflow.md
+              - Infrastructure: main/guides/infrastructure/infrastructure.md
+              - Monitoring: main/guides/infrastructure/monitoring.md
+      - Policies:
+          - Security: main/policies/SECURITY.md
+          - Compliance:
+              - Overview: main/policies/compliance/README.md
+              - Security Baseline: main/policies/compliance/azure-security-baseline.md
+              - DNS Policy: main/policies/compliance/dns-policy-checklist.md
+              - Policy Framework: main/policies/compliance/policy-framework.md
+              - SPN Audit: main/policies/compliance/spn-audit-rotation.md
+      - Reference:
+          - Overview: main/reference/README.md
+          - Component Versions: main/reference/azure-component-versions.md
+          - Naming Conventions: main/reference/naming-conventions.md
+          - Network Topology: main/reference/network-topology.md
   
-  # Design System (with clear separator)
+  # Design System
   - Design System:
-      - Overview: design/index.md
-      - Getting Started:
-          - Installation: design/getting-started/installation.md
-          - Usage: design/getting-started/usage.md
-          - Configuration: design/getting-started/configuration.md
       - Components:
           - Overview: design/components/index.md
           - Button: design/components/button.md
           - Card: design/components/card.md
           - Input: design/components/input.md
-      - Design Tokens:
-          - Colors: design/tokens/colors.md
-          - Typography: design/tokens/typography.md
-          - Spacing: design/tokens/spacing.md
+      - Foundations:
+          - Breakpoints: design/foundations/breakpoints/index.md
+          - Iconography: design/foundations/iconography/index.md
+          - Spacing: design/foundations/spacing/index.md
+          - Typography: design/foundations/typography/index.md
+      - Getting Started:
+          - Installation: design/getting-started/installation.md
+          - Usage: design/getting-started/usage.md
+          - Configuration: design/getting-started/configuration.md
       - Guidelines:
-          - Design Principles: design/guidelines/principles.md
           - Accessibility: design/guidelines/accessibility.md
           - Contributing: design/guidelines/contributing.md
-
+          - Principles: design/guidelines/principles.md
+      - Tokens:
+          - Colors: design/tokens/colors.md
+          - Spacing: design/tokens/spacing.md
+          - Typography: design/tokens/typography.md
+          
 # Enhanced Markdown Extensions
 markdown_extensions:
   - admonition
@@ -79,30 +133,56 @@ markdown_extensions:
   - md_in_html
   - toc:
       permalink: true
+      toc_depth: 3
   - pymdownx.highlight:
       anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
   - pymdownx.inlinehilite
-  - pymdownx.snippets
-  - pymdownx.details
+  - pymdownx.snippets:
+      check_paths: true
   - pymdownx.superfences:
       custom_fences:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - tables
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
 
 # Enhanced Plugins
 plugins:
-  - search
+  - search:
+      separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
   - minify:
       minify_html: true
+      minify_js: true
+      minify_css: true
+      htmlmin_opts:
+        remove_comments: true
   - git-revision-date-localized:
       type: date
+      enable_creation_date: true
+      fallback_to_build_date: true
   - social:
       cards_color:
         fill: "#FFA000"
         text: "#FFFFFF"
-  - tags
+      cards_font: Roboto
+  - tags:
+      tags_file: main/meta/tags.md
   - section-index
+  - redirects:
+  - awesome-pages
+  - search-suggestions
+  - git-committers:
+      repository: JustAGhosT/PhoenixVC-Modernized
+      branch: main
 
 # Deployment
 repo_url: https://github.com/JustAGhosT/PhoenixVC-Modernized
@@ -113,6 +193,7 @@ remote_name: origin
 
 # Other Options
 use_directory_urls: true
+strict: true
 
 extra_css:
   - assets/css/PhoenixVc-Styles.css
@@ -126,15 +207,35 @@ extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/JustAGhosT/PhoenixVC-Modernized
-      name: GitHub
+      name: GitHub Repository
     - icon: fontawesome/solid/envelope
       link: mailto:jurie@phoenix-vc.com
-      name: Email
+      name: Contact Support  
+  consent:
+    title: Cookie consent
+    description: >- 
+      We use cookies to recognize your repeated visits and preferences, as well
+      as to measure the effectiveness of our documentation and whether users
+      find what they're searching for. With your consent, you're helping us to
+      make our documentation better.
   copyright: "© 2025 Phoenix VC. All rights reserved."
-  # Version selector
   version:
-    provider: mike
-  # Analytics (if needed)
+      provider: mike
+      default: latest
   analytics:
     provider: google
-    property: !ENV GOOGLE_ANALYTICS_KEY
+    property: !ENV GOOGLE_ANALYTICS_KEY  
+  feedback:
+    title: Was this page helpful?
+    ratings:
+      - icon: material/thumb-up-outline
+        name: This page was helpful
+        data: 1
+        note: >-
+          Thanks for your feedback!
+      - icon: material/thumb-down-outline
+        name: This page could be improved
+        data: 0
+        note: >- 
+          Thanks for your feedback! Help us improve this page by
+          using our <a href="..." target="_blank" rel="noopener">feedback form</a>.
