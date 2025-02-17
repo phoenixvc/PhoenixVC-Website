@@ -1,5 +1,5 @@
 # **📖 PhoenixVC DNS Configuration Script Documentation**
-**Version 3.2.0** | [View Script](#) | [Installation](#installation) | [Usage](#usage)
+**Version 3.2.2** | [View Script](#) | [Installation](#installation) | [Usage](#usage)
 
 ## 📋 Table of Contents
 - [Purpose](#-purpose)
@@ -13,6 +13,8 @@
 - [Troubleshooting](#️-troubleshooting)
 - [Recovery Procedures](#-recovery-procedures)
 - [Future Enhancements](#-future-enhancements)
+- [Azure DNS vs. External DNS Providers](#azure-dns-vs-external-dns-providers)
+- [Changing GoDaddy Nameservers](#changing-godaddy-nameservers)
 - [Version History](#-version-history)
 
 ## **🌟 Purpose**
@@ -109,19 +111,19 @@ az network dns record-set txt add-record \
 ```
 
 ### Common Issues and Solutions
-| Issue | Solution |
-|-------|----------|
-| Domain not resolving | Wait for DNS propagation (up to 24 hours) |
-| HTTPS not working | Ensure correct A records and wait for GitHub SSL provision |
-| Docs 404 error | Verify '/docs' folder exists in repository root |
+| Issue               | Solution                                             |
+|---------------------|------------------------------------------------------|
+| Domain not resolving | Wait for DNS propagation (up to 24 hours)           |
+| HTTPS not working   | Ensure correct A records and wait for GitHub SSL provision |
+| Docs 404 error      | Verify '/docs' folder exists in repository root      |
 
 ### Important Notes
-- DNS propagation can take up to 24 hours
-- GitHub automatically enables HTTPS once domain is verified
+- DNS propagation can take up to 24 hours.
+- GitHub automatically enables HTTPS once the domain is verified.
 - For docs subdomain:
-  - Ensure documentation is in the `/docs` folder
-  - Wait for GitHub Pages build to complete
-  - Monitor GitHub Actions for deployment status
+  - Ensure documentation is in the `/docs` folder.
+  - Wait for GitHub Pages build to complete.
+  - Monitor GitHub Actions for deployment status.
 
 ## **📥 Installation**
 ### Local Development Setup
@@ -283,12 +285,12 @@ ls -l dns_backups/
 ```
 
 ## **🛠️ Troubleshooting Guide**
-| Error | Solution | Prevention |
-|-------|----------|------------|
-| `Missing .env file` | Create .env with required variables | Use CI/CD secrets |
-| `Record already exists` | Use --force flag | Check existing records first |
-| `Permission denied` | Check Azure role assignments | Use managed identities |
-| `Invalid hostname` | Verify SWA deployment | Add pre-flight checks |
+| Error               | Solution                                    | Prevention                      |
+|---------------------|---------------------------------------------|---------------------------------|
+| `Missing .env file` | Create .env with required variables         | Use CI/CD secrets               |
+| `Record already exists` | Use --force flag                        | Check existing records first    |
+| `Permission denied` | Check Azure role assignments                | Use managed identities          |
+| `Invalid hostname`  | Verify SWA deployment                       | Add pre-flight checks           |
 
 ## **📌 Future Enhancements**
 ```markdown
@@ -316,13 +318,56 @@ ls -l dns_backups/
   - Performance optimization
 ```
 
-## **📜 Version History**
-| Version | Date | Changes |
-|---------|------|---------|
-| 3.2.0 | 2024-02-15 | Added AI-assisted troubleshooting, Enhanced backup system |
-| 3.1.0 | 2024-01-20 | Improved CI/CD compatibility, Structured error handling |
-| 3.0.0 | 2023-12-15 | Initial rollback system, Component isolation |
-| 2.1.0 | 2023-11-01 | Added interactive & auto modes |
-| 1.0.0 | 2023-10-01 | Initial release |
+## **Azure DNS vs. External DNS Providers**
+If you create an **Azure DNS zone** for your domain, you must also **update your domain’s nameservers** at your registrar to point to Azure’s nameservers (e.g., `ns1-01.azure-dns.com`, `ns2-01.azure-dns.net`, etc.).
+Otherwise, **the zone in Azure won’t be used**, and your domain will continue to resolve via your existing DNS provider.
 
----
+### Common Scenario: GoDaddy Domain, Amazon IP Addresses
+It’s entirely possible for a domain registered at **GoDaddy** to resolve to **Amazon** IP addresses if you’ve updated your domain’s nameservers to point to an external provider (such as Amazon’s Route53 or CloudFront). In this case, even if you create an Azure DNS zone, it will remain inactive until you change the nameservers at GoDaddy to Azure’s.
+
+**Key Points**:
+1. **Domain Registrar** – The service where you registered your domain (e.g., GoDaddy, Namecheap) controls which nameservers your domain uses.
+2. **Azure DNS** – If you want to host DNS in Azure, you must switch your domain’s nameservers to Azure.
+3. **External DNS** – If your domain points to an external provider (like Amazon or Cloudflare), any Azure DNS zone you create is effectively inactive until you change nameservers.
+
+## **Changing GoDaddy Nameservers**
+To switch your domain to use Azure DNS, follow these steps:
+
+1. **Retrieve Azure Nameservers**:
+   - In the Azure Portal, navigate to **DNS zones** and select your zone (e.g., `phoenixvc.tech`).
+   - The Azure DNS nameservers typically are:
+     - `ns1-01.azure-dns.com`
+     - `ns2-01.azure-dns.net`
+     - `ns3-01.azure-dns.org`
+     - `ns4-01.azure-dns.info`
+   - Note these values for later use.
+
+2. **Log in to GoDaddy**:
+   - Visit [GoDaddy's website](https://www.godaddy.com) and sign in to your account.
+
+3. **Access Domain Settings**:
+   - Navigate to your **My Products** page.
+   - Locate your domain (e.g., `phoenixvc.tech`) and click **DNS** or **Manage DNS**.
+
+4. **Update Nameservers**:
+   - In the **Nameservers** section, click **Change**.
+   - Select **Custom** nameservers.
+   - Enter the Azure nameservers you retrieved:
+     - `ns1-01.azure-dns.com`
+     - `ns2-01.azure-dns.net`
+     - `ns3-01.azure-dns.org`
+     - `ns4-01.azure-dns.info`
+   - Save your changes.
+
+5. **Wait for Propagation**:
+   - DNS changes can take up to 48 hours to propagate globally.
+   - Use tools like `nslookup` or `dig` to verify that the new nameservers are in effect.
+
+## **📜 Version History**
+| Version | Date       | Changes                                                           |
+|---------|-----------|-------------------------------------------------------------------|
+| 3.2.0   | 2024-02-15 | Added AI-assisted troubleshooting, Enhanced backup system         |
+| 3.1.0   | 2024-01-20 | Improved CI/CD compatibility, Structured error handling           |
+| 3.0.0   | 2023-12-15 | Initial rollback system, Component isolation                      |
+| 2.1.0   | 2023-11-01 | Added interactive & auto modes                                    |
+| 1.0.0   | 2023-10-01 | Initial release                                                   |
