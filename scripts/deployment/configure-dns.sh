@@ -110,7 +110,7 @@ validate_dns() {
     fi
 }
 
-# Create backup using az CLI
+# Create backup using Azure CLI
 create_backup() {
     local backup_file=$1
     log "Creating DNS backup to $backup_file..."
@@ -119,7 +119,7 @@ create_backup() {
     log "Backup created successfully"
 }
 
-# Restore backup using az CLI
+# Restore backup using Azure CLI
 restore_backup() {
     local backup_file=$1
     if [[ ! -f "$backup_file" ]]; then
@@ -150,16 +150,16 @@ verify_azure_records() {
     local apex_record
     apex_record=$(az network dns record-set a list --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --query "[?name=='@']" -o tsv)
     if [[ -n "$apex_record" ]]; then
-        info "Apex record in Azure: $apex_record"
+        info "Azure apex record: $apex_record"
     else
         warn "No apex A record found in Azure DNS zone."
     fi
 
-    # Verify www CNAME record
+    # Verify www CNAME record (using --name instead of --record-set-name)
     local www_record
-    www_record=$(az network dns record-set cname show --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --record-set-name "www" --query "cname" -o tsv)
+    www_record=$(az network dns record-set cname show --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --name "www" --query "cname" -o tsv)
     if [[ -n "$www_record" ]]; then
-        info "www record in Azure: $www_record"
+        info "Azure www record: $www_record"
     else
         warn "No www CNAME record found in Azure DNS zone."
     fi
@@ -168,7 +168,7 @@ verify_azure_records() {
     local docs_record
     docs_record=$(az network dns record-set a list --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --query "[?name=='docs']" -o tsv)
     if [[ -n "$docs_record" ]]; then
-        info "docs record in Azure: $docs_record"
+        info "Azure docs record: $docs_record"
     else
         warn "No docs A record found in Azure DNS zone."
     fi
@@ -326,9 +326,9 @@ verify_azure_records() {
         warn "No apex A record found in Azure DNS zone."
     fi
 
-    # Verify www CNAME record
+    # Verify www CNAME record (using --name parameter)
     local www_record
-    www_record=$(az network dns record-set cname show --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --record-set-name "www" --query "cname" -o tsv)
+    www_record=$(az network dns record-set cname show --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --name "www" --query "cname" -o tsv)
     if [[ -n "$www_record" ]]; then
         info "Azure www record: $www_record"
     else
@@ -343,6 +343,7 @@ verify_azure_records() {
     else
         warn "No docs A record found in Azure DNS zone."
     fi
+
     info "Azure DNS records verification completed."
 }
 
