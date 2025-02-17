@@ -218,7 +218,7 @@ configure_apex() {
         retry az network dns record-set a add-record \
             --resource-group "$RESOURCE_GROUP" \
             --zone-name "$DOMAIN" \
-            --name "@" \
+            --record-set-name "@" \
             --ipv4-address "$ip" || error "Failed to configure apex A record for IP $ip"
       done
       log "Apex domain configured with A records: $EXPECTED_APEX_IPS"
@@ -233,7 +233,8 @@ configure_www() {
         --resource-group "$RESOURCE_GROUP" \
         --zone-name "$DOMAIN" \
         --record-set-name "www" \
-        --cname "$SWA_NAME.azurestaticapps.net" || error "Failed to configure www subdomain"
+        --cname "$SWA_NAME.azurestaticapps.net" \
+        --ttl 3600 || error "Failed to configure www subdomain"
     log "www subdomain configured."
 }
 
@@ -243,22 +244,22 @@ configure_docs() {
     retry az network dns record-set a add-record \
         --resource-group "$RESOURCE_GROUP" \
         --zone-name "$DOMAIN" \
-        --name "docs" \
+        --record-set-name "docs" \
         --ipv4-address "185.199.108.153" || error "Failed to add docs A record (185.199.108.153)"
     retry az network dns record-set a add-record \
         --resource-group "$RESOURCE_GROUP" \
         --zone-name "$DOMAIN" \
-        --name "docs" \
+        --record-set-name "docs" \
         --ipv4-address "185.199.109.153" || error "Failed to add docs A record (185.199.109.153)"
     retry az network dns record-set a add-record \
         --resource-group "$RESOURCE_GROUP" \
         --zone-name "$DOMAIN" \
-        --name "docs" \
+        --record-set-name "docs" \
         --ipv4-address "185.199.110.153" || error "Failed to add docs A record (185.199.110.153)"
     retry az network dns record-set a add-record \
         --resource-group "$RESOURCE_GROUP" \
         --zone-name "$DOMAIN" \
-        --name "docs" \
+        --record-set-name "docs" \
         --ipv4-address "185.199.111.153" || error "Failed to add docs A record (185.199.111.153)"
     log "Docs subdomain configured."
 }
