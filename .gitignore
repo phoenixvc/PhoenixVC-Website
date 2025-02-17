@@ -27,10 +27,29 @@ Thumbs.db
 *.sln
 doc_changes_report_*.txt
 
-/# Ignore the entire MkDocs output
+# Ignore the entire MkDocs output
 site/deployment
 site/
+
+# Ignore generated debug output
 git_changes_*.txt
 paths.txt
 project-backup-*.zip
 docs_backup_*/
+
+# Python
+__pycache__/
+*.py[cod]
+*.class
+.cache/
+.pytest_cache/
+
+# Poetry
+poetry.lock
+.venv/
+
+# Development
+.env
+.vscode/
+*.swp
+*.swo

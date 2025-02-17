@@ -21,23 +21,36 @@
         "vscode.github-authentication",
         "vscode.npm",
         "GitHub.vscode-pull-request-github",
-        "github.vscode-github-actions"
+        "github.vscode-github-actions",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.debugpy"
       ],
       "settings": {
         "python.defaultInterpreterPath": "/usr/local/bin/python",
-        "python.formatting.provider": "black",
-        "python.linting.enabled": true,
-        "python.linting.pylintEnabled": true,
+        "python.analysis.typeCheckingMode": "basic",
+        "python.analysis.autoImportCompletions": true,
+        "python.analysis.inlayHints.functionReturnTypes": true,
+        "python.analysis.inlayHints.variableTypes": true,
+        "[python]": {
+          "editor.formatOnSave": true,
+          "editor.defaultFormatter": "ms-python.python",
+          "editor.codeActionsOnSave": {
+            "source.fixAll": "always",
+            "source.organizeImports": "always"
+          }
+        },
         "editor.formatOnSave": true,
         "editor.codeActionsOnSave": {
-          "source.organizeImports": "always"
+          "source.fixAll": "always"
         }
       }
     }
   },
-  "postCreateCommand": "poetry config virtualenvs.in-project true && poetry install && npm install",
+  "postCreateCommand": "poetry config virtualenvs.in-project true && poetry install && npm install && pip install ruff",
+  "updateContentCommand": "apt-get update && apt-get install -y tree",
   "remoteUser": "vscode",
   "mounts": [
     "source=${localWorkspaceFolder}/.cache,target=/home/vscode/.cache,type=bind,consistency=cached"
   ]
-  }
+}

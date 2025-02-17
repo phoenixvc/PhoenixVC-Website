@@ -3,6 +3,8 @@ site_name: Phoenix VC Documentation
 site_description: Comprehensive documentation for Phoenix VC's website, infrastructure and design system
 site_author: Phoenix VC Team
 site_url: https://JustAGhosT.github.io/PhoenixVC-Modernized/
+docs_dir: src
+site_dir: site
 
 # Theme Configuration
 theme:
@@ -21,6 +23,8 @@ theme:
     - search.share
     - content.code.annotate
     - content.tabs.link
+    - content.action.edit  # Adds an edit button
+    - content.action.view  # Adds a view source button
   search:
     placeholder: "Search documentation..."
   palette:
@@ -48,8 +52,9 @@ theme:
 
 # Unified Navigation
 nav:
-  - Home: main/index.md
-  # Main Documentation
+  - Home: index.md
+  - Design:
+    - Overview: design/README.md
   - Documentation:
       - FAQ: main/FAQ.md
       - Meta:
@@ -59,6 +64,7 @@ nav:
       - Guides:
           - Deployment:
               - Overview: main/guides/deployment/README.md
+              - Deploy Script Reference: main/guides/deployment/deploy-script-reference.md
               - Environment Setup: main/guides/deployment/azure-environment-setup.md
               - Configuration: main/guides/deployment/configuration.md
               - Deployment Guide: main/guides/deployment/deployment-guide.md
@@ -100,16 +106,18 @@ nav:
   
   # Design System
   - Design System:
+    - Overview: design/README.md
+    - Documentation:
       - Components:
           - Overview: design/components/index.md
           - Button: design/components/button.md
           - Card: design/components/card.md
           - Input: design/components/input.md
       - Foundations:
-          - Breakpoints: design/foundations/breakpoints/index.md
-          - Iconography: design/foundations/iconography/index.md
-          - Spacing: design/foundations/spacing/index.md
-          - Typography: design/foundations/typography/index.md
+          - Breakpoints: design/foundations/breakpoints.md
+          - Iconography: design/foundations/iconography.md
+          - Spacing: design/foundations/spacing.md
+          - Typography: design/foundations/typography.md
       - Getting Started:
           - Installation: design/getting-started/installation.md
           - Usage: design/getting-started/usage.md
@@ -152,10 +160,9 @@ markdown_extensions:
       custom_checkbox: true
   - tables
   - pymdownx.emoji:
-      emoji_index: !!python/name:materialx.emoji.twemoji
-      emoji_generator: !!python/name:materialx.emoji.to_svg
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
-# Enhanced Plugins
 plugins:
   - search:
       separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
@@ -165,24 +172,19 @@ plugins:
       minify_css: true
       htmlmin_opts:
         remove_comments: true
-  - git-revision-date-localized:
-      type: date
-      enable_creation_date: true
-      fallback_to_build_date: true
+  # - git-revision-date-localized:
+  #     type: date
+  #     enable_creation_date: true
+  #     fallback_to_build_date: true
   - social:
-      cards_color:
-        fill: "#FFA000"
-        text: "#FFFFFF"
-      cards_font: Roboto
-  - tags:
-      tags_file: main/meta/tags.md
+      cards_layout_options:
+        background_color: "#FFA000"
+        color: "#FFFFFF"
+        font_family: Roboto
+  - tags
+  - awesome-pages
   - section-index
   - redirects:
-  - awesome-pages
-  - search-suggestions
-  - git-committers:
-      repository: JustAGhosT/PhoenixVC-Modernized
-      branch: main
 
 # Deployment
 repo_url: https://github.com/JustAGhosT/PhoenixVC-Modernized
