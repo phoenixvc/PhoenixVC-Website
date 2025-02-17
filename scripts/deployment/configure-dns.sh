@@ -4,8 +4,43 @@ set -eo pipefail
 # ────────────────────────────────────────────────────────────
 # ✅ VERSION AND CONFIG
 # ────────────────────────────────────────────────────────────
-VERSION="3.2.3"
+VERSION="3.3.0"
 CONFIG_FILE="./scripts/deployment/.dns-config.sh"
+
+# ────────────────────────────────────────────────────────────
+# 🧪 TODO: Tests to implement
+# ────────────────────────────────────────────────────────────
+# TODO: Unit Tests
+# - Test retry mechanism with mocked failures
+# - Test rollback functionality with various scenarios
+# - Test nameserver detection for different providers
+# - Test configuration inference (SWA_NAME, RESOURCE_GROUP, etc.)
+# - Test DNS record validation logic
+#
+# TODO: Integration Tests
+# - Test full DNS zone creation and configuration
+# - Test DNSSEC enablement and verification
+# - Test CAA record configuration and validation
+# - Test backup and restore functionality
+# - Test forced updates vs normal updates
+#
+# TODO: Edge Cases
+# - Test behavior with missing or invalid config file
+# - Test handling of non-existent DNS zones
+# - Test partial configuration scenarios
+# - Test error handling during multi-record updates
+# - Test nameserver mismatch scenarios
+#
+# TODO: Performance Tests
+# - Test retry delays and timeouts
+# - Test backup/restore with large DNS zones
+# - Test concurrent modification handling
+#
+# TODO: Security Tests
+# - Test handling of malformed DNS records
+# - Test access control validation
+# - Test sensitive data handling
+# - Test backup file permissions
 
 # Expected Azure nameservers (adjust if needed)
 EXPECTED_AZURE_NS="ns1-01.azure-dns.com ns2-01.azure-dns.net ns3-01.azure-dns.org ns4-01.azure-dns.info"
@@ -43,18 +78,21 @@ Options:
     --www                Configure www subdomain
     --docs               Configure docs subdomain for GitHub Pages
     --design             Configure design subdomain
-    --all                Configure all domains (apex, www, docs, design)
+    --dnssec             Configure DNSSEC for the zone
+    --caa                Configure CAA records
+    --all                Configure all (apex, www, docs, design, DNSSEC, CAA)
     --force              Force update existing records
     --backup             Only create DNS backup
     --restore FILE       Restore from backup file
-    --verify             Only verify current configuration
-    --help               Show this help message
-    --version            Show version information
+    --verify            Only verify current configuration
+    --help              Show this help message
+    --version           Show version information
 
 Examples:
     $(basename "$0") --all --ENVIRONMENT prod
     $(basename "$0") --design --ENVIRONMENT prod
     $(basename "$0") --docs --force --ENVIRONMENT prod
+    $(basename "$0") --dnssec --caa --ENVIRONMENT prod
 
 Environment variables:
     AZURE_SUBSCRIPTION_ID    Azure Subscription ID
@@ -62,9 +100,7 @@ Environment variables:
     RESOURCE_GROUP           Resource Group name
     DOMAIN                   DNS zone name (e.g., phoenixvc.tech)
     EXPECTED_APEX_IPS        (Optional) Space-delimited list of expected apex A record IPs
-    DESIGN_SWA_NAME          (Optional) Static Web App name for the design site.
-                           If not provided, it will be inferred as:
-                           "\${ENVIRONMENT}-\${LOCATION_CODE}-swa-phoenixvc-design"
+    DESIGN_SWA_NAME          (Optional) Static Web App name for the design site
 EOF
 }
 
@@ -218,6 +254,61 @@ configure_design() {
     log "Design subdomain configured (CNAME -> ${DESIGN_SWA_NAME}.azurestaticapps.net)."
 }
 
+configure_dnssec() {
+    info "Configuring DNSSEC..."
+    az network dns zone update \
+        --resource-group "$RESOURCE_GROUP" \
+        --name "$DOMAIN" \
+        --zone-type Public \
+        --registration-virtual-networks "" \
+        --resolution-virtual-networks "" \
+        --tags environment="$ENVIRONMENT" \
+        --if-match "*"
+}
+
+configure_caa_records() {
+    info "Configuring CAA records..."
+    az network dns record-set caa add-record \
+        --resource-group "$RESOURCE_GROUP" \
+        --zone-name "$DOMAIN" \
+        --record-set-name "@" \
+        --flags 0 \
+        --tag "issue" \
+        --value "letsencrypt.org"
+}
+
+rollback_changes() {
+    local backup_file=$1
+    local error_msg=${2:-"Unknown error"}
+    
+    warn "Rolling back changes due to: $error_msg"
+    info "Using backup file: $backup_file"
+    
+    if [[ ! -f "$backup_file" ]]; then
+        error "Backup file not found: $backup_file"
+        return 1
+    fi
+
+    # Try to restore up to 3 times
+    local attempt=1
+    local max_attempts=3
+    while [[ $attempt -le $max_attempts ]]; do
+        info "Rollback attempt $attempt of $max_attempts..."
+        if restore_backup "$backup_file"; then
+            log "Rollback completed successfully"
+            return 0
+        fi
+        attempt=$((attempt + 1))
+        if [[ $attempt -le $max_attempts ]]; then
+            warn "Rollback failed, retrying in 5 seconds..."
+            sleep 5
+        fi
+    done
+
+    error "All rollback attempts failed. Manual intervention required."
+    return 1
+}
+
 # ────────────────────────────────────────────────────────────
 # NEW: Create missing apex and docs records in Azure if not present
 create_missing_apex_docs() {
@@ -346,6 +437,31 @@ verify_configuration() {
                 error "Failed to auto-correct public design CNAME record."
             fi
         fi
+
+        if [[ "$CONFIGURE_DNSSEC" == "true" ]]; then
+            info "Verifying DNSSEC configuration..."
+            local dnssec_status=$(az network dns zone show \
+                --resource-group "$RESOURCE_GROUP" \
+                --name "$DOMAIN" \
+                --query "zoneType" -o tsv)
+            if [[ "$dnssec_status" != "Public" ]]; then
+                error "DNSSEC verification failed. Zone type is not Public."
+            fi
+            log "DNSSEC verification passed"
+        fi
+    
+        if [[ "$CONFIGURE_CAA" == "true" ]]; then
+            info "Verifying CAA records..."
+            local caa_records=$(az network dns record-set caa show \
+                --resource-group "$RESOURCE_GROUP" \
+                --zone-name "$DOMAIN" \
+                --name "@" \
+                --query "caaRecords[?tag=='issue'].value" -o tsv)
+            if [[ "$caa_records" != *"letsencrypt.org"* ]]; then
+                error "CAA record verification failed. Expected letsencrypt.org CAA record not found."
+            fi
+            log "CAA records verification passed"
+        fi
     fi
     info "DNS configuration verified successfully."
 }
@@ -361,7 +477,9 @@ main() {
             --www) CONFIGURE_WWW=true ;;
             --docs) CONFIGURE_DOCS=true ;;
             --design) CONFIGURE_DESIGN=true ;;
-            --all) CONFIGURE_APEX=true; CONFIGURE_WWW=true; CONFIGURE_DOCS=true; CONFIGURE_DESIGN=true ;;
+            --dnssec) CONFIGURE_DNSSEC=true ;;
+            --caa) CONFIGURE_CAA=true ;;
+            --all) CONFIGURE_APEX=true; CONFIGURE_WWW=true; CONFIGURE_DOCS=true; CONFIGURE_DESIGN=true; CONFIGURE_DNSSEC=true; CONFIGURE_CAA=true ;;
             --force) FORCE=true ;;
             --backup) BACKUP_ONLY=true ;;
             --restore) RESTORE_FILE="$2"; shift ;;
@@ -434,21 +552,40 @@ main() {
 
     ensure_dns_zone_exists
 
-    BACKUP_FILE="./dns_backups/${RESOURCE_GROUP}-$(date +'%Y%m%d-%H%M%S').json"
-    create_backup "$BACKUP_FILE"
+    # Wrap all configurations in error handling
+    {
+        # Configure DNSSEC first as it's a zone-level setting
+        if [[ "$CONFIGURE_DNSSEC" == "true" ]]; then
+            configure_dnssec
+        fi
 
-    if [[ "$CONFIGURE_WWW" == "true" ]]; then
-        configure_www
-    fi
-    if [[ "$CONFIGURE_APEX" == "true" ]]; then
-        configure_apex
-    fi
-    if [[ "$CONFIGURE_DOCS" == "true" ]]; then
-        configure_docs
-    fi
-    if [[ "$CONFIGURE_DESIGN" == "true" ]]; then
-        configure_design
-    fi
+        # Configure CAA records before other DNS records
+        if [[ "$CONFIGURE_CAA" == "true" ]]; then
+            configure_caa_records
+        fi
+
+        if [[ "$CONFIGURE_WWW" == "true" ]]; then
+            configure_www
+        fi
+        if [[ "$CONFIGURE_APEX" == "true" ]]; then
+            configure_apex
+        fi
+        if [[ "$CONFIGURE_DOCS" == "true" ]]; then
+            configure_docs
+        fi
+        if [[ "$CONFIGURE_DESIGN" == "true" ]]; then
+            configure_design
+        fi
+    } || {
+        local error_code=$?
+        warn "An error occurred during configuration (Exit code: $error_code)"
+        if [[ "$FORCE" != "true" ]]; then
+            rollback_changes "$BACKUP_FILE"
+            error "Configuration failed, changes rolled back"
+        else
+            warn "Continuing despite error due to --force flag"
+        fi
+    }
 
     if [[ "$VERIFY_ONLY" == "true" ]] || [[ "$CONFIGURE_WWW$CONFIGURE_APEX$CONFIGURE_DOCS$CONFIGURE_DESIGN" != "false" ]]; then
         verify_configuration
