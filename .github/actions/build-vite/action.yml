@@ -8,25 +8,24 @@ inputs:
   node-version:
     description: 'Node.js version'
     required: false
-    default: '18'
+    default: '20'  # Updated to current LTS version
 
 runs:
   using: "composite"
   steps:
     - name: Setup Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4  # Updated from v3
       with:
         node-version: ${{ inputs.node-version }}
         cache: 'npm'
-        
+        cache-dependency-path: 'apps/${{ inputs.app-name }}/package-lock.json'  # Added for better caching
+
     - name: Install Dependencies
       shell: bash
-      run: |
-        cd apps/${{ inputs.app-name }}
-        npm ci
-        
+      working-directory: apps/${{ inputs.app-name }}  # Better than cd
+      run: npm ci
+
     - name: Build
       shell: bash
-      run: |
-        cd apps/${{ inputs.app-name }}
-        npm run build
+      working-directory: apps/${{ inputs.app-name }}  # Better than cd
+      run: npm run build
