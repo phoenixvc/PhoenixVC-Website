@@ -159,6 +159,16 @@ main() {
         source "$CONFIG_FILE"
     fi
 
+    # Infer SWA_NAME if not already set
+    if [[ -z "$SWA_NAME" ]]; then
+        if [[ "$ENVIRONMENT" == "prod" ]]; then
+            SWA_NAME="prod-${LOCATION_CODE}-swa-phoenixvc-website"
+        else
+            SWA_NAME="${ENVIRONMENT}-${LOCATION_CODE}-swa-phoenixvc-website"
+        fi
+        info "SWA_NAME was not provided. Inferred SWA_NAME as: ${SWA_NAME}"
+    fi
+
     # Validate environment variables
     [[ -z "$AZURE_SUBSCRIPTION_ID" ]] && error "AZURE_SUBSCRIPTION_ID is required"
     [[ -z "$SWA_NAME" ]] && error "SWA_NAME is required"
