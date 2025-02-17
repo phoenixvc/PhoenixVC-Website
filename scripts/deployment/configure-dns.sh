@@ -232,7 +232,7 @@ configure_www() {
     retry az network dns record-set cname set-record \
         --resource-group "$RESOURCE_GROUP" \
         --zone-name "$DOMAIN" \
-        --name "www" \
+        --record-set-name "www" \
         --cname "$SWA_NAME.azurestaticapps.net" || error "Failed to configure www subdomain"
     log "www subdomain configured."
 }
