@@ -12,7 +12,7 @@ env:
   LOCATION_CODE: 'euw'
 
 jobs:
-  configure_dns:
+  configure-dns:
     runs-on: ubuntu-latest
     environment: production
     permissions:
@@ -35,16 +35,16 @@ jobs:
           repository: ${{ github.repository }}
           ref: ${{ github.ref }}
 
-      - name: Verify configure_dns.sh Exists
+      - name: Verify configure-dns.sh Exists
         run: |
           ls -la ./scripts
-          if [ ! -f ./scripts/deployment/configure_dns.sh ]; then
-            echo "⚠️ configure_dns.sh is missing!"
+          if [ ! -f ./scripts/deployment/configure-dns.sh ]; then
+            echo "⚠️ configure-dns.sh is missing!"
             exit 1
           fi
 
-      - name: Ensure configure_dns.sh is executable
-        run: chmod +x ./scripts/deployment/configure_dns.sh
+      - name: Ensure configure-dns.sh is executable
+        run: chmod +x ./scripts/deployment/configure-dns.sh
 
       - name: Configure DNS
-        run: ./scripts/deployment/configure_dns.sh --ENVIRONMENT ${{ github.event.inputs.ENVIRONMENT }}
+        run: ./scripts/deployment/configure-dns.sh --ENVIRONMENT ${{ github.event.inputs.ENVIRONMENT }}
