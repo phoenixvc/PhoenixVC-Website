@@ -285,12 +285,12 @@ ls -l dns_backups/
 ```
 
 ## **🛠️ Troubleshooting Guide**
-| Error               | Solution                                    | Prevention                      |
-|---------------------|---------------------------------------------|---------------------------------|
-| `Missing .env file` | Create .env with required variables         | Use CI/CD secrets               |
-| `Record already exists` | Use --force flag                        | Check existing records first    |
-| `Permission denied` | Check Azure role assignments                | Use managed identities          |
-| `Invalid hostname`  | Verify SWA deployment                       | Add pre-flight checks           |
+| Error                   | Solution                                      | Prevention                      |
+|-------------------------|-----------------------------------------------|---------------------------------|
+| `Missing .env file`      | Create .env with required variables            | Use CI/CD secrets               |
+| `Record already exists`  | Use --force flag                               | Check existing records first    |
+| `Permission denied`      | Check Azure role assignments                   | Use managed identities          |
+| `Invalid hostname`       | Verify SWA deployment                          | Add pre-flight checks           |
 
 ## **📌 Future Enhancements**
 ```markdown
@@ -364,10 +364,11 @@ To switch your domain to use Azure DNS, follow these steps:
    - Use tools like `nslookup` or `dig` to verify that the new nameservers are in effect.
 
 ## **📜 Version History**
-| Version | Date       | Changes                                                           |
-|---------|-----------|-------------------------------------------------------------------|
-| 3.2.0   | 2024-02-15 | Added AI-assisted troubleshooting, Enhanced backup system         |
-| 3.1.0   | 2024-01-20 | Improved CI/CD compatibility, Structured error handling           |
-| 3.0.0   | 2023-12-15 | Initial rollback system, Component isolation                      |
-| 2.1.0   | 2023-11-01 | Added interactive & auto modes                                    |
-| 1.0.0   | 2023-10-01 | Initial release                                                   |
+| Version | Date       | Changes                                                             |
+|---------|------------|---------------------------------------------------------------------|
+| 3.2.2   | 2024-02-17 | Added definitions for missing functions and updated docs accordingly. |
+| 3.2.0   | 2024-02-15 | Added AI-assisted troubleshooting, Enhanced backup system           |
+| 3.1.0   | 2024-01-20 | Improved CI/CD compatibility, Structured error handling             |
+| 3.0.0   | 2023-12-15 | Initial rollback system, Component isolation                        |
+| 2.1.0   | 2023-11-01 | Added interactive & auto modes                                      |
+| 1.0.0   | 2023-10-01 | Initial release                                                     |
