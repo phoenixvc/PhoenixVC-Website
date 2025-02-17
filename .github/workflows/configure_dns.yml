@@ -36,6 +36,10 @@ jobs:
           ref: ${{ github.ref }}
 
       - name: Verify Required Parameters
+        env:
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          SWA_NAME: ${{ secrets.SWA_NAME }}
+          RESOURCE_GROUP: ${{ secrets.RESOURCE_GROUP }}
         run: |
           echo "Verifying required environment variables..."
           : "${AZURE_SUBSCRIPTION_ID:?AZURE_SUBSCRIPTION_ID is not set}"
