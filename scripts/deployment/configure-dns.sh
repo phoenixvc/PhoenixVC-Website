@@ -148,6 +148,7 @@ main() {
             --backup) BACKUP_ONLY=true ;;
             --restore) RESTORE_FILE="$2"; shift ;;
             --verify) VERIFY_ONLY=true ;;
+            --ENVIRONMENT) ENVIRONMENT="$2"; shift ;;
             *) error "Unknown parameter: $1" ;;
         esac
         shift
