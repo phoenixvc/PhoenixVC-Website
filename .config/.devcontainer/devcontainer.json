@@ -12,6 +12,7 @@
   "customizations": {
     "vscode": {
       "extensions": [
+        // Built-in extensions
         "vscode.json-language-features",
         "vscode.markdown-language-features",
         "vscode.typescript-language-features",
@@ -20,11 +21,22 @@
         "vscode.github",
         "vscode.github-authentication",
         "vscode.npm",
-        "GitHub.vscode-pull-request-github",
-        "github.vscode-github-actions",
         "ms-python.python",
         "ms-python.vscode-pylance",
-        "ms-python.debugpy"
+        "ms-python.debugpy",
+        "GitHub.vscode-pull-request-github",
+        "github.vscode-github-actions",
+        // Additional recommended extensions
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "ms-azuretools.vscode-azurecli",
+        "yzhang.markdown-all-in-one",
+        "davidanson.vscode-markdownlint",
+        "bierner.markdown-mermaid",
+        "eamodio.gitlens",
+        "mhutchie.git-graph",
+        "streetsidesoftware.code-spell-checker",
+        "editorconfig.editorconfig"
       ],
       "settings": {
         "python.defaultInterpreterPath": "/usr/local/bin/python",
@@ -43,6 +55,21 @@
         "editor.formatOnSave": true,
         "editor.codeActionsOnSave": {
           "source.fixAll": "always"
+        },
+        "[javascript]": {
+          "editor.defaultFormatter": "vscode.typescript-language-features"
+        },
+        "[typescript]": {
+          "editor.defaultFormatter": "vscode.typescript-language-features"
+        },
+        "[json]": {
+          "editor.defaultFormatter": "vscode.json-language-features"
+        },
+        "[jsonc]": {
+          "editor.defaultFormatter": "vscode.json-language-features"
+        },
+        "[markdown]": {
+          "editor.defaultFormatter": "vscode.markdown-language-features"
         }
       }
     }
