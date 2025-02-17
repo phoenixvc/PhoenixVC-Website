@@ -42,7 +42,8 @@ Options:
     --apex               Configure apex domain
     --www                Configure www subdomain
     --docs               Configure docs subdomain for GitHub Pages
-    --all                Configure all domains
+    --design             Configure design subdomain
+    --all                Configure all domains (apex, www, docs, design)
     --force              Force update existing records
     --backup             Only create DNS backup
     --restore FILE       Restore from backup file
@@ -51,18 +52,19 @@ Options:
     --version            Show version information
 
 Examples:
-    $(basename "$0") --all
-    $(basename "$0") --docs --force
-    $(basename "$0") --www --apex
-    $(basename "$0") --backup
-    $(basename "$0") --restore ./dns_backups/backup-20240215.json
+    $(basename "$0") --all --ENVIRONMENT prod
+    $(basename "$0") --design --ENVIRONMENT prod
+    $(basename "$0") --docs --force --ENVIRONMENT prod
 
 Environment variables:
     AZURE_SUBSCRIPTION_ID    Azure Subscription ID
-    SWA_NAME                 Static Web App name
+    SWA_NAME                 Static Web App name for the main site (e.g., prod-euw-swa-phoenixvc-website)
     RESOURCE_GROUP           Resource Group name
     DOMAIN                   DNS zone name (e.g., phoenixvc.tech)
     EXPECTED_APEX_IPS        (Optional) Space-delimited list of expected apex A record IPs
+    DESIGN_SWA_NAME          (Optional) Static Web App name for the design site.
+                           If not provided, it will be inferred as:
+                           "\${ENVIRONMENT}-\${LOCATION_CODE}-swa-phoenixvc-design"
 EOF
 }
 
@@ -151,7 +153,9 @@ check_nameservers() {
     local detected_provider=$(detect_external_provider)
     local missing=0
     for ns in $EXPECTED_AZURE_NS; do
-        if [[ "$current_ns" != *"$ns"* ]]; then missing=1; fi
+        if [[ "$current_ns" != *"$ns"* ]]; then
+            missing=1
+        fi
     done
     if [[ $missing -eq 1 ]]; then
         warn "***********************************************************************"
@@ -176,12 +180,12 @@ check_nameservers() {
 configure_apex() {
     info "Configuring apex domain..."
     if [ -n "$EXPECTED_APEX_IPS" ]; then
-      for ip in $EXPECTED_APEX_IPS; do
-        retry az network dns record-set a add-record --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --record-set-name "@" --ipv4-address "$ip" || error "Failed to configure apex A record for IP $ip"
-      done
-      log "Apex domain configured with A records: $EXPECTED_APEX_IPS"
+        for ip in $EXPECTED_APEX_IPS; do
+            retry az network dns record-set a add-record --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --record-set-name "@" --ipv4-address "$ip" || error "Failed to configure apex A record for IP $ip"
+        done
+        log "Apex domain configured with A records: $EXPECTED_APEX_IPS"
     else
-      warn "No EXPECTED_APEX_IPS provided and auto-fetch failed. Skipping apex configuration."
+        warn "No EXPECTED_APEX_IPS provided and auto-fetch failed. Skipping apex configuration."
     fi
 }
 
@@ -199,12 +203,26 @@ configure_docs() {
     log "Docs subdomain configured."
 }
 
+configure_design() {
+    info "Configuring design subdomain..."
+    # If DESIGN_SWA_NAME is not provided, infer it as: [env]-[loc]-swa-phoenixvc-design
+    if [[ -z "$DESIGN_SWA_NAME" ]]; then
+        if [[ "$ENVIRONMENT" == "prod" ]]; then
+            DESIGN_SWA_NAME="prod-${LOCATION_CODE}-swa-phoenixvc-design"
+        else
+            DESIGN_SWA_NAME="${ENVIRONMENT}-${LOCATION_CODE}-swa-phoenixvc-design"
+        fi
+        info "DESIGN_SWA_NAME was not provided. Inferred DESIGN_SWA_NAME as: ${DESIGN_SWA_NAME}"
+    fi
+    retry az network dns record-set cname set-record --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --record-set-name "design" --cname "${DESIGN_SWA_NAME}.azurestaticapps.net" --ttl 3600 || error "Failed to configure design subdomain"
+    log "Design subdomain configured (CNAME -> ${DESIGN_SWA_NAME}.azurestaticapps.net)."
+}
+
 # ────────────────────────────────────────────────────────────
 # NEW: Create missing apex and docs records in Azure if not present
 create_missing_apex_docs() {
     info "Checking if apex and docs records need to be created in Azure DNS..."
 
-    # Check apex record
     if [[ "$CONFIGURE_APEX" == "true" && -n "$EXPECTED_APEX_IPS" ]]; then
         local apex_exists=$(az network dns record-set a list --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --query "[?name=='@']" -o tsv)
         if [[ -z "$apex_exists" ]]; then
@@ -218,7 +236,6 @@ create_missing_apex_docs() {
         fi
     fi
 
-    # Check docs record
     if [[ "$CONFIGURE_DOCS" == "true" ]]; then
         local docs_exists=$(az network dns record-set a list --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --query "[?name=='docs']" -o tsv)
         if [[ -z "$docs_exists" ]]; then
@@ -234,10 +251,9 @@ create_missing_apex_docs() {
 }
 
 # ────────────────────────────────────────────────────────────
-# NEW: Verify records directly in Azure using az CLI
+# NEW: Verify records directly in Azure DNS using az CLI
 verify_azure_records() {
     info "Verifying DNS records in Azure DNS zone..."
-    # Verify apex A record
     local apex_record=$(az network dns record-set a list --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --query "[?name=='@']" -o tsv)
     if [[ -n "$apex_record" ]]; then
         info "Azure apex record: $apex_record"
@@ -245,7 +261,6 @@ verify_azure_records() {
         warn "No apex A record found in Azure DNS zone."
     fi
 
-    # Verify www CNAME record (using --name)
     local www_record=$(az network dns record-set cname show --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --name "www" --query "cname" -o tsv 2>/dev/null || true)
     if [[ -n "$www_record" ]]; then
         info "Azure www record: $www_record"
@@ -253,12 +268,18 @@ verify_azure_records() {
         warn "No www CNAME record found in Azure DNS zone."
     fi
 
-    # Verify docs A record
     local docs_record=$(az network dns record-set a list --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --query "[?name=='docs']" -o tsv)
     if [[ -n "$docs_record" ]]; then
         info "Azure docs record: $docs_record"
     else
         warn "No docs A record found in Azure DNS zone."
+    fi
+
+    local design_record=$(az network dns record-set cname show --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --name "design" --query "cname" -o tsv 2>/dev/null || true)
+    if [[ -n "$design_record" ]]; then
+        info "Azure design record: $design_record"
+    else
+        warn "No design CNAME record found in Azure DNS zone."
     fi
 
     info "Azure DNS records verification completed."
@@ -274,7 +295,6 @@ verify_configuration() {
         verify_azure_records
         create_missing_apex_docs
     else
-        # Public apex verification
         local apex_ips=$(dig +short "$DOMAIN" A | tr '\n' ' ' | xargs)
         info "Public A records for $DOMAIN: $apex_ips"
         if [[ -n "$EXPECTED_APEX_IPS" && "$CONFIGURE_APEX" == "true" ]]; then
@@ -289,7 +309,6 @@ verify_configuration() {
             fi
         fi
 
-        # Public www verification
         local www_value=$(dig +short "www.$DOMAIN" CNAME | tr '\n' ' ' | xargs)
         info "Public www CNAME record for www.$DOMAIN: $www_value"
         if [[ "$CONFIGURE_WWW" == "true" && "$www_value" != *"$SWA_NAME.azurestaticapps.net"* ]]; then
@@ -302,7 +321,6 @@ verify_configuration() {
             fi
         fi
 
-        # Public docs verification
         local docs_ips=$(dig +short "docs.$DOMAIN" A | tr '\n' ' ' | xargs)
         info "Public docs A records for docs.$DOMAIN: $docs_ips"
         if [[ "$CONFIGURE_DOCS" == "true" ]]; then
@@ -314,6 +332,18 @@ verify_configuration() {
             done
             if [[ $docs_found -eq 0 ]]; then
                 error "Public docs A record verification failed. Expected one of: ${DOCS_IPS[*]}, got: $docs_ips"
+            fi
+        fi
+
+        local design_value=$(dig +short "design.$DOMAIN" CNAME | tr '\n' ' ' | xargs)
+        info "Public design CNAME record for design.$DOMAIN: $design_value"
+        if [[ "$CONFIGURE_DESIGN" == "true" && "$design_value" != *"${DESIGN_SWA_NAME:-${ENVIRONMENT}-${LOCATION_CODE}-swa-phoenixvc-design}.azurestaticapps.net"* ]]; then
+            warn "Public design CNAME record is incorrect. Attempting to update..."
+            configure_design
+            design_value=$(dig +short "design.$DOMAIN" CNAME | tr '\n' ' ' | xargs)
+            info "Re-checked public design CNAME record: $design_value"
+            if [[ "$design_value" != *"${DESIGN_SWA_NAME:-${ENVIRONMENT}-${LOCATION_CODE}-swa-phoenixvc-design}.azurestaticapps.net"* ]]; then
+                error "Failed to auto-correct public design CNAME record."
             fi
         fi
     fi
@@ -330,7 +360,8 @@ main() {
             --apex) CONFIGURE_APEX=true ;;
             --www) CONFIGURE_WWW=true ;;
             --docs) CONFIGURE_DOCS=true ;;
-            --all) CONFIGURE_APEX=true; CONFIGURE_WWW=true; CONFIGURE_DOCS=true ;;
+            --design) CONFIGURE_DESIGN=true ;;
+            --all) CONFIGURE_APEX=true; CONFIGURE_WWW=true; CONFIGURE_DOCS=true; CONFIGURE_DESIGN=true ;;
             --force) FORCE=true ;;
             --backup) BACKUP_ONLY=true ;;
             --restore) RESTORE_FILE="$2"; shift ;;
@@ -368,6 +399,7 @@ main() {
     [[ -z "$RESOURCE_GROUP" ]] && error "RESOURCE_GROUP is required"
     [[ -z "$DOMAIN" ]] && error "DOMAIN is required in the configuration file"
 
+    # For apex, if EXPECTED_APEX_IPS is not set, fetch it.
     if [[ -z "$EXPECTED_APEX_IPS" ]]; then
         info "Fetching expected apex IPs from $SWA_NAME.azurestaticapps.net..."
         EXPECTED_APEX_IPS=$(dig +short "$SWA_NAME.azurestaticapps.net" A | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | tr '\n' ' ')
@@ -376,6 +408,16 @@ main() {
         else
             info "Expected apex IPs: $EXPECTED_APEX_IPS"
         fi
+    fi
+
+    # For design, if DESIGN_SWA_NAME is not set, infer it.
+    if [[ -z "$DESIGN_SWA_NAME" && "$CONFIGURE_DESIGN" == "true" ]]; then
+        if [[ "$ENVIRONMENT" == "prod" ]]; then
+            DESIGN_SWA_NAME="prod-${LOCATION_CODE}-swa-phoenixvc-design"
+        else
+            DESIGN_SWA_NAME="${ENVIRONMENT}-${LOCATION_CODE}-swa-phoenixvc-design"
+        fi
+        info "DESIGN_SWA_NAME was not provided. Inferred DESIGN_SWA_NAME as: ${DESIGN_SWA_NAME}"
     fi
 
     check_nameservers
@@ -398,16 +440,17 @@ main() {
     if [[ "$CONFIGURE_WWW" == "true" ]]; then
         configure_www
     fi
-
     if [[ "$CONFIGURE_APEX" == "true" ]]; then
         configure_apex
     fi
-
     if [[ "$CONFIGURE_DOCS" == "true" ]]; then
         configure_docs
     fi
+    if [[ "$CONFIGURE_DESIGN" == "true" ]]; then
+        configure_design
+    fi
 
-    if [[ "$VERIFY_ONLY" == "true" ]] || [[ "$CONFIGURE_WWW$CONFIGURE_APEX$CONFIGURE_DOCS" != "false" ]]; then
+    if [[ "$VERIFY_ONLY" == "true" ]] || [[ "$CONFIGURE_WWW$CONFIGURE_APEX$CONFIGURE_DOCS$CONFIGURE_DESIGN" != "false" ]]; then
         verify_configuration
     fi
 
