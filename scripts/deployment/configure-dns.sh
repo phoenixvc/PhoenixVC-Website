@@ -130,6 +130,24 @@ restore_backup() {
     log "Restore completed successfully"
 }
 
+# Ensure DNS zone exists (create if missing)
+ensure_dns_zone_exists() {
+    info "Checking if DNS zone '$DOMAIN' exists in resource group '$RESOURCE_GROUP'..."
+    if ! az network dns zone show \
+        --resource-group "$RESOURCE_GROUP" \
+        --name "$DOMAIN" \
+        >/dev/null 2>&1; then
+
+        warn "DNS zone $DOMAIN not found in $RESOURCE_GROUP. Creating..."
+        az network dns zone create \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$DOMAIN" || error "Failed to create DNS zone"
+        log "DNS zone $DOMAIN created in $RESOURCE_GROUP"
+    else
+        log "DNS zone $DOMAIN already exists in $RESOURCE_GROUP"
+    fi
+}
+
 # ────────────────────────────────────────────────────────────
 # ✅ MAIN SCRIPT
 # ────────────────────────────────────────────────────────────
@@ -194,6 +212,9 @@ main() {
         restore_backup "$RESTORE_FILE"
         exit 0
     fi
+
+    # Always ensure zone exists before proceeding
+    ensure_dns_zone_exists
 
     # Create backup before changes
     BACKUP_FILE="./dns_backups/${RESOURCE_GROUP}-$(date +'%Y%m%d-%H%M%S').json"
