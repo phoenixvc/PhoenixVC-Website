@@ -78,8 +78,8 @@ az network dns record-set a add-record \
 ```yaml
 # Final DNS Configuration
 Apex (@):
-  - Type: CNAME
-  - Value: your-swa-name.azurestaticapps.net
+  - Type: A
+  - Values: (Auto-fetched from your Static Web App if EXPECTED_APEX_IPS is not manually defined)
   - TTL: 3600
 
 www:
@@ -110,20 +110,8 @@ az network dns record-set txt add-record \
   -v "github-pages-verification=your-code"
 ```
 
-### Common Issues and Solutions
-| Issue               | Solution                                             |
-|---------------------|------------------------------------------------------|
-| Domain not resolving | Wait for DNS propagation (up to 24 hours)           |
-| HTTPS not working   | Ensure correct A records and wait for GitHub SSL provision |
-| Docs 404 error      | Verify '/docs' folder exists in repository root      |
-
-### Important Notes
-- DNS propagation can take up to 24 hours.
-- GitHub automatically enables HTTPS once the domain is verified.
-- For docs subdomain:
-  - Ensure documentation is in the `/docs` folder.
-  - Wait for GitHub Pages build to complete.
-  - Monitor GitHub Actions for deployment status.
+### Important New Feature: Automatic Apex IP Retrieval
+If you do not manually set the environment variable `EXPECTED_APEX_IPS`, the script will automatically fetch the A records (IP addresses) from your Static Web App's default hostname (`$SWA_NAME.azurestaticapps.net`). These IPs are then used to configure and verify the apex domain, ensuring your DNS records are accurate without additional manual input.
 
 ## **📥 Installation**
 ### Local Development Setup
@@ -166,7 +154,7 @@ RESOURCE_GROUP=prod-${LOCATION_CODE}-rg-phoenixvc-website
       "records": {
         "apex": {
           "type": "A",
-          "values": ["23.100.x.x"]
+          "values": []   // Leave empty to auto-fetch from SWA hostname
         },
         "www": {
           "type": "CNAME",
@@ -366,7 +354,7 @@ To switch your domain to use Azure DNS, follow these steps:
 ## **📜 Version History**
 | Version | Date       | Changes                                                             |
 |---------|------------|---------------------------------------------------------------------|
-| 3.2.2   | 2024-02-17 | Added definitions for missing functions and updated docs accordingly. |
+| 3.2.2   | 2024-03-XX | Added definitions for missing functions; automated apex IP retrieval; updated docs accordingly. |
 | 3.2.0   | 2024-02-15 | Added AI-assisted troubleshooting, Enhanced backup system           |
 | 3.1.0   | 2024-01-20 | Improved CI/CD compatibility, Structured error handling             |
 | 3.0.0   | 2023-12-15 | Initial rollback system, Component isolation                        |
