@@ -55,6 +55,8 @@ Environment variables:
     AZURE_SUBSCRIPTION_ID    Azure Subscription ID
     SWA_NAME                 Static Web App name
     RESOURCE_GROUP           Resource Group name
+    DOMAIN                   DNS zone name (e.g., phoenixvc.tech)
+    EXPECTED_APEX_IPS        (Optional) Space-delimited list of expected apex A record IPs
 EOF
 }
 
@@ -154,12 +156,20 @@ ensure_dns_zone_exists() {
 
 configure_apex() {
     info "Configuring apex domain..."
-    retry az network dns record-set cname set-record \
-        --resource-group "$RESOURCE_GROUP" \
-        --zone-name "$DOMAIN" \
-        --name "@" \
-        --cname "$SWA_NAME.azurestaticapps.net" || error "Failed to configure apex domain"
-    log "Apex domain configured."
+    # Note: Apex domains typically use A records (or ALIAS/ANAME records) rather than CNAMEs.
+    # Here we add A records using the expected IPs (automatically fetched if not set).
+    if [ -n "$EXPECTED_APEX_IPS" ]; then
+      for ip in $EXPECTED_APEX_IPS; do
+        retry az network dns record-set a add-record \
+            --resource-group "$RESOURCE_GROUP" \
+            --zone-name "$DOMAIN" \
+            --name "@" \
+            --ipv4-address "$ip" || error "Failed to configure apex A record for IP $ip"
+      done
+      log "Apex domain configured with A records: $EXPECTED_APEX_IPS"
+    else
+      warn "No EXPECTED_APEX_IPS provided and auto-fetch failed. Skipping apex configuration."
+    fi
 }
 
 configure_www() {
@@ -201,12 +211,22 @@ configure_docs() {
 verify_configuration() {
     info "Starting DNS verification..."
 
-    # Verify apex domain CNAME record
-    local apex_value
-    apex_value=$(dig +short "$DOMAIN" CNAME | tr '\n' ' ' | xargs)
-    info "Apex CNAME record for $DOMAIN: $apex_value"
-    if [[ "$apex_value" != *"$SWA_NAME.azurestaticapps.net"* ]]; then
-        error "Apex CNAME record verification failed. Expected to contain $SWA_NAME.azurestaticapps.net"
+    # Verify apex domain A record
+    local apex_ips
+    apex_ips=$(dig +short "$DOMAIN" A | tr '\n' ' ' | xargs)
+    info "A records for $DOMAIN: $apex_ips"
+    if [ -n "$EXPECTED_APEX_IPS" ]; then
+      local found_count=0
+      for ip in $EXPECTED_APEX_IPS; do
+        if [[ "$apex_ips" == *"$ip"* ]]; then
+          found_count=$((found_count+1))
+        fi
+      done
+      if [[ $found_count -eq 0 ]]; then
+        error "Apex A record verification failed. Expected one of: $EXPECTED_APEX_IPS, got: $apex_ips"
+      fi
+    else
+      warn "No EXPECTED_APEX_IPS defined; skipping apex verification."
     fi
 
     # Verify www subdomain CNAME record
@@ -221,15 +241,15 @@ verify_configuration() {
     local docs_ips
     docs_ips=$(dig +short "docs.$DOMAIN" A | tr '\n' ' ' | xargs)
     info "docs A records for docs.$DOMAIN: $docs_ips"
-    local expected_ips=("185.199.108.153" "185.199.109.153" "185.199.110.153" "185.199.111.153")
-    local found_count=0
-    for ip in "${expected_ips[@]}"; do
+    local expected_docs_ips=("185.199.108.153" "185.199.109.153" "185.199.110.153" "185.199.111.153")
+    local docs_found=0
+    for ip in "${expected_docs_ips[@]}"; do
       if [[ "$docs_ips" == *"$ip"* ]]; then
-        found_count=$((found_count+1))
+        docs_found=$((docs_found+1))
       fi
     done
-    if [[ $found_count -eq 0 ]]; then
-      error "Docs A record verification failed. Expected one of: ${expected_ips[*]}, got: $docs_ips"
+    if [[ $docs_found -eq 0 ]]; then
+      error "Docs A record verification failed. Expected one of: ${expected_docs_ips[*]}, got: $docs_ips"
     fi
 
     info "DNS configuration verified successfully."
@@ -276,12 +296,12 @@ main() {
 
     # Infer RESOURCE_GROUP if not provided
     if [[ -z "$RESOURCE_GROUP" ]]; then
-      if [[ "$ENVIRONMENT" == "prod" ]]; then
-        RESOURCE_GROUP="prod-${LOCATION_CODE}-rg-phoenixvc-website"
-      else
-        RESOURCE_GROUP="${ENVIRONMENT}-${LOCATION_CODE}-rg-phoenixvc-website"
-      fi
-      info "RESOURCE_GROUP was not provided. Inferred RESOURCE_GROUP as: ${RESOURCE_GROUP}"
+        if [[ "$ENVIRONMENT" == "prod" ]]; then
+            RESOURCE_GROUP="prod-${LOCATION_CODE}-rg-phoenixvc-website"
+        else
+            RESOURCE_GROUP="${ENVIRONMENT}-${LOCATION_CODE}-rg-phoenixvc-website"
+        fi
+        info "RESOURCE_GROUP was not provided. Inferred RESOURCE_GROUP as: ${RESOURCE_GROUP}"
     fi
 
     # Validate environment variables
@@ -289,6 +309,17 @@ main() {
     [[ -z "$SWA_NAME" ]] && error "SWA_NAME is required"
     [[ -z "$RESOURCE_GROUP" ]] && error "RESOURCE_GROUP is required"
     [[ -z "$DOMAIN" ]] && error "DOMAIN is required in the configuration file"
+
+    # Auto-fetch expected apex IPs if not provided
+    if [[ -z "$EXPECTED_APEX_IPS" ]]; then
+       info "Fetching expected apex IPs from $SWA_NAME.azurestaticapps.net..."
+       EXPECTED_APEX_IPS=$(dig +short "$SWA_NAME.azurestaticapps.net" A | tr '\n' ' ')
+       if [[ -z "$EXPECTED_APEX_IPS" ]]; then
+           warn "Unable to fetch expected apex IPs from $SWA_NAME.azurestaticapps.net. Apex verification will be skipped."
+       else
+           info "Expected apex IPs: $EXPECTED_APEX_IPS"
+       fi
+    fi
 
     # Handle backup/restore operations
     if [[ "$BACKUP_ONLY" == "true" ]]; then
