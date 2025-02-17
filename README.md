@@ -4,7 +4,7 @@
 # Phoenix VC - Website
 **Status:** Production  
 **Maintainer:** Hans Jurgens Smit  
-**Location:** Bela Bela, South Africa
+**Location:** South Africa
 
 > Empowering innovation through strategic investments and visionary partnerships
 
