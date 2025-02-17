@@ -47,13 +47,9 @@ jobs:
       - name: Verify Required Parameters
         env:
           AZURE_SUBSCRIPTION_ID: ${{ env.AZURE_SUBSCRIPTION_ID }}
-          SWA_NAME: ${{ secrets.SWA_NAME }}
-          RESOURCE_GROUP: ${{ secrets.RESOURCE_GROUP }}
         run: |
           echo "Verifying required environment variables..."
           : "${AZURE_SUBSCRIPTION_ID:?AZURE_SUBSCRIPTION_ID is not set}"
-          : "${SWA_NAME:?SWA_NAME is not set}"
-          : "${RESOURCE_GROUP:?RESOURCE_GROUP is not set}"
           echo "All required environment variables are set."
 
       - name: Verify configure-dns.sh Exists
