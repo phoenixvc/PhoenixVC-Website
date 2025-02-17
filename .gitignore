@@ -30,3 +30,6 @@ doc_changes_report_*.txt
 /# Ignore the entire MkDocs output
 site/deployment
 site/
+git_changes_*.txt
+paths.txt
+project-backup-*.zip
