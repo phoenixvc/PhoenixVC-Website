@@ -11,7 +11,7 @@ CONFIG_FILE="./scripts/deployment/.dns-config.sh"
 # Expected Azure nameservers (adjust if needed)
 EXPECTED_AZURE_NS="ns1-01.azure-dns.com ns2-01.azure-dns.net ns3-01.azure-dns.org ns4-01.azure-dns.info"
 
-# Global flag: if nameservers do not match Azure's, skip apex verification.
+# Global flag: if nameservers do not match Azure's, skip apex and www verification.
 SKIP_APEX_VERIFICATION=0
 
 # ────────────────────────────────────────────────────────────
@@ -211,8 +211,6 @@ check_nameservers() {
 
 configure_apex() {
     info "Configuring apex domain..."
-    # Note: Apex domains typically use A records (or ALIAS/ANAME records) rather than CNAMEs.
-    # Here we add A records using the expected IPs (automatically fetched if not set).
     if [ -n "$EXPECTED_APEX_IPS" ]; then
       for ip in $EXPECTED_APEX_IPS; do
         retry az network dns record-set a add-record \
@@ -240,7 +238,6 @@ configure_www() {
 
 configure_docs() {
     info "Configuring docs subdomain..."
-    # GitHub Pages uses multiple A records. We add each one.
     retry az network dns record-set a add-record \
         --resource-group "$RESOURCE_GROUP" \
         --zone-name "$DOMAIN" \
@@ -267,10 +264,10 @@ configure_docs() {
 verify_configuration() {
     info "Starting DNS verification..."
 
-    # Verify apex domain A record (if nameservers are updated)
     if [[ "$SKIP_APEX_VERIFICATION" -eq 1 ]]; then
-      warn "Skipping apex record verification because domain is still served externally."
+      warn "Skipping apex and www record verification because domain is still served externally."
     else
+      # Verify apex domain A record
       local apex_ips
       apex_ips=$(dig +short "$DOMAIN" A | tr '\n' ' ' | xargs)
       info "A records for $DOMAIN: $apex_ips"
@@ -287,20 +284,20 @@ verify_configuration() {
       else
         warn "No EXPECTED_APEX_IPS defined; skipping apex verification."
       fi
-    fi
 
-    # Verify www subdomain CNAME record
-    local www_value
-    www_value=$(dig +short "www.$DOMAIN" CNAME | tr '\n' ' ' | xargs)
-    info "www CNAME record for www.$DOMAIN: $www_value"
-    if [[ "$www_value" != *"$SWA_NAME.azurestaticapps.net"* ]]; then
-        warn "www CNAME record is incorrect. Expected to contain $SWA_NAME.azurestaticapps.net. Attempting to update..."
-        configure_www
-        www_value=$(dig +short "www.$DOMAIN" CNAME | tr '\n' ' ' | xargs)
-        info "Re-checked www CNAME record: $www_value"
-        if [[ "$www_value" != *"$SWA_NAME.azurestaticapps.net"* ]]; then
-            error "Failed to auto-correct www CNAME record. Expected to contain $SWA_NAME.azurestaticapps.net"
-        fi
+      # Verify www subdomain CNAME record
+      local www_value
+      www_value=$(dig +short "www.$DOMAIN" CNAME | tr '\n' ' ' | xargs)
+      info "www CNAME record for www.$DOMAIN: $www_value"
+      if [[ "$www_value" != *"$SWA_NAME.azurestaticapps.net"* ]]; then
+          warn "www CNAME record is incorrect. Expected to contain $SWA_NAME.azurestaticapps.net. Attempting to update..."
+          configure_www
+          www_value=$(dig +short "www.$DOMAIN" CNAME | tr '\n' ' ' | xargs)
+          info "Re-checked www CNAME record: $www_value"
+          if [[ "$www_value" != *"$SWA_NAME.azurestaticapps.net"* ]]; then
+              error "Failed to auto-correct www CNAME record. Expected to contain $SWA_NAME.azurestaticapps.net"
+          fi
+      fi
     fi
 
     # Verify docs subdomain A record(s)
@@ -326,7 +323,6 @@ verify_configuration() {
 # ────────────────────────────────────────────────────────────
 
 main() {
-    # Parse command line arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
             --help) show_help; exit 0 ;;
@@ -345,12 +341,10 @@ main() {
         shift
     done
 
-    # Load configuration from the shell configuration file
     if [[ -f "$CONFIG_FILE" ]]; then
         source "$CONFIG_FILE"
     fi
 
-    # Infer SWA_NAME if not already set
     if [[ -z "$SWA_NAME" ]]; then
         if [[ "$ENVIRONMENT" == "prod" ]]; then
             SWA_NAME="prod-${LOCATION_CODE}-swa-phoenixvc-website"
@@ -360,7 +354,6 @@ main() {
         info "SWA_NAME was not provided. Inferred SWA_NAME as: ${SWA_NAME}"
     fi
 
-    # Infer RESOURCE_GROUP if not provided
     if [[ -z "$RESOURCE_GROUP" ]]; then
         if [[ "$ENVIRONMENT" == "prod" ]]; then
             RESOURCE_GROUP="prod-${LOCATION_CODE}-rg-phoenixvc-website"
@@ -370,16 +363,13 @@ main() {
         info "RESOURCE_GROUP was not provided. Inferred RESOURCE_GROUP as: ${RESOURCE_GROUP}"
     fi
 
-    # Validate environment variables
     [[ -z "$AZURE_SUBSCRIPTION_ID" ]] && error "AZURE_SUBSCRIPTION_ID is required"
     [[ -z "$SWA_NAME" ]] && error "SWA_NAME is required"
     [[ -z "$RESOURCE_GROUP" ]] && error "RESOURCE_GROUP is required"
     [[ -z "$DOMAIN" ]] && error "DOMAIN is required in the configuration file"
 
-    # Auto-fetch expected apex IPs if not provided
     if [[ -z "$EXPECTED_APEX_IPS" ]]; then
        info "Fetching expected apex IPs from $SWA_NAME.azurestaticapps.net..."
-       # Fetch only IP addresses by filtering lines that match IPv4 format
        EXPECTED_APEX_IPS=$(dig +short "$SWA_NAME.azurestaticapps.net" A | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | tr '\n' ' ')
        if [[ -z "$EXPECTED_APEX_IPS" ]]; then
            warn "Unable to fetch expected apex IPs from $SWA_NAME.azurestaticapps.net. Apex verification will be skipped."
@@ -388,10 +378,8 @@ main() {
        fi
     fi
 
-    # Check if nameservers are updated to Azure (warn if not)
     check_nameservers
 
-    # Handle backup/restore operations
     if [[ "$BACKUP_ONLY" == "true" ]]; then
         create_backup "./dns_backups/backup-$(date +%Y%m%d-%H%M%S).json"
         exit 0
@@ -402,14 +390,11 @@ main() {
         exit 0
     fi
 
-    # Always ensure zone exists before proceeding
     ensure_dns_zone_exists
 
-    # Create backup before changes
     BACKUP_FILE="./dns_backups/${RESOURCE_GROUP}-$(date +'%Y%m%d-%H%M%S').json"
     create_backup "$BACKUP_FILE"
 
-    # Configure DNS records if requested
     if [[ "$CONFIGURE_WWW" == "true" ]]; then
         configure_www
     fi
@@ -422,7 +407,6 @@ main() {
         configure_docs
     fi
 
-    # Verify configuration if requested
     if [[ "$VERIFY_ONLY" == "true" ]] || [[ "$CONFIGURE_WWW$CONFIGURE_APEX$CONFIGURE_DOCS" != "false" ]]; then
         verify_configuration
     fi
@@ -432,5 +416,4 @@ main() {
     info "Backup saved to: $BACKUP_FILE"
 }
 
-# Execute main function
 main "$@"
