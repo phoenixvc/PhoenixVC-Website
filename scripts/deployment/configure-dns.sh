@@ -11,8 +11,8 @@ CONFIG_FILE="./scripts/deployment/.dns-config.sh"
 # Expected Azure nameservers (adjust if needed)
 EXPECTED_AZURE_NS="ns1-01.azure-dns.com ns2-01.azure-dns.net ns3-01.azure-dns.org ns4-01.azure-dns.info"
 
-# Global flag: if nameservers do not match Azure's, skip apex and www verification.
-SKIP_APEX_VERIFICATION=0
+# Global flag: if nameservers do not match Azure's, skip public DNS verification.
+SKIP_PUBLIC_VERIFICATION=0
 
 # ────────────────────────────────────────────────────────────
 # ✅ HELPER FUNCTIONS
@@ -92,7 +92,7 @@ retry() {
     return 1
 }
 
-# Validate DNS record using dig
+# Validate DNS record using dig (public verification)
 validate_dns() {
     local record_type=$1
     local name=$2
@@ -101,7 +101,6 @@ validate_dns() {
     info "Validating $record_type record for $name..."
     local current_value
     current_value=$(dig +short "${name}.${DOMAIN}" "${record_type}" | tr '\n' ' ' | xargs)
-
     if [[ "$current_value" == *"$expected_value"* ]]; then
         log "DNS record validated successfully"
         return 0
@@ -111,49 +110,70 @@ validate_dns() {
     fi
 }
 
-# Create backup
+# Create backup using az CLI
 create_backup() {
     local backup_file=$1
     log "Creating DNS backup to $backup_file..."
     mkdir -p "$(dirname "$backup_file")"
-    retry az network dns zone export \
-        --resource-group "$RESOURCE_GROUP" \
-        --name "$DOMAIN" \
-        --file-name "$backup_file" || error "Backup failed"
+    retry az network dns zone export --resource-group "$RESOURCE_GROUP" --name "$DOMAIN" --file-name "$backup_file" || error "Backup failed"
     log "Backup created successfully"
 }
 
-# Restore from backup
+# Restore backup using az CLI
 restore_backup() {
     local backup_file=$1
     if [[ ! -f "$backup_file" ]]; then
         error "Backup file not found: $backup_file"
     fi
-
     log "Restoring DNS configuration from $backup_file..."
-    retry az network dns zone import \
-        --resource-group "$RESOURCE_GROUP" \
-        --name "$DOMAIN" \
-        --file-name "$backup_file" || error "Restore failed"
+    retry az network dns zone import --resource-group "$RESOURCE_GROUP" --name "$DOMAIN" --file-name "$backup_file" || error "Restore failed"
     log "Restore completed successfully"
 }
 
 # Ensure DNS zone exists (create if missing)
 ensure_dns_zone_exists() {
     info "Checking if DNS zone '$DOMAIN' exists in resource group '$RESOURCE_GROUP'..."
-    if ! az network dns zone show \
-        --resource-group "$RESOURCE_GROUP" \
-        --name "$DOMAIN" \
-        >/dev/null 2>&1; then
-
+    if ! az network dns zone show --resource-group "$RESOURCE_GROUP" --name "$DOMAIN" >/dev/null 2>&1; then
         warn "DNS zone $DOMAIN not found in $RESOURCE_GROUP. Creating..."
-        az network dns zone create \
-            --resource-group "$RESOURCE_GROUP" \
-            --name "$DOMAIN" || error "Failed to create DNS zone"
+        az network dns zone create --resource-group "$RESOURCE_GROUP" --name "$DOMAIN" || error "Failed to create DNS zone"
         log "DNS zone $DOMAIN created in $RESOURCE_GROUP"
     else
         log "DNS zone $DOMAIN already exists in $RESOURCE_GROUP"
     fi
+}
+
+# ────────────────────────────────────────────────────────────
+# NEW: Verify records directly in Azure using az CLI
+verify_azure_records() {
+    info "Verifying DNS records in Azure DNS zone..."
+    # Verify apex A record
+    local apex_record
+    apex_record=$(az network dns record-set a list --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --query "[?name=='@']" -o tsv)
+    if [[ -n "$apex_record" ]]; then
+        info "Apex record in Azure: $apex_record"
+    else
+        warn "No apex A record found in Azure DNS zone."
+    fi
+
+    # Verify www CNAME record
+    local www_record
+    www_record=$(az network dns record-set cname show --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --record-set-name "www" --query "cname" -o tsv)
+    if [[ -n "$www_record" ]]; then
+        info "www record in Azure: $www_record"
+    else
+        warn "No www CNAME record found in Azure DNS zone."
+    fi
+
+    # Verify docs A records
+    local docs_record
+    docs_record=$(az network dns record-set a list --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --query "[?name=='docs']" -o tsv)
+    if [[ -n "$docs_record" ]]; then
+        info "docs record in Azure: $docs_record"
+    else
+        warn "No docs A record found in Azure DNS zone."
+    fi
+
+    info "Azure DNS records verification completed."
 }
 
 # ────────────────────────────────────────────────────────────
@@ -198,10 +218,10 @@ check_nameservers() {
         warn "Your domain is still being served by an external provider. Changes in Azure DNS"
         warn "will not be effective until you update the nameservers at your registrar (e.g., GoDaddy)."
         warn "***********************************************************************"
-        SKIP_APEX_VERIFICATION=1
+        SKIP_PUBLIC_VERIFICATION=1
     else
         log "Nameserver check passed. Domain $DOMAIN is using Azure DNS nameservers."
-        SKIP_APEX_VERIFICATION=0
+        SKIP_PUBLIC_VERIFICATION=0
     fi
 }
 
@@ -213,11 +233,7 @@ configure_apex() {
     info "Configuring apex domain..."
     if [ -n "$EXPECTED_APEX_IPS" ]; then
       for ip in $EXPECTED_APEX_IPS; do
-        retry az network dns record-set a add-record \
-            --resource-group "$RESOURCE_GROUP" \
-            --zone-name "$DOMAIN" \
-            --record-set-name "@" \
-            --ipv4-address "$ip" || error "Failed to configure apex A record for IP $ip"
+        retry az network dns record-set a add-record --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --record-set-name "@" --ipv4-address "$ip" || error "Failed to configure apex A record for IP $ip"
       done
       log "Apex domain configured with A records: $EXPECTED_APEX_IPS"
     else
@@ -227,95 +243,107 @@ configure_apex() {
 
 configure_www() {
     info "Configuring www subdomain..."
-    retry az network dns record-set cname set-record \
-        --resource-group "$RESOURCE_GROUP" \
-        --zone-name "$DOMAIN" \
-        --record-set-name "www" \
-        --cname "$SWA_NAME.azurestaticapps.net" \
-        --ttl 3600 || error "Failed to configure www subdomain"
+    retry az network dns record-set cname set-record --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --record-set-name "www" --cname "$SWA_NAME.azurestaticapps.net" --ttl 3600 || error "Failed to configure www subdomain"
     log "www subdomain configured."
 }
 
 configure_docs() {
     info "Configuring docs subdomain..."
-    retry az network dns record-set a add-record \
-        --resource-group "$RESOURCE_GROUP" \
-        --zone-name "$DOMAIN" \
-        --record-set-name "docs" \
-        --ipv4-address "185.199.108.153" || error "Failed to add docs A record (185.199.108.153)"
-    retry az network dns record-set a add-record \
-        --resource-group "$RESOURCE_GROUP" \
-        --zone-name "$DOMAIN" \
-        --record-set-name "docs" \
-        --ipv4-address "185.199.109.153" || error "Failed to add docs A record (185.199.109.153)"
-    retry az network dns record-set a add-record \
-        --resource-group "$RESOURCE_GROUP" \
-        --zone-name "$DOMAIN" \
-        --record-set-name "docs" \
-        --ipv4-address "185.199.110.153" || error "Failed to add docs A record (185.199.110.153)"
-    retry az network dns record-set a add-record \
-        --resource-group "$RESOURCE_GROUP" \
-        --zone-name "$DOMAIN" \
-        --record-set-name "docs" \
-        --ipv4-address "185.199.111.153" || error "Failed to add docs A record (185.199.111.153)"
+    retry az network dns record-set a add-record --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --record-set-name "docs" --ipv4-address "185.199.108.153" || error "Failed to add docs A record (185.199.108.153)"
+    retry az network dns record-set a add-record --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --record-set-name "docs" --ipv4-address "185.199.109.153" || error "Failed to add docs A record (185.199.109.153)"
+    retry az network dns record-set a add-record --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --record-set-name "docs" --ipv4-address "185.199.110.153" || error "Failed to add docs A record (185.199.110.153)"
+    retry az network dns record-set a add-record --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --record-set-name "docs" --ipv4-address "185.199.111.153" || error "Failed to add docs A record (185.199.111.153)"
     log "Docs subdomain configured."
 }
 
 verify_configuration() {
     info "Starting DNS verification..."
-
-    if [[ "$SKIP_APEX_VERIFICATION" -eq 1 ]]; then
-      warn "Skipping apex and www record verification because domain is still served externally."
+    if [[ "$SKIP_PUBLIC_VERIFICATION" -eq 1 ]]; then
+        warn "Skipping public DNS record verification because domain is still served externally."
+        info "Verifying Azure DNS records directly..."
+        verify_azure_records
     else
-      # Verify apex domain A record
-      local apex_ips
-      apex_ips=$(dig +short "$DOMAIN" A | tr '\n' ' ' | xargs)
-      info "A records for $DOMAIN: $apex_ips"
-      if [ -n "$EXPECTED_APEX_IPS" ]; then
-        local found_count=0
-        for ip in $EXPECTED_APEX_IPS; do
-          if [[ "$apex_ips" == *"$ip"* ]]; then
-            found_count=$((found_count+1))
-          fi
-        done
-        if [[ $found_count -eq 0 ]]; then
-          error "Apex A record verification failed. Expected one of: $EXPECTED_APEX_IPS, got: $apex_ips"
+        # Verify apex domain A record
+        local apex_ips
+        apex_ips=$(dig +short "$DOMAIN" A | tr '\n' ' ' | xargs)
+        info "Public A records for $DOMAIN: $apex_ips"
+        if [ -n "$EXPECTED_APEX_IPS" ]; then
+            local found_count=0
+            for ip in $EXPECTED_APEX_IPS; do
+                if [[ "$apex_ips" == *"$ip"* ]]; then
+                    found_count=$((found_count+1))
+                fi
+            done
+            if [[ $found_count -eq 0 ]]; then
+                error "Public apex A record verification failed. Expected one of: $EXPECTED_APEX_IPS, got: $apex_ips"
+            fi
+        else
+            warn "No EXPECTED_APEX_IPS defined; skipping apex verification."
         fi
-      else
-        warn "No EXPECTED_APEX_IPS defined; skipping apex verification."
-      fi
 
-      # Verify www subdomain CNAME record
-      local www_value
-      www_value=$(dig +short "www.$DOMAIN" CNAME | tr '\n' ' ' | xargs)
-      info "www CNAME record for www.$DOMAIN: $www_value"
-      if [[ "$www_value" != *"$SWA_NAME.azurestaticapps.net"* ]]; then
-          warn "www CNAME record is incorrect. Expected to contain $SWA_NAME.azurestaticapps.net. Attempting to update..."
-          configure_www
-          www_value=$(dig +short "www.$DOMAIN" CNAME | tr '\n' ' ' | xargs)
-          info "Re-checked www CNAME record: $www_value"
-          if [[ "$www_value" != *"$SWA_NAME.azurestaticapps.net"* ]]; then
-              error "Failed to auto-correct www CNAME record. Expected to contain $SWA_NAME.azurestaticapps.net"
-          fi
-      fi
+        # Verify www subdomain CNAME record
+        local www_value
+        www_value=$(dig +short "www.$DOMAIN" CNAME | tr '\n' ' ' | xargs)
+        info "Public www CNAME record for www.$DOMAIN: $www_value"
+        if [[ "$www_value" != *"$SWA_NAME.azurestaticapps.net"* ]]; then
+            warn "Public www CNAME record is incorrect. Expected to contain $SWA_NAME.azurestaticapps.net. Attempting to update..."
+            configure_www
+            www_value=$(dig +short "www.$DOMAIN" CNAME | tr '\n' ' ' | xargs)
+            info "Re-checked public www CNAME record: $www_value"
+            if [[ "$www_value" != *"$SWA_NAME.azurestaticapps.net"* ]]; then
+                error "Failed to auto-correct public www CNAME record. Expected to contain $SWA_NAME.azurestaticapps.net"
+            fi
+        fi
+
+        # Verify docs subdomain A record(s)
+        local docs_ips
+        docs_ips=$(dig +short "docs.$DOMAIN" A | tr '\n' ' ' | xargs)
+        info "Public docs A records for docs.$DOMAIN: $docs_ips"
+        local expected_docs_ips=("185.199.108.153" "185.199.109.153" "185.199.110.153" "185.199.111.153")
+        local docs_found=0
+        for ip in "${expected_docs_ips[@]}"; do
+            if [[ "$docs_ips" == *"$ip"* ]]; then
+                docs_found=$((docs_found+1))
+            fi
+        done
+        if [[ $docs_found -eq 0 ]]; then
+            error "Public docs A record verification failed. Expected one of: ${expected_docs_ips[*]}, got: $docs_ips"
+        fi
     fi
-
-    # Verify docs subdomain A record(s)
-    local docs_ips
-    docs_ips=$(dig +short "docs.$DOMAIN" A | tr '\n' ' ' | xargs)
-    info "docs A records for docs.$DOMAIN: $docs_ips"
-    local expected_docs_ips=("185.199.108.153" "185.199.109.153" "185.199.110.153" "185.199.111.153")
-    local docs_found=0
-    for ip in "${expected_docs_ips[@]}"; do
-      if [[ "$docs_ips" == *"$ip"* ]]; then
-        docs_found=$((docs_found+1))
-      fi
-    done
-    if [[ $docs_found -eq 0 ]]; then
-      error "Docs A record verification failed. Expected one of: ${expected_docs_ips[*]}, got: $docs_ips"
-    fi
-
     info "DNS configuration verified successfully."
+}
+
+# ────────────────────────────────────────────────────────────
+# NEW: Verify records directly in Azure DNS
+verify_azure_records() {
+    info "Verifying DNS records in Azure DNS zone..."
+    # Verify apex A record
+    local apex_record
+    apex_record=$(az network dns record-set a list --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --query "[?name=='@']" -o tsv)
+    if [[ -n "$apex_record" ]]; then
+        info "Azure apex record: $apex_record"
+    else
+        warn "No apex A record found in Azure DNS zone."
+    fi
+
+    # Verify www CNAME record
+    local www_record
+    www_record=$(az network dns record-set cname show --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --record-set-name "www" --query "cname" -o tsv)
+    if [[ -n "$www_record" ]]; then
+        info "Azure www record: $www_record"
+    else
+        warn "No www CNAME record found in Azure DNS zone."
+    fi
+
+    # Verify docs A records
+    local docs_record
+    docs_record=$(az network dns record-set a list --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --query "[?name=='docs']" -o tsv)
+    if [[ -n "$docs_record" ]]; then
+        info "Azure docs record: $docs_record"
+    else
+        warn "No docs A record found in Azure DNS zone."
+    fi
+    info "Azure DNS records verification completed."
 }
 
 # ────────────────────────────────────────────────────────────
@@ -369,13 +397,13 @@ main() {
     [[ -z "$DOMAIN" ]] && error "DOMAIN is required in the configuration file"
 
     if [[ -z "$EXPECTED_APEX_IPS" ]]; then
-       info "Fetching expected apex IPs from $SWA_NAME.azurestaticapps.net..."
-       EXPECTED_APEX_IPS=$(dig +short "$SWA_NAME.azurestaticapps.net" A | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | tr '\n' ' ')
-       if [[ -z "$EXPECTED_APEX_IPS" ]]; then
-           warn "Unable to fetch expected apex IPs from $SWA_NAME.azurestaticapps.net. Apex verification will be skipped."
-       else
-           info "Expected apex IPs: $EXPECTED_APEX_IPS"
-       fi
+        info "Fetching expected apex IPs from $SWA_NAME.azurestaticapps.net..."
+        EXPECTED_APEX_IPS=$(dig +short "$SWA_NAME.azurestaticapps.net" A | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | tr '\n' ' ')
+        if [[ -z "$EXPECTED_APEX_IPS" ]]; then
+            warn "Unable to fetch expected apex IPs from $SWA_NAME.azurestaticapps.net. Apex verification will be skipped."
+        else
+            info "Expected apex IPs: $EXPECTED_APEX_IPS"
+        fi
     fi
 
     check_nameservers
