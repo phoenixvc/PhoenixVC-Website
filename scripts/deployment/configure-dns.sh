@@ -4,7 +4,7 @@ set -eo pipefail
 # ────────────────────────────────────────────────────────────
 # ✅ VERSION AND CONFIG
 # ────────────────────────────────────────────────────────────
-VERSION="3.2.0"
+VERSION="3.2.2"
 # Updated configuration file path
 CONFIG_FILE="./scripts/deployment/.dns-config.sh"
 
@@ -84,7 +84,7 @@ retry() {
     return 1
 }
 
-# Validate DNS record
+# Validate DNS record using dig
 validate_dns() {
     local record_type=$1
     local name=$2
@@ -149,6 +149,93 @@ ensure_dns_zone_exists() {
 }
 
 # ────────────────────────────────────────────────────────────
+# DNS RECORD CONFIGURATION FUNCTIONS
+# ────────────────────────────────────────────────────────────
+
+configure_apex() {
+    info "Configuring apex domain..."
+    retry az network dns record-set cname set-record \
+        --resource-group "$RESOURCE_GROUP" \
+        --zone-name "$DOMAIN" \
+        --name "@" \
+        --cname "$SWA_NAME.azurestaticapps.net" || error "Failed to configure apex domain"
+    log "Apex domain configured."
+}
+
+configure_www() {
+    info "Configuring www subdomain..."
+    retry az network dns record-set cname set-record \
+        --resource-group "$RESOURCE_GROUP" \
+        --zone-name "$DOMAIN" \
+        --name "www" \
+        --cname "$SWA_NAME.azurestaticapps.net" || error "Failed to configure www subdomain"
+    log "www subdomain configured."
+}
+
+configure_docs() {
+    info "Configuring docs subdomain..."
+    # GitHub Pages uses multiple A records. We add each one.
+    retry az network dns record-set a add-record \
+        --resource-group "$RESOURCE_GROUP" \
+        --zone-name "$DOMAIN" \
+        --name "docs" \
+        --ipv4-address "185.199.108.153" || error "Failed to add docs A record (185.199.108.153)"
+    retry az network dns record-set a add-record \
+        --resource-group "$RESOURCE_GROUP" \
+        --zone-name "$DOMAIN" \
+        --name "docs" \
+        --ipv4-address "185.199.109.153" || error "Failed to add docs A record (185.199.109.153)"
+    retry az network dns record-set a add-record \
+        --resource-group "$RESOURCE_GROUP" \
+        --zone-name "$DOMAIN" \
+        --name "docs" \
+        --ipv4-address "185.199.110.153" || error "Failed to add docs A record (185.199.110.153)"
+    retry az network dns record-set a add-record \
+        --resource-group "$RESOURCE_GROUP" \
+        --zone-name "$DOMAIN" \
+        --name "docs" \
+        --ipv4-address "185.199.111.153" || error "Failed to add docs A record (185.199.111.153)"
+    log "Docs subdomain configured."
+}
+
+verify_configuration() {
+    info "Starting DNS verification..."
+
+    # Verify apex domain CNAME record
+    local apex_value
+    apex_value=$(dig +short "$DOMAIN" CNAME | tr '\n' ' ' | xargs)
+    info "Apex CNAME record for $DOMAIN: $apex_value"
+    if [[ "$apex_value" != *"$SWA_NAME.azurestaticapps.net"* ]]; then
+        error "Apex CNAME record verification failed. Expected to contain $SWA_NAME.azurestaticapps.net"
+    fi
+
+    # Verify www subdomain CNAME record
+    local www_value
+    www_value=$(dig +short "www.$DOMAIN" CNAME | tr '\n' ' ' | xargs)
+    info "www CNAME record for www.$DOMAIN: $www_value"
+    if [[ "$www_value" != *"$SWA_NAME.azurestaticapps.net"* ]]; then
+        error "www CNAME record verification failed. Expected to contain $SWA_NAME.azurestaticapps.net"
+    fi
+
+    # Verify docs subdomain A record(s)
+    local docs_ips
+    docs_ips=$(dig +short "docs.$DOMAIN" A | tr '\n' ' ' | xargs)
+    info "docs A records for docs.$DOMAIN: $docs_ips"
+    local expected_ips=("185.199.108.153" "185.199.109.153" "185.199.110.153" "185.199.111.153")
+    local found_count=0
+    for ip in "${expected_ips[@]}"; do
+      if [[ "$docs_ips" == *"$ip"* ]]; then
+        found_count=$((found_count+1))
+      fi
+    done
+    if [[ $found_count -eq 0 ]]; then
+      error "Docs A record verification failed. Expected one of: ${expected_ips[*]}, got: $docs_ips"
+    fi
+
+    info "DNS configuration verified successfully."
+}
+
+# ────────────────────────────────────────────────────────────
 # ✅ MAIN SCRIPT
 # ────────────────────────────────────────────────────────────
 
@@ -187,6 +274,7 @@ main() {
         info "SWA_NAME was not provided. Inferred SWA_NAME as: ${SWA_NAME}"
     fi
 
+    # Infer RESOURCE_GROUP if not provided
     if [[ -z "$RESOURCE_GROUP" ]]; then
       if [[ "$ENVIRONMENT" == "prod" ]]; then
         RESOURCE_GROUP="prod-${LOCATION_CODE}-rg-phoenixvc-website"
@@ -220,7 +308,7 @@ main() {
     BACKUP_FILE="./dns_backups/${RESOURCE_GROUP}-$(date +'%Y%m%d-%H%M%S').json"
     create_backup "$BACKUP_FILE"
 
-    # Configure DNS records (functions like configure_www, configure_apex, configure_docs should be defined below)
+    # Configure DNS records if requested
     if [[ "$CONFIGURE_WWW" == "true" ]]; then
         configure_www
     fi
@@ -233,7 +321,7 @@ main() {
         configure_docs
     fi
 
-    # Verify configuration
+    # Verify configuration if requested
     if [[ "$VERIFY_ONLY" == "true" ]] || [[ "$CONFIGURE_WWW$CONFIGURE_APEX$CONFIGURE_DOCS" != "false" ]]; then
         verify_configuration
     fi
