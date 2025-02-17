@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phoenix VC Advanced Interactive System</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.18.0/matter.min.js"></script>
+  <style>
+    /* Previous styles remain */
+
+    /* Physics Canvas */
+    #physics-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    /* Grid System */
+    .grid-layout {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 1rem;
+      padding: 1rem;
+      min-height: 400px;
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      border: 2px solid var(--border-color);
+    }
+
+    .grid-item {
+      position: relative;
+      aspect-ratio: 1;
+      background: var(--bg-primary);
+      border-radius: 8px;
+      box-shadow: var(--card-shadow);
+      transition: all 0.3s var(--animation-primary);
+    }
+
+    .grid-item.dragging {
+      opacity: 0.5;
+      transform: scale(1.05);
+    }
+
+    .grid-placeholder {
+      background: var(--glow-color);
+      border: 2px dashed var(--color-primary);
+      border-radius: 8px;
+    }
+
+    /* Enhanced Particle Effects */
+    .particle-spiral {
+      clip-path: polygon(50% 0%, 38% 38%, 0% 50%, 38% 62%, 50% 100%, 62% 62%, 100% 50%, 62% 38%);
+    }
+
+    .particle-hex {
+      clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+    }
+
+    .particle-cross {
+      clip-path: polygon(20% 0%, 50% 30%, 80% 0%, 100% 20%, 70% 50%, 100% 80%, 80% 100%, 50% 70%, 20% 100%, 0% 80%, 30% 50%, 0% 20%);
+    }
+
+    /* Physics Objects */
+    .physics-object {
+      position: absolute;
+      pointer-events: none;
+      will-change: transform;
+    }
+
+    /* Magnetic Field Effect */
+    .magnetic-field {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .magnetic-field::before {
+      content: '';
+      position: absolute;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, var(--glow-color) 0%, transparent 70%);
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.5);
+      transition: all 0.3s var(--animation-primary);
+    }
+
+    .magnetic-field:hover::before {
+      opacity: 0.2;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  </style>
+</head>
+<body data-theme="default">
+  <div class="showcase-grid">
+    <!-- Physics Playground -->
+    <div class="showcase-section">
+      <h2>Physics Playground</h2>
+      <canvas id="physics-canvas"></canvas>
+      <div class="grid-layout" id="physicsGrid">
+        <!-- Dynamic content -->
+      </div>
+    </div>
+
+    <!-- Advanced Particle Effects -->
+    <div class="showcase-section">
+      <h2>Particle Effects</h2>
+      <button class="btn-interactive magnetic-field" onclick="createParticleEffect('spiral')">
+        Spiral Burst
+      </button>
+      <button class="btn-interactive magnetic-field" onclick="createParticleEffect('vortex')">
+        Vortex
+      </button>
+      <button class="btn-interactive magnetic-field" onclick="createParticleEffect('explosion')">
+        Explosion
+      </button>
+    </div>
+
+    <!-- Grid-based Drag and Drop -->
+    <div class="showcase-section">
+      <h2>Interactive Grid</h2>
+      <div class="grid-layout" id="sortableGrid">
+        <!-- Dynamic content -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Physics Engine Setup
+    const Engine = Matter.Engine,
+          Render = Matter.Render,
+          World = Matter.World,
+          Bodies = Matter.Bodies,
+          Body = Matter.Body,
+          Composite = Matter.Composite;
+
+    const engine = Engine.create();
+    const canvas = document.getElementById('physics-canvas');
+    const render = Render.create({
+      canvas: canvas,
+      engine: engine,
+      options: {
+        width: window.innerWidth,
+        height: window.innerHeight,
+        wireframes: false,
+        background: 'transparent'
+      }
+    });
+
+    // Physics World Setup
+    const walls = [
+      Bodies.rectangle(window.innerWidth / 2, window.innerHeight + 50, window.innerWidth, 100, { isStatic: true }),
+      Bodies.rectangle(window.innerWidth / 2, -50, window.innerWidth, 100, { isStatic: true }),
+      Bodies.rectangle(-50, window.innerHeight / 2, 100, window.innerHeight, { isStatic: true }),
+      Bodies.rectangle(window.innerWidth + 50, window.innerHeight / 2, 100, window.innerHeight, { isStatic: true })
+    ];
+
+    World.add(engine.world, walls);
+    Engine.run(engine);
+    Render.run(render);
+
+    // Enhanced Particle System
+    class AdvancedParticleSystem {
+      constructor() {
+        this.particles = [];
+        this.effects = {
+          spiral: this.createSpiralEffect.bind(this),
+          vortex: this.createVortexEffect.bind(this),
+          explosion: this.createExplosionEffect.bind(this)
+        };
+      }
+
+      createParticle(x, y, type = 'circle') {
+        const particle = document.createElement('div');
+        particle.className = `particle particle-${type}`;
+        particle.style.position = 'absolute';
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        document.body.appendChild(particle);
+        return particle;
+      }
+
+      createSpiralEffect(x, y) {
+        const particleCount = 36;
+        const radius = 100;
+        const duration = 2000;
+
+        for (let i = 0; i < particleCount; i++) {
+          const particle = this.createParticle(x, y, 'spiral');
+          const angle = (i / particleCount) * Math.PI * 2;
+          const startRadius = 0;
+          const startTime = performance.now();
+
+          const animate = () => {
+            const progress = (performance.now() - startTime) / duration;
+            if (progress >= 1) {
+              particle.remove();
+              return;
+            }
+
+            const currentRadius = startRadius + (radius * progress);
+            const currentAngle = angle + (progress * Math.PI * 4);
+            const scale = 1 - progress;
+            const opacity = 1 - progress;
+
+            particle.style.transform = `
+              translate(
+                ${Math.cos(currentAngle) * currentRadius}px,
+                ${Math.sin(currentAngle) * currentRadius}px
+              ) scale(${scale})
+            `;
+            particle.style.opacity = opacity;
+
+            requestAnimationFrame(animate);
+          };
+
+          animate();
+        }
+      }
+
+      createVortexEffect(x, y) {
+        const particleCount = 50;
+        const duration = 3000;
+
+        for (let i = 0; i < particleCount; i++) {
+          const particle = this.createParticle(x, y, 'hex');
+          const angle = (i / particleCount) * Math.PI * 2;
+          const startTime = performance.now();
+          const radius = Math.random() * 100 + 50;
+          const rotationSpeed = Math.random() * 2 + 1;
+
+          const animate = () => {
+            const progress = (performance.now() - startTime) / duration;
+            if (progress >= 1) {
+              particle.remove();
+              return;
+            }
+
+            const currentAngle = angle + (progress * Math.PI * 8 * rotationSpeed);
+            const currentRadius = radius * (1 - progress);
+            const scale = 1 - progress;
+            const opacity = 1 - progress;
+
+            particle.style.transform = `
+              translate(
+                ${Math.cos(currentAngle) * currentRadius}px,
+                ${Math.sin(currentAngle) * currentRadius}px
+              ) scale(${scale}) rotate(${currentAngle}rad)
+            `;
+            particle.style.opacity = opacity;
+
+            requestAnimationFrame(animate);
+          };
+
+          animate();
+        }
+      }
+
+      createExplosionEffect(x, y) {
+        const particleCount = 40;
+        const duration = 1500;
+
+        for (let i = 0; i < particleCount; i++) {
+          const particle = this.createParticle(x, y, 'cross');
+          const angle = (i / particleCount) * Math.PI * 2;
+          const velocity = Math.random() * 300 + 200;
+          const startTime = performance.now();
+
+          const animate = () => {
+            const progress = (performance.now() - startTime) / duration;
+            if (progress >= 1) {
+              particle.remove();
+              return;
+            }
+
+            const distance = velocity * progress;
+            const gravity = 500 * progress * progress;
+            const scale = 1 - progress;
+            const opacity = 1 - progress;
+
+            particle.style.transform = `
+              translate(
+                ${Math.cos(angle) * distance}px,
+                ${Math.sin(angle) * distance + gravity}px
+              ) scale(${scale}) rotate(${progress * 720}deg)
+            `;
+            particle.style.opacity = opacity;
+
+            requestAnimationFrame(animate);
+          };
+
+          animate();
+        }
+      }
+    }
+
+    // Grid System
+    class GridSystem {
+      constructor(container) {
+        this.container = container;
+        this.items = [];
+        this.draggedItem = null;
+        this.placeholder = null;
+        this.setupGrid();
+      }
+
+      setupGrid() {
+        // Create initial grid items
+        for (let i = 0; i < 12; i++) {
+          const item = this.createGridItem(i);
+          this.items.push(item);
+          this.container.appendChild(item);
+        }
+
+        this.setupEventListeners();
+      }
+
+      createGridItem(index) {
+        const item = document.createElement('div');
+        item.className = 'grid-item draggable magnetic-field';
+        item.draggable = true;
+        item.dataset.index = index;
+        item.innerHTML = `Item ${index + 1}`;
+        return item;
+      }
+
+      setupEventListeners() {
+        this.container.addEventListener('dragstart', this.handleDragStart.bind(this));
+        this.container.addEventListener('dragend', this.handleDragEnd.bind(this));
+        this.container.addEventListener('dragover', this.handleDragOver.bind(this));
+        this.container.addEventListener('drop', this.handleDrop.bind(this));
+      }
+
+      handleDragStart(e) {
+        if (!e.target.classList.contains('grid-item')) return;
+        
+        this.draggedItem = e.target;
+        e.target.classList.add('dragging');
+        
+        // Create placeholder
+        this.placeholder = document.createElement('div');
+        this.placeholder.className = 'grid-item grid-placeholder';
+        e.target.parentNode.insertBefore(this.placeholder, e.target.nextSibling);
+        
+        // Add physics object
+        this.addPhysicsObject(e.clientX, e.clientY);
+      }
+
+      handleDragEnd(e) {
+        if (!this.draggedItem) return;
+        
+        this.draggedItem.classList.remove('dragging');
+        if (this.placeholder) {
+          this.placeholder.remove();
+        }
+        
+        particleSystem.createVortexEffect(e.clientX, e.clientY);
+        this.draggedItem = null;
+      }
+
+      handleDragOver(e) {
+        e.preventDefault();
+        if (!this.draggedItem || !this.placeholder) return;
+
+        const closest = this.findClosestItem(e.clientX, e.clientY);
+        if (closest && closest !== this.placeholder) {
+          const rect = closest.getBoundingClientRect();
+          const middle = rect.top + rect.height / 2;
+          const insertAfter = e.clientY > middle;
+          
+          if (insertAfter) {
+            closest.parentNode.insertBefore(this.placeholder, closest.nextSibling);
+          } else {
+            closest.parentNode.insertBefore(this.placeholder, closest);
+          }
+        }
+      }
+
+      handleDrop(e) {
+        e.preventDefault();
+        if (!this.draggedItem || !this.placeholder) return;
+
+        this.placeholder.parentNode.insertBefore(this.draggedItem, this.placeholder);
+        particleSystem.createExplosionEffect(e.clientX, e.clientY);
+      }
+
+      findClosestItem(x, y) {
+        const items = [...this.container.querySelectorAll('.grid-item:not(.dragging)')];
+        return items.reduce((closest, item) => {
+          const rect = item.getBoundingClientRect();
+          const distance = Math.hypot(
+            x - (rect.left + rect.width / 2),
+            y - (rect.top + rect.height / 2)
+          );
+          
+          return (!closest || distance < closest.distance)
+            ? { element: item, distance }
+            : closest;
+        }, null)?.element;
+      }
+
+      addPhysicsObject(x, y) {
+        const size = 30;
+        const body = Bodies.rectangle(x, y, size, size, {
+          render: {
+            fillStyle: getComputedStyle(document.body)
+              .getPropertyValue('--color-primary')
+          }
+        });
+        
+        World.add(engine.world, body);
+        
+        setTimeout(() => {
+          World.remove(engine.world, body);
+        }, 2000);
+      }
+    }
+
+    // Initialize systems
+    const particleSystem = new AdvancedParticleSystem();
+    const gridSystem = new GridSystem(document.getElementById('sortableGrid'));
+    const physicsGrid = new GridSystem(document.getElementById('physicsGrid'));
+
+    // Utility functions
+    function createParticleEffect(type) {
+      const rect = event.target.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+      particleSystem.effects[type](x, y);
+    }
+
+    // Window resize handler
+    window.addEventListener('resize', () => {
+      render.canvas.width = window.innerWidth;
+      render.canvas.height = window.innerHeight;
+      Matter.Render.setPixelRatio(render, window.devicePixelRatio);
+    });
+  </script>
+</body>
+</html>

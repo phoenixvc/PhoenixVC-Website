@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phoenix VC Interactive Theme System</title>
+  <style>
+    /* Previous theme variables remain */
+
+    /* Complex Animation Keyframes */
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+
+    @keyframes ripple {
+      0% { transform: scale(0); opacity: 1; }
+      100% { transform: scale(4); opacity: 0; }
+    }
+
+    @keyframes shimmer {
+      0% { background-position: -1000px 0; }
+      100% { background-position: 1000px 0; }
+    }
+
+    @keyframes orbit {
+      from { transform: rotate(0deg) translateX(6px) rotate(0deg); }
+      to { transform: rotate(360deg) translateX(6px) rotate(-360deg); }
+    }
+
+    @keyframes dash {
+      to { stroke-dashoffset: 0; }
+    }
+
+    /* Theme-specific Complex Animations */
+    [data-theme="default"] {
+      --particle-color: var(--theme-default-primary);
+      --glow-color: rgba(255, 107, 43, 0.3);
+      --trail-color: rgba(255, 43, 118, 0.2);
+    }
+
+    [data-theme="ocean"] {
+      --particle-color: var(--theme-ocean-primary);
+      --glow-color: rgba(43, 149, 255, 0.3);
+      --trail-color: rgba(43, 118, 255, 0.2);
+    }
+
+    /* Interactive States */
+    .interactive-card {
+      position: relative;
+      padding: 2rem;
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      transition: all 0.3s var(--animation-primary);
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    .interactive-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--gradient-primary);
+      opacity: 0;
+      transition: opacity 0.3s var(--animation-primary);
+    }
+
+    .interactive-card:hover::before {
+      opacity: 0.05;
+    }
+
+    .interactive-card.active {
+      transform: scale(1.02);
+      box-shadow: 0 8px 32px var(--glow-color);
+    }
+
+    /* Particle System */
+    .particle-container {
+      position: absolute;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: var(--particle-color);
+      border-radius: 50%;
+    }
+
+    /* Interactive Button States */
+    .btn-interactive {
+      position: relative;
+      padding: 12px 24px;
+      background: var(--gradient-primary);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      overflow: hidden;
+      transition: all 0.3s var(--animation-primary);
+    }
+
+    .btn-interactive::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, var(--glow-color) 0%, transparent 50%);
+      transform: translate(-50%, -50%) scale(0);
+      transition: transform 0.6s var(--animation-primary);
+    }
+
+    .btn-interactive:hover::before {
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .btn-interactive::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 20px;
+      height: 20px;
+      background: var(--glow-color);
+      border-radius: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      opacity: 0;
+    }
+
+    .btn-interactive:active::after {
+      animation: ripple 0.6s var(--animation-primary);
+    }
+
+    /* Loading States */
+    .loading-indicator {
+      position: relative;
+      width: 40px;
+      height: 40px;
+    }
+
+    .loading-indicator::before,
+    .loading-indicator::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      animation: orbit 1.5s linear infinite;
+    }
+
+    .loading-indicator::before {
+      width: 8px;
+      height: 8px;
+      background: var(--color-primary);
+    }
+
+    .loading-indicator::after {
+      width: 6px;
+      height: 6px;
+      background: var(--color-secondary);
+      animation-delay: -0.5s;
+    }
+
+    /* Progress Tracker */
+    .progress-tracker {
+      position: relative;
+      height: 8px;
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--gradient-primary);
+      position: relative;
+      transition: width 0.3s var(--animation-primary);
+    }
+
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 200%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.4),
+        transparent
+      );
+      animation: shimmer 2s infinite;
+    }
+
+    /* Interactive Toggle */
+    .toggle-interactive {
+      position: relative;
+      width: 60px;
+      height: 34px;
+      cursor: pointer;
+    }
+
+    .toggle-interactive input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-track {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--bg-tertiary);
+      border-radius: 34px;
+      transition: all 0.3s var(--animation-primary);
+    }
+
+    .toggle-handle {
+      position: absolute;
+      content: '';
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background: white;
+      border-radius: 50%;
+      transition: all 0.3s var(--animation-primary);
+    }
+
+    .toggle-interactive input:checked + .toggle-track {
+      background: var(--gradient-primary);
+    }
+
+    .toggle-interactive input:checked + .toggle-track .toggle-handle {
+      transform: translateX(26px);
+    }
+
+    .toggle-track::before {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 34px;
+      background: var(--gradient-primary);
+      opacity: 0;
+      transition: opacity 0.3s var(--animation-primary);
+    }
+
+    .toggle-interactive:hover .toggle-track::before {
+      opacity: 0.1;
+    }
+
+    /* Interactive Input */
+    .input-interactive {
+      position: relative;
+      margin-bottom: 2rem;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      transition: all 0.3s var(--animation-primary);
+    }
+
+    .input-label {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+      transition: all 0.3s var(--animation-primary);
+      pointer-events: none;
+    }
+
+    .input-field:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 4px var(--glow-color);
+    }
+
+    .input-field:focus + .input-label,
+    .input-field:not(:placeholder-shown) + .input-label {
+      transform: translateY(-170%) scale(0.8);
+      color: var(--color-primary);
+    }
+
+    /* Showcase Layout */
+    .showcase-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      padding: 2rem;
+    }
+
+    .showcase-section {
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: var(--card-shadow);
+    }
+  </style>
+</head>
+<body data-theme="default">
+  <div class="showcase-grid">
+    <!-- Interactive Cards -->
+    <div class="showcase-section">
+      <h2>Interactive Cards</h2>
+      <div class="interactive-card" onclick="toggleActive(this)">
+        <h3>Click to Activate</h3>
+        <p>Watch the particle effects</p>
+      </div>
+    </div>
+
+    <!-- Interactive Buttons -->
+    <div class="showcase-section">
+      <h2>Interactive Buttons</h2>
+      <button class="btn-interactive" onclick="createRipple(event)">
+        Click Me
+      </button>
+    </div>
+
+    <!-- Loading States -->
+    <div class="showcase-section">
+      <h2>Loading States</h2>
+      <div class="loading-indicator"></div>
+      <div class="progress-tracker">
+        <div class="progress-fill" style="width: 60%"></div>
+      </div>
+    </div>
+
+    <!-- Interactive Toggle -->
+    <div class="showcase-section">
+      <h2>Interactive Toggle</h2>
+      <label class="toggle-interactive">
+        <input type="checkbox" onchange="handleToggle(this)">
+        <span class="toggle-track">
+          <span class="toggle-handle"></span>
+        </span>
+      </label>
+    </div>
+
+    <!-- Interactive Input -->
+    <div class="showcase-section">
+      <h2>Interactive Input</h2>
+      <div class="input-interactive">
+        <input type="text" class="input-field" placeholder=" ">
+        <label class="input-label">Type something...</label>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Particle System
+    function createParticle(x, y) {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      particle.style.left = x + 'px';
+      particle.style.top = y + 'px';
+      
+      const angle = Math.random() * Math.PI * 2;
+      const velocity = Math.random() * 2 + 1;
+      const dx = Math.cos(angle) * velocity;
+      const dy = Math.sin(angle) * velocity;
+      
+      const container = document.createElement('div');
+      container.className = 'particle-container';
+      container.appendChild(particle);
+      document.body.appendChild(container);
+
+      let opacity = 1;
+      let scale = 1;
+      
+      function animate() {
+        if (opacity <= 0) {
+          container.remove();
+          return;
+        }
+        
+        particle.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
+        particle.style.opacity = opacity;
+        
+        opacity -= 0.02;
+        scale += 0.02;
+        requestAnimationFrame(animate);
+      }
+      
+      animate();
+    }
+
+    // Interactive Card
+    function toggleActive(card) {
+      card.classList.toggle('active');
+      
+      // Create particles
+      const rect = card.getBoundingClientRect();
+      for (let i = 0; i < 10; i++) {
+        const x = rect.left + Math.random() * rect.width;
+        const y = rect.top + Math.random() * rect.height;
+        createParticle(x, y);
+      }
+    }
+
+    // Button Ripple Effect
+    function createRipple(event) {
+      const button = event.currentTarget;
+      const rect = button.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+
+      const ripple = document.createElement('span');
+      ripple.style.left = x + 'px';
+      ripple.style.top = y + 'px';
+      ripple.className = 'ripple';
+      
+      button.appendChild(ripple);
+      
+      ripple.addEventListener('animationend', () => {
+        ripple.remove();
+      });
+    }
+
+    // Toggle Handler
+    function handleToggle(toggle) {
+      const track = toggle.nextElementSibling;
+      if (toggle.checked) {
+        track.style.transform = 'scale(1.1)';
+        setTimeout(() => {
+          track.style.transform = 'scale(1)';
+        }, 200);
+      }
+    }
+  </script>
+</body>
+</html>
