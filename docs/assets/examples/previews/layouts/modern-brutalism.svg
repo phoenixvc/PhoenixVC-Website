@@ -1,0 +1,29 @@
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+<!-- Background -->
+<rect width="800" height="600" fill="#ffffff"/>
+
+<!-- Header -->
+<rect x="0" y="0" width="800" height="100" fill="#000000"/>
+<rect x="40" y="30" width="140" height="40" rx="0" fill="#ffffff"/>
+<rect x="600" y="35" width="40" height="30" rx="0" fill="#ffffff"/>
+<rect x="660" y="35" width="40" height="30" rx="0" fill="#ffffff"/>
+<rect x="720" y="35" width="40" height="30" rx="0" fill="#ffffff"/>
+
+<!-- Hero Text -->
+<rect x="40" y="140" width="600" height="100" rx="0" fill="#000000"/>
+
+<!-- Content Blocks -->
+<rect x="40" y="280" width="220" height="280" rx="0" fill="#000000"/>
+<rect x="290" y="280" width="220" height="280" rx="0" fill="#000000"/>
+<rect x="540" y="280" width="220" height="280" rx="0" fill="#000000"/>
+
+<!-- Accent Elements -->
+<rect x="60" y="300" width="180" height="180" rx="0" fill="#ffffff"/>
+<rect x="60" y="500" width="140" height="40" rx="0" fill="#ffffff"/>
+
+<rect x="310" y="300" width="180" height="180" rx="0" fill="#ffffff"/>
+<rect x="310" y="500" width="140" height="40" rx="0" fill="#ffffff"/>
+
+<rect x="560" y="300" width="180" height="180" rx="0" fill="#ffffff"/>
+<rect x="560" y="500" width="140" height="40" rx="0" fill="#ffffff"/>
+</svg>
