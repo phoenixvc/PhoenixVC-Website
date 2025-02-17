@@ -11,6 +11,9 @@ CONFIG_FILE="./scripts/deployment/.dns-config.sh"
 # Expected Azure nameservers (adjust if needed)
 EXPECTED_AZURE_NS="ns1-01.azure-dns.com ns2-01.azure-dns.net ns3-01.azure-dns.org ns4-01.azure-dns.info"
 
+# Global flag: if nameservers do not match Azure's, skip apex verification.
+SKIP_APEX_VERIFICATION=0
+
 # ────────────────────────────────────────────────────────────
 # ✅ HELPER FUNCTIONS
 # ────────────────────────────────────────────────────────────
@@ -195,8 +198,10 @@ check_nameservers() {
         warn "Your domain is still being served by an external provider. Changes in Azure DNS"
         warn "will not be effective until you update the nameservers at your registrar (e.g., GoDaddy)."
         warn "***********************************************************************"
+        SKIP_APEX_VERIFICATION=1
     else
         log "Nameserver check passed. Domain $DOMAIN is using Azure DNS nameservers."
+        SKIP_APEX_VERIFICATION=0
     fi
 }
 
@@ -261,22 +266,26 @@ configure_docs() {
 verify_configuration() {
     info "Starting DNS verification..."
 
-    # Verify apex domain A record
-    local apex_ips
-    apex_ips=$(dig +short "$DOMAIN" A | tr '\n' ' ' | xargs)
-    info "A records for $DOMAIN: $apex_ips"
-    if [ -n "$EXPECTED_APEX_IPS" ]; then
-      local found_count=0
-      for ip in $EXPECTED_APEX_IPS; do
-        if [[ "$apex_ips" == *"$ip"* ]]; then
-          found_count=$((found_count+1))
-        fi
-      done
-      if [[ $found_count -eq 0 ]]; then
-        error "Apex A record verification failed. Expected one of: $EXPECTED_APEX_IPS, got: $apex_ips"
-      fi
+    # Verify apex domain A record (if nameservers are updated)
+    if [[ "$SKIP_APEX_VERIFICATION" -eq 1 ]]; then
+      warn "Skipping apex record verification because domain is still served externally."
     else
-      warn "No EXPECTED_APEX_IPS defined; skipping apex verification."
+      local apex_ips
+      apex_ips=$(dig +short "$DOMAIN" A | tr '\n' ' ' | xargs)
+      info "A records for $DOMAIN: $apex_ips"
+      if [ -n "$EXPECTED_APEX_IPS" ]; then
+        local found_count=0
+        for ip in $EXPECTED_APEX_IPS; do
+          if [[ "$apex_ips" == *"$ip"* ]]; then
+            found_count=$((found_count+1))
+          fi
+        done
+        if [[ $found_count -eq 0 ]]; then
+          error "Apex A record verification failed. Expected one of: $EXPECTED_APEX_IPS, got: $apex_ips"
+        fi
+      else
+        warn "No EXPECTED_APEX_IPS defined; skipping apex verification."
+      fi
     fi
 
     # Verify www subdomain CNAME record
