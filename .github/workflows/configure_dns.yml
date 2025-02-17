@@ -67,4 +67,5 @@ jobs:
         run: ./scripts/deployment/configure-dns.sh --verify --ENVIRONMENT ${{ github.event.inputs.ENVIRONMENT }}
 
       - name: Configure DNS
-        run: ./scripts/deployment/configure-dns.sh --ENVIRONMENT ${{ github.event.inputs.ENVIRONMENT }}
+        run: ./scripts/deployment/configure-dns.sh --all --ENVIRONMENT ${{ github.event.inputs.ENVIRONMENT }}
+
