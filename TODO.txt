@@ -1,0 +1,11 @@
+# Project TODOs
+
+## Configuration
+- [ ] Fix/Setup Husky git hooks
+- [ ] Configure and verify Commitlint
+- [ ] Verify Dev Container configuration after move to .config/
+
+## Next Steps
+- [ ] Continue repository restructuring
+- [ ] Setup proper CI/CD pipeline
+- [ ] Document configuration setup process
