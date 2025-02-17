@@ -8,6 +8,9 @@ VERSION="3.2.2"
 # Updated configuration file path
 CONFIG_FILE="./scripts/deployment/.dns-config.sh"
 
+# Expected Azure nameservers (adjust if needed)
+EXPECTED_AZURE_NS="ns1-01.azure-dns.com ns2-01.azure-dns.net ns3-01.azure-dns.org ns4-01.azure-dns.info"
+
 # ────────────────────────────────────────────────────────────
 # ✅ HELPER FUNCTIONS
 # ────────────────────────────────────────────────────────────
@@ -147,6 +150,53 @@ ensure_dns_zone_exists() {
         log "DNS zone $DOMAIN created in $RESOURCE_GROUP"
     else
         log "DNS zone $DOMAIN already exists in $RESOURCE_GROUP"
+    fi
+}
+
+# ────────────────────────────────────────────────────────────
+# NEW: Detect External DNS Provider from NS records
+detect_external_provider() {
+    local ns_list
+    ns_list=$(dig +short NS "$DOMAIN" | tr '\n' ' ' | xargs)
+    local provider="Unknown"
+    if echo "$ns_list" | grep -qi "godaddy"; then
+        provider="GoDaddy"
+    elif echo "$ns_list" | grep -qi "cloudflare"; then
+        provider="Cloudflare"
+    elif echo "$ns_list" | grep -qi "amazonaws" || echo "$ns_list" | grep -qi "route53"; then
+        provider="Amazon (Route53)"
+    elif echo "$ns_list" | grep -qi "azure-dns"; then
+        provider="Azure DNS"
+    fi
+    echo "$provider"
+}
+
+# ────────────────────────────────────────────────────────────
+# NEW: Check if nameservers are updated to Azure and warn if not
+check_nameservers() {
+    info "Checking current public nameservers for $DOMAIN..."
+    local current_ns
+    current_ns=$(dig +short NS "$DOMAIN" | tr '\n' ' ' | xargs)
+    info "Current nameservers: $current_ns"
+    local detected_provider
+    detected_provider=$(detect_external_provider)
+    local missing=0
+    for ns in $EXPECTED_AZURE_NS; do
+        if [[ "$current_ns" != *"$ns"* ]]; then
+            missing=1
+        fi
+    done
+    if [[ $missing -eq 1 ]]; then
+        warn "***********************************************************************"
+        warn "WARNING: The nameservers for $DOMAIN do not match the expected Azure nameservers."
+        warn "Expected Azure nameservers: $EXPECTED_AZURE_NS"
+        warn "Public nameservers currently in use: $current_ns"
+        warn "Detected external DNS provider: $detected_provider"
+        warn "Your domain is still being served by an external provider. Changes in Azure DNS"
+        warn "will not be effective until you update the nameservers at your registrar (e.g., GoDaddy)."
+        warn "***********************************************************************"
+    else
+        log "Nameserver check passed. Domain $DOMAIN is using Azure DNS nameservers."
     fi
 }
 
@@ -313,13 +363,17 @@ main() {
     # Auto-fetch expected apex IPs if not provided
     if [[ -z "$EXPECTED_APEX_IPS" ]]; then
        info "Fetching expected apex IPs from $SWA_NAME.azurestaticapps.net..."
-       EXPECTED_APEX_IPS=$(dig +short "$SWA_NAME.azurestaticapps.net" A | tr '\n' ' ')
+       # Fetch only IP addresses by filtering lines that match IPv4 format
+       EXPECTED_APEX_IPS=$(dig +short "$SWA_NAME.azurestaticapps.net" A | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | tr '\n' ' ')
        if [[ -z "$EXPECTED_APEX_IPS" ]]; then
            warn "Unable to fetch expected apex IPs from $SWA_NAME.azurestaticapps.net. Apex verification will be skipped."
        else
            info "Expected apex IPs: $EXPECTED_APEX_IPS"
        fi
     fi
+
+    # Check if nameservers are updated to Azure (warn if not)
+    check_nameservers
 
     # Handle backup/restore operations
     if [[ "$BACKUP_ONLY" == "true" ]]; then
