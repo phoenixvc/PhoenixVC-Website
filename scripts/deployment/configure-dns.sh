@@ -293,7 +293,13 @@ verify_configuration() {
     www_value=$(dig +short "www.$DOMAIN" CNAME | tr '\n' ' ' | xargs)
     info "www CNAME record for www.$DOMAIN: $www_value"
     if [[ "$www_value" != *"$SWA_NAME.azurestaticapps.net"* ]]; then
-        error "www CNAME record verification failed. Expected to contain $SWA_NAME.azurestaticapps.net"
+        warn "www CNAME record is incorrect. Expected to contain $SWA_NAME.azurestaticapps.net. Attempting to update..."
+        configure_www
+        www_value=$(dig +short "www.$DOMAIN" CNAME | tr '\n' ' ' | xargs)
+        info "Re-checked www CNAME record: $www_value"
+        if [[ "$www_value" != *"$SWA_NAME.azurestaticapps.net"* ]]; then
+            error "Failed to auto-correct www CNAME record. Expected to contain $SWA_NAME.azurestaticapps.net"
+        fi
     fi
 
     # Verify docs subdomain A record(s)
