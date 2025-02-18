@@ -35,3 +35,4 @@ paths.txt
 project-backup-*.zip
 docs_backup_*/
 .cache
+__pycache__/
