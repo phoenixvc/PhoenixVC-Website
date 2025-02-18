@@ -5,7 +5,7 @@ description = "Documentation for Phoenix VC"
 authors = ["JustAGhosT <smit.jurie@gmail.com>"]
 license = "Proprietary"
 readme = "README.md"
-package-mode = false 
+package-mode = false
 packages = [
       { include = "docs" }
   ]
@@ -55,3 +55,6 @@ quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
+
+[tool.poetry.scripts]
+docs = "mkdocs:serve --config-file ./docs/mkdocs.yml"
