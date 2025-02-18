@@ -1,0 +1,39 @@
+{
+  "routes": [
+    {
+      "route": "/",
+      "serve": "/apps/web/src/pages/index.html",
+      "statusCode": 200
+    },
+    {
+      "route": "/design/*",
+      "serve": "/apps/design-system/src/*",
+      "statusCode": 200
+    },
+    {
+      "route": "/docs/*",
+      "serve": "/docs/*",
+      "statusCode": 200
+    }
+  ],
+  "navigationFallback": {
+    "rewrite": "/index.html"
+  },
+  "globalHeaders": {
+    "Content-Security-Policy": "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data:;",
+    "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "SAMEORIGIN",
+    "Referrer-Policy": "no-referrer-when-downgrade"
+  },
+  "mimeTypes": {
+    ".json": "application/json",
+    ".css": "text/css",
+    ".js": "text/javascript",
+    ".html": "text/html",
+    ".md": "text/markdown"
+  },
+  "platform": {
+    "apiRuntime": "node:18"
+  }
+}

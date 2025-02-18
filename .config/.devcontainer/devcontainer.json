@@ -1,20 +1,83 @@
 {
   "name": "Phoenix VC Dev Environment",
-  "image": "mcr.microsoft.com/devcontainers/javascript-node:18",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12",
   "features": {
     "ghcr.io/devcontainers/features/node:1": {
       "version": "18"
     },
-    "ghcr.io/devcontainers/features/azure-cli:1": {}
+    "ghcr.io/devcontainers/features/azure-cli:1": {},
+    "ghcr.io/devcontainers-contrib/features/poetry:2": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
   },
   "customizations": {
     "vscode": {
       "extensions": [
+        // Built-in extensions
+        "vscode.json-language-features",
+        "vscode.markdown-language-features",
+        "vscode.typescript-language-features",
+        "vscode.git",
+        "vscode.git-base",
+        "vscode.github",
+        "vscode.github-authentication",
+        "vscode.npm",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.debugpy",
+        "GitHub.vscode-pull-request-github",
+        "github.vscode-github-actions",
+        // Additional recommended extensions
         "esbenp.prettier-vscode",
         "dbaeumer.vscode-eslint",
-        "ms-azuretools.vscode-azurecli"
-      ]
+        "ms-azuretools.vscode-azurecli",
+        "yzhang.markdown-all-in-one",
+        "davidanson.vscode-markdownlint",
+        "bierner.markdown-mermaid",
+        "eamodio.gitlens",
+        "mhutchie.git-graph",
+        "streetsidesoftware.code-spell-checker",
+        "editorconfig.editorconfig"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.analysis.typeCheckingMode": "basic",
+        "python.analysis.autoImportCompletions": true,
+        "python.analysis.inlayHints.functionReturnTypes": true,
+        "python.analysis.inlayHints.variableTypes": true,
+        "[python]": {
+          "editor.formatOnSave": true,
+          "editor.defaultFormatter": "ms-python.python",
+          "editor.codeActionsOnSave": {
+            "source.fixAll": "always",
+            "source.organizeImports": "always"
+          }
+        },
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.fixAll": "always"
+        },
+        "[javascript]": {
+          "editor.defaultFormatter": "vscode.typescript-language-features"
+        },
+        "[typescript]": {
+          "editor.defaultFormatter": "vscode.typescript-language-features"
+        },
+        "[json]": {
+          "editor.defaultFormatter": "vscode.json-language-features"
+        },
+        "[jsonc]": {
+          "editor.defaultFormatter": "vscode.json-language-features"
+        },
+        "[markdown]": {
+          "editor.defaultFormatter": "vscode.markdown-language-features"
+        }
+      }
     }
   },
-  "postCreateCommand": "npm install"
+  "postCreateCommand": "poetry config virtualenvs.in-project true && poetry install && npm install && pip install ruff",
+  "updateContentCommand": "apt-get update && apt-get install -y tree",
+  "remoteUser": "vscode",
+  "mounts": [
+    "source=${localWorkspaceFolder}/.cache,target=/home/vscode/.cache,type=bind,consistency=cached"
+  ]
 }

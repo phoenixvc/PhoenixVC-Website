@@ -1,0 +1,31 @@
+name: 'Build Vite App'
+description: 'Builds a Vite application with proper configuration'
+
+inputs:
+  app-name:
+    description: 'Name of the app to build (web/design-system)'
+    required: true
+  node-version:
+    description: 'Node.js version'
+    required: false
+    default: '20'  # Updated to current LTS version
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4  # Updated from v3
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'npm'
+        cache-dependency-path: 'apps/${{ inputs.app-name }}/package-lock.json'  # Added for better caching
+
+    - name: Install Dependencies
+      shell: bash
+      working-directory: apps/${{ inputs.app-name }}  # Better than cd
+      run: npm ci
+
+    - name: Build
+      shell: bash
+      working-directory: apps/${{ inputs.app-name }}  # Better than cd
+      run: npm run build

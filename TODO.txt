@@ -5,7 +5,26 @@
 - [ ] Configure and verify Commitlint
 - [ ] Verify Dev Container configuration after move to .config/
 
+## Documentation UI/UX Enhancements
+- [ ] Add visual indicators in navigation to distinguish between main docs and design system
+- [ ] Implement header section switcher for quick navigation
+- [ ] Configure section-specific color schemes using CSS overrides
+- [ ] Add section tags to search results for better context
+- [ ] Create and document CSS implementation for section styling
+
 ## Next Steps
 - [ ] Continue repository restructuring
 - [ ] Setup proper CI/CD pipeline
 - [ ] Document configuration setup process
+
+## Documentation Structure
+- [ ] Reorganize docs into main/ and design/ subdirectories
+- [ ] Update all internal documentation links
+- [ ] Create unified landing page
+- [ ] Verify navigation structure works with new organization
+
+## Testing & Verification
+- [ ] Test search functionality across both documentation sections
+- [ ] Verify all internal links after restructuring
+- [ ] Test responsive design with new navigation elements
+- [ ] Validate documentation build process with new structure

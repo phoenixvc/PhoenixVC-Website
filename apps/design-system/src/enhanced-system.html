@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phoenix VC Physics Enhanced System</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.18.0/matter.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/spring.js/1.0.3/spring.min.js"></script>
+  <style>
+    /* Previous styles remain */
+
+    /* Spring Physics Elements */
+    .spring-element {
+      position: relative;
+      transform-origin: center;
+      will-change: transform;
+    }
+
+    .spring-chain {
+      position: absolute;
+      width: 2px;
+      background: var(--color-primary);
+      transform-origin: top;
+    }
+
+    /* New Particle Effects */
+    .particle-nova {
+      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+      background: linear-gradient(45deg, var(--color-primary), var(--color-secondary));
+    }
+
+    .particle-pulse {
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--glow-color);
+    }
+
+    /* Physics Interaction Areas */
+    .physics-playground {
+      position: relative;
+      min-height: 300px;
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .physics-attractor {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      pointer-events: none;
+    }
+
+    /* Spring System Visualization */
+    .spring-system {
+      position: relative;
+      height: 200px;
+      margin: 20px 0;
+    }
+
+    .spring-node {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: var(--color-primary);
+      border-radius: 50%;
+    }
+
+    .spring-connection {
+      position: absolute;
+      height: 2px;
+      background: var(--color-secondary);
+      transform-origin: left;
+    }
+  </style>
+</head>
+<body data-theme="default">
+  <div class="showcase-grid">
+    <!-- Physics Playground -->
+    <div class="showcase-section">
+      <h2>Advanced Physics Playground</h2>
+      <div class="physics-playground" id="physicsPlayground">
+        <canvas id="physics-canvas"></canvas>
+      </div>
+    </div>
+
+    <!-- Spring Physics Demo -->
+    <div class="showcase-section">
+      <h2>Spring Physics</h2>
+      <div class="spring-system" id="springSystem"></div>
+    </div>
+
+    <!-- Enhanced Particle Effects -->
+    <div class="showcase-section">
+      <h2>Advanced Particles</h2>
+      <button class="btn-interactive" onclick="createParticleEffect('nova')">Nova Burst</button>
+      <button class="btn-interactive" onclick="createParticleEffect('pulse')">Pulse Wave</button>
+      <button class="btn-interactive" onclick="createParticleEffect('fountain')">Particle Fountain</button>
+    </div>
+  </div>
+
+  <script>
+    // Enhanced Physics Engine Setup
+    const Engine = Matter.Engine,
+          Render = Matter.Render,
+          World = Matter.World,
+          Bodies = Matter.Bodies,
+          Body = Matter.Body,
+          Constraint = Matter.Constraint,
+          Mouse = Matter.Mouse,
+          MouseConstraint = Matter.MouseConstraint;
+
+    const engine = Engine.create({
+      enableSleeping: false,
+      constraintIterations: 4
+    });
+
+    const canvas = document.getElementById('physics-canvas');
+    const render = Render.create({
+      canvas: canvas,
+      engine: engine,
+      options: {
+        width: window.innerWidth,
+        height: 400,
+        wireframes: false,
+        background: 'transparent'
+      }
+    });
+
+    // Advanced Physics Setup
+    class PhysicsSystem {
+      constructor() {
+        this.attractors = [];
+        this.particles = [];
+        this.constraints = [];
+        this.setupPhysicsWorld();
+        this.setupMouseInteraction();
+      }
+
+      setupPhysicsWorld() {
+        // Boundaries
+        const walls = [
+          Bodies.rectangle(400, -10, 800, 20, { isStatic: true }),
+          Bodies.rectangle(400, 410, 800, 20, { isStatic: true }),
+          Bodies.rectangle(-10, 200, 20, 400, { isStatic: true }),
+          Bodies.rectangle(810, 200, 20, 400, { isStatic: true })
+        ];
+
+        World.add(engine.world, walls);
+
+        // Add attractors
+        this.addAttractor(400, 200, 50);
+      }
+
+      setupMouseInteraction() {
+        const mouse = Mouse.create(render.canvas);
+        const mouseConstraint = MouseConstraint.create(engine, {
+          mouse: mouse,
+          constraint: {
+            stiffness: 0.2,
+            render: {
+              visible: false
+            }
+          }
+        });
+
+        World.add(engine.world, mouseConstraint);
+        render.mouse = mouse;
+      }
+
+      addAttractor(x, y, strength) {
+        const attractor = Bodies.circle(x, y, 20, {
+          isStatic: true,
+          plugin: {
+            attractors: [
+              (bodyA, bodyB) => {
+                const force = {
+                  x: (bodyA.position.x - bodyB.position.x) * strength * 1e-6,
+                  y: (bodyA.position.y - bodyB.position.y) * strength * 1e-6
+                };
+                Body.applyForce(bodyB, bodyB.position, force);
+              }
+            ]
+          },
+          render: {
+            fillStyle: getComputedStyle(document.body).getPropertyValue('--color-primary')
+          }
+        });
+
+        this.attractors.push(attractor);
+        World.add(engine.world, attractor);
+      }
+
+      addParticle(x, y, options = {}) {
+        const defaults = {
+          radius: 10,
+          restitution: 0.8,
+          friction: 0.1,
+          density: 0.001
+        };
+
+        const settings = { ...defaults, ...options };
+        const particle = Bodies.circle(x, y, settings.radius, settings);
+        
+        this.particles.push(particle);
+        World.add(engine.world, particle);
+        return particle;
+      }
+
+      addSpringConstraint(bodyA, bodyB, options = {}) {
+        const defaults = {
+          stiffness: 0.01,
+          damping: 0.1
+        };
+
+        const settings = { ...defaults, ...options };
+        const constraint = Constraint.create({
+          bodyA: bodyA,
+          bodyB: bodyB,
+          stiffness: settings.stiffness,
+          damping: settings.damping
+        });
+
+        this.constraints.push(constraint);
+        World.add(engine.world, constraint);
+        return constraint;
+      }
+    }
+
+    // Enhanced Particle System
+    class AdvancedParticleSystem {
+      constructor() {
+        this.effects = {
+          nova: this.createNovaEffect.bind(this),
+          pulse: this.createPulseEffect.bind(this),
+          fountain: this.createFountainEffect.bind(this)
+        };
+      }
+
+      createNovaEffect(x, y) {
+        const particleCount = 24;
+        const duration = 2000;
+
+        for (let i = 0; i < particleCount; i++) {
+          const angle = (i / particleCount) * Math.PI * 2;
+          const velocity = Math.random() * 5 + 5;
+          const size = Math.random() * 10 + 5;
+          const particle = document.createElement('div');
+          
+          particle.className = 'particle particle-nova';
+          particle.style.width = size + 'px';
+          particle.style.height = size + 'px';
+          particle.style.left = x + 'px';
+          particle.style.top = y + 'px';
+          
+          document.body.appendChild(particle);
+
+          const startTime = performance.now();
+          const animate = () => {
+            const progress = (performance.now() - startTime) / duration;
+            if (progress >= 1) {
+              particle.remove();
+              return;
+            }
+
+            const distance = velocity * progress * 100;
+            const rotation = progress * 720;
+            const scale = 1 - progress;
+            const opacity = 1 - progress;
+
+            particle.style.transform = `
+              translate(
+                ${Math.cos(angle) * distance}px,
+                ${Math.sin(angle) * distance}px
+              )
+              rotate(${rotation}deg)
+              scale(${scale})
+            `;
+            particle.style.opacity = opacity;
+
+            requestAnimationFrame(animate);
+          };
+
+          animate();
+        }
+      }
+
+      createPulseEffect(x, y) {
+        const waves = 3;
+        const particlesPerWave = 16;
+        const duration = 1500;
+
+        for (let wave = 0; wave < waves; wave++) {
+          setTimeout(() => {
+            for (let i = 0; i < particlesPerWave; i++) {
+              const angle = (i / particlesPerWave) * Math.PI * 2;
+              const particle = document.createElement('div');
+              
+              particle.className = 'particle particle-pulse';
+              particle.style.width = '10px';
+              particle.style.height = '10px';
+              particle.style.left = x + 'px';
+              particle.style.top = y + 'px';
+              
+              document.body.appendChild(particle);
+
+              const startTime = performance.now();
+              const animate = () => {
+                const progress = (performance.now() - startTime) / duration;
+                if (progress >= 1) {
+                  particle.remove();
+                  return;
+                }
+
+                const distance = progress * 150;
+                const scale = 1 - progress;
+                const opacity = 1 - progress;
+
+                particle.style.transform = `
+                  translate(
+                    ${Math.cos(angle) * distance}px,
+                    ${Math.sin(angle) * distance}px
+                  )
+                  scale(${scale})
+                `;
+                particle.style.opacity = opacity;
+
+                requestAnimationFrame(animate);
+              };
+
+              animate();
+            }
+          }, wave * 200);
+        }
+      }
+
+      createFountainEffect(x, y) {
+        const particleCount = 50;
+        const duration = 2000;
+        let active = true;
+
+        const createParticle = () => {
+          const particle = document.createElement('div');
+          const angle = (Math.random() - 0.5) * Math.PI * 0.5;
+          const velocity = Math.random() * 3 + 5;
+          const size = Math.random() * 6 + 4;
+          
+          particle.className = 'particle particle-pulse';
+          particle.style.width = size + 'px';
+          particle.style.height = size + 'px';
+          particle.style.left = x + 'px';
+          particle.style.top = y + 'px';
+          
+          document.body.appendChild(particle);
+
+          const startTime = performance.now();
+          const animate = () => {
+            const progress = (performance.now() - startTime) / duration;
+            if (progress >= 1) {
+              particle.remove();
+              return;
+            }
+
+            const vx = Math.sin(angle) * velocity;
+            const vy = -Math.cos(angle) * velocity + progress * 20; // Add gravity
+            const dx = vx * progress * 60;
+            const dy = (vy * progress + 0.5 * 98 * progress * progress) * 60;
+            const scale = 1 - progress;
+            const opacity = 1 - progress;
+
+            particle.style.transform = `
+              translate(${dx}px, ${dy}px)
+              scale(${scale})
+            `;
+            particle.style.opacity = opacity;
+
+            requestAnimationFrame(animate);
+          };
+
+          animate();
+        };
+
+        // Create initial burst
+        for (let i = 0; i < particleCount / 2; i++) {
+          createParticle();
+        }
+
+        // Continuous stream
+        const interval = setInterval(() => {
+          if (!active) {
+            clearInterval(interval);
+            return;
+          }
+          createParticle();
+        }, 50);
+
+        // Stop after 2 seconds
+        setTimeout(() => {
+          active = false;
+        }, 2000);
+      }
+    }
+
+    // Spring Physics System
+    class SpringSystem {
+      constructor(container) {
+        this.container = container;
+        this.springs = [];
+        this.nodes = [];
+        this.setupSpringSystem();
+      }
+
+      setupSpringSystem() {
+        const nodeCount = 5;
+        const springStiffness = 0.1;
+        const springDamping = 0.8;
+
+        // Create nodes
+        for (let i = 0; i < nodeCount; i++) {
+          const node = this.createNode(i * 50 + 100, 100);
+          this.nodes.push(node);
+        }
+
+        // Create springs between nodes
+        for (let i = 0; i < nodeCount - 1; i++) {
+          this.createSpring(this.nodes[i], this.nodes[i + 1], springStiffness, springDamping);
+        }
+
+        // Add mouse interaction
+        this.container.addEventListener('mousemove', this.handleMouseMove.bind(this));
+      }
+
+      createNode(x, y) {
+        const node = document.createElement('div');
+        node.className = 'spring-node';
+        node.style.left = x + 'px';
+        node.style.top = y + 'px';
+        this.container.appendChild(node);
+
+        return {
+          element: node,
+          x: x,
+          y: y,
+          vx: 0,
+          vy: 0
+        };
+      }
+
+      createSpring(nodeA, nodeB, stiffness, damping) {
+        const spring = {
+          nodeA: nodeA,
+          nodeB: nodeB,
+          restLength: Math.hypot(nodeB.x - nodeA.x, nodeB.y - nodeA.y),
+          stiffness: stiffness,
+          damping: damping
+        };
+
+        const element = document.createElement('div');
+        element.className = 'spring-connection';
+        this.container.appendChild(element);
+        spring.element = element;
+
+        this.springs.push(spring);
+        return spring;
+      }
+
+      handleMouseMove(e) {
+        const rect = this.container.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        // Apply force to nearby nodes
+        this.nodes.forEach(node => {
+          const dx = mouseX - node.x;
+          const dy = mouseY - node.y;
+          const distance = Math.hypot(dx, dy);
+          if (distance < 100) {
+            const force = (100 - distance) * 0.01;
+            node.vx += dx * force;
+            node.vy += dy * force;
+          }
+        });
+      }
+
+      update() {
+        // Update spring forces
+        this.springs.forEach(spring => {
+          const dx = spring.nodeB.x - spring.nodeA.x;
+          const dy = spring.nodeB.y - spring.nodeA.y;
+          const distance = Math.hypot(dx, dy);
+          const force = (distance - spring.restLength) * spring.stiffness;
+          
+          const fx = (dx / distance) * force;
+          const fy = (dy / distance) * force;
+
+          spring.nodeA.vx += fx;
+          spring.nodeA.vy += fy;
+          spring.nodeB.vx -= fx;
+          spring.nodeB.vy -= fy;
+
+          // Update spring visual
+          const angle = Math.atan2(dy, dx);
+          spring.element.style.width = distance + 'px';
+          spring.element.style.left = spring.nodeA.x + 'px';
+          spring.element.style.top = spring.nodeA.y + 'px';
+          spring.element.style.transform = `rotate(${angle}rad)`;
+        });
+
+        // Update node positions
+        this.nodes.forEach(node => {
+          node.vx *= 0.95; // Damping
+          node.vy *= 0.95;
+
+          node.x += node.vx;
+          node.y += node.vy;
+
+          // Constrain to container
+          node.x = Math.max(0, Math.min(this.container.clientWidth, node.x));
+          node.y = Math.max(0, Math.min(this.container.clientHeight, node.y));
+
+          node.element.style.left = node.x + 'px';
+          node.element.style.top = node.y + 'px';
+        });
+
+        requestAnimationFrame(() => this.update());
+      }
+    }
+
+    // Initialize systems
+    const physicsSystem = new PhysicsSystem();
+    const particleSystem = new AdvancedParticleSystem();
+    const springSystem = new SpringSystem(document.getElementById('springSystem'));
+
+    // Start animation loops
+    Engine.run(engine);
+    Render.run(render);
+    springSystem.update();
+
+    // Utility functions
+    function createParticleEffect(type) {
+      const rect = event.target.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+      particleSystem.effects[type](x, y);
+    }
+
+    // Window resize handler
+    window.addEventListener('resize', () => {
+      render.canvas.width = window.innerWidth;
+      render.canvas.height = 400;
+      Matter.Render.setPixelRatio(render, window.devicePixelRatio);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+name: Weekly DNS Backup
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Every Sunday at midnight
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Configure Azure
+        uses: ./.github/actions/setup-azure-deployment
+        with:
+          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          
+      - name: Create DNS Backup
+        run: |
+          ./scripts/deployment/configure-dns.sh --backup --ENVIRONMENT prod
+          
+      - name: Upload Backup
+        uses: actions/upload-artifact@v3
+        with:
+          name: dns-backup-$(date +%Y%m%d)
+          path: ./dns_backups/
+          retention-days: 90

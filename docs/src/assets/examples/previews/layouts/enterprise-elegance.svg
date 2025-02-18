@@ -1,0 +1,31 @@
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+<!-- Background -->
+<rect width="800" height="600" fill="#ffffff"/>
+
+<!-- Header -->
+<rect x="0" y="0" width="800" height="80" fill="#f8fafc"/>
+<rect x="40" y="25" width="120" height="30" rx="4" fill="#0f172a"/>
+<rect x="600" y="30" width="40" height="20" rx="4" fill="#475569"/>
+<rect x="660" y="30" width="40" height="20" rx="4" fill="#475569"/>
+<rect x="720" y="30" width="40" height="20" rx="4" fill="#475569"/>
+
+<!-- Hero Section -->
+<rect x="0" y="80" width="800" height="240" fill="#0f172a"/>
+<rect x="40" y="140" width="400" height="60" rx="4" fill="#ffffff"/>
+<rect x="40" y="220" width="200" height="40" rx="4" fill="#3b82f6"/>
+
+<!-- Content Grid -->
+<rect x="40" y="360" width="220" height="200" rx="4" fill="#ffffff" stroke="#e2e8f0" stroke-width="2"/>
+<rect x="290" y="360" width="220" height="200" rx="4" fill="#ffffff" stroke="#e2e8f0" stroke-width="2"/>
+<rect x="540" y="360" width="220" height="200" rx="4" fill="#ffffff" stroke="#e2e8f0" stroke-width="2"/>
+
+<!-- Grid Content -->
+<rect x="60" y="380" width="180" height="100" rx="4" fill="#f1f5f9"/>
+<rect x="60" y="500" width="140" height="20" rx="4" fill="#0f172a"/>
+
+<rect x="310" y="380" width="180" height="100" rx="4" fill="#f1f5f9"/>
+<rect x="310" y="500" width="140" height="20" rx="4" fill="#0f172a"/>
+
+<rect x="560" y="380" width="180" height="100" rx="4" fill="#f1f5f9"/>
+<rect x="560" y="500" width="140" height="20" rx="4" fill="#0f172a"/>
+</svg>

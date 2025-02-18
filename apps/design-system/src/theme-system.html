@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phoenix VC Theme System</title>
+  <style>
+    /* Theme System */
+    :root {
+      /* Default Theme (Original Phoenix) */
+      --theme-default-gradient: linear-gradient(135deg, #FF6B2B 0%, #FF2B76 100%);
+      --theme-default-primary: #FF6B2B;
+      --theme-default-secondary: #FF2B76;
+      
+      /* Ocean Theme */
+      --theme-ocean-gradient: linear-gradient(135deg, #2B95FF 0%, #2B76FF 100%);
+      --theme-ocean-primary: #2B95FF;
+      --theme-ocean-secondary: #2B76FF;
+      
+      /* Forest Theme */
+      --theme-forest-gradient: linear-gradient(135deg, #2BFF8E 0%, #2BB576 100%);
+      --theme-forest-primary: #2BFF8E;
+      --theme-forest-secondary: #2BB576;
+      
+      /* Sunset Theme */
+      --theme-sunset-gradient: linear-gradient(135deg, #FFB52B 0%, #FF762B 100%);
+      --theme-sunset-primary: #FFB52B;
+      --theme-sunset-secondary: #FF762B;
+      
+      /* Purple Rain Theme */
+      --theme-purple-gradient: linear-gradient(135deg, #9B2BFF 0%, #762BFF 100%);
+      --theme-purple-primary: #9B2BFF;
+      --theme-purple-secondary: #762BFF;
+    }
+
+    /* Light Mode Base */
+    [data-theme="default"] {
+      --gradient-primary: var(--theme-default-gradient);
+      --color-primary: var(--theme-default-primary);
+      --color-secondary: var(--theme-default-secondary);
+      --bg-primary: #FFFFFF;
+      --bg-secondary: #F8F9FA;
+      --bg-tertiary: #E9ECEF;
+      --text-primary: #1A1A1A;
+      --text-secondary: #757575;
+      --border-color: #E5E5E5;
+      --card-shadow: 0 4px 24px rgba(0,0,0,0.1);
+    }
+
+    /* Ocean Theme */
+    [data-theme="ocean"] {
+      --gradient-primary: var(--theme-ocean-gradient);
+      --color-primary: var(--theme-ocean-primary);
+      --color-secondary: var(--theme-ocean-secondary);
+      --bg-primary: #FFFFFF;
+      --bg-secondary: #F0F7FF;
+      --bg-tertiary: #E3F2FF;
+      --text-primary: #1A1A1A;
+      --text-secondary: #4A6F8C;
+      --border-color: #D1E6FF;
+      --card-shadow: 0 4px 24px rgba(43,149,255,0.1);
+    }
+
+    /* Forest Theme */
+    [data-theme="forest"] {
+      --gradient-primary: var(--theme-forest-gradient);
+      --color-primary: var(--theme-forest-primary);
+      --color-secondary: var(--theme-forest-secondary);
+      --bg-primary: #FFFFFF;
+      --bg-secondary: #F0FFF7;
+      --bg-tertiary: #E3FFE3;
+      --text-primary: #1A1A1A;
+      --text-secondary: #4A8C6F;
+      --border-color: #D1FFE6;
+      --card-shadow: 0 4px 24px rgba(43,255,142,0.1);
+    }
+
+    /* Sunset Theme */
+    [data-theme="sunset"] {
+      --gradient-primary: var(--theme-sunset-gradient);
+      --color-primary: var(--theme-sunset-primary);
+      --color-secondary: var(--theme-sunset-secondary);
+      --bg-primary: #FFFFFF;
+      --bg-secondary: #FFF7F0;
+      --bg-tertiary: #FFE3D1;
+      --text-primary: #1A1A1A;
+      --text-secondary: #8C6F4A;
+      --border-color: #FFE6D1;
+      --card-shadow: 0 4px 24px rgba(255,181,43,0.1);
+    }
+
+    /* Purple Rain Theme */
+    [data-theme="purple"] {
+      --gradient-primary: var(--theme-purple-gradient);
+      --color-primary: var(--theme-purple-primary);
+      --color-secondary: var(--theme-purple-secondary);
+      --bg-primary: #FFFFFF;
+      --bg-secondary: #F7F0FF;
+      --bg-tertiary: #F0E3FF;
+      --text-primary: #1A1A1A;
+      --text-secondary: #6F4A8C;
+      --border-color: #E6D1FF;
+      --card-shadow: 0 4px 24px rgba(155,43,255,0.1);
+    }
+
+    /* Dark Mode Variations */
+    [data-theme="default-dark"] {
+      --gradient-primary: var(--theme-default-gradient);
+      --color-primary: var(--theme-default-primary);
+      --color-secondary: var(--theme-default-secondary);
+      --bg-primary: #1A1A1A;
+      --bg-secondary: #2D2D2D;
+      --bg-tertiary: #404040;
+      --text-primary: #FFFFFF;
+      --text-secondary: #BBBBBB;
+      --border-color: #404040;
+      --card-shadow: 0 4px 24px rgba(0,0,0,0.3);
+    }
+
+    /* Base Styles */
+    body {
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      transition: all 0.3s ease;
+    }
+
+    /* Theme Showcase */
+    .theme-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .theme-card {
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--card-shadow);
+      transition: all 0.3s ease;
+    }
+
+    .theme-header {
+      padding: 2rem;
+      background: var(--gradient-primary);
+      color: white;
+    }
+
+    .theme-content {
+      padding: 2rem;
+    }
+
+    /* Component Examples */
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border-radius: 6px;
+      border: none;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--gradient-primary);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 2px solid var(--color-primary);
+      color: var(--color-primary);
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 1rem 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 75%;
+      background: var(--gradient-primary);
+      transition: width 0.3s ease;
+    }
+
+    /* Theme Switcher */
+    .theme-switcher {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      display: flex;
+      gap: 1rem;
+      padding: 1rem;
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      box-shadow: var(--card-shadow);
+    }
+
+    .theme-option {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.2s ease;
+    }
+
+    .theme-option:hover {
+      transform: scale(1.1);
+    }
+
+    .theme-option.active {
+      border-color: var(--color-primary);
+    }
+  </style>
+</head>
+<body data-theme="default">
+  <h1>Phoenix VC Theme System</h1>
+  
+  <div class="theme-grid">
+    <!-- Default Theme -->
+    <div class="theme-card">
+      <div class="theme-header">
+        <h2>Default Theme</h2>
+      </div>
+      <div class="theme-content">
+        <div class="button-group">
+          <button class="btn btn-primary">Primary</button>
+          <button class="btn btn-secondary">Secondary</button>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ocean Theme -->
+    <div class="theme-card">
+      <div class="theme-header">
+        <h2>Ocean Theme</h2>
+      </div>
+      <div class="theme-content">
+        <div class="button-group">
+          <button class="btn btn-primary">Primary</button>
+          <button class="btn btn-secondary">Secondary</button>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Forest Theme -->
+    <div class="theme-card">
+      <div class="theme-header">
+        <h2>Forest Theme</h2>
+      </div>
+      <div class="theme-content">
+        <div class="button-group">
+          <button class="btn btn-primary">Primary</button>
+          <button class="btn btn-secondary">Secondary</button>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sunset Theme -->
+    <div class="theme-card">
+      <div class="theme-header">
+        <h2>Sunset Theme</h2>
+      </div>
+      <div class="theme-content">
+        <div class="button-group">
+          <button class="btn btn-primary">Primary</button>
+          <button class="btn btn-secondary">Secondary</button>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Purple Rain Theme -->
+    <div class="theme-card">
+      <div class="theme-header">
+        <h2>Purple Rain Theme</h2>
+      </div>
+      <div class="theme-content">
+        <div class="button-group">
+          <button class="btn btn-primary">Primary</button>
+          <button class="btn btn-secondary">Secondary</button>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Theme Switcher -->
+  <div class="theme-switcher">
+    <div class="theme-option" style="background: var(--theme-default-gradient)" onclick="setTheme('default')" title="Default Theme"></div>
+    <div class="theme-option" style="background: var(--theme-ocean-gradient)" onclick="setTheme('ocean')" title="Ocean Theme"></div>
+    <div class="theme-option" style="background: var(--theme-forest-gradient)" onclick="setTheme('forest')" title="Forest Theme"></div>
+    <div class="theme-option" style="background: var(--theme-sunset-gradient)" onclick="setTheme('sunset')" title="Sunset Theme"></div>
+    <div class="theme-option" style="background: var(--theme-purple-gradient)" onclick="setTheme('purple')" title="Purple Rain Theme"></div>
+    <div class="theme-option" style="background: #1A1A1A" onclick="toggleDarkMode()" title="Toggle Dark Mode"></div>
+  </div>
+
+  <script>
+    function setTheme(theme) {
+      const body = document.body;
+      const currentTheme = body.getAttribute('data-theme');
+      const isDark = currentTheme.includes('-dark');
+      body.setAttribute('data-theme', isDark ? `${theme}-dark` : theme);
+      updateActiveTheme();
+    }
+
+    function toggleDarkMode() {
+      const body = document.body;
+      const currentTheme = body.getAttribute('data-theme');
+      const baseTheme = currentTheme.replace('-dark', '');
+      const newTheme = currentTheme.includes('-dark') ? baseTheme : `${baseTheme}-dark`;
+      body.setAttribute('data-theme', newTheme);
+      updateActiveTheme();
+    }
+
+    function updateActiveTheme() {
+      const currentTheme = document.body.getAttribute('data-theme');
+      document.querySelectorAll('.theme-option').forEach(option => {
+        option.classList.remove('active');
+        if (option.getAttribute('onclick').includes(currentTheme.replace('-dark', ''))) {
+          option.classList.add('active');
+        }
+      });
+    }
+
+    // Initialize active theme
+    updateActiveTheme();
+  </script>
+</body>
+</html>

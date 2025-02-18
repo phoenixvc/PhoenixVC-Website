@@ -1,0 +1,24 @@
+{
+    "name": "@phoenixvc/web",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+      "dev": "vite",
+      "build": "vite build",
+      "preview": "vite preview",
+      "lint": "eslint src",
+      "lint:css": "stylelint \"src/**/*.css\"",
+      "format": "prettier --write \"src/**/*.{js,css,html}\""
+    },
+    "dependencies": {
+      "react": "^18.2.0",
+      "react-dom": "^18.2.0"
+    },
+    "devDependencies": {
+      "@vitejs/plugin-react": "^4.0.0",
+      "vite": "^4.3.9",
+      "eslint": "^8.0.0",
+      "stylelint": "^14.0.0",
+      "prettier": "^2.0.0"
+    }
+  }
