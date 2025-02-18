@@ -1,21 +1,47 @@
 {
-    "name": "phoenixvc-modernized",
-    "version": "1.0.0",
-    "private": true,
-    "scripts": {
-      "prepare": "husky install",
-      "lint": "eslint src",
-      "lint:css": "stylelint \"src/css/**/*.css\"",
-      "format": "prettier --write \"src/**/*.{js,css,html,md}\""
-    },
-    "devDependencies": {
-      "@commitlint/cli": "^17.0.3",
-      "@commitlint/config-conventional": "^17.0.3",
-      "husky": "^8.0.0",
-      "eslint": "^8.0.0",
-      "stylelint": "^14.0.0",
-      "stylelint-config-standard": "^25.0.0",
-      "prettier": "^2.0.0"
-    }
+  "name": "phoenixvc-modernized",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "prepare": "npx husky",
+    "build:css": "tailwindcss build src/styles/globals.css -o dist/styles.css",
+    "lint": "eslint \"apps/**/*.{js,jsx,ts,tsx}\" --config eslint.config.js --report-unused-disable-directives",
+    "lint:fix": "eslint \"apps/**/*.{js,jsx,ts,tsx}\" --config eslint.config.js --fix",
+    "lint:workspace": "npm run lint --workspace",
+    "format": "prettier --write \"apps/**/*.{js,jsx,ts,tsx,css,html,md}\"",
+    "web": "npm run dev --workspace=@phoenixvc/web",
+    "design": "npm run dev --workspace=@phoenixvc/design-system",
+    "build:web": "npm run build --workspace=@phoenixvc/web",
+    "build:design": "npm run build --workspace=@phoenixvc/design-system",
+    "format-check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.0.3",
+    "@commitlint/config-conventional": "^19.0.3",
+    "@eslint/js": "^9.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.24.0",
+    "@typescript-eslint/parser": "^8.24.0",
+    "eslint": "^9.20.1",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "framer-motion": "^12.4.3",
+    "glob": "^10.3.10",
+    "globals": "^13.24.0",
+    "husky": "^9.1.7",
+    "prettier": "^3.2.5",
+    "rimraf": "^5.0.5",
+    "stylelint": "^16.2.1",
+    "stylelint-config-standard": "^36.0.0",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "react-hook-form": "^7.54.2",
+    "tailwind-merge": "^3.0.1"
   }
-  
+}

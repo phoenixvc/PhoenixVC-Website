@@ -57,8 +57,13 @@ jobs:
     runs-on: ubuntu-latest
     needs: [log_debug_information]
     steps:
-      - uses: actions/checkout@v4
-      
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          repository: JustAGhosT/PhoenixVC-Modernized
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
       - name: Build Web App
         uses: ./.github/actions/build-vite
         with:

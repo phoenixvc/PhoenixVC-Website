@@ -18,13 +18,21 @@ runs:
       with:
         node-version: ${{ inputs.node-version }}
         cache: 'npm'
-        
+        cache-dependency-path: |
+          **/package-lock.json
+          apps/${{ inputs.app-name }}/package-lock.json
+
     - name: Install Dependencies
       shell: bash
+      working-directory: apps/${{ inputs.app-name }}
       run: |
-        cd apps/${{ inputs.app-name }}
-        npm ci
-        
+        if [ ! -f "package-lock.json" ]; then
+          echo "Warning: package-lock.json not found in apps/${{ inputs.app-name }}"
+          npm install
+        else
+          npm ci
+        fi
+
     - name: Build
       shell: bash
       run: |
