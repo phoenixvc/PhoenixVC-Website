@@ -7,7 +7,7 @@ import { Navigation, MobileMenu, NAV_ITEMS } from '@/features/navigation';
 import { headerVariants } from '../animations';
 import { useTheme } from '@/theme';
 
-export const Header = () => {
+export const Header: React.FC = () => {
     const {
       colorScheme,
       mode,
@@ -15,12 +15,12 @@ export const Header = () => {
       colorSchemeClasses: classes
     } = useTheme();
 
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [isScrolled, setIsScrolled] = useState(false);
-    const [activeSection] = useState(''); // Add this if you need to track active section
+    const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+    const [isScrolled, setIsScrolled] = useState<boolean>(false);
+    const [activeSection] = useState<string>('');
 
     useEffect(() => {
-      const handleScroll = () => {
+      const handleScroll = (): void => {
         setIsScrolled(window.scrollY > 20);
       };
 
@@ -29,7 +29,7 @@ export const Header = () => {
       return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+    const toggleMenu = (): void => setIsMenuOpen(!isMenuOpen);
 
     return (
       <motion.header
@@ -63,6 +63,7 @@ export const Header = () => {
                 onClick={toggleMode}
                 className={`${classes.text} p-2 rounded-lg ${classes.hoverBg} transition-colors`}
                 aria-label={`Toggle ${mode === 'dark' ? 'light' : 'dark'} mode`}
+                type="button"
               >
                 {mode === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
               </button>
@@ -73,6 +74,7 @@ export const Header = () => {
               onClick={toggleMenu}
               whileTap={{ scale: 0.95 }}
               aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+              type="button"
             >
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </motion.button>

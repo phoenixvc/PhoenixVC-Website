@@ -1,6 +1,6 @@
 // features/layout/components/Footer.tsx
 import { motion } from 'framer-motion';
-import { Logo } from "@/features/navigation/components/Logo";
+import Logo from '@/components/ui/Logo';
 import { NAV_ITEMS, SOCIAL_LINKS } from '../constants';
 import { FooterProps } from '../types';
 import { containerVariants, itemVariants } from '../animations';

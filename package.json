@@ -17,7 +17,8 @@
     "design": "npm run dev --workspace=@phoenixvc/design-system",
     "build:web": "npm run build --workspace=@phoenixvc/web",
     "build:design": "npm run build --workspace=@phoenixvc/design-system",
-    "format-check": "prettier --check ."
+    "format-check": "prettier --check .",
+    "docs": "cd .config && poetry run docs"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.0.3",
