@@ -8,21 +8,19 @@ import { useTheme } from "@/theme";
 import ThemeToggle from "@/theme/components/ThemeToggle";
 
 export const Header: React.FC = () => {
-  const { colorScheme, colorSchemeClasses: classes } = useTheme();
-
-  // Derive a theme class (e.g., "theme-classic", "theme-ocean", etc.)
-  const themeClass = `theme-${colorScheme}`;
+  // Get both colorScheme and mode (effective mode) from the theme context
+  const { colorScheme, mode, colorSchemeClasses: classes } = useTheme();
+  // Combine both into the theme class
+  const themeClass = `theme-${colorScheme}-${mode}`;
 
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [isScrolled, setIsScrolled] = useState<boolean>(false);
-  const [activeSection] = useState<string>(""); // For highlighting nav items
+  const [activeSection] = useState<string>("");
 
-  // Track scroll to add a background shadow
   useEffect(() => {
     const handleScroll = (): void => {
       const scrolled = window.scrollY > 20;
       setIsScrolled(scrolled);
-      // Debug log
       console.log(
         `%c[Header] Scroll detected. isScrolled: ${scrolled}`,
         "color: cyan; font-weight: bold;"
@@ -31,13 +29,9 @@ export const Header: React.FC = () => {
 
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Toggle the mobile menu
   const toggleMenu = (): void => {
     const newState = !isMenuOpen;
     setIsMenuOpen(newState);
@@ -47,13 +41,12 @@ export const Header: React.FC = () => {
     );
   };
 
-  // Debug: whenever the colorScheme changes
   useEffect(() => {
     console.log(
-      `%c[Header] Theme Updated. Current Theme: ${colorScheme}`,
+      `%c[Header] Theme Updated. Current Theme: ${colorScheme}-${mode}`,
       "color: magenta; font-weight: bold;"
     );
-  }, [colorScheme]);
+  }, [colorScheme, mode]);
 
   return (
     <motion.header
@@ -75,7 +68,7 @@ export const Header: React.FC = () => {
             transition={{ delay: 0.2 }}
             className="flex-shrink-0"
           >
-            <Logo colorScheme={colorScheme} />
+            <Logo />
           </motion.div>
 
           {/* Middle: Navigation (hidden on mobile) */}
@@ -87,15 +80,11 @@ export const Header: React.FC = () => {
             />
           </div>
 
-          {/* Right side: Theme Toggle & Mobile Menu Button */}
+          {/* Right: Theme Toggle & Mobile Menu Button */}
           <div className="flex items-center space-x-4">
-            {/* ThemeToggle hidden on small screens if desired:
-                remove "hidden md:block" if you want it always visible */}
             <div className="hidden md:block">
               <ThemeToggle />
             </div>
-
-            {/* Mobile Menu Toggle */}
             <motion.button
               className={`md:hidden ${classes.text} p-2 rounded-lg ${classes.hoverBg} transition-colors`}
               onClick={toggleMenu}
@@ -109,7 +98,6 @@ export const Header: React.FC = () => {
         </div>
       </nav>
 
-      {/* Mobile Menu Overlay */}
       <AnimatePresence mode="wait">
         {isMenuOpen && (
           <MobileMenu
