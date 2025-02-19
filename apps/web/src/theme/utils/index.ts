@@ -1,39 +1,30 @@
 // src/theme/utils/index.ts
 import { ColorScheme, Mode, ColorSchemeClasses, ThemeColors } from '../types';
-import { COLOR_SCHEMES, DARK_MODE_COLORS } from '../constants';
+import { COLOR_SCHEMES, DARK_MODE_COLORS, DEFAULT_COLOR_SCHEME, DEFAULT_MODE, STORAGE_KEYS } from '../constants';
 
 export const getDefaultColorScheme = (): ColorScheme => {
-  if (typeof window === 'undefined') return 'blue';
+  if (typeof window === "undefined") return DEFAULT_COLOR_SCHEME;
 
-  const savedScheme = localStorage.getItem('color-scheme') as ColorScheme;
-  return isValidColorScheme(savedScheme) ? savedScheme : 'blue';
+  const savedScheme = localStorage.getItem(STORAGE_KEYS.COLOR_SCHEME);
+  return isValidColorScheme(savedScheme) ? (savedScheme as ColorScheme) : DEFAULT_COLOR_SCHEME;
 };
 
 export const getSystemMode = (): Mode => {
-  if (typeof window === 'undefined') return 'light';
+  if (typeof window === 'undefined') return DEFAULT_MODE;
 
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 };
 
-export const getColorSchemeClasses = (
-  colorScheme: ColorScheme,
-  mode: Mode
-): ColorSchemeClasses => ({
-    primary: `text-${colorScheme}-600 dark:text-${colorScheme}-400`,
-    secondary: `text-${colorScheme}-500 dark:text-${colorScheme}-300`,
-    text: mode === 'dark' ? 'text-gray-100' : 'text-gray-900',
-    activeText: mode === 'dark'
-        ? `text-${colorScheme}-400`
-        : `text-${colorScheme}-600`,
-    hoverBg: mode === 'dark'
-        ? `hover:bg-${colorScheme}-600/10`
-        : `hover:bg-${colorScheme}-50`,
-    activeBg: mode === 'dark'
-        ? `bg-${colorScheme}-600/20`
-        : `bg-${colorScheme}-100`,
-    mobileMenu: mode === 'dark' ? 'bg-gray-900/95' : 'bg-white/95',
-    border: mode === 'dark' ? 'border-gray-700' : 'border-gray-200',
-    bgMobileMenu: ''
+export const getColorSchemeClasses = (colorScheme: ColorScheme, mode: Mode): ColorSchemeClasses => ({
+  primary: `var(--theme-${colorScheme}-primary)`,
+  secondary: `var(--theme-${colorScheme}-secondary)`,
+  text: `var(--theme-${colorScheme}-text)`,
+  activeText: `var(--theme-${colorScheme}-primary)`,
+  hoverBg: `var(--theme-${colorScheme}-hover)`, // Uses new CSS variables
+  activeBg: `var(--theme-${colorScheme}-active)`, // Uses new CSS variables
+  mobileMenu: mode === 'dark' ? 'var(--theme-dark-background)' : 'var(--theme-light-background)',
+  bgMobileMenu: mode === 'dark' ? 'var(--theme-dark-menu)' : 'var(--theme-light-menu)',
+  border: mode === 'dark' ? 'var(--theme-dark-border)' : 'var(--theme-light-border)',
 });
 
 export const getThemeColors = (scheme: ColorScheme, mode: Mode): ThemeColors => {
@@ -51,37 +42,48 @@ export const setTheme = (colorScheme: ColorScheme, mode: Mode): void => {
 
   const root = window.document.documentElement;
 
-  // Remove existing theme classes
-  root.classList.remove(
-    'theme-blue-light', 'theme-purple-light', 'theme-green-light',
-    'theme-blue-dark', 'theme-purple-dark', 'theme-green-dark'
-  );
+  // Dynamically remove any previous theme classes
+  root.className = root.className
+    .split(" ")
+    .filter((cls) => !cls.startsWith("theme-"))
+    .join(" ");
 
-  // Add new theme class
+  // Apply new theme
   root.classList.add(`theme-${colorScheme}-${mode}`);
 
-  // Handle dark mode
-  root.classList.toggle('dark', mode === 'dark');
+  // Toggle dark mode
+  root.classList.toggle("dark", mode === "dark");
+
+  console.log(`%c[Theme] Applied theme: theme-${colorScheme}-${mode}`, "color: cyan; font-weight: bold;");
 };
 
-// Type guards
 export const isValidColorScheme = (scheme: unknown): scheme is ColorScheme => {
-  return typeof scheme === 'string' && ['blue', 'purple', 'green'].includes(scheme);
+  localStorage.removeItem("theme-color-scheme");
+  localStorage.removeItem("theme-mode");
+  localStorage.removeItem("theme-use-system");
+  return typeof scheme === 'string' && Object.keys(COLOR_SCHEMES).includes(scheme);
 };
 
 export const isValidMode = (mode: unknown): mode is Mode => {
   return typeof mode === 'string' && ['light', 'dark'].includes(mode);
 };
 
-// Storage helpers
 export const saveColorScheme = (scheme: ColorScheme): void => {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('color-scheme', scheme);
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem(STORAGE_KEYS.COLOR_SCHEME, scheme);
+    } catch (error) {
+      console.warn("[Theme] Failed to save color scheme:", error);
+    }
   }
 };
 
 export const saveMode = (mode: Mode): void => {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('theme-mode', mode);
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem(STORAGE_KEYS.MODE, mode);
+    } catch (error) {
+      console.warn("[Theme] Failed to save mode:", error);
+    }
   }
 };
