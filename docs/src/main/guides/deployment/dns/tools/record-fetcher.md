@@ -323,8 +323,8 @@ records = fetcher.fetch_all()
 
 ### Documentation
 - [DNS Protocol RFC](https://tools.ietf.org/html/rfc1035)
-- [DNSSEC Implementation](../security/dnssec.md)
-- [Monitoring Guide](../monitoring/dns.md)
+- [DNSSEC Implementation](../reference/technical.md)
+- [Monitoring Guide](../reference/technical.md#moningtori/)
 
 ### Support
 For issues and support:

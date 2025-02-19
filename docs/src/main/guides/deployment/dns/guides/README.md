@@ -9,8 +9,8 @@
 | 📚 Documentation               | 🛠️ Tools & Scripts        | 🔍 Resources                          |
 |--------------------------------|---------------------------|---------------------------------------|
 | [Quick Start Guide](./quick-start.md) | [Configuration Guide](./configuration.md) | [Azure DNS Docs](https://docs.microsoft.com/azure/dns/) |
-| [Fundamentals](./fundamentals.md)         | [Operations Guide](./operations.md)          | [Best Practices](../best-practices/README.md) |
-| [Security Guidelines](../reference/security.md) | [Backup & Recovery](../tools/backup-guide.md)   | [Troubleshooting Guide](../troubleshooting.md) |
+| [Fundamentals](./fundamentals.md)         | [Operations Guide](./operations.md)          | [Best Practices](./best-practices.md) |
+| [Security Guidelines](../reference/security.md) | [Backup & Recovery](../tools/backup-tools.md)   | [Troubleshooting Guide](../reference/troubleshooting.md) |
 
 ---
 
@@ -50,12 +50,12 @@ This document serves as an index for the user-focused guides within the DNS Mana
 ### Backup & Recovery Guide
 - **Purpose:** Procedures for creating backups and restoring DNS configurations.
 - **Highlights:** Automated backup schedules, manual backups, and recovery steps.
-- **Link:** [Backup Guide](../tools/backup-guide.md)
+- **Link:** [Backup Guide](../tools/backup-tools.md)
 
 ### Troubleshooting Guide
 - **Purpose:** Identify and resolve common DNS issues.
 - **Highlights:** Microsoft 365 integration issues, propagation delays, and performance troubleshooting.
-- **Link:** [Troubleshooting Guide](../troubleshooting.md)
+- **Link:** [Troubleshooting Guide](../reference/troubleshooting.md)
 
 ---
 
@@ -64,16 +64,15 @@ This document serves as an index for the user-focused guides within the DNS Mana
 - **For New Users:** Start with the [Quick Start Guide](./quick-start.md) to get up and running quickly.
 - **For In-Depth Knowledge:** Read the [Fundamentals](./fundamentals.md) and [Configuration Guide](./configuration.md) for a deeper understanding.
 - **For Operations:** Refer to the [Operations Guide](./operations.md) for day-to-day management.
-- **For Security and Compliance:** Follow the [Security Guidelines](../reference/security.md) and review backup strategies in the [Backup Guide](../tools/backup-guide.md).
-- **For Troubleshooting:** Consult the [Troubleshooting Guide](../troubleshooting.md) if issues arise.
+- **For Security and Compliance:** Follow the [Security Guidelines](../reference/security.md) and review backup strategies in the [Backup Guide](../tools/backup-tools.md).
+- **For Troubleshooting:** Consult the [Troubleshooting Guide](../reference/troubleshooting.md) if issues arise.
 
 ---
 
 ## Additional Resources
 
 - **Master Documentation:** [DNS Management System Documentation](../README.md)
-- **Support Portal:** [DNS Support](../support/README.md)
-- **Contributing Guidelines:** [CONTRIBUTING.md](../CONTRIBUTING.md)
+- **Contributing Guidelines:** [CONTRIBUTING.md](../../../development/contributing.md)
 - **Change Log:** [CHANGELOG.md](../CHANGELOG.md)
 
 ---

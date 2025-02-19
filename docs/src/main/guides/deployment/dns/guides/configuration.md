@@ -1,5 +1,5 @@
 # DNS Configuration Guide
-| [⬅️ Previous](../setup/prerequisites.md) | [📋 Guide](./guide.md) | [⬆️ Parent](..) | [➡️ Next](../deployment.md) |
+| [⬅️ Previous](./quick-start.md) | [📋 Guide](./README.md) | [⬆️ Parent](../README.md) | [➡️ Next](./operations.md) |
 
 **File Path:** 📄 `/docs/dns/configuration.md`
 **Version:** 3.2.2
@@ -183,10 +183,10 @@ az network dns zone update \
 
 ## Additional Resources
 
-- [DNS Fundamentals Guide](../fundamentals/README.md)
-- [DNS Operations Guide](../operations/README.md)
+- [DNS Fundamentals Guide](./fundamentals/
+- [DNS Operations Guide](./operations.md)
 - [Security Guidelines](../reference/security.md)
-- [Troubleshooting Guide](../troubleshooting/README.md)
+- [Troubleshooting Guide](../reference/troubleshooting.md)
 
 ---
 

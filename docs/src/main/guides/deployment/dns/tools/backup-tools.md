@@ -26,7 +26,7 @@ This guide covers backup and recovery operations for PhoenixVC's Azure DNS infra
 ### Core Backup Tool
 | Tool            | Purpose                                  | Documentation             |
 |-----------------|------------------------------------------|---------------------------|
-| `dns-backup.sh` | Backup and recovery of DNS configurations| [Backup Guide](backup-guide.md) |
+| `dns-backup.sh` | Backup and recovery of DNS configurations| [Backup Guide](./backup-tools.md) |
 
 ### Installation
 ```bash
@@ -100,8 +100,8 @@ vim .env
 
 ### Documentation
 - [Azure DNS Documentation](https://docs.microsoft.com/azure/dns/)
-- [DNS Configuration Best Practices](../best-practices/dns.md)
-- [Security Guidelines](../security/dns-security.md)
+- [DNS Configuration Best Practices](../guides/best-practices.md)
+- [Security Guidelines](../reference/security.md)
 
 ### Support
 For issues and support:

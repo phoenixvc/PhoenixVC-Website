@@ -322,8 +322,8 @@ jobs:
 
 ### Documentation
 - [Azure DNS Documentation](https://docs.microsoft.com/azure/dns/)
-- [DNS Configuration Best Practices](../best-practices/dns.md)
-- [Security Guidelines](../security/dns-security.md)
+- [DNS Configuration Best Practices](../guides/best-practices.md)
+- [Security Guidelines](../reference/technical.md)
 
 ### Support
 For issues and support:

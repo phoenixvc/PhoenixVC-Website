@@ -7,7 +7,7 @@
 **Status:** 🟢 Active
 **Tags:** `#dns` `#fundamentals` `#azure` `#infrastructure`
 
-| [⬅️ Previous](../reference/technical.md) | [📋 Guide](./guide.md) | [⬆️ Parent](..) | [➡️ Next](../operations/README.md) |
+| [⬅️ Previous](../reference/technical.md) | [📋 Guide](./README.md) | [⬆️ Parent](../README.md) | [➡️ Next](./operations.md) |
 |------------------------------------------|------------------------|-----------------|----------------------|
 
 ---

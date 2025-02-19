@@ -8,9 +8,9 @@
 
 | 📚 Documentation       | 🛠️ Setup         | 🔍 Resources                          |
 |------------------------|------------------|---------------------------------------|
-| [Full Guide](../guide/README.md) | [Configuration](../config/README.md) | [Azure DNS](https://docs.microsoft.com/azure/dns/) |
-| [Operations](../operations/README.md) | [Security](../security/README.md) | [Best Practices](../best-practices/README.md) |
-| [Monitoring](../monitoring/README.md) | [Backup](../backup/README.md) | [Support](../support/README.md)       |
+| [Full Guide](./README.md) | [Configuration](configuration.md) | [Azure DNS](https://docs.microsoft.com/azure/dns/) |
+| [Operations](./operations.md) | [Security](../reference/security.md) | [Best Practices](./best-practices.md) |
+| [Monitoring](../reference/technical.md) | [Backup](../tools/backup-tools.md) | [Support](../../../../README.md)       |
 
 ---
 
@@ -128,9 +128,9 @@ vim .env
 
 ## Further Reading
 
-- [DNS Configuration Guide](../configuration/README.md) – Detailed instructions for DNS setup.
-- [DNS Operations Guide](../operations/README.md) – Day-to-day management and maintenance.
-- [Best Practices](../best-practices/README.md) – Recommended procedures for security and performance.
+- [DNS Configuration Guide](./configuration.md) – Detailed instructions for DNS setup.
+- [DNS Operations Guide](./operations.md) - Day-to-day management and maintenance.
+- [Best Practices](./best-practices.md) – Recommended procedures for security and performance.
 
 ---
 

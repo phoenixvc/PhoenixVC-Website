@@ -9,9 +9,9 @@
 **Quick Links**
 | 📚 Documentation | 🛠️ Implementation | 🔍 Resources |
 |-----------------|-------------------|--------------|
-| [Technical Guide](./technical.md) | [DNSSEC Setup](../security/dnssec.md) | [Azure Security](https://docs.microsoft.com/azure/security/) |
-| [Best Practices](../best-practices/README.md) | [Monitoring](../monitoring/README.md) | [RFC Standards](https://www.ietf.org/standards/rfcs/) |
-| [Troubleshooting](./troubleshooting.md) | [Access Control](../security/access-control.md) | [Security Policies](../security/policies.md) |
+| [Technical Guide](./technical.md) | [DNSSEC Setup](#dnssec-configuration) | [Azure Security](https://docs.microsoft.com/azure/security/) |
+| [Best Practices](../guides/best-practices.md) | [Monitoring](#monitoring-and-auditing) | [RFC Standards](https://www.ietf.org/standards/rfcs/) |
+| [Troubleshooting](./troubleshooting.md) | [Access Control](#access-control) | [Security Policies](#monitoring-and-auditing) |
 
 ## Overview
 
@@ -38,6 +38,7 @@ content: |-
 ````
 
 ### Security Layers
+
 ```yaml
 security_layers:
   infrastructure:
@@ -56,9 +57,10 @@ security_layers:
     - Change management
 ```
 
-## DNSSEC Configuration
+## DNSSEC Configuration {: reference }
 
 ### Key Management
+
 ```yaml
 key_configuration:
   zone_signing_key:
@@ -72,7 +74,8 @@ key_configuration:
     rotation: "365 days"
 ```
 
-### Implementation Steps
+### Implementation Steps {: #implementation-steps }
+
 ```bash
 # 1. Generate DNSSEC keys
 ./dns-security.sh --generate-keys \
@@ -91,7 +94,7 @@ key_configuration:
   --thorough
 ```
 
-## Access Control
+## Access Control {: #access-control }
 
 ### RBAC Configuration
 ```yaml
@@ -124,7 +127,7 @@ az role assignment create \
   --scope "/subscriptions/${SUB_ID}/resourceGroups/${RG}/providers/Microsoft.Network/dnszones/${ZONE_NAME}"
 ```
 
-## Monitoring and Auditing
+## Monitoring and Auditing {: #monitoring-and-auditing}
 
 ### Security Monitoring
 ```yaml
@@ -298,9 +301,9 @@ zone_transfer:
 - [DMARC Protocol](https://tools.ietf.org/html/rfc7489)
 
 ### Internal Documentation
-- [Security Policies](../security/policies.md)
-- [Incident Response Plan](../security/incident-response.md)
-- [Access Control Guide](../security/access-control.md)
+- [Security Policies](../../../../../TODO.md)
+- [Incident Response Plan](../../../../../TODO.md)
+- [Access Control Guide](../../../../../TODO.md)
 
 ### Emergency Contacts
 - Security Team: security@phoenixvc.tech

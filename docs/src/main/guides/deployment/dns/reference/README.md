@@ -62,8 +62,8 @@ This document serves as a central technical reference for the DNS Management Sys
 - [Azure DNS Documentation](https://docs.microsoft.com/azure/dns/)
 - [DNS Protocol RFC 1035](https://tools.ietf.org/html/rfc1035)
 - [DNSSEC Implementation Guide](https://docs.microsoft.com/azure/dns/dns-dnssec)
-- [Security Policies](../security/policies.md)
-- [Incident Response Plan](../incidents/README.md)
+- [Security Policies](./security.md)
+- [Incident Response Plan](../../../../README.md)
 
 ---
 

@@ -8,9 +8,9 @@
 
 | 📚 Documentation | 🛠️ Development | 🔍 Resources |
 |-----------------|----------------|--------------|
-| [Security Guide](./security.md) | [Scripts](../scripts/README.md) | [Azure DNS](https://docs.microsoft.com/azure/dns/) |
-| [Best Practices](../best-practices/README.md) | [Configuration](../config/README.md) | [Troubleshooting](./troubleshooting.md) |
-| [API Reference](../api/README.md) | [Templates](../templates/README.md) | [Change Log](../CHANGELOG.md) |
+| [Security Guide](./security.md) | [Scripts](../tools/README.md) | [Azure DNS](https://docs.microsoft.com/azure/dns/) |
+| [Best Practices](../guides/best-practices.md) | [Configuration](../guides/configuration.md) | [Troubleshooting](./troubleshooting.md) |
+| [Index](../README.md) | [Templates](../examples/templates.md) | [Change Log](../CHANGELOG.md) |
 
 ## Table of Contents
 1. [DNS Fundamentals](#dns-fundamentals)
@@ -469,7 +469,7 @@ Query Patterns:
     Burst Capacity: 10000 QPS
 ```
 
-## Monitoring Configuration
+## Monitoring Configuration {: #monitoring-configuration}
 
 ### Azure Monitor Setup
 ```yaml

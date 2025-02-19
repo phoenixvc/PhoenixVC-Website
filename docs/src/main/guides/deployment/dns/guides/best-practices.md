@@ -8,9 +8,9 @@
 
 | 📚 Documentation               | 🛠️ Implementation          | 🔍 Resources                         |
 |--------------------------------|----------------------------|--------------------------------------|
-| [Record Fetcher](../record-fetcher.md) | [Security Guide](../security/README.md) | [RFC Standards](https://www.ietf.org/standards/rfcs/) |
-| [Operations Guide](../operations/README.md) | [Monitoring](../monitoring/README.md) | [DNSSEC Guide](../security/dnssec.md) |
-| [Configuration](../config/README.md) | [Automation](../automation/README.md) | [Troubleshooting](../troubleshooting/README.md) |
+| [Record Fetcher](../tools/record-fetcher.md) | [Security Guide](../reference/security.md) | [RFC Standards](https://www.ietf.org/standards/rfcs/) |
+| [Operations Guide](./operations.md) | [Monitoring](../reference/technical.md#monitoring_configuration) | [DNSSEC Guide](../reference/security.md#dnssec-configuration) |
+| [Configuration](./configuration.md) | [Automation](../reference/technical.md) | [Troubleshooting](../reference/troubleshooting.md) |
 
 ---
 
@@ -376,9 +376,9 @@ maintenance_schedule:
 - [RFC 4033](https://tools.ietf.org/html/rfc4033) – DNS Security: Introduction and Requirements
 
 ### Internal Documentation
-- [DNS Architecture Guide](../architecture/README.md)
-- [Security Policies](../security/policies.md)
-- [Incident Response Plan](../incidents/README.md)
+- [DNS Architecture Guide](../reference/technical.md)
+- [Security Policies](../reference/security.md)
+- [Incident Response Plan](../guides/operations.md)
 
 ### Contact Information
 - **DNS Team:** dns-team@phoenixvc.tech

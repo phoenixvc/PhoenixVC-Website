@@ -22,7 +22,7 @@ This document provides an overview of the various tools included in the DNS Mana
 - **[Configuration Script](./configure-dns.md)**
   Automate DNS configuration management, including record creation, updates, and validation.
 
-- **[Backup Tools](./backup-guide.md)**
+- **[Backup Tools](./backup-tools.md)**
   Manage DNS configuration backups and perform restoration when necessary.
 
 ---
@@ -42,7 +42,7 @@ Each tool is designed to integrate seamlessly into your DNS management workflow.
 |-----------------------|------------------------------------------------|-------------------------------------|
 | DNS Record Fetcher    | Retrieve and verify DNS records                | [Record Fetcher](./record-fetcher.md) |
 | Configuration Script  | Automate DNS record configuration              | [Configuration Script](./configure-dns.md) |
-| Backup Tools          | Backup and recovery operations                 | [Backup Tools](./backup-guide.md)     |
+| Backup Tools          | Backup and recovery operations                 | [Backup Tools](./backup-tools.md)     |
 
 ---
 
@@ -108,8 +108,8 @@ chmod +x configure-dns.sh dns-record-fetcher.sh dns-backup.sh
 ## Additional Resources
 
 - [DNS Management System Documentation](../README.md)
-- [Troubleshooting Guide](../troubleshooting.md)
-- [Configuration Guide](../configuration/README.md)
+- [Troubleshooting Guide](../reference/troubleshooting.md)
+- [Configuration Guide](../guides/configuration.md)
 
 ---
 

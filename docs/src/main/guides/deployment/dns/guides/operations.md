@@ -9,9 +9,9 @@
 **Quick Links**
 | 📚 Documentation | 🛠️ Operations | 🔍 Resources |
 |-----------------|---------------|--------------|
-| [DNS Fundamentals](../fundamentals/README.md) | [Incident Response](../incidents/README.md) | [Azure DNS Guide](https://docs.microsoft.com/azure/dns/) |
-| [Change Management](../changes/README.md) | [Backup Procedures](../backup/README.md) | [Best Practices](../best-practices/README.md) |
-| [Monitoring](../monitoring/README.md) | [Security](../security/README.md) | [Playbooks](../playbooks/README.md) |
+| [DNS Fundamentals](./fundamentals.md) | [Incident Response](../../../../README.md) | [Azure DNS Guide](https://docs.microsoft.com/azure/dns/) |
+| [Change Management](../CHANGELOG.md) | [Backup Procedures](../tools/backup-tools.md) | [Best Practices](./best-practices.md) |
+| [Monitoring](../reference/technical.md) | [Security](../reference/security.md) | [Playbooks](../../../../../TODO.md) |
 
 ## Overview
 
@@ -200,4 +200,4 @@ monthly_review:
 ## Additional Resources
 - [Azure DNS Operations Guide](https://docs.microsoft.com/azure/dns/dns-operations-guide)
 - [DNS Best Practices](https://docs.microsoft.com/azure/dns/dns-best-practices)
-- [Incident Response Playbook](../security/incident-response.md)
+- [Incident Response Playbook](../reference/security.md)

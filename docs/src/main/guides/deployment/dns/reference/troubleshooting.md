@@ -8,9 +8,9 @@
 
 | 📚 Documentation         | 🛠️ Tools               | 🔍 Resources                                |
 |--------------------------|------------------------|---------------------------------------------|
-| [Technical Guide](./technical.md) | [DNS Scripts](../scripts/dns/README.md) | [Azure DNS Status](https://status.azure.com) |
-| [Security Guide](./security.md)     | [Validation Tools](../tools/validation/README.md) | [M365 Status](https://status.office365.com)    |
-| [Best Practices](../best-practices/README.md) | [Monitoring](../monitoring/README.md) | [Support Portal](../support/README.md)         |
+| [Technical Guide](./technical.md) | [DNS Scripts](../tools/README.md) | [Azure DNS Status](https://status.azure.com) |
+| [Security Guide](./security.md)     | [Validation Tools](../tools/configure-dns.md) | [M365 Status](https://status.office365.com)    |
+| [Best Practices](../guides/best-practices.md) | [Monitoring](../reference/technical.md) | [Support Portal](../../../../README.md)         |
 
 ---
 

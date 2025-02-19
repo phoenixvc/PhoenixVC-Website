@@ -9,9 +9,9 @@
 **Quick Links**
 | 📚 Documentation             | 🛠️ Examples           | 🔍 Resources                         |
 |------------------------------|-----------------------|--------------------------------------|
-| [Configuration Guide](../configure-dns.md) | [Config Examples](./configs.md) | [Azure DNS](https://docs.microsoft.com/azure/dns/) |
-| [Technical Guide](../technical.md)         | [Script Examples](./scripts.md) | [Best Practices](../best-practices/README.md) |
-| [Troubleshooting](../troubleshooting.md)     | [Templates](./templates/README.md) | [Change Log](../CHANGELOG.md)        |
+| [Configuration Guide](../guides/configuration.md) | [Config Examples](./configs.md) | [Azure DNS](https://docs.microsoft.com/azure/dns/) |
+| [Technical Guide](../reference/technical.md)         | [Script Examples](./scripts.md) | [Best Practices](../guides/best-practices.md) |
+| [Troubleshooting](../reference/troubleshooting.md)     | [Templates](./templates.md) | [Change Log](../CHANGELOG.md)        |
 
 ## Overview
 
@@ -41,4 +41,4 @@ examples/
 
 ## Contributing
 
-Please follow our [contribution guidelines](../../CONTRIBUTING.md) when adding new examples.
+Please follow our [contribution guidelines](../../../development/contributing.md) when adding new examples.
