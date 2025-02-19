@@ -1,6 +1,6 @@
 import { motion } from "framer-motion"
 import { LayoutProps } from "../types"
-import { Header } from "./Header"
+import { Header } from "./Header/Header"
 import { Footer } from "./Footer"
 import { containerVariants } from "../animations"
 

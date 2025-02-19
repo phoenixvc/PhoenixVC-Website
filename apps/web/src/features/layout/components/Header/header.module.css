@@ -1,0 +1,96 @@
+/* Base Header Style */
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 50;
+    color: hsl(var(--foreground) / 0.85);
+    transition: background 0.4s ease-in-out,
+                box-shadow 0.3s ease-in-out,
+                border-bottom 0.3s ease-in-out,
+                backdrop-filter 0.3s ease-in-out;
+  }
+
+  /* Header Before Scroll - Different Tint Than Hero */
+  .headerTransparent {
+    background: linear-gradient(to bottom, hsl(var(--alternate-background) / 0.8), transparent);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    box-shadow: 0px 2px 8px hsl(var(--color-shadow) / 0.3);
+    border-bottom: 1px solid hsl(var(--border) / 0.15);
+  }
+
+  /* Header After Scroll - Fully Defined */
+  .headerScrolled {
+    background: linear-gradient(to bottom,
+      hsl(var(--alternate-background) / 0.7) 0%,
+      hsl(var(--alternate-background) / 0.4) 50%,
+      hsl(var(--alternate-background) / 0.2) 100%
+    );
+    box-shadow: 0px 2px 15px hsl(var(--color-shadow) / 0.35);
+    border-bottom: 1px solid hsl(var(--border) / 0.25);
+    backdrop-filter: blur(15px) brightness(0.95);
+  }
+
+    /* Section depth gradients */
+  .sectionGradient {
+    position: relative;
+  }
+
+  .sectionGradient::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(
+      circle at top right,
+      hsl(var(--brand-primary) / 0.1),
+      transparent 60%
+    );
+    pointer-events: none;
+  }
+
+  /* NAVIGATION */
+  .navContainer {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .navContainer a[aria-current="page"] {
+    color: hsl(var(--foreground) / 0.9); /* Darker for visibility */
+    font-weight: 600; /* Make it stand out */
+    text-decoration: underline; /* Optional: Adds an underline for clarity */
+  }
+
+  .navContainer a {
+    color: hsl(var(--muted-foreground)); /* Default text */
+    transition: color 0.2s ease-in-out;
+  }
+
+  .navContainer a:hover {
+    color: hsl(210, 20%, 10%); /* Slightly darker */
+  }
+
+  /* MOBILE MENU BUTTON */
+  .menuButton {
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: background-color 0.2s ease-in-out;
+  }
+
+  .menuButton:hover {
+    background-color: hsl(var(--color-hover));
+  }
+
+  /* ICON SIZING */
+  .icon {
+    width: 24px;
+    height: 24px;
+  }
