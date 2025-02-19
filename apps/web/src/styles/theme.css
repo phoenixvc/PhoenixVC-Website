@@ -28,7 +28,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 210 20% 15%;
 
-    /* Keep or adjust these tokens as needed */
+    /* Core color tokens */
     --primary: 222.2 47.4% 11.2%;
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
@@ -45,13 +45,17 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
 
-    /* Charts and radius can remain as is */
+    /* Chart colors and radius */
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
+
+    /* Additional visual tokens */
+    --shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    --backdrop-blur: 4px;
   }
 
   /* Base (Classic) Theme - Dark Overrides */
@@ -80,6 +84,8 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+    --shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    --backdrop-blur: 8px;
   }
 
   /* Apply these tokens as base background and text */
@@ -92,103 +98,142 @@
 @layer base {
   :root {
     /* Ocean Theme (replacing Blue) */
-    --theme-ocean-light-primary: 59 130 246;     /* blue-500 */
-    --theme-ocean-light-secondary: 37 99 235;     /* blue-600 */
-    --theme-ocean-light-accent: 29 78 216;        /* blue-700 */
-    --theme-ocean-light-background: 255 255 255;   /* white */
-    --theme-ocean-light-text: 15 23 42;            /* slate-900 */
-    --theme-ocean-light-muted: 100 116 139;        /* slate-500 */
-    --theme-ocean-light-border: 226 232 240;       /* slate-200 */
+    --theme-ocean-light-primary: 59 130 246;
+    --theme-ocean-light-secondary: 37 99 235;
+    --theme-ocean-light-accent: 29 78 216;
+    --theme-ocean-light-background: 255 255 255;
+    --theme-ocean-light-text: 15 23 42;
+    --theme-ocean-light-muted: 100 116 139;
+    --theme-ocean-light-border: 226 232 240;
+    --theme-ocean-light-hover: 37 99 235;
+    --theme-ocean-light-active: 29 78 216;
 
-    --theme-ocean-dark-primary: 96 165 250;        /* blue-400 */
-    --theme-ocean-dark-secondary: 59 130 246;       /* blue-500 */
-    --theme-ocean-dark-accent: 37 99 235;          /* blue-600 */
-    --theme-ocean-dark-background: 15 23 42;        /* slate-900 */
-    --theme-ocean-dark-text: 241 245 249;           /* slate-100 */
-    --theme-ocean-dark-muted: 148 163 184;          /* slate-400 */
-    --theme-ocean-dark-border: 51 65 85;            /* slate-700 */
+    --theme-ocean-dark-primary: 96 165 250;
+    --theme-ocean-dark-secondary: 59 130 246;
+    --theme-ocean-dark-accent: 37 99 235;
+    --theme-ocean-dark-background: 15 23 42;
+    --theme-ocean-dark-text: 241 245 249;
+    --theme-ocean-dark-muted: 148 163 184;
+    --theme-ocean-dark-border: 51 65 85;
+    --theme-ocean-dark-hover: 59 130 246;
+    --theme-ocean-dark-active: 37 99 235;
 
     /* Lavender Theme (replacing Purple) */
     --theme-lavender-light-primary: 147 51 234;
     --theme-lavender-light-secondary: 124 58 237;
-    --theme-lavender-light-accent: 135 50 240;     /* Suggested accent */
-    --theme-lavender-light-background: 255 255 255; /* white background */
-    --theme-lavender-light-text: 20 20 30;          /* darker text for contrast */
-    --theme-lavender-light-muted: 230 20 90;        /* soft lavender muted */
-    --theme-lavender-light-border: 230 20 80;       /* subtle lavender border */
+    --theme-lavender-light-accent: 135 50 240;
+    --theme-lavender-light-background: 255 255 255;
+    --theme-lavender-light-text: 20 20 30;
+    --theme-lavender-light-muted: 230 20 90;
+    --theme-lavender-light-border: 230 20 80;
+    --theme-lavender-light-hover: 124 58 237;
+    --theme-lavender-light-active: 135 50 240;
 
     --theme-lavender-dark-primary: 168 85 247;
     --theme-lavender-dark-secondary: 147 51 234;
-    --theme-lavender-dark-accent: 155 70 240;      /* Suggested dark accent */
-    --theme-lavender-dark-background: 15 23 42;     /* dark background */
-    --theme-lavender-dark-text: 241 245 249;        /* light text */
-    --theme-lavender-dark-muted: 220 30 60;         /* muted dark lavender */
-    --theme-lavender-dark-border: 220 30 50;        /* darker border */
+    --theme-lavender-dark-accent: 155 70 240;
+    --theme-lavender-dark-background: 15 23 42;
+    --theme-lavender-dark-text: 241 245 249;
+    --theme-lavender-dark-muted: 220 30 60;
+    --theme-lavender-dark-border: 220 30 50;
+    --theme-lavender-dark-hover: 147 51 234;
+    --theme-lavender-dark-active: 155 70 240;
 
     /* Phoenix Theme (custom, with orange accent) */
-    --theme-phoenix-light-primary: 32 100% 50%;     /* bright orange */
-    --theme-phoenix-light-secondary: 15 23 42;      /* slate dark */
+    --theme-phoenix-light-primary: 32 100% 50%;
+    --theme-phoenix-light-secondary: 15 23 42;
     --theme-phoenix-light-accent: 24 96% 60%;
     --theme-phoenix-light-background: 255 255 255;
     --theme-phoenix-light-text: 15 23 42;
     --theme-phoenix-light-muted: 100 116 139;
     --theme-phoenix-light-border: 226 232 240;
+    --theme-phoenix-light-hover: 15 23 42;
+    --theme-phoenix-light-active: 24 96% 50%;
 
-    --theme-phoenix-dark-primary: 24 96% 60%;       /* slightly adjusted orange */
+    --theme-phoenix-dark-primary: 24 96% 60%;
     --theme-phoenix-dark-secondary: 15 23 42;
     --theme-phoenix-dark-accent: 37 99 235;
     --theme-phoenix-dark-background: 15 23 42;
     --theme-phoenix-dark-text: 241 245 249;
     --theme-phoenix-dark-muted: 148 163 184;
     --theme-phoenix-dark-border: 51 65 85;
+    --theme-phoenix-dark-hover: 24 96% 50%;
+    --theme-phoenix-dark-active: 15 23 42;
 
     /* Forest Theme */
-    --theme-forest-light-primary: 120 40% 35%;      /* deep forest green */
-    --theme-forest-light-secondary: 120 50% 30%;    /* slightly darker green */
-    --theme-forest-light-accent: 120 60% 25%;       /* accent green */
-    --theme-forest-light-background: 255 255 255;   /* white background */
-    --theme-forest-light-text: 15 23 42;            /* slate-900 for text */
-    --theme-forest-light-muted: 120 30% 75%;        /* soft green-muted */
-    --theme-forest-light-border: 226 232 240;       /* light gray border */
+    --theme-forest-light-primary: 120 40% 35%;
+    --theme-forest-light-secondary: 120 50% 30%;
+    --theme-forest-light-accent: 120 60% 25%;
+    --theme-forest-light-background: 255 255 255;
+    --theme-forest-light-text: 15 23 42;
+    --theme-forest-light-muted: 120 30% 75%;
+    --theme-forest-light-border: 226 232 240;
+    --theme-forest-light-hover: 120 50% 40%;
+    --theme-forest-light-active: 120 50% 30%;
 
-    --theme-forest-dark-primary: 120 40% 55%;       /* lighter green for dark mode */
+    --theme-forest-dark-primary: 120 40% 55%;
     --theme-forest-dark-secondary: 120 50% 60%;
     --theme-forest-dark-accent: 120 60% 65%;
-    --theme-forest-dark-background: 15 23 42;       /* dark background */
-    --theme-forest-dark-text: 241 245 249;          /* light text */
-    --theme-forest-dark-muted: 120 30% 50%;         /* muted green tone */
-    --theme-forest-dark-border: 51 65 85;           /* dark border */
+    --theme-forest-dark-background: 15 23 42;
+    --theme-forest-dark-text: 241 245 249;
+    --theme-forest-dark-muted: 120 30% 50%;
+    --theme-forest-dark-border: 51 65 85;
+    --theme-forest-dark-hover: 120 50% 60%;
+    --theme-forest-dark-active: 120 50% 55%;
 
-        /* Cloud Theme (completely white light variant) */
-    --theme-cloud-light-primary: 222.2 47.4% 11.2%;  /* e.g. near black for strong contrast */
+    /* Cloud Theme (completely white light variant) */
+    --theme-cloud-light-primary: 222.2 47.4% 11.2%;
     --theme-cloud-light-secondary: 210 40% 96.1%;
     --theme-cloud-light-accent: 210 40% 96.1%;
-    --theme-cloud-light-background: 0 0% 100%;       /* pure white */
-    --theme-cloud-light-text: 210 20% 15%;           /* near-black text */
+    --theme-cloud-light-background: 0 0% 100%;
+    --theme-cloud-light-text: 210 20% 15%;
     --theme-cloud-light-muted: 210 40% 96.1%;
     --theme-cloud-light-border: 214.3 31.8% 91.4%;
+    --theme-cloud-light-hover: 210 40% 92%;
+    --theme-cloud-light-active: 214.3 31.8% 85%;
 
-    --theme-cloud-dark-primary: 210 40% 98%;         /* near-white text for dark mode */
+    --theme-cloud-dark-primary: 210 40% 98%;
     --theme-cloud-dark-secondary: 217.2 32.6% 17.5%;
     --theme-cloud-dark-accent: 217.2 32.6% 17.5%;
-    --theme-cloud-dark-background: 222.2 84% 4.9%;   /* deep dark background */
+    --theme-cloud-dark-background: 222.2 84% 4.9%;
     --theme-cloud-dark-text: 210 40% 98%;
     --theme-cloud-dark-muted: 217.2 32.6% 17.5%;
     --theme-cloud-dark-border: 217.2 32.6% 17.5%;
+    --theme-cloud-dark-hover: 217.2 32.6% 20%;
+    --theme-cloud-dark-active: 217.2 32.6% 15%;
   }
 }
 
 /* 4. Map multi-theme tokens to shared CSS variables with theme classes */
 @layer base {
   /* Classic Theme uses the base tokens defined in :root and .dark */
-  .theme-classic {
+  .theme-classic-light {
     --color-primary: var(--primary);
     --color-secondary: var(--secondary);
     --color-accent: var(--accent);
     --color-background: var(--background);
-    --color-text: var(--color-text);
+    --color-text: var(--foreground);
     --color-muted: var(--muted);
     --color-border: var(--border);
+    --color-hover: var(--primary);
+    --color-active: var(--secondary);
+  }
+
+  .theme-classic-dark {
+    --color-primary: var(--primary-foreground);
+    --color-secondary: var(--secondary-foreground);
+    --color-accent: var(--accent-foreground);
+    --color-background: var(--background);
+    --color-text: var(--foreground);
+    --color-muted: var(--muted-foreground);
+    --color-border: var(--border);
+    --color-hover: var(--primary);
+    --color-active: var(--secondary);
+  }
+
+  .dark .theme-classic-dark {
+    --color-background: var(--background);
+    --color-border: var(--muted-foreground);
   }
 
   /* Ocean Theme */
@@ -200,6 +245,8 @@
     --color-text: var(--theme-ocean-light-text);
     --color-muted: var(--theme-ocean-light-muted);
     --color-border: var(--theme-ocean-light-border);
+    --color-hover: var(--theme-ocean-light-hover);
+    --color-active: var(--theme-ocean-light-active);
   }
   .theme-ocean-dark {
     --color-primary: var(--theme-ocean-dark-primary);
@@ -209,6 +256,8 @@
     --color-text: var(--theme-ocean-dark-text);
     --color-muted: var(--theme-ocean-dark-muted);
     --color-border: var(--theme-ocean-dark-border);
+    --color-hover: var(--theme-ocean-dark-hover);
+    --color-active: var(--theme-ocean-dark-active);
   }
 
   /* Lavender Theme */
@@ -220,6 +269,8 @@
     --color-text: var(--theme-lavender-light-text);
     --color-muted: var(--theme-lavender-light-muted);
     --color-border: var(--theme-lavender-light-border);
+    --color-hover: var(--theme-lavender-light-hover);
+    --color-active: var(--theme-lavender-light-active);
   }
   .theme-lavender-dark {
     --color-primary: var(--theme-lavender-dark-primary);
@@ -229,6 +280,8 @@
     --color-text: var(--theme-lavender-dark-text);
     --color-muted: var(--theme-lavender-dark-muted);
     --color-border: var(--theme-lavender-dark-border);
+    --color-hover: var(--theme-lavender-dark-hover);
+    --color-active: var(--theme-lavender-dark-active);
   }
 
   /* Phoenix Theme */
@@ -240,6 +293,8 @@
     --color-text: var(--theme-phoenix-light-text);
     --color-muted: var(--theme-phoenix-light-muted);
     --color-border: var(--theme-phoenix-light-border);
+    --color-hover: var(--theme-phoenix-light-hover);
+    --color-active: var(--theme-phoenix-light-active);
   }
   .theme-phoenix-dark {
     --color-primary: var(--theme-phoenix-dark-primary);
@@ -249,6 +304,8 @@
     --color-text: var(--theme-phoenix-dark-text);
     --color-muted: var(--theme-phoenix-dark-muted);
     --color-border: var(--theme-phoenix-dark-border);
+    --color-hover: var(--theme-phoenix-dark-hover);
+    --color-active: var(--theme-phoenix-dark-active);
   }
 
   /* Forest Theme */
@@ -260,6 +317,8 @@
     --color-text: var(--theme-forest-light-text);
     --color-muted: var(--theme-forest-light-muted);
     --color-border: var(--theme-forest-light-border);
+    --color-hover: var(--theme-forest-light-hover);
+    --color-active: var(--theme-forest-light-active);
   }
   .theme-forest-dark {
     --color-primary: var(--theme-forest-dark-primary);
@@ -269,8 +328,11 @@
     --color-text: var(--theme-forest-dark-text);
     --color-muted: var(--theme-forest-dark-muted);
     --color-border: var(--theme-forest-dark-border);
+    --color-hover: var(--theme-forest-dark-hover);
+    --color-active: var(--theme-forest-dark-active);
   }
 
+  /* Cloud Theme */
   .theme-cloud-light {
     --color-primary: var(--theme-cloud-light-primary);
     --color-secondary: var(--theme-cloud-light-secondary);
@@ -279,8 +341,9 @@
     --color-text: var(--theme-cloud-light-text);
     --color-muted: var(--theme-cloud-light-muted);
     --color-border: var(--theme-cloud-light-border);
+    --color-hover: var(--theme-cloud-light-hover);
+    --color-active: var(--theme-cloud-light-active);
   }
-
   .theme-cloud-dark {
     --color-primary: var(--theme-cloud-dark-primary);
     --color-secondary: var(--theme-cloud-dark-secondary);
@@ -289,6 +352,7 @@
     --color-text: var(--theme-cloud-dark-text);
     --color-muted: var(--theme-cloud-dark-muted);
     --color-border: var(--theme-cloud-dark-border);
+    --color-hover: var(--theme-cloud-dark-hover);
+    --color-active: var(--theme-cloud-dark-active);
   }
-
 }
