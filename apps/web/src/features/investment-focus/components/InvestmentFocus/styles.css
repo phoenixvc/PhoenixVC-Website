@@ -1,0 +1,36 @@
+@import "../../../../theme/theme.css"; /* Ensure the base theme is included */
+
+/* InvestmentFocus Section */
+.investment-focus {
+  padding: 5rem 1.5rem;
+  background-color: hsl(var(--background));
+  text-align: center;
+}
+
+/* InvestmentFocus Header */
+.investment-focus h2 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 4rem;
+  color: hsl(var(--foreground));
+}
+
+/* Grid Layout */
+.investment-focus-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .investment-focus-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .investment-focus-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

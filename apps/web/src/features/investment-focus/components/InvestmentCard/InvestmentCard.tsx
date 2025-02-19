@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
-import { FocusArea } from "../types";
-import { investmentFocusAnimations } from "../animations/animations";
+import { FocusArea } from "../../types";
+import { investmentFocusAnimations } from "../../animations/animations";
+import "./styles.css";
 
 interface Props {
   area: FocusArea;
