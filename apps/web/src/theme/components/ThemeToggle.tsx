@@ -1,54 +1,89 @@
-// src/theme/components/ThemeToggle.tsx
-import React from 'react';
-import { Moon, Sun } from 'lucide-react';
-import { useTheme } from '../context/ThemeContext';
-import { THEME_TRANSITION_DURATION, THEME_TRANSITION_TIMING } from '../constants';
+import { Moon, Sun, Palette } from 'lucide-react'
+import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuCheckboxItem,
+} from "@/components/ui/dropdown-menu"
+import { useTheme } from '@/theme'
+import { ColorScheme } from '@/theme/types'
 
-interface ThemeToggleProps {
-  className?: string;
-  size?: number;
-}
+const ThemeToggle = () => {
+  const {
+    mode,
+    colorScheme,
+    useSystemMode,
+    setMode,
+    setColorScheme,
+    setUseSystemMode
+  } = useTheme()
 
-export const ThemeToggle: React.FC<ThemeToggleProps> = ({
-  className = '',
-  size = 20
-}) => {
-  const { mode, toggleMode, colorSchemeClasses } = useTheme();
-  const isDark = mode === 'dark';
+  const colorSchemes: { label: string; value: ColorScheme }[] = [
+    { label: 'Classic', value: 'classic' },
+    { label: 'Forest', value: 'forest' },
+    { label: 'Ocean', value: 'ocean' },
+    { label: 'Sunset', value: 'phoenix' },
+    { label: 'Lavender', value: 'lavender' }
+  ]
 
   return (
-    <button
-      onClick={toggleMode}
-      className={`
-        inline-flex items-center justify-center
-        p-2 rounded-lg
-        transition-colors
-        ${isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-200'}
-        ${colorSchemeClasses.text}
-        ${className}
-      `}
-      style={{
-        transitionDuration: THEME_TRANSITION_DURATION,
-        transitionTimingFunction: THEME_TRANSITION_TIMING,
-      }}
-      aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
-    >
-      {isDark ? (
-        <Sun
-          size={size}
-          className="transition-transform hover:rotate-12"
-          aria-hidden="true"
-        />
-      ) : (
-        <Moon
-          size={size}
-          className="transition-transform hover:-rotate-12"
-          aria-hidden="true"
-        />
-      )}
-    </button>
-  );
-};
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="h-10 w-10">
+          <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+          <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          <span className="sr-only">Toggle theme</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => setMode('light')}>
+          <Sun className="mr-2 h-4 w-4" />
+          Light
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setMode('dark')}>
+          <Moon className="mr-2 h-4 w-4" />
+          Dark
+        </DropdownMenuItem>
+        <DropdownMenuCheckboxItem
+          checked={useSystemMode}
+          onCheckedChange={setUseSystemMode}
+        >
+          Use system
+        </DropdownMenuCheckboxItem>
 
-// Optional: Add display name for better debugging
-ThemeToggle.displayName = 'ThemeToggle';
+        <DropdownMenuSeparator />
+
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <Palette className="mr-2 h-4 w-4" />
+            Color Scheme
+          </DropdownMenuSubTrigger>
+          <DropdownMenuSubContent>
+            {colorSchemes.map((scheme) => (
+              <DropdownMenuItem
+                key={scheme.value}
+                onClick={() => setColorScheme(scheme.value)}
+                className="flex items-center"
+              >
+                <div
+                  className={`w-4 h-4 rounded-full mr-2 border ${
+                    colorScheme === scheme.value ? 'border-primary' : 'border-muted'
+                  }`}
+                />
+                {scheme.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+export default ThemeToggle

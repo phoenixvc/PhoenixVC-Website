@@ -1,5 +1,5 @@
 // src/theme/context/ThemeContext.tsx
-import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
+import { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import { ColorScheme, Mode, ThemeContextType, ThemeProviderProps } from '../types';
 import { DEFAULT_MODE } from '../constants';
 import {

@@ -1,11 +1,12 @@
-// features/layout/components/Footer.tsx
 import { motion } from 'framer-motion';
 import Logo from '@/components/ui/Logo';
 import { NAV_ITEMS, SOCIAL_LINKS } from '../constants';
-import { FooterProps } from '../types';
 import { containerVariants, itemVariants } from '../animations';
+import { useTheme } from '@/theme';
 
-export const Footer = ({ colorScheme = 'blue' }: FooterProps) => {
+export const Footer: React.FC = () => {
+  const { colorScheme } = useTheme();
+
   return (
     <motion.footer
       initial="hidden"
@@ -16,10 +17,7 @@ export const Footer = ({ colorScheme = 'blue' }: FooterProps) => {
     >
       <div className="container mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <motion.div
-            className="md:col-span-2"
-            variants={itemVariants}
-          >
+          <motion.div className="md:col-span-2" variants={itemVariants}>
             <Logo colorScheme={colorScheme} />
             <p className="text-gray-400 max-w-md mt-4">
               Empowering visionary entrepreneurs and innovative startups to shape the future of technology.
@@ -30,10 +28,7 @@ export const Footer = ({ colorScheme = 'blue' }: FooterProps) => {
             <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2">
               {NAV_ITEMS.map((link) => (
-                <motion.li
-                  key={link.href}
-                  variants={itemVariants}
-                >
+                <motion.li key={link.href} variants={itemVariants}>
                   <a
                     href={link.href}
                     className="text-gray-400 hover:text-white transition-colors"
@@ -49,10 +44,7 @@ export const Footer = ({ colorScheme = 'blue' }: FooterProps) => {
             <h4 className="text-lg font-semibold mb-4">Connect</h4>
             <ul className="space-y-2">
               {SOCIAL_LINKS.map((link) => (
-                <motion.li
-                  key={link.href}
-                  variants={itemVariants}
-                >
+                <motion.li key={link.href} variants={itemVariants}>
                   <a
                     href={link.href}
                     target="_blank"
