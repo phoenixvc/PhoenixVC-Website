@@ -1,6 +1,10 @@
+// src/theme/utils/index.ts (for reference)
+// Make sure your utils functions (getDefaultColorScheme, getSystemMode, getColorSchemeClasses, setTheme, saveColorScheme, saveMode)
+// are defined appropriately. The ThemeProvider below relies on these functions.
+
 import { createContext, useContext, useEffect, useState, useMemo } from "react";
 import { ColorScheme, Mode, ThemeContextType, ThemeProviderProps } from "../types";
-import { DEFAULT_MODE, STORAGE_KEYS } from "../constants";
+import { STORAGE_KEYS } from "../constants";
 import {
   getDefaultColorScheme,
   getSystemMode,
@@ -10,23 +14,24 @@ import {
   saveMode,
 } from "../utils";
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+// Create the context (exported for use in custom hooks)
+export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children, initialConfig = {} }) => {
-  /** 1. Load color scheme from storage or use default */
+  // 1. Load the color scheme from initialConfig, localStorage, or use the default.
   const [colorScheme, setColorSchemeState] = useState<ColorScheme>(() =>
     initialConfig.colorScheme || getDefaultColorScheme()
   );
 
-  /** 2. Load theme mode from storage or use default */
+  // 2. Load the theme mode from initialConfig; if not provided, default to the system mode.
   const [mode, setModeState] = useState<Mode>(() =>
-    initialConfig.mode || DEFAULT_MODE
+    initialConfig.mode || getSystemMode()
   );
 
-  /** 3. Track system preference changes (light/dark) */
+  // 3. Track the system-preferred mode (updates via matchMedia)
   const [systemMode, setSystemMode] = useState<Mode>(() => getSystemMode());
 
-  /** 4. Load 'use system mode' from localStorage or default to true */
+  // 4. Load the "use system mode" flag from localStorage; default to true.
   const [useSystemModeState, setUseSystemModeState] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
       try {
@@ -34,15 +39,13 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children, initialC
         return stored ? JSON.parse(stored) : true;
       } catch (err) {
         console.warn("[ThemeProvider] Failed to parse system mode from localStorage:", err);
-        return true; // fallback
+        return true;
       }
     }
-    return true; // fallback if SSR
+    return true;
   });
 
-  /**
-   * 5. Helper to set useSystemMode and persist to localStorage
-   */
+  // 5. Helper to update and persist the "use system mode" flag.
   const handleSetUseSystemMode = (val: boolean) => {
     setUseSystemModeState(val);
     if (typeof window !== "undefined") {
@@ -54,15 +57,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children, initialC
     }
   };
 
-  /**
-   * 6. Effective mode = systemMode if useSystemMode is true, else user-chosen mode
-   */
+  // 6. Determine the effective mode: if "use system" is enabled, use the systemMode; otherwise, the user-selected mode.
   const effectiveMode = useSystemModeState ? systemMode : mode;
 
-  /**
-   * 7. Watch for system preference changes
-   *    If user has 'useSystemMode' turned on, we update theme automatically
-   */
+  // 7. Listen for system-preference changes (e.g. if user changes OS theme)
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleChange = (e: MediaQueryListEvent) => {
@@ -73,53 +71,39 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children, initialC
         console.log(`[ThemeProvider] System changed -> ${newMode}`);
       }
     };
-
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, [colorScheme, useSystemModeState]);
 
-  /**
-   * 8. Whenever colorScheme or effectiveMode changes, apply them via setTheme
-   */
+  // 8. Whenever the color scheme or effective mode changes, apply the theme.
   useEffect(() => {
     setTheme(colorScheme, effectiveMode);
     console.log(`[ThemeProvider] Applied theme: theme-${colorScheme}-${effectiveMode}`);
   }, [colorScheme, effectiveMode]);
 
-  /**
-   * 9. Set color scheme (and persist it)
-   */
+  // 9. Update color scheme and persist.
   const setColorScheme = (newScheme: ColorScheme) => {
     setColorSchemeState(newScheme);
     saveColorScheme(newScheme);
-    console.log(`[ThemeProvider] colorScheme changed -> ${newScheme}`);
+    console.log(`[ThemeProvider] Color scheme changed -> ${newScheme}`);
   };
 
-  /**
-   * 10. Set mode (and persist it), disabling system mode
-   */
+  // 10. Update the mode (and disable system mode on explicit action).
   const setMode = (newMode: Mode) => {
     setModeState(newMode);
     saveMode(newMode);
-    // Turn off system mode whenever user explicitly sets a mode
     handleSetUseSystemMode(false);
     console.log(`[ThemeProvider] Mode set -> ${newMode}, system mode disabled`);
   };
 
-  /**
-   * 11. Toggle between light and dark
-   */
+  // 11. Toggle between light and dark modes.
   const toggleMode = () => {
-    const toggled = mode === "light" ? "dark" : "light";
-    setMode(toggled);
+    setMode(mode === "light" ? "dark" : "light");
   };
 
-  /**
-   * 12. Memoized context value
-   */
+  // 12. Memoize the context value to prevent unnecessary re-renders.
   const value: ThemeContextType = useMemo(() => ({
     colorScheme,
-    // Expose the effective mode as "mode" so the UI can see what's truly active
     mode: effectiveMode,
     systemMode,
     useSystemMode: useSystemModeState,
@@ -128,19 +112,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children, initialC
     setMode,
     toggleMode,
     setUseSystemMode: handleSetUseSystemMode,
-  }), [
-    colorScheme,
-    effectiveMode,
-    systemMode,
-    useSystemModeState,
-  ]);
+  }), [colorScheme, effectiveMode, systemMode, useSystemModeState]);
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 };
 
-/**
- * Custom hook to use the theme context
- */
+// Custom hook for consuming the theme context.
 export const useTheme = (): ThemeContextType => {
   const context = useContext(ThemeContext);
   if (!context) {
