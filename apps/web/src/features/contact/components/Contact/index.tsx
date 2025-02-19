@@ -1,33 +1,32 @@
-// features/contact/components/Contact/index.tsx
-import { FC, memo, useState, useCallback } from 'react';
-import { motion } from 'framer-motion';
-import ContactHeader from '../ContactHeader';
-import ContactForm from '../ContactForm';
-import { contactAnimations } from '../../animations';
-import { DEFAULT_CONTACT_CONTENT } from '../../constants';
-import { contactStyles } from './styles';
-import type { ContactFormData, ContactState } from '../../types';
+import { FC, memo, useState, useCallback } from "react";
+import { motion } from "framer-motion";
+import ContactHeader from "../ContactHeader";
+import ContactForm from "../ContactForm";
+import { contactAnimations } from "../../animations";
+import { DEFAULT_CONTACT_CONTENT } from "../../constants";
+import { contactStyles } from "./styles";
+import type { ContactFormData, ContactState } from "../../types";
 
 const Contact: FC = memo(() => {
   const [state, setState] = useState<ContactState>({
     isLoading: false,
-    error: null
+    error: null,
   });
 
   const handleSubmit = useCallback(async (data: ContactFormData) => {
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
-
+    setState((prev) => ({ ...prev, isLoading: true, error: null }));
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log('Form submitted:', data);
+      // Simulate async work
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      console.log("Form submitted:", data);
     } catch (error) {
-      console.error('Error submitting form:', error);
-      setState(prev => ({
+      console.error("Error submitting form:", error);
+      setState((prev) => ({
         ...prev,
-        error: 'Failed to submit form. Please try again.'
+        error: "Failed to submit form. Please try again.",
       }));
     } finally {
-      setState(prev => ({ ...prev, isLoading: false }));
+      setState((prev) => ({ ...prev, isLoading: false }));
     }
   }, []);
 
@@ -48,23 +47,20 @@ const Contact: FC = memo(() => {
 
           {state.error && (
             <motion.div
-              className="text-red-400 mb-6"
+              className="mb-6 text-[hsl(var(--destructive))]"
               variants={contactAnimations.item}
             >
               {state.error}
             </motion.div>
           )}
 
-          <ContactForm
-            onSubmit={handleSubmit}
-            isLoading={state.isLoading}
-          />
+          <ContactForm onSubmit={handleSubmit} isLoading={state.isLoading} />
         </motion.div>
       </div>
     </section>
   );
 });
 
-Contact.displayName = 'Contact';
+Contact.displayName = "Contact";
 
 export default Contact;
