@@ -1,12 +1,14 @@
-// features/investment-focus/components/index.tsx
-import { motion } from 'framer-motion';
-import { FOCUS_AREAS } from '../constants';
-import { investmentFocusAnimations } from '../animations/animations';
-import { InvestmentCard } from './InvestmentCard';
+import { motion } from "framer-motion";
+import { FOCUS_AREAS } from "../constants";
+import { investmentFocusAnimations } from "../animations/animations";
+import { InvestmentCard } from "./InvestmentCard";
 
 export const InvestmentFocus = () => {
   return (
-    <section id="investment" className="py-20 overflow-hidden">
+    <section
+      id="investment"
+      className="py-20 overflow-hidden bg-[hsl(var(--background))]"
+    >
       <motion.div
         className="container mx-auto px-6 max-w-[1440px]"
         initial="hidden"

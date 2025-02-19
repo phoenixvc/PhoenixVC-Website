@@ -1,7 +1,6 @@
-// features/investment-focus/components/InvestmentCard.tsx
-import { motion } from 'framer-motion';
-import { FocusArea } from '../types';
-import { investmentFocusAnimations } from '../animations/animations';
+import { motion } from "framer-motion";
+import { FocusArea } from "../types";
+import { investmentFocusAnimations } from "../animations/animations";
 
 interface Props {
   area: FocusArea;
@@ -13,7 +12,7 @@ export const InvestmentCard = ({ area, index }: Props) => (
     key={index}
     variants={investmentFocusAnimations.card}
     whileHover="hover"
-    className="h-full card-glow rounded-xl p-6 text-center bg-black/20 backdrop-blur-sm"
+    className="h-full card-glow rounded-xl p-6 text-center bg-[hsl(var(--card))] backdrop-blur-sm"
   >
     <motion.div
       className="text-4xl mb-4"
@@ -23,11 +22,21 @@ export const InvestmentCard = ({ area, index }: Props) => (
     >
       {area.icon}
     </motion.div>
-    <motion.h3 className="text-xl font-semibold mb-3 text-white/90" layout>
+    <motion.h3
+      className="text-xl font-semibold mb-3"
+      style={{ color: "hsl(var(--card-foreground))" }}
+      layout
+    >
       {area.title}
     </motion.h3>
-    <motion.p className="text-gray-400 text-sm leading-relaxed" layout>
+    <motion.p
+      className="text-sm leading-relaxed"
+      style={{ color: "hsl(var(--muted))" }}
+      layout
+    >
       {area.description}
     </motion.p>
   </motion.div>
 );
+
+export default InvestmentCard
