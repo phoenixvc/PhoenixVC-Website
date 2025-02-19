@@ -1,4 +1,3 @@
-// components/ui/cta-button/styles.ts
 export const ctaButtonStyles = {
   base: [
     "px-8 py-3",
@@ -6,23 +5,25 @@ export const ctaButtonStyles = {
     "font-medium",
     "transition-all duration-200",
     "inline-flex items-center justify-center",
-    "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500",
+    "focus:outline-none focus:ring-2 focus:ring-offset-2",
     "disabled:opacity-60 disabled:cursor-not-allowed"
-  ].join(' '),
+  ].join(" "),
   variants: {
     primary: [
-      "bg-blue-600",
+      // Use theme variables for background, hover and active states
+      "bg-[hsl(var(--color-primary))]",
       "text-white",
-      "hover:bg-blue-700",
-      "active:bg-blue-800",
-      "focus:ring-blue-500"
-    ].join(' '),
+      "hover:bg-[hsl(var(--color-hover, var(--color-primary)))]",
+      "active:bg-[hsl(var(--color-active, var(--color-secondary)))]",
+      "focus:ring-[hsl(var(--color-primary))]"
+    ].join(" "),
     secondary: [
-      "border border-white/20",
-      "text-white",
-      "hover:border-white/40",
-      "active:bg-white/5",
-      "focus:ring-white/30"
-    ].join(' ')
+      "border",
+      "border-[hsl(var(--color-border))]",
+      "text-[hsl(var(--color-text))]",
+      "hover:border-[hsl(var(--color-hover, var(--color-border)))]",
+      "active:bg-[hsl(var(--color-active, var(--color-background)))]",
+      "focus:ring-[hsl(var(--color-primary))]"
+    ].join(" ")
   }
 } as const;
