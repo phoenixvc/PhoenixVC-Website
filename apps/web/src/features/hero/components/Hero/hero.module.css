@@ -1,0 +1,308 @@
+/* Hero Section */
+.hero-section {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6rem 1rem;
+  width: 100%;
+  overflow: hidden;
+  background: linear-gradient(to right,
+    hsl(var(--color-background) / 1) 0%,
+    hsl(var(--color-muted) / 0.8) 100%
+   );
+}
+
+.heroBackgroundWithAnimation {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 120%;
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB2aWV3Qm94PSIwIDAgMTAwMCAxMDAwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxwYXR0ZXJuIGlkPSJncmlkIiB3aWR0aD0iNTAiIGhlaWdodD0iNTAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPjxwYXRoIGQ9Ik0gNTAgMCBMIDAgMCAwIDUwIiBmaWxsPSJub25lIiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZDEiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOnJnYmEoMTAwLDEwMCwyNTUsMC4xKTtzdG9wLW9wYWNpdHk6MSIgLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOnJnYmEoMTAwLDEwMCwyNTUsMCk7c3RvcC1vcGFjaXR5OjEiIC8+PC9saW5lYXJHcmFkaWVudD48ZmlsdGVyIGlkPSJnbG93Ij48ZmVHYXVzc2lhbkJsdXIgc3RkRGV2aWF0aW9uPSIzIiByZXN1bHQ9ImNvbG9yZWRCbHVyIi8+PGZlTWVyZ2U+PGZlTWVyZ2VOb2RlIGluPSJjb2xvcmVkQmx1ciIvPjxmZU1lcmdlTm9kZSBpbj0iU291cmNlR3JhcGhpYyIvPjwvZmVNZXJnZT48L2ZpbHRlcj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjxnIGZpbHRlcj0idXJsKCNnbG93KSI+PGNpcmNsZSBjeD0iNTAwIiBjeT0iNTAwIiByPSIzMDAiIGZpbGw9InVybCgjZ3JhZDEpIiBvcGFjaXR5PSIwLjUiPjxhbmltYXRlIGF0dHJpYnV0ZU5hbWU9InIiIHZhbHVlcz0iMzAwOzM1MDszMDAiIGR1cj0iMTBzIiByZXBlYXRDb3VudD0iaW5kZWZpbml0ZSIvPjxhbmltYXRlIGF0dHJpYnV0ZU5hbWU9Im9wYWNpdHkiIHZhbHVlcz0iMC41OzAuMzswLjUiIGR1cj0iMTBzIiByZXBlYXRDb3VudD0iaW5kZWZpbml0ZSIvPjwvY2lyY2xlPjwvZz48L3N2Zz4=");
+  background-size: cover;
+  background-position: center;
+  will-change: transform;
+}
+
+/* Hero Container */
+.hero-container {
+  max-width: 1440px;
+  padding: 0 1.5rem;
+  margin: 0 auto;
+  text-align: center;
+  position: relative;
+  z-index: 10;
+}
+
+/* Hero Content */
+.hero-content {
+  max-width: 48rem;
+  margin: 0 auto;
+  text-align: center;
+  padding-bottom: 2rem; /* Creates spacing before next section */
+}
+
+/* Hero Title - Gradient Effect */
+.hero-title {
+  font-size: 4rem; /* Bigger heading */
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-image: linear-gradient(
+    to right,
+    hsl(var(--primary)),
+    hsl(var(--accent))
+  );
+  line-height: 1.2;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.8s ease forwards;
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.brand-pattern {
+  position: relative;
+}
+
+.brand-pattern::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: linear-gradient(45deg,
+    hsla(var(--brand-primary) / 0.03) 25%,
+    transparent 25%,
+    transparent 75%,
+    hsla(var(--brand-primary) / 0.03) 75%
+  );
+  background-size: 60px 60px;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* Accent lines */
+.accentLine {
+  position: absolute;
+  height: 2px;
+  width: 60px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    hsl(var(--brand-primary) / 0.5),
+    transparent
+  );
+}
+
+/* Hero Subtitle */
+.hero-subtitle {
+  font-size: 1.5rem; /* Increased size for better readability */
+  font-weight: 500;
+  margin-bottom: 3rem;
+  max-width: 40rem;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+  color: hsl(var(--foreground)); /* Default color */
+}
+
+/* Dark Mode Fix */
+.dark .hero-subtitle {
+  color: hsl(var(--primary-foreground)); /* Higher contrast */
+}
+
+/* Button Container */
+.hero-button-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* Primary Button */
+.hero-button-container a:first-child {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: bold;
+  border-radius: 8px;
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.2s ease-in-out;
+  color: hsl(var(--primary-foreground));
+  background-color: hsl(var(--primary));
+  border: 2px solid hsl(var(--primary));
+}
+
+.hero-button-container a:first-child:hover {
+  background-color: hsl(var(--secondary));
+  border-color: hsl(var(--secondary));
+}
+
+/* Secondary Button (Ensures Visibility) */
+.hero-button-container a:last-child {
+  color: hsl(var(--secondary-foreground));
+  background-color: transparent;
+  border: 2px solid hsl(var(--primary));
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: bold;
+  border-radius: 8px;
+  text-align: center;
+  transition: all 0.2s ease-in-out;
+}
+
+.hero-button-container a:last-child:hover {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+/* Loading State */
+.hero-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+/* Spinner */
+.hero-spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 4px solid hsl(var(--primary));
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.investment-focus {
+  padding-top: 6rem; /* Creates space after hero */
+}
+
+/*update with */
+.button {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* Hover effect */
+.button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px hsl(var(--color-shadow) / 0.2);
+}
+
+/* Active state */
+.button:active {
+  transform: translateY(0);
+}
+
+/* Primary button with gradient */
+.buttonPrimary {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--brand-primary)),
+    hsl(var(--brand-secondary))
+  );
+}
+
+/* Shine effect on hover */
+.button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    transparent,
+    hsl(var(--background) / 0.2),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.button:hover::before {
+  left: 100%;
+}
+
+/* add Section transition base */
+.section {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+/* Active state when in viewport */
+.section.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.section-gradient::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at top right,
+    hsl(var(--brand-primary) / 0.1),
+    transparent 60%
+  );
+  pointer-events: none;
+}
+
+/* Add subtle noise texture */
+/* .heroBackground::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.15;
+  mix-blend-mode: overlay;
+} */
+
+/* where should i add this JavaScript for section transitions
+const observerOptions = {
+  threshold: 0.2,
+  rootMargin: '0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, observerOptions);
+
+document.querySelectorAll('.section').forEach(section => {
+  observer.observe(section);
+}); */

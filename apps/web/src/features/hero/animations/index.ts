@@ -1,5 +1,6 @@
 // features/hero/animations/index.ts
-import { HeroAnimations } from '../types';
+import { HeroAnimations } from "../types";
+import { ANIMATION_CONFIG } from "../constants";
 
 export const heroAnimations: HeroAnimations = {
   container: {
@@ -8,9 +9,9 @@ export const heroAnimations: HeroAnimations = {
       opacity: 1,
       y: 0,
       transition: {
-        duration: 0.8,
-        ease: "easeOut",
-        staggerChildren: 0.2
+        duration: ANIMATION_CONFIG.duration.container,
+        ease: ANIMATION_CONFIG.ease,
+        staggerChildren: ANIMATION_CONFIG.stagger
       }
     }
   },
@@ -21,8 +22,8 @@ export const heroAnimations: HeroAnimations = {
       opacity: 1,
       y: 0,
       transition: {
-        duration: 0.5,
-        ease: "easeOut"
+        duration: ANIMATION_CONFIG.duration.item,
+        ease: ANIMATION_CONFIG.ease
       }
     }
   }
