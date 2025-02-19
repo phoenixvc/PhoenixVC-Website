@@ -1,5 +1,11 @@
 {
-  "compilerOptions": {
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions":
+  {
+    "composite": true,         // Required for references
+    "declaration": true,       // Required so TS can track project boundaries
+    "emitDeclarationOnly": true,
+    "outDir": "dist/types",    // Put .d.ts files here
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "target": "ES2020",
     "useDefineForClassFields": true,
@@ -9,7 +15,7 @@
 
     /* Bundler mode */
     "moduleResolution": "node",
-    "allowImportingTsExtensions": false,
+    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "moduleDetection": "auto",
