@@ -1,12 +1,12 @@
-// features/hero/components/hero/styles.ts
 export const heroStyles = {
+  // Use the theme's background color via CSS variable
   section: [
     "relative",
     "min-h-screen",
     "flex items-center justify-center",
     "pt-20 w-full",
-    "bg-gradient-to-b from-gray-900 to-gray-800"
-  ].join(' '),
+    "bg-[hsl(var(--background))]"
+  ].join(" "),
 
   container: "container mx-auto px-6 max-w-[1440px]",
 
@@ -16,25 +16,27 @@ export const heroStyles = {
     "text-center",
     "relative",
     "z-10"
-  ].join(' '),
+  ].join(" "),
 
+  // Heading uses a dynamic gradient from primary to accent colors from the active theme
   heading: [
     "text-6xl md:text-7xl",
     "font-bold",
     "mb-8",
     "bg-clip-text text-transparent",
-    "bg-gradient-to-r from-blue-500 to-teal-400",
+    "bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--accent))]",
     "leading-tight"
-  ].join(' '),
+  ].join(" "),
 
+  // Subtitle now uses the theme’s muted color
   subtitle: [
     "text-xl md:text-2xl",
-    "text-gray-300",
     "mb-12",
     "max-w-2xl",
     "mx-auto",
-    "leading-relaxed"
-  ].join(' '),
+    "leading-relaxed",
+    "text-[hsl(var(--muted))]"
+  ].join(" "),
 
   buttonContainer: [
     "flex",
@@ -44,12 +46,12 @@ export const heroStyles = {
     "w-full",
     "max-w-md",
     "mx-auto"
-  ].join(' '),
+  ].join(" "),
 
   loading: [
     "flex",
     "items-center",
     "justify-center",
     "min-h-[400px]"
-  ].join(' ')
+  ].join(" ")
 } as const;
