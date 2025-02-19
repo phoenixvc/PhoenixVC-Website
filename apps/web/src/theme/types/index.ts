@@ -3,7 +3,7 @@
 /**
  * Available color schemes for the theme
  */
-export type ColorScheme = 'blue' | 'purple' | 'green';
+export type ColorScheme = "classic" | "forest" | "ocean" | "phoenix" | "lavender" | "cloud";
 
 /**
  * Theme modes (light/dark)
