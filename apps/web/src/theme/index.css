@@ -1,0 +1,21 @@
+/* Import Tailwind */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Import base styles */
+@import './base/reset.css';
+@import './base/typography.css';
+@import './base/animations.css';
+
+/* Import themes */
+@import './themes/base.css';
+@import './themes/classic.css';
+@import './themes/ocean.css';
+@import './themes/lavender.css';
+@import './themes/phoenix.css';
+@import './themes/forest.css';
+@import './themes/cloud.css';
+
+/* Import components */
+@import './components/index.css';
