@@ -12,4 +12,25 @@ createRoot(document.getElementById("root")!).render(
        <App />
     </ThemeProvider>
   </StrictMode>
+
+// <ThemeProvider
+// config={{
+//     mode: 'dark',
+//     colorScheme: 'ocean',
+//     useSystemColorScheme: true,
+//     storage: {
+//         type: 'localStorage',
+//         prefix: 'my-app-theme'
+//     },
+//     transition: {
+//         duration: 300
+//     }
+// }}
+// className="theme-wrapper"
+// onThemeChange={({ mode, colorScheme }) => {
+//     console.log(`Theme changed to ${mode} mode with ${colorScheme} scheme`);
+// }}
+// >
+// <App />
+// </ThemeProvider>
 )

@@ -1,13 +1,5 @@
-// src/theme/index.ts
-export * from './components';
-export * from './constants';
-export * from './types';
-export { ThemeProvider, useTheme } from './context/ThemeContext';
-export {
-  getDefaultColorScheme,
-  getSystemMode,
-  getColorSchemeClasses,
-  setTheme,
-  saveColorScheme,
-  saveMode,
-} from './utils';
+// export * from './hooks/use-theme';
+export * from './providers/theme-provider';
+export * from './types/theme';
+// export * from './constants/theme-constants';
+export * from './utils/theme-utils';
