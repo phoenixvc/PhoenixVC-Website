@@ -1,0 +1,27 @@
+@layer base {
+    [data-theme="ocean"] {
+      /* Light mode */
+      --theme-background: 255 255 255;
+      --theme-foreground: 15 23 42;
+      --theme-primary: 59 130 246;
+      --theme-secondary: 37 99 235;
+      --theme-accent: 29 78 216;
+      --theme-muted: 100 116 139;
+      --theme-border: 226 232 240;
+      --theme-hover: 37 99 235;
+      --theme-active: 29 78 216;
+    }
+
+    [data-theme="ocean"].dark {
+      /* Dark mode */
+      --theme-background: 15 23 42;
+      --theme-foreground: 241 245 249;
+      --theme-primary: 96 165 250;
+      --theme-secondary: 59 130 246;
+      --theme-accent: 37 99 235;
+      --theme-muted: 148 163 184;
+      --theme-border: 51 65 85;
+      --theme-hover: 59 130 246;
+      --theme-active: 37 99 235;
+    }
+  }

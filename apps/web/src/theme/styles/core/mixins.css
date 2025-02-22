@@ -1,0 +1,73 @@
+/* mixins.css */
+:root {
+    /* Transitions */
+    --theme-transition: all var(--theme-transition-duration) var(--theme-transition-timing);
+    --theme-transition-duration: 200ms;
+    --theme-transition-timing: ease-in-out;
+  }
+
+  /* Reusable Mixins */
+  .theme-transition {
+    transition: var(--theme-transition);
+  }
+
+  /* Common Interactive States */
+  .interactive-hover {
+    transition: var(--theme-transition);
+  }
+
+  .interactive-hover:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  /* Elevation Levels */
+  .elevation-1 {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  }
+
+  .elevation-2 {
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.12);
+  }
+
+  /* Focus States */
+  .focus-ring {
+    outline: none;
+    transition: var(--theme-transition);
+  }
+
+  .focus-ring:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  /* Typography Mixins */
+  .text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Layout Mixins */
+  .center-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .stack-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-base);
+  }
+
+  /* Container Mixins */
+  .container-padding {
+    padding: var(--spacing-base);
+  }
+
+  /* Responsive Mixins */
+  .responsive-image {
+    max-width: 100%;
+    height: auto;
+  }
