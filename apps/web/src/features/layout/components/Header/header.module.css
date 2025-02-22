@@ -4,7 +4,6 @@
   left: 0;
   width: 100%;
   z-index: 50;
-  /* No direct color here, let the theme + link rules handle text color. */
   transition:
     background 0.4s ease-in-out,
     box-shadow 0.3s ease-in-out,
@@ -12,18 +11,16 @@
     backdrop-filter 0.3s ease-in-out;
 }
 
-/* Light/dark mode is handled via CSS variables, so no separate .header .light needed */
-
 .headerTransparent {
   background: linear-gradient(
     to bottom,
-    hsl(var(--alternate-background) / 0.9),
-    hsl(var(--alternate-background) / 0.4) 70%,
+    hsl(var(--alternate-background) / 0.80) 0%,
     transparent
   );
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
-  box-shadow: 0px 2px 8px hsl(var(--color-shadow) / 0.3);
+
+  box-shadow: 0 1px 6px hsl(var(--color-shadow) / 0.3);
   border-bottom: 1px solid hsl(var(--border) / 0.15);
 }
 
@@ -34,9 +31,10 @@
     hsl(var(--alternate-background) / 0.4) 50%,
     hsl(var(--alternate-background) / 0.2) 100%
   );
-  box-shadow: 0px 2px 15px hsl(var(--color-shadow) / 0.35);
-  border-bottom: 1px solid hsl(var(--border) / 0.25);
   backdrop-filter: blur(15px) brightness(0.95);
+
+  box-shadow: 0 2px 15px hsl(var(--color-shadow) / 0.35);
+  border-bottom: 1px solid hsl(var(--color-border) / 0.25);
 }
 
 .navContainer {
@@ -48,21 +46,19 @@
   justify-content: space-between;
 }
 
-/* Base link styling */
 .navContainer a {
-  color: hsl(var(--foreground));
-  transition: color 0.2s ease-in-out;
+  color: hsl(var(--color-foreground));
   position: relative;
   padding: 0.5rem 0.75rem;
+  transition: color 0.2s ease-in-out;
 }
 
 .navContainer a:hover {
-  color: hsl(var(--foreground) / 0.7);
+  color: hsl(var(--color-foreground) / 0.7);
 }
 
-/* Active link: dot indicator */
 .navContainer a[aria-current="page"] {
-  color: hsl(var(--foreground) / 0.95);
+  color: hsl(var(--color-foreground) / 0.95);
   font-weight: 600;
 }
 
@@ -75,21 +71,18 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background-color: hsl(var(--foreground));
+  background-color: hsl(var(--color-foreground));
 }
 
-/* Mobile Menu Button */
 .menuButton {
   padding: 0.5rem;
   border-radius: 8px;
   transition: background-color 0.2s ease-in-out;
 }
-
 .menuButton:hover {
   background-color: hsl(var(--color-hover));
 }
 
-/* Icon */
 .icon {
   width: 24px;
   height: 24px;

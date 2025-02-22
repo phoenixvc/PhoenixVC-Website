@@ -2,20 +2,20 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import Logo from "@/components/ui/Logo";
-import { Navigation, MobileMenu, NAV_ITEMS } from "@/features/navigation";
+import { Navigation, MobileMenu, NAVIGATION_ITEMS } from "@/features/navigation";
 import { headerVariants } from "../../animations";
 import { useTheme } from "@/theme";
-import ThemeToggle from "@/theme/components/ThemeToggle";
 import styles from "./header.module.css";
 import { useSmoothScroll } from "@/hooks/useSmoothScroll";
+import ThemeToggle from "../ThemeToggle/ThemeToggle";
 
 export const Header: React.FC = () => {
   const { colorScheme, mode } = useTheme();
-  // Combine colorScheme + mode => "theme-classic-dark" etc.
   const themeClass = `theme-${colorScheme}-${mode}`;
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState("home");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -25,7 +25,6 @@ export const Header: React.FC = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // If you have a custom smooth-scroll hook
   useSmoothScroll();
 
   return (
@@ -33,14 +32,14 @@ export const Header: React.FC = () => {
       initial="hidden"
       animate="visible"
       variants={headerVariants}
-      // Combine your local .header class with either .headerTransparent or .headerScrolled
-      // plus your dynamic theme class
-      className={`${styles.header} ${
-        isScrolled ? styles.headerScrolled : styles.headerTransparent
-      } ${themeClass}`}
+      className={`
+        ${styles.header}
+        ${isScrolled ? styles.headerScrolled : styles.headerTransparent}
+        ${themeClass}
+      `}
     >
       <nav className={styles.navContainer}>
-        {/* Left: Logo */}
+        {/* Logo */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -49,38 +48,41 @@ export const Header: React.FC = () => {
           <Logo />
         </motion.div>
 
-        {/* Middle: Navigation */}
+        {/* Navigation – visible on desktop */}
         <div className="hidden md:flex flex-1 justify-center">
-          <Navigation variant="header" />
+          <Navigation
+            items={NAVIGATION_ITEMS}
+            activeSection={activeSection}
+            onSectionChange={setActiveSection}
+            variant="header"
+          />
         </div>
 
-        {/* Right: Theme Toggle & Mobile Menu Button */}
+        {/* Right: Theme toggle and mobile menu button */}
         <div className="flex items-center space-x-4">
           <ThemeToggle />
-
-          <motion.button
-            className={styles.menuButton}
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            whileTap={{ scale: 0.95 }}
+          <button
+            className={`${styles.menuButton} md:hidden`}
+            onClick={() => setIsMenuOpen((prev) => !prev)}
             aria-label={isMenuOpen ? "Close menu" : "Open menu"}
           >
-            {isMenuOpen ? (
-              <X className={styles.icon} />
-            ) : (
-              <Menu className={styles.icon} />
-            )}
-          </motion.button>
+            <motion.div whileTap={{ scale: 0.95 }}>
+              {isMenuOpen ? <X className={styles.icon} /> : <Menu className={styles.icon} />}
+            </motion.div>
+          </button>
         </div>
       </nav>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu Overlay */}
       <AnimatePresence mode="wait">
         {isMenuOpen && (
-          <MobileMenu
-            isOpen={isMenuOpen}
-            onClose={() => setIsMenuOpen(false)}
-            items={NAV_ITEMS}
-          />
+          <div className="md:hidden">
+            <MobileMenu
+              isOpen={isMenuOpen}
+              onClose={() => setIsMenuOpen(false)}
+              items={NAVIGATION_ITEMS}
+            />
+          </div>
         )}
       </AnimatePresence>
     </motion.header>

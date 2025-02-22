@@ -1,7 +1,7 @@
 import { motion } from "framer-motion"
 import { LayoutProps } from "../types"
 import { Header } from "./Header/Header"
-import { Footer } from "./Footer"
+import { Footer } from "./Footer/Footer"
 import { containerVariants } from "../animations"
 
 const Layout = ({ children }: LayoutProps) => {
@@ -13,7 +13,7 @@ const Layout = ({ children }: LayoutProps) => {
       variants={containerVariants}
     >
       <Header />
-      <main className="flex-grow pt-20">{children}</main>
+        <main id="home" className="flex-grow pt-20">{children}</main>
       <Footer />
     </motion.div>
   )
