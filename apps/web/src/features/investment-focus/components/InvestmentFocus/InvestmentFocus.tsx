@@ -1,15 +1,20 @@
 import { motion } from "framer-motion";
 import { FOCUS_AREAS } from "../../constants";
 import { investmentFocusAnimations } from "../../animations/animations";
-import { InvestmentCard } from "../InvestmentCard/InvestmentCard";
-import "./styles.css";
+import InvestmentCard from "../InvestmentCard/InvestmentCard";
+import styles from "./InvestmentFocus.module.css";
+import { useSectionObserver } from "@/hooks/useSectionObserver";
 
-export const InvestmentFocus = () => {
+export const InvestmentFocus: React.FC = () => {
+
+  // Use our observer hook and log when the section becomes visible
+  // this shouldn't be needed with newer react versions
+  const sectionRef = useSectionObserver("focus", (id) => {
+    console.log(`[Focus] Section "${id}" is now visible`);
+  });
+
   return (
-    <section
-      id="investment"
-      className="py-20 lg:py-24 overflow-hidden bg-[hsl(var(--background))]"
-    >
+    <section id="focus" ref={sectionRef} className={styles.section}>
       <motion.div
         className="container mx-auto px-6 max-w-6xl"
         initial="hidden"
@@ -20,14 +25,14 @@ export const InvestmentFocus = () => {
         {/* Section Heading */}
         <motion.h2
           variants={investmentFocusAnimations.header}
-          className="text-4xl md:text-5xl font-bold text-center mb-12 text-[hsl(var(--foreground))]"
+          className={styles.heading}
         >
-          Investment Focus
+          Focus Areas
         </motion.h2>
 
-        {/* Investment Focus Grid */}
+        {/* Grid of Focus Areas */}
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-y-16 md:gap-12"
+          className={styles.grid}
           variants={investmentFocusAnimations.container}
         >
           {FOCUS_AREAS.map((area, index) => (

@@ -1,5 +1,4 @@
-// features/investment-focus/constants/index.ts
-import { FocusArea } from '../types/index.ts';  // Remove /types
+import { FocusArea } from "../types";
 
 export const FOCUS_AREAS: FocusArea[] = [
   {
