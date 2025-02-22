@@ -5,7 +5,7 @@ description = "Documentation for Phoenix VC"
 authors = ["JustAGhosT <smit.jurie@gmail.com>"]
 license = "Proprietary"
 readme = "README.md"
-package-mode = false
+package-mode = false 
 packages = [
       { include = "docs" }
   ]
