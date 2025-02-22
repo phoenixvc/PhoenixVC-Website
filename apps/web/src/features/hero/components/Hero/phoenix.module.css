@@ -1,0 +1,89 @@
+.phoenixContainer {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    overflow: visible;
+  }
+
+  .phoenix {
+    width: 100%;
+    max-width: 800px;
+    height: auto;
+    filter: drop-shadow(0 0 20px hsla(var(--primary) / 0.2));
+    will-change: transform;
+  }
+
+  .phoenixPath {
+    fill: hsl(var(--primary));
+    transition: fill 0.3s ease;
+  }
+
+  .phoenixGlow {
+    fill: none;
+    stroke: hsl(var(--accent));
+    stroke-width: 2;
+    filter: blur(8px);
+    opacity: 0.5;
+  }
+
+  /* Animation states */
+  .phoenix--hover {
+    animation: phoenixHover 4s ease-in-out infinite;
+  }
+
+  .phoenix--dive {
+    animation: phoenixDive 1.5s ease-in-out forwards;
+  }
+
+  .phoenix--egg {
+    animation: phoenixEgg 1s ease-in-out forwards;
+  }
+
+  .phoenix--rebirth {
+    animation: phoenixRebirth 2s ease-in-out forwards;
+  }
+
+  @keyframes phoenixHover {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+
+  @keyframes phoenixDive {
+    0% {
+      transform: translateY(0) scale(1);
+    }
+    100% {
+      transform: translateY(200px) scale(0.5);
+    }
+  }
+
+  @keyframes phoenixEgg {
+    0% {
+      transform: translateY(200px) scale(0.5);
+    }
+    100% {
+      transform: translateY(200px) scale(0.1);
+    }
+  }
+
+  @keyframes phoenixRebirth {
+    0% {
+      transform: translateY(200px) scale(0.1);
+      filter: brightness(1);
+    }
+    50% {
+      transform: translateY(100px) scale(1.2);
+      filter: brightness(1.5);
+    }
+    100% {
+      transform: translateY(0) scale(1);
+      filter: brightness(1);
+    }
+  }
