@@ -1,0 +1,36 @@
+.section {
+  /* Some vertical spacing */
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+  overflow: hidden;
+  background-color: hsl(var(--color-background));
+  text-align: center;
+}
+
+.heading {
+  font-size: 2.25rem; /* ~ text-4xl */
+  font-weight: bold;
+  margin-bottom: 3rem;
+  color: hsl(var(--color-foreground));
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+/* A grid for the cards */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+/* Responsiveness */
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
