@@ -1,26 +1,32 @@
 #!/bin/bash
-# Final Git Tree Status Script – With Directory Heuristics
+# Final Git Tree Status Script – With Directory Heuristics (Normalized Paths)
 #
-# This script builds:
-# 1. A status_map from "git status --porcelain -z -M" (keys relative to TARGET_DIR).
-#    Renamed files are keyed by their new name.
-# 2. An existed_dirs map (directories that existed in HEAD) from "git ls-tree --name-only -r HEAD".
+# Overview:
+# 1. Build a status_map from "git status --porcelain -z -M" (keys relative to TARGET_DIR).
+#    For renamed files, the new filename is used.
 #
-# When printing the tree:
-# - Files are printed with their status marker:
-#      [M] – modified (yellow)
-#      [D] – deleted (red; virtual, not on disk)
-#      [+] – added/untracked (green)
-#      [R] – renamed (magenta)
-# - Directories are given a marker via get_directory_marker():
-#      • If the directory did not exist in HEAD → [+]
-#      • If it existed in HEAD and has any child (even added ones) → [M]
-#      • If it existed and all tracked children are deleted → [D]
+# 2. Build an existed_dirs map (directories that existed in HEAD) from
+#    "git ls-tree --name-only -r HEAD". All keys are normalized (using "." for root).
 #
-# After printing on-disk items in a directory, any remaining keys in status_map
-# (virtual deleted files) whose normalized parent equals the current directory are printed.
+# 3. Print the branch from REPO_ROOT down to TARGET_DIR (without markers on intermediate nodes).
 #
-# The branch from REPO_ROOT to TARGET_DIR is printed once at the top.
+# 4. Recursively print the on‑disk tree of TARGET_DIR (skipping git‑ignored files):
+#    - For files, print marker from status_map (or, if untracked, mark as [+]).
+#    - For directories, compute a relative path (dir_rel) relative to TARGET_DIR,
+#      then call get_directory_marker() which converts it to a full path
+#      (by prepending REL_TARGET, normalized) and returns:
+#         • If the directory did not exist in HEAD → [+]
+#         • If it existed and at least one child has a non‑deleted status → [M]
+#         • If it existed and all tracked children are deleted → [D]
+#
+# 5. After printing on‑disk items, any remaining keys in status_map whose normalized parent
+#    equals the current directory are printed as virtual (deleted) items ([D]).
+#
+# Markers (colors):
+#   [M] – yellow (modified)
+#   [D] – red    (deleted)
+#   [+] – green  (added/untracked)
+#   [R] – magenta (renamed)
 #
 # Requirements: GNU realpath, Bash 4+
 #
@@ -39,11 +45,20 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
+if [ ! -d "$1" ]; then
+    echo "Error: Directory '$1' does not exist."
+    exit 1
+fi
+
 TARGET_DIR=$(realpath "$1")
 REPO_ROOT=$(git -C "$TARGET_DIR" rev-parse --show-toplevel)
 REL_TARGET=$(realpath --relative-to="$REPO_ROOT" "$TARGET_DIR")
+# If REL_TARGET is empty, use "." for the root.
+if [ -z "$REL_TARGET" ]; then
+    REL_TARGET="."
+fi
 
-# Build status_map (keys relative to TARGET_DIR).
+# --- Build status_map (keys relative to TARGET_DIR) ---
 declare -A status_map
 pushd "$TARGET_DIR" > /dev/null || exit 1
 while IFS= read -r -d $'\0' line; do
@@ -59,12 +74,13 @@ while IFS= read -r -d $'\0' line; do
 done < <(git status --porcelain -z -M)
 popd > /dev/null
 
-# Build existed_dirs: directories (relative to REPO_ROOT) that existed in HEAD.
+# --- Build existed_dirs (directories relative to REPO_ROOT that existed in HEAD) ---
 declare -A existed_dirs
 while IFS= read -r file; do
     dir=$(dirname "$file")
+    # Normalize root as "."
     if [ "$dir" == "." ]; then
-         dir=""
+         dir="."
     fi
     existed_dirs["$dir"]=1
 done < <(git -C "$REPO_ROOT" ls-tree --name-only -r HEAD)
@@ -103,37 +119,41 @@ is_new_directory() {
     fi
 }
 
-# normalized_dir: Given a relative path, return its dirname (with "." replaced by an empty string).
+# normalized_dir: Given a relative path, return its dirname (using "." for root).
 normalized_dir() {
     local path="$1"
     local d
     d=$(dirname "$path")
     if [ "$d" == "." ]; then
-         echo ""
+         echo "."
     else
          echo "$d"
     fi
 }
 
-# get_directory_marker: Given a full directory path (relative to REPO_ROOT), decide its marker.
-# Heuristic:
-#  - If the directory did not exist in HEAD (not in existed_dirs), mark as added ([+]).
-#  - If it existed, then scan status_map for any keys that begin with "full_dir/".
-#       • If any such key is present with a non-deleted status, mark as modified ([M]).
-#       • If keys are present but all have deletion statuses, mark as deleted ([D]).
-#       • If no keys are found, return empty.
+# get_directory_marker: Given a directory path relative to TARGET_DIR (dir_rel),
+# compute its full path relative to REPO_ROOT and decide the marker.
 get_directory_marker() {
-    local full_dir="$1"  # e.g. "apps/web/src/theme/components"
+    local dir_rel="$1"  # e.g. "src/theme/constants"
+    local full_dir=""
+    if [ -n "$REL_TARGET" ]; then
+         full_dir="$REL_TARGET/$dir_rel"
+    else
+         full_dir="$dir_rel"
+    fi
+    # Normalize empty path as "."
+    if [ -z "$full_dir" ]; then
+         full_dir="."
+    fi
     if [ -z "${existed_dirs[$full_dir]}" ]; then
-         # Directory did not exist before → added.
          echo -e "${GREEN}[+]${NC}"
          return
     fi
     local non_deleted=0
     local has_deleted=0
     for key in "${!status_map[@]}"; do
-         # We want keys that start with full_dir/ (note the trailing slash).
-         if [[ "$key" == "$full_dir/"* ]]; then
+         # If key (which is relative to TARGET_DIR) starts with dir_rel + "/"
+         if [[ "$key" == "$dir_rel/"* ]]; then
               local st="${status_map[$key]}"
               if [[ "$st" == "D " || "$st" == " D" ]]; then
                    has_deleted=1
@@ -151,7 +171,7 @@ get_directory_marker() {
     fi
 }
 
-# print_virtual_items: For the current directory (current_rel, relative to TARGET_DIR),
+# print_virtual_items: For the current directory (current_rel relative to TARGET_DIR),
 # print any remaining keys in status_map whose normalized parent equals current_rel.
 print_virtual_items() {
     local current_rel="$1"
@@ -220,18 +240,7 @@ print_tree() {
 
          local marker=""
          if [ -d "$TARGET_DIR/$item_rel" ]; then
-              # Compute full directory path relative to REPO_ROOT.
-              local full_dir
-              if [ -n "$REL_TARGET" ]; then
-                   if [ -n "$current_rel" ]; then
-                        full_dir="$REL_TARGET/$current_rel/$name"
-                   else
-                        full_dir="$REL_TARGET/$name"
-                   fi
-              else
-                   full_dir="$name"
-              fi
-              marker=$(get_directory_marker "$full_dir")
+              marker=$(get_directory_marker "$item_rel")
          else
               if [ -n "${status_map[$item_rel]}" ]; then
                    marker=$(get_marker "${status_map[$item_rel]}")
@@ -258,12 +267,12 @@ print_tree() {
          fi
     done
 
-    # After printing on-disk items, print any remaining virtual (deleted) items for current_rel.
     print_virtual_items "$current_rel" "$indent"
 }
 
 # --- Main Execution ---
 print_branch
+
 initial_indent=""
 if [ -n "$REL_TARGET" ]; then
     depth=$(echo "$REL_TARGET" | awk -F/ '{print NF}')
@@ -271,4 +280,5 @@ if [ -n "$REL_TARGET" ]; then
          initial_indent+="    "
     done
 fi
+
 print_tree "" "$initial_indent"
