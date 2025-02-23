@@ -265,32 +265,32 @@ export class MappingUtils {
 
 
 export const createThemeMapping = (
-    options: CreateThemeMappingOptions = {}
+    _options: CreateThemeMappingOptions = {}
 ): ThemeMappingUtils => {
     return {
-        get: <T>(path: string, defaultValue?: T): T => {
+        get: <T>(_path: string, defaultValue?: T): T => {
             return defaultValue as T;
         },
 
-        set: <T>(path: string, value: T): void => {
+        set: <T>(_path: string, _value: T): void => {
             // Implementation pending
         },
 
-        merge: (source: DeepPartial<ColorMappingAPI>): ColorMappingAPI => {
+        merge: (_source: DeepPartial<ColorMappingAPI>): ColorMappingAPI => {
             return {} as ColorMappingAPI;
         },
 
-        transform: (transformer: (value: string, path: string) => string): ColorMappingAPI => {
+        transform: (_transformer: (value: string, path: string) => string): ColorMappingAPI => {
             return {} as ColorMappingAPI;
         },
 
-        toCssVariables: (config: CssVariableConfig): Record<string, string> => {
+        toCssVariables: (_config: CssVariableConfig): Record<string, string> => {
             return {};
         },
 
         fromCssVariables: (
-            variables: Record<string, string>,
-            config: CssVariableConfig
+            _variables: Record<string, string>,
+            _config: CssVariableConfig
         ): Partial<ColorMappingAPI> => {
             return {};
         },

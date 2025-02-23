@@ -6,10 +6,10 @@ import type { Theme } from '../index';
 
 // Core Configuration Interfaces
 export interface ThemeConfig {
-    colorScheme: ColorScheme;
-    mode: Mode;
+    colorScheme?: ColorScheme;
+    mode?: Mode;
     useSystem: boolean;
-    direction?: Theme.Layout.Direction;
+    direction?: Theme.Layout.Direction | undefined;
     version?: string;
 }
 

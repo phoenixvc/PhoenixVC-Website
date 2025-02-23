@@ -1,6 +1,5 @@
 // src/types/theme/storage.ts
 
-import type { ColorScheme, Mode } from '../core/base';
 
 /**
  * Storage keys configuration
@@ -176,7 +175,7 @@ export interface StorageConfig {
  * Create storage manager
  */
 export const createStorageManager = (
-    config?: StorageConfig
+    _config?: StorageConfig
 ): StorageManager => {
     // Implementation would go here
     return {} as StorageManager;

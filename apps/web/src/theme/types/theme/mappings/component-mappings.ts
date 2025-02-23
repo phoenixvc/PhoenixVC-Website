@@ -9,13 +9,9 @@ import {
 
 export class ComponentMapping {
     private colorMapping: ColorMapping;
-    private components: Map<string, any>;
-    private variants: Map<string, any>;
 
     constructor(colorMapping: ColorMapping) {
         this.colorMapping = colorMapping;
-        this.components = new Map();
-        this.variants = new Map();
     }
 
     private getColor(path: string): ColorDefinition {

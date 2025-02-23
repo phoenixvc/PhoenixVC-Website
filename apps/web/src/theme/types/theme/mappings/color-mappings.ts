@@ -5,10 +5,7 @@ import {
     ColorShades,
     ColorSet,
     SemanticColorSet,
-    ComponentColorSet,
-    BaseColors,
-    SemanticColors
-} from '../../theme/core/colors';
+    ComponentColorSet} from '../../theme/core/colors';
 import { createBaseMappingContext, BaseVariableMapping } from './base-mappings';
 import { ColorMappingConfig } from './interfaces';
 import { BaseMappingContext } from './interfaces/base-mappings';
@@ -205,11 +202,11 @@ export class ColorMapping {
     }
 
     // When you need the string format for CSS variables
-    private getColorString(color: ColorDefinition): string {
-        return color[this.config.format as keyof ColorDefinition] as string;
-    }
+    // private getColorString(color: ColorDefinition): string {
+    //     return color[this.config.format as keyof ColorDefinition] as string;
+    // }
 
-    private parseColorDefinition(value: ColorDefinition): ColorDefinition {
+    private parseColorDefinition(_value: ColorDefinition): ColorDefinition {
         // Implementation to parse string back to ColorDefinition
         return {
             hex: '',

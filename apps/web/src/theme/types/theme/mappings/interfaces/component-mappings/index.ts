@@ -1,5 +1,5 @@
-import { FormElementMappings } from './form-elements';
-import { NavigationMappings } from './navigation';
+import { FormElementMappings } from './form-elements.js';
+import { NavigationMappings } from './navigation.js';
 import { ContainerMappings } from './containers';
 import { FeedbackMappings } from './feedback';
 import { DataDisplayMappings } from './data-display';

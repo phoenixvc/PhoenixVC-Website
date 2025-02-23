@@ -190,7 +190,7 @@ export interface ThemeContextProviderProps {
  * Theme context factory
  */
 export const createThemeContext = (
-    options?: CreateThemeContextOptions
+    _options?: CreateThemeContextOptions
 ): React.Context<ThemeContextValue> => {
     return React.createContext<ThemeContextValue>({} as ThemeContextValue);
 };
@@ -199,9 +199,9 @@ export const createThemeContext = (
  * Theme provider factory
  */
 export const createThemeProvider = (
-    Context: React.Context<ThemeContextValue>
+    _Context: React.Context<ThemeContextValue>
 ): React.FC<ThemeProviderProps> => {
-    return ({ children, ...props }) => {
+    return ({ }) => {
         // Implementation would go here
         return null;
     };

@@ -1,6 +1,6 @@
 // src/types/theme/styles.ts
 
-import { CSSVariableMappings } from "./variables";
+import { CSSVariableMappings } from "./variables.ts";
 
 /**
  * Base Style Interfaces
@@ -209,7 +209,7 @@ export interface ComputedStyles {
  * @description Creates a new style manager instance
  */
 export const createStyleManager = (
-    config?: StyleManagerConfig
+    _config?: StyleManagerConfig
 ): StyleManager => {
     // Implementation would go here
     return {} as StyleManager;

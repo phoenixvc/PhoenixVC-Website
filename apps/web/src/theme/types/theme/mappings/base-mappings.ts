@@ -8,8 +8,7 @@ import {
     SemanticColors,
     TextColorSet,
     BorderSet,
-    ShadowSet,
-    ColorDefinition
+    ShadowSet
 } from '../core/index';
 import { BaseMappingConfig, BaseMappingContext, BaseMappingGeneratorOptions, BaseMappingOperations, BaseMappingRegistry, BaseMappingValidator, BaseVariableMapping } from './interfaces/base-mappings';
 
@@ -33,10 +32,10 @@ export const createBaseMappingContext = (
     };
 
     const operations: BaseMappingOperations = {
-        get: <T>(path: string, defaultValue?: T) => defaultValue as T,
-        set: <T>(path: string, value: T) => {},
+        get: <T>(_path: string, defaultValue?: T) => defaultValue as T,
+        set: <T>(_path: string, _value: T) => {},
         resolve: (path: string) => path,
-        transform: (value: string, path: string) => value
+        transform: (value: string, _path: string) => value
     };
 
     return {
@@ -58,15 +57,15 @@ export const baseMappingUtils = {
     },
 
     resolveVariableReference: (
-        config: BaseMappingConfig,
+        _config: BaseMappingConfig,
         name: string
     ): string => {
         return `var(${name})`;
     },
 
     flattenObject: (
-        obj: Record<string, any>,
-        prefix: string[] = []
+        _obj: Record<string, any>,
+        _prefix: string[] = []
     ): Map<string, string> => {
         const result = new Map<string, string>();
         // Implementation here
@@ -79,9 +78,9 @@ export const baseMappingUtils = {
  */
 export const createBaseMappingValidator = (): BaseMappingValidator => {
     return {
-        validatePath: (path: string) => true,
-        validateValue: (value: string) => true,
-        validateMapping: (mapping: BaseVariableMapping) => true
+        validatePath: (_path: string) => true,
+        validateValue: (_value: string) => true,
+        validateMapping: (_mapping: BaseVariableMapping) => true
     };
 };
 

@@ -1,4 +1,4 @@
-import { ScaleValue } from './base';
+import { ScaleValue } from "./interfaces/base-mappings";
 
 export interface FontMetrics {
     ascent: number;
@@ -15,6 +15,8 @@ export interface TypographyScale {
     letterSpacing: string;
     fontWeight: number;
     fontFamily?: string;
+    textTransform?: string;
+    scale?: string | undefined;
 }
 
 export interface TypographyPreset {
@@ -48,12 +50,10 @@ export interface TypographyMappingOptions {
 
 export class TypographyMapping {
     private scales: Map<string, TypographyScale>;
-    private presets: Map<string, TypographyPreset>;
     private options: TypographyMappingOptions;
 
     constructor(options: TypographyMappingOptions) {
         this.scales = new Map();
-        this.presets = new Map();
         this.options = options;
     }
 
@@ -77,7 +77,7 @@ export class TypographyMapping {
         return this.scales.get(name);
     }
 
-    generatePreset(name: string = 'default'): TypographyPreset {
+    generatePreset(_name: string = 'default'): TypographyPreset {
         return {
             h1: this.calculateScale(6),
             h2: this.calculateScale(5),
@@ -125,20 +125,36 @@ export class TypographyMapping {
         const scaleMap = new Map<string, Partial<TypographyScale>>();
 
         Object.entries(variables).forEach(([key, value]) => {
-            if (key.startsWith(prefix)) {
-                const [, name, prop] = key.split('-');
-                const scale = scaleMap.get(name) || {};
-                scale[prop as keyof TypographyScale] = value;
-                scaleMap.set(name, scale);
-            }
+          if (key.startsWith(prefix)) {
+            // Remove the prefix and following hyphen
+            const remainder = key.slice(prefix.length + 1);
+            // Split the remainder at the first hyphen into name and prop
+            const dashIndex = remainder.indexOf('-');
+            if (dashIndex === -1) return;
+            const name = remainder.substring(0, dashIndex);
+            const prop = remainder.substring(dashIndex + 1);
+
+            // Get the existing scale object or initialize an empty one
+            const scale = scaleMap.get(name) || {};
+
+            if (prop === 'fontWeight') {
+                // Convert the value to a number for fontWeight
+                (scale as { fontWeight?: number }).fontWeight = parseFloat(value);
+              } else {
+                // Cast to any to bypass the type error
+                (scale as any)[prop] = value;
+              }
+              
+            scaleMap.set(name, scale);
+          }
         });
 
         scaleMap.forEach((scale, name) => {
-            if (this.isCompleteScale(scale)) {
-                this.setScale(name, scale as TypographyScale);
-            }
+          if (this.isCompleteScale(scale)) {
+            this.setScale(name, scale as TypographyScale);
+          }
         });
-    }
+      }
 
     private isCompleteScale(scale: Partial<TypographyScale>): boolean {
         const required: (keyof TypographyScale)[] = ['fontSize', 'lineHeight', 'letterSpacing', 'fontWeight'];
