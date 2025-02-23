@@ -18,7 +18,8 @@ runs:
       with:
         node-version: ${{ inputs.node-version }}
         cache: 'npm'
-        cache-dependency-path: 'apps/${{ inputs.app-name }}/package-lock.json'  # Added for better caching
+        cache-dependency-path: |
+          **/package-lock.json
 
     - name: Install Dependencies
       shell: bash
