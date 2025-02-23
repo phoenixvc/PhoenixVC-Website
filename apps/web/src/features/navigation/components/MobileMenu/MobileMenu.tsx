@@ -1,8 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { NavLink } from '../NavLink/NavLink';
 import { twMerge } from 'tailwind-merge';
 import styles from './MobileMenu.module.css';
-import { MobileMenuProps, NavigationItem } from '../../types';
+import { MobileMenuProps } from '../../types';
 import { menuVariants, itemVariants } from '../../animations';
 
 /**

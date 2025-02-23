@@ -1,5 +1,5 @@
-import { ThemeStorage } from "../types/theme";
-import { ThemeStorageConfig } from "../types/theme/core/config";
+// import { ThemeStorage } from "../types/theme";
+// import { ThemeStorageConfig } from "../types/theme/core/config";
 
 // Example usage in storage implementation
 export class StorageManager implements StorageManager {

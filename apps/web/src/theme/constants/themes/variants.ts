@@ -1,7 +1,7 @@
 // constants/themes/variants.ts
-import { ColorScheme, ThemeColors } from "../../types/theme.types";
+import { BaseColors, ColorScheme } from "../../types/theme.types";
 
-export const COLOR_SCHEMES: Record<ColorScheme, ThemeColors> = {
+export const COLOR_SCHEMES: Record<ColorScheme, BaseColors> = {
   phoenix: {
     primary: "#ff6b00",
     secondary: "#705c55",
@@ -58,7 +58,7 @@ export const COLOR_SCHEMES: Record<ColorScheme, ThemeColors> = {
   },
 };
 
-export const DARK_MODE_COLORS: Partial<ThemeColors> = {
+export const DARK_MODE_COLORS: Partial<BaseColors> = {
   background: "#1f2937", // Aligned with Tailwind gray-800
   text: "#f9fafb",      // Aligned with Tailwind gray-50
   muted: "#9ca3af",     // Aligned with Tailwind gray-400

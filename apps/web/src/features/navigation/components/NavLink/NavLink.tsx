@@ -37,7 +37,6 @@ const renderIcon = (icon: IconProp) => {
 export const NavLink = ({
   path,
   label,
-  type,
   icon,
   isExternal,
   onClick,

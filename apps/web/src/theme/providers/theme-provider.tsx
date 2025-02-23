@@ -4,12 +4,11 @@ import {
   ColorScheme,
   Mode,
   ThemeProviderProps,
-  ThemeConfig
-} from '../types/theme';
+} from '../types';
 import { ThemeState } from '../core/theme-state';
 import { ThemeClassesManager } from '../utils/theme-classes-manager';
 import { ThemeErrorBoundary } from '../components/theme-error-boundary';
-import { ThemeContextType } from '../types/theme/state/context';
+import { ThemeContextType } from '../types/context/context';
 
 export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
@@ -26,7 +25,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
   // Singleton state instance
   const [themeInstance] = useState(() => ThemeState.getInstance());
-  const [error, setError] = useState<Error | null>(null);
+  const [error_, setError] = useState<Error | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
   // Initialize theme state

@@ -1,5 +1,5 @@
 // features/layout/types/index.ts
-import { ColorScheme, ThemeConfig } from '@/theme/types';
+import { ColorScheme, ThemeConfig } from '@/theme';
 import { ReactNode } from 'react';
 
 export interface NavigationItem {

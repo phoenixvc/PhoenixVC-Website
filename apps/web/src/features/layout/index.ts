@@ -1,5 +1,5 @@
 // features/layout/index.ts
-export * from './components';
-export * from './types';
-export * from './constants';
-export * from './animations';
+export * from './components/index.ts';
+export * from './types/index.ts';
+export * from './constants/index.ts';
+export * from './animations/index.ts';

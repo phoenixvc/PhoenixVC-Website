@@ -6,7 +6,7 @@ import { Navigation, MobileMenu, NAVIGATION_ITEMS } from "@/features/navigation"
 import { headerVariants } from "../../animations";
 import { useTheme } from "@/theme";
 import styles from "./header.module.css";
-import { useSmoothScroll } from "@/hooks/useSmoothScroll";
+import { useSmoothScroll } from "@/hooks//index.ts";
 import ThemeToggle from "../ThemeToggle/ThemeToggle";
 
 export const Header: React.FC = () => {
