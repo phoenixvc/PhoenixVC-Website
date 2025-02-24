@@ -1,26 +1,26 @@
 #!/bin/bash
-# Final Git Tree Status Script – With Directory Heuristics Adjusted for Non‑Root TARGET_DIR
+# Final Git Tree Status Script – With Directory Heuristics (Normalized Paths) and Commit Suggestions
 #
 # Overview:
-# 1. Build a status_map from "git status --porcelain -z -M" (keys relative to TARGET_DIR).
+# 1. Builds a status_map from "git status --porcelain -z -M" (keys relative to TARGET_DIR).
 #    For renamed files, the new filename is used.
 #
-# 2. Build an existed_dirs map from "git ls-tree --name-only -r HEAD" (keys relative to REPO_ROOT),
-#    then convert it into existed_dirs_rel (keys relative to TARGET_DIR).
+# 2. Builds an existed_dirs map from "git ls-tree --name-only -r HEAD" (keys relative to REPO_ROOT),
+#    then converts it to existed_dirs_rel (keys relative to TARGET_DIR) so we know which directories existed.
 #
-# 3. Print the output of "git status" (from REPO_ROOT) at the top.
+# 3. Prints the output of "git status" (from REPO_ROOT) at the top.
 #
-# 4. Print the branch from REPO_ROOT down to TARGET_DIR (without markers on intermediate nodes).
+# 4. Prints the branch from REPO_ROOT down to TARGET_DIR (without markers on intermediate nodes).
 #
-# 5. Recursively print the on‑disk tree of TARGET_DIR (skipping git‑ignored files):
+# 5. Recursively prints the on‑disk tree of TARGET_DIR (skipping git‑ignored files):
 #    - Files get their marker from status_map (or, if untracked, marked as [+]).
-#    - Directories use get_directory_marker(), which uses existed_dirs_rel and scans status_map
-#      for any child keys:
-#         • If the directory did not exist in HEAD (relative to TARGET_DIR) → [+]
-#         • If it existed and at least one child is non‑deleted → [M]
+#    - Directories use get_directory_marker(), which (using existed_dirs_rel)
+#      returns:
+#         • If the directory did not exist in HEAD → [+]
+#         • If it existed and at least one child (from status_map) is non‑deleted → [M]
 #         • If it existed and all tracked children are deletions → [D]
 #
-# 6. After printing on‑disk items, any remaining keys in status_map (virtual deleted items)
+# 6. After printing on‑disk items in a directory, any remaining keys in status_map (virtual deleted items)
 #    whose normalized parent equals the current directory are printed as [D].
 #
 # 7. At the very end, a commit suggestion section is printed.
@@ -155,7 +155,7 @@ normalized_dir() {
 }
 
 # get_directory_marker: Given a directory path relative to TARGET_DIR (dir_rel),
-# decide its marker using existed_dirs_rel and the statuses of its children.
+# decide its marker using existed_dirs_rel and status_map.
 get_directory_marker() {
     local dir_rel="$1"  # e.g. "src/theme/constants"
     # If the directory did not exist in HEAD (relative to TARGET_DIR), mark as added.
@@ -307,4 +307,7 @@ echo " - :bug: **fix:** For corrections to broken or missing functionality. (e.g
 echo " - :wastebasket: **chore:** For deletions or removals. (e.g. \"chore: remove unused theme components\")"
 echo ""
 echo "Review the above git status and tree structure, then group and commit your changes accordingly."
+echo ""
+echo "For the AI:"
+echo "Create -no-verify commit commands for each logical grouping, including main changes as bullet points"
 echo "========================================"
