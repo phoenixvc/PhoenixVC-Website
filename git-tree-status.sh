@@ -1,32 +1,35 @@
 #!/bin/bash
-# Final Git Tree Status Script – With Directory Heuristics (Normalized Paths)
+# Final Git Tree Status Script – With Directory Heuristics Adjusted for Non‑Root TARGET_DIR
 #
 # Overview:
 # 1. Build a status_map from "git status --porcelain -z -M" (keys relative to TARGET_DIR).
 #    For renamed files, the new filename is used.
 #
-# 2. Build an existed_dirs map (directories that existed in HEAD) from
-#    "git ls-tree --name-only -r HEAD". All keys are normalized (using "." for root).
+# 2. Build an existed_dirs map from "git ls-tree --name-only -r HEAD" (keys relative to REPO_ROOT),
+#    then convert it into existed_dirs_rel (keys relative to TARGET_DIR).
 #
-# 3. Print the branch from REPO_ROOT down to TARGET_DIR (without markers on intermediate nodes).
+# 3. Print the output of "git status" (from REPO_ROOT) at the top.
 #
-# 4. Recursively print the on‑disk tree of TARGET_DIR (skipping git‑ignored files):
-#    - For files, print marker from status_map (or, if untracked, mark as [+]).
-#    - For directories, compute a relative path (dir_rel) relative to TARGET_DIR,
-#      then call get_directory_marker() which converts it to a full path
-#      (by prepending REL_TARGET, normalized) and returns:
-#         • If the directory did not exist in HEAD → [+]
-#         • If it existed and at least one child has a non‑deleted status → [M]
-#         • If it existed and all tracked children are deleted → [D]
+# 4. Print the branch from REPO_ROOT down to TARGET_DIR (without markers on intermediate nodes).
 #
-# 5. After printing on‑disk items, any remaining keys in status_map whose normalized parent
-#    equals the current directory are printed as virtual (deleted) items ([D]).
+# 5. Recursively print the on‑disk tree of TARGET_DIR (skipping git‑ignored files):
+#    - Files get their marker from status_map (or, if untracked, marked as [+]).
+#    - Directories use get_directory_marker(), which uses existed_dirs_rel and scans status_map
+#      for any child keys:
+#         • If the directory did not exist in HEAD (relative to TARGET_DIR) → [+]
+#         • If it existed and at least one child is non‑deleted → [M]
+#         • If it existed and all tracked children are deletions → [D]
+#
+# 6. After printing on‑disk items, any remaining keys in status_map (virtual deleted items)
+#    whose normalized parent equals the current directory are printed as [D].
+#
+# 7. At the very end, a commit suggestion section is printed.
 #
 # Markers (colors):
-#   [M] – yellow (modified)
-#   [D] – red    (deleted)
-#   [+] – green  (added/untracked)
-#   [R] – magenta (renamed)
+#    [M] – yellow (modified)
+#    [D] – red    (deleted)
+#    [+] – green  (added/untracked)
+#    [R] – magenta (renamed)
 #
 # Requirements: GNU realpath, Bash 4+
 #
@@ -39,7 +42,7 @@ GREEN='\033[0;32m'
 MAGENTA='\033[0;35m'
 NC='\033[0m'
 
-# --- Setup ---
+# --- Setup and Validation ---
 if [ -z "$1" ]; then
     echo "Usage: $0 <target-directory>"
     exit 1
@@ -53,10 +56,15 @@ fi
 TARGET_DIR=$(realpath "$1")
 REPO_ROOT=$(git -C "$TARGET_DIR" rev-parse --show-toplevel)
 REL_TARGET=$(realpath --relative-to="$REPO_ROOT" "$TARGET_DIR")
-# If REL_TARGET is empty, use "." for the root.
 if [ -z "$REL_TARGET" ]; then
     REL_TARGET="."
 fi
+
+# --- Print Git Status at Top ---
+echo "==== git status ===="
+git -C "$REPO_ROOT" status
+echo "===================="
+echo ""
 
 # --- Build status_map (keys relative to TARGET_DIR) ---
 declare -A status_map
@@ -78,12 +86,27 @@ popd > /dev/null
 declare -A existed_dirs
 while IFS= read -r file; do
     dir=$(dirname "$file")
-    # Normalize root as "."
     if [ "$dir" == "." ]; then
          dir="."
     fi
     existed_dirs["$dir"]=1
 done < <(git -C "$REPO_ROOT" ls-tree --name-only -r HEAD)
+
+# Convert existed_dirs to existed_dirs_rel (keys relative to TARGET_DIR).
+declare -A existed_dirs_rel
+for key in "${!existed_dirs[@]}"; do
+    if [ "$REL_TARGET" == "." ]; then
+        existed_dirs_rel["$key"]=1
+    else
+        if [[ "$key" == "$REL_TARGET/"* ]]; then
+            newkey=${key#"$REL_TARGET/"}
+            if [ -z "$newkey" ]; then
+                newkey="."
+            fi
+            existed_dirs_rel["$newkey"]=1
+        fi
+    fi
+done
 
 # --- Helper Functions ---
 
@@ -132,27 +155,17 @@ normalized_dir() {
 }
 
 # get_directory_marker: Given a directory path relative to TARGET_DIR (dir_rel),
-# compute its full path relative to REPO_ROOT and decide the marker.
+# decide its marker using existed_dirs_rel and the statuses of its children.
 get_directory_marker() {
     local dir_rel="$1"  # e.g. "src/theme/constants"
-    local full_dir=""
-    if [ -n "$REL_TARGET" ]; then
-         full_dir="$REL_TARGET/$dir_rel"
-    else
-         full_dir="$dir_rel"
-    fi
-    # Normalize empty path as "."
-    if [ -z "$full_dir" ]; then
-         full_dir="."
-    fi
-    if [ -z "${existed_dirs[$full_dir]}" ]; then
+    # If the directory did not exist in HEAD (relative to TARGET_DIR), mark as added.
+    if [ -z "${existed_dirs_rel[$dir_rel]}" ]; then
          echo -e "${GREEN}[+]${NC}"
          return
     fi
     local non_deleted=0
     local has_deleted=0
     for key in "${!status_map[@]}"; do
-         # If key (which is relative to TARGET_DIR) starts with dir_rel + "/"
          if [[ "$key" == "$dir_rel/"* ]]; then
               local st="${status_map[$key]}"
               if [[ "$st" == "D " || "$st" == " D" ]]; then
@@ -188,7 +201,7 @@ print_virtual_items() {
     done
 }
 
-# print_branch: Print the branch from REPO_ROOT to TARGET_DIR (without markers).
+# print_branch: Print the branch from REPO_ROOT down to TARGET_DIR (without markers).
 print_branch() {
     echo "$(basename "$REPO_ROOT")/"
     if [ -n "$REL_TARGET" ]; then
@@ -210,7 +223,6 @@ print_tree() {
          current_abs="$TARGET_DIR/$current_rel"
     fi
 
-    # List on-disk items in current_abs (skip .git and gitignored files).
     local items=()
     while IFS= read -r -d $'\0' item; do
          local rel_item
@@ -282,3 +294,17 @@ if [ -n "$REL_TARGET" ]; then
 fi
 
 print_tree "" "$initial_indent"
+
+# --- Commit Suggestions Section ---
+echo ""
+echo "========================================"
+echo "Commit Suggestions:"
+echo ""
+echo "### Group your changes and commit them with conventional commit messages:"
+echo " - :sparkles: **feat:** For new additions. (e.g. \"feat: add new theme tokens\")"
+echo " - :hammer: **refactor:** For modifications. (e.g. \"refactor: update theme utilities\")"
+echo " - :bug: **fix:** For corrections to broken or missing functionality. (e.g. \"fix: remove deleted files\")"
+echo " - :wastebasket: **chore:** For deletions or removals. (e.g. \"chore: remove unused theme components\")"
+echo ""
+echo "Review the above git status and tree structure, then group and commit your changes accordingly."
+echo "========================================"
