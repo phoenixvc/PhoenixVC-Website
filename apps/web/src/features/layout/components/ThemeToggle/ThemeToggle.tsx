@@ -11,12 +11,11 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
-import { ColorScheme, useTheme } from "@/theme";
+import { ThemeColorScheme, useTheme } from "@/theme"; // Now using the updated useTheme hook
 
 const ThemeToggle = () => {
   const {
-    mode,              // either "light" or "dark"
-    systemMode,        // the system-preferred mode
+    mode,
     useSystemMode,
     colorScheme,
     setMode,
@@ -24,8 +23,7 @@ const ThemeToggle = () => {
     setUseSystemMode,
   } = useTheme();
 
-  // All available color schemes
-  const colorSchemes: { label: string; value: ColorScheme }[] = [
+  const colorSchemes: { label: string; value: ThemeColorScheme }[] = [
     { label: "Classic", value: "classic" },
     { label: "Forest", value: "forest" },
     { label: "Ocean", value: "ocean" },
@@ -34,22 +32,11 @@ const ThemeToggle = () => {
     { label: "Cloud", value: "cloud" },
   ];
 
-  // A small helper to see if "Light" is effectively active
-  // either because system is controlling it or user selected it
-  const isLightActive =
-    (useSystemMode && systemMode === "light") ||
-    (!useSystemMode && mode === "light");
-
-  // Similarly for "Dark"
-  const isDarkActive =
-    (useSystemMode && systemMode === "dark") ||
-    (!useSystemMode && mode === "dark");
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="h-10 w-10">
-          {/* The sun/moon icons for the button itself */}
+          {/* Sun/Moon Icons */}
           <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
           <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
           <span className="sr-only">Toggle theme</span>
@@ -58,42 +45,23 @@ const ThemeToggle = () => {
 
       <DropdownMenuContent align="end">
         {/* Light Mode */}
-        <DropdownMenuItem
-          onClick={() => {
-            setUseSystemMode(false); // disable system mode
-            setMode("light");
-            console.log("Theme changed -> Mode: light, Use System Mode: false");
-          }}
-        >
+        <DropdownMenuItem onClick={() => setMode("light")}>
           <Sun className="mr-2 h-4 w-4" />
           Light
-          {isLightActive && (
-            <Check className="ml-auto h-4 w-4 text-primary" />
-          )}
+          {mode === "light" && <Check className="ml-auto h-4 w-4 text-primary" />}
         </DropdownMenuItem>
 
         {/* Dark Mode */}
-        <DropdownMenuItem
-          onClick={() => {
-            setUseSystemMode(false);
-            setMode("dark");
-            console.log("Theme changed -> Mode: dark, Use System Mode: false");
-          }}
-        >
+        <DropdownMenuItem onClick={() => setMode("dark")}>
           <Moon className="mr-2 h-4 w-4" />
           Dark
-          {isDarkActive && (
-            <Check className="ml-auto h-4 w-4 text-primary" />
-          )}
+          {mode === "dark" && <Check className="ml-auto h-4 w-4 text-primary" />}
         </DropdownMenuItem>
 
-        {/* Use System Mode */}
+        {/* Toggle System Mode */}
         <DropdownMenuCheckboxItem
           checked={useSystemMode}
-          onCheckedChange={(checked) => {
-            setUseSystemMode(checked);
-            console.log(`Use System Mode changed -> ${checked}`);
-          }}
+          onCheckedChange={setUseSystemMode}
         >
           Use system
         </DropdownMenuCheckboxItem>
@@ -107,30 +75,24 @@ const ThemeToggle = () => {
             Color Scheme
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
-            {colorSchemes.map((scheme) => {
-              const isSelected = colorScheme === scheme.value;
-              return (
-                <DropdownMenuItem
-                  key={scheme.value}
-                  onClick={() => {
-                    setColorScheme(scheme.value);
-                    console.log(`Color Scheme changed -> ${scheme.value}`);
-                  }}
-                  className="flex items-center"
-                >
-                  {/* Improved "radio button" styling */}
-                  <div className="relative w-4 h-4 rounded-full mr-2 border border-muted">
-                    {isSelected && (
-                        <div
-                        className="absolute inset-0 rounded-full"
-                        style={{ backgroundColor: "hsl(var(--color-primary))" }}
-                      />
-                    )}
-                  </div>
-                  {scheme.label}
-                </DropdownMenuItem>
-              );
-            })}
+            {colorSchemes.map((scheme) => (
+              <DropdownMenuItem
+                key={scheme.value}
+                onClick={() => setColorScheme(scheme.value)}
+                className="flex items-center"
+              >
+                {/* "Radio Button" Indicator */}
+                <div className="relative w-4 h-4 rounded-full mr-2 border border-muted">
+                  {colorScheme === scheme.value && (
+                    <div
+                      className="absolute inset-0 rounded-full"
+                      style={{ backgroundColor: "hsl(var(--color-primary))" }}
+                    />
+                  )}
+                </div>
+                {scheme.label}
+              </DropdownMenuItem>
+            ))}
           </DropdownMenuSubContent>
         </DropdownMenuSub>
       </DropdownMenuContent>

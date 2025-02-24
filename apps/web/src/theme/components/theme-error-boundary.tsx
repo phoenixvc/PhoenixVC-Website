@@ -1,6 +1,6 @@
-// components/ThemeErrorBoundary.tsx
+// src/theme/components/theme-error-boundary.tsx
 import React from 'react';
-import { ThemeState } from '../core/theme-state';
+import { ThemeManager } from '@/theme/core/theme-manager';
 
 interface ThemeErrorBoundaryProps {
   children: React.ReactNode;
@@ -24,9 +24,9 @@ export class ThemeErrorBoundary extends React.Component<
 
   public static getDerivedStateFromError(error: Error): ThemeErrorBoundaryState {
     // Update state so the next render will show the fallback UI.
-    return { 
-      hasError: true, 
-      error 
+    return {
+      hasError: true,
+      error
     };
   }
 
@@ -43,13 +43,13 @@ export class ThemeErrorBoundary extends React.Component<
 
   private handleReset = (): void => {
     try {
-      const themeState = ThemeState.getInstance();
-      themeState.destroy();
-      
+      const themeManager = ThemeManager.getInstance();
+      themeManager.destroy();
+
       // Reset the error state
-      this.setState({ 
-        hasError: false, 
-        error: null 
+      this.setState({
+        hasError: false,
+        error: null
       });
 
       // Reload the page
@@ -66,7 +66,7 @@ export class ThemeErrorBoundary extends React.Component<
     }
 
     return (
-      <div 
+      <div
         className="theme-error-fallback"
         role="alert"
         aria-live="polite"
@@ -78,7 +78,7 @@ export class ThemeErrorBoundary extends React.Component<
             {this.state.error.message}
           </pre>
         )}
-        <button 
+        <button
           onClick={this.handleReset}
           type="button"
           className="theme-reset-button"

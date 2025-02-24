@@ -15,11 +15,15 @@ export type ThemeError =
  * @description Custom events for theme changes
  */
 export type ThemeEventType =
-    | 'theme:init'
-    | 'theme:change'
-    | 'theme:mode-change'
-    | 'theme:scheme-change'
-    | 'theme:system-change';
+    | 'theme:init'              // Theme initialization
+    | 'theme:change'           // General theme change
+    | 'theme:mode-change'      // Mode change
+    | 'theme:scheme-change'    // Color scheme change
+    | 'theme:system-change'    // System preference change
+    | 'theme:storage-change'   // Storage change
+    | 'theme:error'           // Error event
+    | 'theme:reset'           // Theme reset
+    | 'theme:ready';          // Theme ready
 
 /**
  * Theme class suffixes
@@ -34,4 +38,5 @@ export type ThemeClassSuffix =
     | 'active-bg'
     | 'mobile-menu'
     | 'bg-mobile-menu'
+    | 'background'
     | 'border';

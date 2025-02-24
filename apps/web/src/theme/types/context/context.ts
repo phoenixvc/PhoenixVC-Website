@@ -1,8 +1,8 @@
 // theme/types/context/context.ts
 
-import React from 'react';
-import { ThemeConfig } from '../core/config';
-import { ColorScheme, Mode } from '../core/base';
+import { ReactNode } from 'react';
+import { ThemeChangeEvent, ThemeConfig, ThemeErrorFallback, ThemeErrorHandler, ThemeInitOptions } from '../core/config';
+import { ThemeColorScheme, ThemeMode } from '../core/base';
 import { ColorSchemeClasses, CssVariableConfig, ThemeClassSuffix } from '../core';
 import { ExtendedThemeState, ThemeContextState } from './state';
 
@@ -34,17 +34,22 @@ export interface ThemeProviderConfig extends Partial<ThemeConfig>, ThemeProvider
  * Theme provider props interface.
  * Uses the consolidated configuration and extends core types where applicable.
  */
-export interface ThemeProviderProps {
-  children: React.ReactNode;
-  initialConfig?: Partial<ThemeProviderConfig>;
-  onThemeChange?: (theme: ExtendedThemeState) => void;
-  onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
-  errorFallback?: React.ReactNode;
-  className?: string;
-  forceColorScheme?: ColorScheme;
-  disableSystemScheme?: boolean;
-}
 
+export interface ThemeProviderProps {
+  children: ReactNode;
+  /** Configuration to initialize theme state */
+  config?: ThemeInitOptions;
+  defaultMode?: ThemeMode;
+  defaultColorScheme?: ThemeColorScheme;
+  onThemeChange?: (event: ThemeChangeEvent) => void;
+  onError?: ThemeErrorHandler;
+  errorFallback?: ThemeErrorFallback;
+  disableTransitions?: boolean;
+  disableStorage?: boolean;
+  storageKey?: string;
+  /** Optional class name for the provider wrapper */
+  className?: string;
+}
 
 /**
  * Theme context actions.
@@ -62,25 +67,25 @@ export interface ThemeContextActions {
  * Consider moving pure helper functions to a utilities module if they do not directly update context state.
  */
 export interface ThemeContextType {
-  colorScheme: ColorScheme;
-  mode: Mode;
-  systemMode: Mode;
+  colorScheme: ThemeColorScheme;
+  mode: ThemeMode;
+  systemMode: ThemeMode;
   useSystemMode: boolean;
   colorSchemeClasses: ColorSchemeClasses;
-  getColorSchemeClasses: (scheme: ColorScheme) => ColorSchemeClasses;
+  getColorSchemeClasses: (scheme: ThemeColorScheme) => ColorSchemeClasses;
   getSpecificClass: (suffix: ThemeClassSuffix) => string;
-  replaceColorSchemeClasses: (currentClasses: string, newScheme: ColorScheme) => string;
-  setColorScheme: (scheme: ColorScheme) => void;
-  setMode: (mode: Mode) => void;
+  replaceColorSchemeClasses: (currentClasses: string, newScheme: ThemeColorScheme) => string;
+  setColorScheme: (scheme: ThemeColorScheme) => void;
+  setMode: (mode: ThemeMode) => void;
   toggleMode: () => void;
   setUseSystemMode: (useSystem: boolean) => void;
   getCssVariable: (name: string, config?: Partial<CssVariableConfig>) => string;
-  getAllThemeClasses: () => Record<ColorScheme, ColorSchemeClasses>;
+  getAllThemeClasses: () => Record<ThemeColorScheme, ColorSchemeClasses>;
   isColorSchemeClass: (className: string) => boolean;
 
   // Optional methods:
   getComputedThemeStyles?: () => CSSStyleDeclaration;
-  isColorSchemeSupported?: (scheme: ColorScheme) => boolean;
+  isColorSchemeSupported?: (scheme: ThemeColorScheme) => boolean;
   getThemeState?: () => ExtendedThemeState;
   resetTheme?: () => void;
   subscribeToThemeChanges?: (callback: (state: ExtendedThemeState) => void) => () => void;
@@ -99,8 +104,8 @@ export interface ThemeContextValue extends ThemeContextType, ThemeContextActions
  */
 export interface ThemeContext {
   state: ExtendedThemeState;
-  setColorScheme: (scheme: ColorScheme) => void;
-  setMode: (mode: Mode) => void;
+  setColorScheme: (scheme: ThemeColorScheme) => void;
+  setMode: (mode: ThemeMode) => void;
   toggleMode: () => void;
   toggleUseSystem: () => void;
   reset: () => void;

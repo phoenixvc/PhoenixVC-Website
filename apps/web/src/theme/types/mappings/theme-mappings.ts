@@ -29,14 +29,14 @@
  * };
  */
 
+import { ColorMapping } from './color-mappings';
 import { ComponentMappings } from './component-mappings';
-import { ColorMappingAPI } from './color-mappings';
 import { StateMappings } from './state-mappings';
 import { SystemMappings } from './system-mappings';
 import { TypographyMappings } from './typography-mappings';
 
-export interface ThemeVariableMappings {
-    colors: ColorMappingAPI;
+export interface ThemeMappings {
+    colors: ColorMapping;
     typography: TypographyMappings;
     components: ComponentMappings;
     states: StateMappings;

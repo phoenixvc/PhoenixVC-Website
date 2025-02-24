@@ -1,5 +1,7 @@
 // theme/types/context/errors.ts
 
+import { ThemeError } from "../core";
+
 /**
  * Theme error codes indicating the type of error that occurred.
  */
@@ -18,18 +20,6 @@ export type ThemeErrorCode =
  * Levels indicating the severity of an error.
  */
 export type ThemeErrorLevel = 'error' | 'warning' | 'info';
-
-/**
- * Theme error interface containing detailed error information.
- */
-export interface ThemeError {
-  code: ThemeErrorCode;
-  message: string;
-  level: ThemeErrorLevel;
-  timestamp: number;
-  context?: any;
-  originalError?: Error;
-}
 
 /**
  * Theme context error interface extending the standard Error object.

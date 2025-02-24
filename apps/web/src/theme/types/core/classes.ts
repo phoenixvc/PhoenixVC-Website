@@ -1,12 +1,12 @@
 // /theme/types/core/classes.ts
 
-import { ColorScheme, Mode } from './base';
+import { ThemeColorScheme, ThemeMode } from './base';
 import { ThemeClassSuffix } from './enums';
 
 export interface ThemeClassParts {
     prefix: string;
-    scheme?: ColorScheme;
-    mode?: Mode;
+    scheme?: ThemeColorScheme;
+    mode?: ThemeMode;
     suffix: ThemeClassSuffix;
 }
 
@@ -30,8 +30,8 @@ export interface ThemeClassUtils {
     ) => string;
 
     parseThemeClass: (className: string) => {
-        scheme?: ColorScheme;
-        mode?: Mode;
+        scheme?: ThemeColorScheme;
+        mode?: ThemeMode;
         suffix?: ThemeClassSuffix;
     };
 
@@ -47,12 +47,12 @@ export interface ThemeClassOptions {
     /**
      * Color scheme
      */
-    colorScheme?: ColorScheme;
+    colorScheme?: ThemeColorScheme;
 
     /**
      * Theme mode
      */
-    mode?: Mode;
+    mode?: ThemeMode;
 
     /**
      * Additional class names
@@ -72,6 +72,7 @@ export interface ColorSchemeClasses {
     secondary: string;
     text: string;
     activeText: string;
+    background: string;
     hoverBg: string;
     activeBg: string;
     mobileMenu: string;

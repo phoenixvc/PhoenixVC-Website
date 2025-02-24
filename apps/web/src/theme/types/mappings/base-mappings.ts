@@ -1,119 +1,121 @@
-// /src/theme/types/mappings/base-mappings.ts
-
 import { ColorDefinition } from "../core/colors";
+import { BaseMappingConfig } from "./config";
 
 /**
- * Scale values type for consistent scaling across the theme
+ * Scale values type for consistent scaling across the theme.
  */
 export type ScaleValue = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 
 /**
- * Elevation levels type
+ * Elevation levels type.
  */
-export type ElevationLevel = 'none' | 'low' | 'medium' | 'high' | 'highest';
+export type ElevationLevel = "none" | "low" | "medium" | "high" | "highest";
 
 /**
- * Theme color context
+ * Theme color context.
  */
-export type ColorContext = 'light' | 'dark' | 'system';
+export type ColorContext = "light" | "dark" | "system";
 
 /**
- * Surface configuration
+ * Surface configuration.
  */
 export interface SurfaceConfig {
-    background: string;
-    foreground: string;
-    border: string;
-    elevation: string;
-    overlay: string;
+  background: string;
+  foreground: string;
+  border: string;
+  elevation: string;
+  overlay: string;
 }
 
 /**
- * Interactive states type
+ * Interactive states type.
  */
 export interface InteractiveStates {
-    default: string;
-    hover: string;
-    active: string;
-    focus: string;
-    disabled: string;
+  default: string;
+  hover: string;
+  active: string;
+  focus: string;
+  disabled: string;
 }
 
 /**
- * Component state configuration
+ * Component state configuration.
  */
 export interface ComponentStateConfig {
-    background: string;
-    foreground: string;
-    border: string;
-    shadow?: string;
-    opacity?: number;
+  background: string;
+  foreground: string;
+  border: string;
+  shadow?: string;
+  opacity?: number;
 }
 
 /**
- * Base mapping configuration
- */
-export interface BaseMappingConfig {
-    prefix: string;
-    scope: string;
-    format: 'rgb' | 'hsl' | 'hex';
-    separator: string;
-}
-
-/**
- * Base mapping operations
+ * Base mapping operations.
  */
 export interface BaseMappingOperations {
-    get: <T>(path: string, defaultValue?: T) => T;
-    set: <T>(path: string, value: T) => void;
-    resolve: (path: string) => string;
-    transform: (value: string, path: string) => string;
+  get: <T>(path: string, defaultValue?: T) => T;
+  set: <T>(path: string, value: T) => void;
+  resolve: (path: string) => string;
+  transform: (value: string, path: string) => string;
 }
 
 /**
- * Base variable mapping structure
+ * Base variable mapping structure.
  */
 export interface BaseVariableMapping {
-    name: string;
-    value: ColorDefinition;
-    scope?: string;
-    format?: 'rgb' | 'hsl' | 'hex';
+  name: string;
+  value: ColorDefinition;
+  scope?: string;
+  format?: "rgb" | "hsl" | "hex";
 }
 
 /**
- * Base mapping registry
+ * Base mapping registry.
  */
 export interface BaseMappingRegistry {
-    colors: Map<string, ColorDefinition>;  // Changed from string to ColorDefinition
-    scales: Map<string, string>;
-    variables: Map<string, BaseVariableMapping>;  // Changed key from ColorDefinition to string
+  colors: Map<string, ColorDefinition>;
+  scales: Map<string, string>;
+  variables: Map<string, BaseVariableMapping>;
 }
 
 /**
- * Base mapping context
+ * Base mapping context.
  */
 export interface BaseMappingContext {
-    config: BaseMappingConfig;
-    registry: BaseMappingRegistry;
-    operations: BaseMappingOperations;
+  config: BaseMappingConfig;
+  registry: BaseMappingRegistry;
+  operations: BaseMappingOperations;
 }
 
 /**
- * Base mapping generator options
- */
-export interface BaseMappingGeneratorOptions {
-    prefix?: string;
-    scope?: string;
-    format?: 'rgb' | 'hsl' | 'hex';
-    separator?: string;
-    transforms?: Record<string, (value: string) => string>;
-}
-
-/**
- * Base mapping validator
+ * Base mapping validator.
  */
 export interface BaseMappingValidator {
-    validatePath: (path: string) => boolean;
-    validateValue: (value: string, format?: string) => boolean;
-    validateMapping: (mapping: BaseVariableMapping) => boolean;
+  validatePath: (path: string) => boolean;
+  validateValue: (value: string, format?: string) => boolean;
+  validateMapping: (mapping: BaseVariableMapping) => boolean;
+}
+
+/**
+ * Computed color sets.
+ */
+export interface ComputedColorSet {
+  background: ColorDefinition;
+  foreground: ColorDefinition;
+  border: ColorDefinition;
+  outline: ColorDefinition;
+}
+
+export interface ComputedSemanticSet extends ComputedColorSet {
+  light: ColorDefinition;
+  dark: ColorDefinition;
+  muted: ColorDefinition;
+  emphasis: ColorDefinition;
+}
+
+export interface ComputedComponentSet extends ComputedColorSet {
+  hover: ColorDefinition;
+  active: ColorDefinition;
+  disabled: ColorDefinition;
+  focus: ColorDefinition;
 }

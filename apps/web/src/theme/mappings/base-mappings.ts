@@ -1,16 +1,7 @@
 // src/types/theme/mappings/base.ts
 
-import {
-    ColorSet,
-    SemanticColorSet,
-    ComponentColorSet,
-    BaseColors,
-    SemanticColors,
-    TextColorSet,
-    BorderSet,
-    ShadowSet
-} from '../types/core/index';
-import { BaseMappingConfig, BaseMappingContext, BaseMappingGeneratorOptions, BaseMappingOperations, BaseMappingRegistry, BaseMappingValidator, BaseVariableMapping } from '../types/mappings/base-mappings';
+import { BaseMappingContext, BaseMappingOperations, BaseMappingRegistry, BaseMappingValidator, BaseVariableMapping } from '../types/mappings/base-mappings';
+import { BaseMappingConfig, BaseMappingGeneratorOptions } from '../types/mappings/config';
 
 /**
  * Creates a base mapping context
@@ -85,14 +76,6 @@ export const createBaseMappingValidator = (): BaseMappingValidator => {
 };
 
 export type {
-    ColorSet,
-    SemanticColorSet,
-    ComponentColorSet,
-    BaseColors,
-    SemanticColors,
-    TextColorSet,
-    BorderSet,
-    ShadowSet,
     BaseMappingConfig,
     BaseVariableMapping
 };

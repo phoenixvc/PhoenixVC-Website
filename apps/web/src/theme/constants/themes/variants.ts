@@ -1,66 +1,77 @@
-// constants/themes/variants.ts
-import { BaseColors, ColorScheme } from "../../types/theme.types";
+// src/theme/constants/themes/variants.ts
 
-export const COLOR_SCHEMES: Record<ColorScheme, BaseColors> = {
+import { ProcessedBaseColors, ColorDefinition, ThemeColorScheme, RequiredModeColors } from "@/theme/types";
+
+/**
+ * A helper function to create a simple palette where every shade is identical.
+ * In a real-world scenario, you'd likely generate a proper palette with varying shades.
+ */
+const createShades = (baseHex: string): ProcessedBaseColors["primary"] => {
+  const color: ColorDefinition = {
+    hex: baseHex,
+    rgb: "", // TODO: Convert baseHex to an RGB string.
+    hsl: "", // TODO: Convert baseHex to an HSL string.
+    alpha: 1,
+  };
+
+  // For simplicity, assign the same color to all shade levels.
+  return {
+    50: color,
+    100: color,
+    200: color,
+    300: color,
+    400: color,
+    500: color,
+    600: color,
+    700: color,
+    800: color,
+    900: color,
+  };
+};
+
+/**
+ * Static theme variants.
+ * Each scheme defines processed base colors for primary, secondary, and accent.
+ */
+export const COLOR_SCHEMES: Record<ThemeColorScheme, ProcessedBaseColors> = {
   phoenix: {
-    primary: "#ff6b00",
-    secondary: "#705c55",
-    accent: "#ff8a00",
-    background: "#ffffff",
-    text: "#705c55",
-    muted: "#6b7280",
-    border: "#e5e7eb",
+    primary: createShades("#ff6b00"),
+    secondary: createShades("#705c55"),
+    accent: createShades("#ff8a00"),
   },
   cloud: {
-    primary: "#f3f4f6",    // Aligned with Tailwind gray-100
-    secondary: "#e5e7eb",   // Aligned with Tailwind gray-200
-    accent: "#d1d5db",     // Aligned with Tailwind gray-300
-    background: "#ffffff",
-    text: "#111827",       // Aligned with Tailwind gray-900
-    muted: "#9ca3af",      // Aligned with Tailwind gray-400
-    border: "#d1d5db",     // Aligned with Tailwind gray-300
+    primary: createShades("#f3f4f6"),
+    secondary: createShades("#e5e7eb"),
+    accent: createShades("#d1d5db"),
   },
   forest: {
-    primary: "#3d633e",
-    secondary: "#315a31",
-    accent: "#2d4d2d",
-    background: "#ffffff",
-    text: "#6a5044",
-    muted: "#c8d3b0",
-    border: "#e5e7eb",
+    primary: createShades("#3d633e"),
+    secondary: createShades("#315a31"),
+    accent: createShades("#2d4d2d"),
   },
   ocean: {
-    primary: "#0077b6",
-    secondary: "#0096c7",
-    accent: "#023e8a",
-    background: "#ffffff",
-    text: "#1f2937",      // Aligned with Tailwind gray-800
-    muted: "#6b7280",     // Aligned with Tailwind gray-500
-    border: "#e5e7eb",    // Aligned with Tailwind gray-200
+    primary: createShades("#0077b6"),
+    secondary: createShades("#0096c7"),
+    accent: createShades("#023e8a"),
   },
   lavender: {
-    primary: "#8b5cf6",   // Aligned with Tailwind purple-500
-    secondary: "#a78bfa", // Aligned with Tailwind purple-400
-    accent: "#6d28d9",    // Aligned with Tailwind purple-700
-    background: "#ffffff",
-    text: "#1f2937",      // Aligned with Tailwind gray-800
-    muted: "#6b7280",     // Aligned with Tailwind gray-500
-    border: "#e5e7eb",    // Aligned with Tailwind gray-200
+    primary: createShades("#8b5cf6"),
+    secondary: createShades("#a78bfa"),
+    accent: createShades("#6d28d9"),
   },
   classic: {
-    primary: "#222222",
-    secondary: "#444444",
-    accent: "#666666",
-    background: "#f8f9fa",
-    text: "#212529",
-    muted: "#6c757d",
-    border: "#dee2e6",
+    primary: createShades("#222222"),
+    secondary: createShades("#444444"),
+    accent: createShades("#666666"),
   },
 };
 
-export const DARK_MODE_COLORS: Partial<BaseColors> = {
-  background: "#1f2937", // Aligned with Tailwind gray-800
-  text: "#f9fafb",      // Aligned with Tailwind gray-50
-  muted: "#9ca3af",     // Aligned with Tailwind gray-400
-  border: "#374151",    // Aligned with Tailwind gray-700
+/**
+ * Dark mode overrides for mode-specific colors.
+ */
+export const DARK_MODE_COLORS: Partial<RequiredModeColors> = {
+  background: createShades("#1f2937")[500],
+  text: createShades("#f9fafb")[500],
+  muted: createShades("#9ca3af")[500],
+  border: createShades("#374151")[500],
 };

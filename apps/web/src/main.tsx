@@ -1,36 +1,31 @@
-import { StrictMode } from "react"
-import { createRoot } from "react-dom/client"
-import App from "./App.tsx"
-import { ThemeProvider } from "@/theme"
-import "./theme/theme.css"
-//import ThemedTest from "./ThemedTest.tsx"
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import App from "./App.tsx";
+import { ThemeProvider } from "@/theme"; // or use your barrel file import
+import "./theme/theme.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ThemeProvider>
-      {/* <ThemedTest /> */}
-       <App />
+    <ThemeProvider
+      config={{
+        defaultScheme: "classic",  // Use classic color scheme by default
+        defaultMode: "dark",        // Set initial mode to light (will be overridden if system mode is enabled)
+        useSystem: true,             // Enable system mode so OS settings are applied
+        storage: {
+          type: "localStorage",
+          prefix: "my-app-theme"
+        },
+        transition: {
+          duration: 300,
+          timing: "ease"
+        }
+      }}
+      className="theme-wrapper"
+      onThemeChange={(theme) => {
+        console.log(`Theme changed:`, theme);
+      }}
+    >
+      <App />
     </ThemeProvider>
   </StrictMode>
-
-// <ThemeProvider
-// config={{
-//     mode: 'dark',
-//     colorScheme: 'ocean',
-//     useSystemColorScheme: true,
-//     storage: {
-//         type: 'localStorage',
-//         prefix: 'my-app-theme'
-//     },
-//     transition: {
-//         duration: 300
-//     }
-// }}
-// className="theme-wrapper"
-// onThemeChange={({ mode, colorScheme }) => {
-//     console.log(`Theme changed to ${mode} mode with ${colorScheme} scheme`);
-// }}
-// >
-// <App />
-// </ThemeProvider>
-)
+);

@@ -1,14 +1,14 @@
-import { ThemeMapping } from "../../mappings";
 import { CssVariableConfig } from "../core";
-import { ColorMappingAPI } from "./color-mappings";
+import { ColorMapping } from "./color-mappings";
+import { ThemeMappings } from "./theme-mappings";
 
 export interface ThemeMappingUtils {
     get: <T>(path: string, defaultValue?: T) => T;
     set: <T>(path: string, value: T) => void;
-    merge: (source: DeepPartial<ColorMappingAPI>) => ColorMappingAPI;
-    transform: (transformer: (value: string, path: string) => string) => ColorMappingAPI;
+    merge: (source: DeepPartial<ColorMapping>) => ColorMapping;
+    transform: (transformer: (value: string, path: string) => string) => ColorMapping;
     toCssVariables: (config: CssVariableConfig) => Record<string, string>;
-    fromCssVariables: (variables: Record<string, string>, config: CssVariableConfig) => Partial<ColorMappingAPI>;
+    fromCssVariables: (variables: Record<string, string>, config: CssVariableConfig) => Partial<ColorMapping>;
     validate: () => { valid: boolean; errors: string[] };
 }
 
@@ -17,7 +17,7 @@ export type DeepPartial<T> = {
 };
 
 export interface CreateThemeMappingOptions {
-    defaultValues?: DeepPartial<ThemeMapping>;
+    defaultValues?: DeepPartial<ThemeMappings>;
     validateValues?: boolean;
     cssVariableConfig?: CssVariableConfig;
 }

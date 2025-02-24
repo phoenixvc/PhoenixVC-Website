@@ -1,80 +1,53 @@
 // /theme/types/core/config.ts
 
-import type { ReactNode } from 'react';
-import type { ColorScheme, Mode } from './base';
+import type { Layout, ThemeColorScheme, ThemeMode } from './base';
 import type { ThemeStorage, ThemeTransition } from './storage';
-import type { Theme } from '../index';
 
 // Core Configuration Interfaces
 export interface ThemeConfig {
-    colorScheme?: ColorScheme;
-    mode?: Mode;
+    colorScheme?: ThemeColorScheme;
+    mode?: ThemeMode;
     useSystem: boolean;
-    direction?: Theme.Layout.Direction | undefined;
+    direction?: Layout.Direction | undefined;
     version?: string;
 }
 
 // State Management
 export interface ThemeState extends Required<ThemeConfig> {
-    systemMode: Mode;
+    systemMode: ThemeMode;
     initialized: boolean;
     previous?: {
-        colorScheme: ColorScheme;
-        mode: Mode;
+        colorScheme: ThemeColorScheme;
+        mode: ThemeMode;
     };
     timestamp: number;
 }
 
 // Initialization Options
 export interface ThemeInitOptions {
-    defaultScheme?: ColorScheme;
-    defaultMode?: Mode;
+    defaultScheme?: ThemeColorScheme;
+    defaultMode?: ThemeMode;
     useSystem?: boolean;
     storage?: Partial<ThemeStorage>;
     transition?: Partial<ThemeTransition>;
     debug?: boolean;
     onThemeChange?: (theme: ThemeState) => void;
     disableTransitionsOnLoad?: boolean;
-    forceColorScheme?: ColorScheme;
+    forceColorScheme?: ThemeColorScheme;
 }
 
 // Event Handling
 export interface ThemeChangeEvent {
-    previousMode?: Mode;
-    currentMode: Mode;
-    previousColorScheme?: ColorScheme;
-    currentColorScheme: ColorScheme;
+    previousMode?: ThemeMode;
+    currentMode: ThemeMode;
+    previousColorScheme?: ThemeColorScheme;
+    currentColorScheme: ThemeColorScheme;
     source: 'user' | 'system' | 'storage' | 'default';
 }
 
 // Error Handling
 export type ThemeErrorHandler = (error: Error) => void;
 export type ThemeErrorFallback = React.ComponentType<{ error: Error }>;
-
-// Provider Props
-export interface ThemeProviderProps {
-    children: ReactNode;
-    initialConfig?: ThemeInitOptions;
-    defaultMode?: Mode;
-    defaultColorScheme?: ColorScheme;
-    onThemeChange?: (event: ThemeChangeEvent) => void;
-    onError?: ThemeErrorHandler;
-    errorFallback?: ThemeErrorFallback;
-    disableTransitions?: boolean;
-    disableStorage?: boolean;
-    storageKey?: string;
-}
-
-// Context Value Interface
-export interface ThemeContextValue {
-    state: ThemeState;
-    setMode: (mode: Mode) => void;
-    setColorScheme: (scheme: ColorScheme) => void;
-    setDirection: (direction: Theme.Layout.Direction) => void;
-    toggleMode: () => void;
-    isLoading: boolean;
-    error: Error | null;
-}
 
 // Plugin System
 export interface ThemePlugin {
@@ -103,8 +76,8 @@ export interface ThemeStorageConfig extends ThemeStorage {
 
 // Export all types
 export type {
-    ColorScheme,
-    Mode,
+    ThemeColorScheme as ColorScheme,
+    ThemeMode as Mode,
     ThemeStorage,
     ThemeTransition
 };
@@ -116,8 +89,8 @@ export interface ThemeConfigValidator {
 }
 
 export interface ThemeBuilder {
-    withColorScheme: (scheme: ColorScheme) => ThemeBuilder;
-    withMode: (mode: Mode) => ThemeBuilder;
+    withColorScheme: (scheme: ThemeColorScheme) => ThemeBuilder;
+    withMode: (mode: ThemeMode) => ThemeBuilder;
     withPlugins: (plugins: ThemePlugin[]) => ThemeBuilder;
     build: () => ThemeConfig;
 }

@@ -1,11 +1,11 @@
 // src/types/theme/guards.ts
-import type { ColorScheme, Mode } from '../core/base';
+import type { ThemeColorScheme, ThemeMode } from '../core/base';
 import type { ThemeConfig, ThemeState } from '../core/config';
 
 /**
  * Type guard to check if a value is a valid Theme Mode
  */
-export const isThemeMode = (value: unknown): value is Mode => {
+export const isThemeMode = (value: unknown): value is ThemeMode => {
     if (typeof value !== 'string') return false;
     return ['light', 'dark'].includes(value);
 };
@@ -13,7 +13,7 @@ export const isThemeMode = (value: unknown): value is Mode => {
 /**
  * Type guard to check if a value is a valid Color Scheme
  */
-export const isColorScheme = (value: unknown): value is ColorScheme => {
+export const isColorScheme = (value: unknown): value is ThemeColorScheme => {
     if (typeof value !== 'string') return false;
     return ['classic', 'forest', 'ocean', 'phoenix', 'lavender', 'cloud'].includes(value);
 };
@@ -59,13 +59,13 @@ export const isThemeState = (value: unknown): value is ThemeState => {
 /**
  * Assertion functions
  */
-export const assertThemeMode = (value: unknown): asserts value is Mode => {
+export const assertThemeMode = (value: unknown): asserts value is ThemeMode => {
     if (!isThemeMode(value)) {
         throw new Error(`Invalid theme mode: ${String(value)}`);
     }
 };
 
-export const assertColorScheme = (value: unknown): asserts value is ColorScheme => {
+export const assertColorScheme = (value: unknown): asserts value is ThemeColorScheme => {
     if (!isColorScheme(value)) {
         throw new Error(`Invalid color scheme: ${String(value)}`);
     }
@@ -81,13 +81,5 @@ export const assertThemeState = (value: unknown): asserts value is ThemeState =>
     if (!isThemeState(value)) {
         throw new Error(`Invalid theme state: ${JSON.stringify(value)}`);
     }
-};
-
-export const isValidColorScheme = (scheme: unknown): scheme is ColorScheme => {
-    return typeof scheme === 'string' && ['classic', 'forest', 'ocean', 'phoenix', 'lavender', 'cloud'].includes(scheme);
-};
-
-export const isValidMode = (mode: unknown): mode is Mode => {
-    return typeof mode === 'string' && ['light', 'dark'].includes(mode);
 };
 

@@ -1,13 +1,13 @@
 // storage.ts
-import { ColorScheme, Mode } from '../types/theme.types';
 import { THEME_CONSTANTS } from '../constants/theme-constants';
+import { ColorScheme, ThemeMode } from '../types';
 
 /**
  * Manages theme-related local storage operations
  */
 export class ThemeStorage {
   static readonly KEYS = THEME_CONSTANTS.STORAGE.KEYS;
-  
+
   private static readonly VALID_COLOR_SCHEMES = THEME_CONSTANTS.COLOR_SCHEMES;
   private static readonly VALID_MODES = THEME_CONSTANTS.MODES;
 
@@ -24,7 +24,7 @@ export class ThemeStorage {
       if (!item) return null;
 
       const parsed = JSON.parse(item) as T;
-      
+
       if (!this.isValidValue(key, parsed)) {
         console.warn(`[ThemeStorage] Invalid value for ${key}:`, parsed);
         return null;
@@ -83,8 +83,8 @@ export class ThemeStorage {
    * Get stored theme mode
    * @returns stored mode or null if not found/invalid
    */
-  static getMode(): Mode | null {
-    return this.get<Mode>(this.KEYS.MODE);
+  static getMode(): ThemeMode | null {
+    return this.get<ThemeMode>(this.KEYS.MODE);
   }
 
   /**
@@ -92,7 +92,7 @@ export class ThemeStorage {
    * @param mode Mode to save
    * @throws Error if mode is invalid
    */
-  static saveMode(mode: Mode): void {
+  static saveMode(mode: ThemeMode): void {
     if (!this.isValidMode(mode)) {
       throw new Error(`Invalid mode: ${mode}`);
     }
@@ -123,7 +123,7 @@ export class ThemeStorage {
    */
   static clearStorage(): void {
     if (typeof window === 'undefined') return;
-    
+
     try {
       Object.values(this.KEYS).forEach(key => {
         localStorage.removeItem(key);
@@ -158,7 +158,7 @@ export class ThemeStorage {
    * @returns type predicate for ColorScheme
    */
   private static isValidColorScheme(value: unknown): value is ColorScheme {
-    return typeof value === 'string' && 
+    return typeof value === 'string' &&
            this.VALID_COLOR_SCHEMES.includes(value as ColorScheme);
   }
 
@@ -167,8 +167,8 @@ export class ThemeStorage {
    * @param value value to validate
    * @returns type predicate for Mode
    */
-  private static isValidMode(value: unknown): value is Mode {
-    return typeof value === 'string' && 
-           this.VALID_MODES.includes(value as Mode);
+  private static isValidMode(value: unknown): value is ThemeMode {
+    return typeof value === 'string' &&
+           this.VALID_MODES.includes(value as ThemeMode);
   }
 }

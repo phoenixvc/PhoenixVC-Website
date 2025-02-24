@@ -1,7 +1,7 @@
 import { CssVariableConfig } from "../types/core";
 import { DeepPartial } from "../types/utils/utils";
-import { ColorMappingAPI } from "../types/mappings";
 import { CreateThemeMappingOptions, ThemeMappingUtils } from "../types/mappings/utils";
+import { ColorMapping } from "../types";
 
 export interface MappingPath {
     toString(): string;
@@ -263,7 +263,6 @@ export class MappingUtils {
     }
 }
 
-
 export const createThemeMapping = (
     _options: CreateThemeMappingOptions = {}
 ): ThemeMappingUtils => {
@@ -276,12 +275,12 @@ export const createThemeMapping = (
             // Implementation pending
         },
 
-        merge: (_source: DeepPartial<ColorMappingAPI>): ColorMappingAPI => {
-            return {} as ColorMappingAPI;
+        merge: (_source: DeepPartial<ColorMapping>): ColorMapping => {
+            return {} as ColorMapping;
         },
 
-        transform: (_transformer: (value: string, path: string) => string): ColorMappingAPI => {
-            return {} as ColorMappingAPI;
+        transform: (_transformer: (value: string, path: string) => string): ColorMapping => {
+            return {} as ColorMapping;
         },
 
         toCssVariables: (_config: CssVariableConfig): Record<string, string> => {
@@ -291,7 +290,7 @@ export const createThemeMapping = (
         fromCssVariables: (
             _variables: Record<string, string>,
             _config: CssVariableConfig
-        ): Partial<ColorMappingAPI> => {
+        ): Partial<ColorMapping> => {
             return {};
         },
 

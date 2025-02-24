@@ -4,11 +4,11 @@ import {
     ColorDefinition,
     ColorShades,
     ColorSet,
-    SemanticColorSet,
-    ComponentColorSet} from '../types/core/colors';
+    SemanticColors} from '../types/core/colors';
 import { createBaseMappingContext, BaseVariableMapping } from './base-mappings';
-import { ColorMappingConfig } from '../types/mappings';
 import { BaseMappingContext } from '../types/mappings/base-mappings';
+import { ColorMappingConfig } from '../types/mappings/config';
+import { ComponentColorSet } from '../types';
 
 export class ColorMapping {
     private context: BaseMappingContext;
@@ -73,38 +73,46 @@ export class ColorMapping {
         return Object.keys(shades).length === 10 ? shades as ColorShades : undefined;
     }
 
-
     // Color Set Generation
     generateColorSet(base: ColorDefinition): ColorSet {
-        const set: ColorSet = {
-            background: this.formatColorDefinition(base),
-            foreground: this.calculateContrast(base),
-            border: this.adjustAlpha(base, 0.2),
-            outline: this.adjustAlpha(base, 0.5)
+        // Since ColorSet is an alias for ColorDefinition,
+        // we just need to return a single ColorDefinition
+        return {
+            hex: base.hex,
+            rgb: base.rgb,
+            hsl: base.hsl,
+            alpha: base.alpha || 1
         };
-
-        return set;
     }
 
-    generateSemanticSet(base: ColorDefinition): SemanticColorSet {
-        const baseSet = this.generateColorSet(base);
+    generateSemanticSet(base: ColorDefinition): SemanticColors {
         return {
-            ...baseSet,
-            light: this.lighten(base, 0.2),
-            dark: this.darken(base, 0.2),
-            muted: this.adjustAlpha(base, 0.6),
-            emphasis: this.darken(base, 0.3)
+            // Required semantic colors
+            success: this.adjustHue(base, 120), // Green hue
+            warning: this.adjustHue(base, 45),  // Orange/Yellow hue
+            error: this.adjustHue(base, 0),     // Red hue
+            info: this.adjustHue(base, 200),    // Blue hue
+            // Optional semantic colors
+            neutral: this.adjustSaturation(base, 0.2),
+            hint: this.adjustAlpha(base, 0.7)
         };
     }
 
     generateComponentSet(base: ColorDefinition): ComponentColorSet {
-        const baseSet = this.generateColorSet(base);
+        // const _hoverColor = this.lighten(base, 0.1);
+
         return {
-            ...baseSet,
-            hover: this.lighten(base, 0.1),
-            active: this.darken(base, 0.1),
-            disabled: this.adjustAlpha(base, 0.5),
-            focus: this.adjustAlpha(this.lighten(base, 0.2), 0.8)
+            background: base,
+            text: this.getContrastColor(base),
+            border: this.adjustAlpha(this.darken(base, 0.1), 0.5),
+            shadow: {
+                color: this.adjustAlpha(base, 0.2),
+                offsetX: '0px',
+                offsetY: '2px',
+                blur: '4px',
+                spread: '0px',
+                inset: false
+            }
         };
     }
 
@@ -216,65 +224,65 @@ export class ColorMapping {
         };
     }
 
-    private calculateContrast(color: ColorDefinition): ColorDefinition {
-        // Calculate the contrast color
-        const contrastRatio = this.getContrastRatio(color);
+    // private calculateContrast(color: ColorDefinition): ColorDefinition {
+    //     // Calculate the contrast color
+    //     const contrastRatio = this.getContrastRatio(color);
 
-        // Default contrast colors
-        const lightContrast: ColorDefinition = {
-            hex: '#FFFFFF',
-            rgb: 'rgb(255, 255, 255)',
-            hsl: 'hsl(0, 0%, 100%)',
-            alpha: 1
-        };
+    //     // Default contrast colors
+    //     const lightContrast: ColorDefinition = {
+    //         hex: '#FFFFFF',
+    //         rgb: 'rgb(255, 255, 255)',
+    //         hsl: 'hsl(0, 0%, 100%)',
+    //         alpha: 1
+    //     };
 
-        const darkContrast: ColorDefinition = {
-            hex: '#000000',
-            rgb: 'rgb(0, 0, 0)',
-            hsl: 'hsl(0, 0%, 0%)',
-            alpha: 1
-        };
+    //     const darkContrast: ColorDefinition = {
+    //         hex: '#000000',
+    //         rgb: 'rgb(0, 0, 0)',
+    //         hsl: 'hsl(0, 0%, 0%)',
+    //         alpha: 1
+    //     };
 
-        // Return white or black based on contrast ratio
-        return contrastRatio > 0.5 ? darkContrast : lightContrast;
-    }
+    //     // Return white or black based on contrast ratio
+    //     return contrastRatio > 0.5 ? darkContrast : lightContrast;
+    // }
 
     // Helper method to calculate contrast ratio
-    private getContrastRatio(color: ColorDefinition): number {
-        // Convert color to relative luminance
-        const luminance = this.calculateLuminance(color);
+    // private getContrastRatio(color: ColorDefinition): number {
+    //     // Convert color to relative luminance
+    //     const luminance = this.calculateLuminance(color);
 
-        // Calculate ratio against both white and black
-        const whiteRatio = (1 + 0.05) / (luminance + 0.05);
-        const blackRatio = (luminance + 0.05) / (0 + 0.05);
+    //     // Calculate ratio against both white and black
+    //     const whiteRatio = (1 + 0.05) / (luminance + 0.05);
+    //     const blackRatio = (luminance + 0.05) / (0 + 0.05);
 
-        return Math.max(whiteRatio, blackRatio);
-    }
+    //     return Math.max(whiteRatio, blackRatio);
+    // }
 
-    private calculateLuminance(color: ColorDefinition): number {
-        // Convert color to RGB components
-        const rgb = this.getRGBComponents(color);
+    // private calculateLuminance(color: ColorDefinition): number {
+    //     // Convert color to RGB components
+    //     const rgb = this.getRGBComponents(color);
 
-        // Calculate relative luminance
-        const [r, g, b] = rgb.map(c => {
-            c = c / 255;
-            return c <= 0.03928
-                ? c / 12.92
-                : Math.pow((c + 0.055) / 1.055, 2.4);
-        });
+    //     // Calculate relative luminance
+    //     const [r, g, b] = rgb.map(c => {
+    //         c = c / 255;
+    //         return c <= 0.03928
+    //             ? c / 12.92
+    //             : Math.pow((c + 0.055) / 1.055, 2.4);
+    //     });
 
-        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-    }
+    //     return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    // }
 
-    private getRGBComponents(color: ColorDefinition): number[] {
-        // Extract RGB values from the color definition
-        // This is a simplified example - you'll need to implement proper color parsing
-        const match = color.rgb.match(/\d+/g);
-        if (match) {
-            return match.map(Number);
-        }
-        return [0, 0, 0];
-    }
+    // private getRGBComponents(color: ColorDefinition): number[] {
+    //     // Extract RGB values from the color definition
+    //     // This is a simplified example - you'll need to implement proper color parsing
+    //     const match = color.rgb.match(/\d+/g);
+    //     if (match) {
+    //         return match.map(Number);
+    //     }
+    //     return [0, 0, 0];
+    // }
 
     private lighten(color: ColorDefinition, amount: number): ColorDefinition {
         const hsl = this.convertToHSL(color);
@@ -306,4 +314,219 @@ export class ColorMapping {
             hsl: color.hsl.replace('hsl', 'hsla').replace(')', `, ${newAlpha})`)
         };
     }
+
+    adjustHue(color: ColorDefinition, degrees: number): ColorDefinition {
+        // Parse the HSL values from the color's hsl string
+        const hslMatch = color.hsl.match(/hsla?\((\d+),\s*(\d+)%,\s*(\d+)%(?:,\s*([\d.]+))?\)/);
+        if (!hslMatch) {
+            throw new Error('Invalid HSL color format');
+        }
+
+        // Extract HSL values
+        let [_, h, s, l, a] = hslMatch.map(Number);
+
+        // Adjust hue
+        h = (h + degrees) % 360;
+        if (h < 0) h += 360; // Ensure positive hue value
+
+        // Create new HSL string
+        const hslString = a
+            ? `hsla(${h}, ${s}%, ${l}%, ${a})`
+            : `hsl(${h}, ${s}%, ${l}%)`;
+
+        // Convert to RGB
+        const rgb = this.hslToRgb(h, s / 100, l / 100);
+        const rgbString = a
+            ? `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${a})`
+            : `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+
+        // Convert to HEX
+        const hex = this.rgbToHex(rgb.r, rgb.g, rgb.b);
+
+        return {
+            hex,
+            rgb: rgbString,
+            hsl: hslString,
+            alpha: a || 1
+        };
+    }
+
+    getContrastColor(color: ColorDefinition): ColorDefinition {
+        // Convert color to RGB values
+        let rgb: { r: number, g: number, b: number };
+
+        if (color.rgb.startsWith('rgb')) {
+            const rgbMatch = color.rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+            if (!rgbMatch) {
+                throw new Error('Invalid RGB color format');
+            }
+            rgb = {
+                r: parseInt(rgbMatch[1]),
+                g: parseInt(rgbMatch[2]),
+                b: parseInt(rgbMatch[3])
+            };
+        } else {
+            rgb = this.hexToRgb(color.hex);
+        }
+
+        // Calculate relative luminance
+        const luminance = this.calculateRelativeLuminance(rgb);
+
+        // Determine if we should use black or white text
+        const contrastColor = luminance > 0.5 ?
+            {
+                hex: '#000000',
+                rgb: 'rgb(0, 0, 0)',
+                hsl: 'hsl(0, 0%, 0%)',
+                alpha: 1
+            } :
+            {
+                hex: '#FFFFFF',
+                rgb: 'rgb(255, 255, 255)',
+                hsl: 'hsl(0, 0%, 100%)',
+                alpha: 1
+            };
+
+        return contrastColor;
+    }
+
+    private calculateRelativeLuminance(rgb: { r: number, g: number, b: number }): number {
+        const [rs, gs, bs] = [rgb.r / 255, rgb.g / 255, rgb.b / 255];
+
+        const [r, g, b] = [rs, gs, bs].map(c =>
+            c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+        );
+
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    }
+
+    private hslToRgb(h: number, s: number, l: number): { r: number, g: number, b: number } {
+        let r, g, b;
+
+        if (s === 0) {
+            r = g = b = l;
+        } else {
+            const hue2rgb = (p: number, q: number, t: number) => {
+                if (t < 0) t += 1;
+                if (t > 1) t -= 1;
+                if (t < 1/6) return p + (q - p) * 6 * t;
+                if (t < 1/2) return q;
+                if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                return p;
+            };
+
+            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            const p = 2 * l - q;
+
+            r = hue2rgb(p, q, h / 360 + 1/3);
+            g = hue2rgb(p, q, h / 360);
+            b = hue2rgb(p, q, h / 360 - 1/3);
+        }
+
+        return {
+            r: Math.round(r * 255),
+            g: Math.round(g * 255),
+            b: Math.round(b * 255)
+        };
+    }
+
+    private rgbToHex(r: number, g: number, b: number): string {
+        const toHex = (n: number) => {
+            const hex = n.toString(16);
+            return hex.length === 1 ? '0' + hex : hex;
+        };
+
+        return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+    }
+
+    private hexToRgb(hex: string): { r: number, g: number, b: number } {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        if (!result) {
+            throw new Error('Invalid hex color format');
+        }
+
+        return {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16)
+        };
+    }
+
+    adjustSaturation(color: ColorDefinition, amount: number): ColorDefinition {
+        // Parse the HSL values from the color's hsl string
+        const hslMatch = color.hsl.match(/hsla?\((\d+),\s*(\d+)%,\s*(\d+)%(?:,\s*([\d.]+))?\)/);
+        if (!hslMatch) {
+            throw new Error('Invalid HSL color format');
+        }
+
+        // Extract HSL values
+        let [_, h, s, l, a] = hslMatch.map(Number);
+
+        // Adjust saturation (keeping it within 0-100 range)
+        s = Math.max(0, Math.min(100, s * (1 + amount)));
+
+        // Create new HSL string
+        const hslString = a
+            ? `hsla(${h}, ${s}%, ${l}%, ${a})`
+            : `hsl(${h}, ${s}%, ${l}%)`;
+
+        // Convert to RGB
+        const rgb = this.hslToRgb(h, s / 100, l / 100);
+        const rgbString = a
+            ? `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${a})`
+            : `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+
+        // Convert to HEX
+        const hex = this.rgbToHex(rgb.r, rgb.g, rgb.b);
+
+        return {
+            hex,
+            rgb: rgbString,
+            hsl: hslString,
+            alpha: a || 1
+        };
+    }
+
+    // Alternative version that uses absolute saturation value instead of relative adjustment
+    adjustSaturationAbsolute(color: ColorDefinition, saturation: number): ColorDefinition {
+        // Parse the HSL values from the color's hsl string
+        const hslMatch = color.hsl.match(/hsla?\((\d+),\s*(\d+)%,\s*(\d+)%(?:,\s*([\d.]+))?\)/);
+        if (!hslMatch) {
+            throw new Error('Invalid HSL color format');
+        }
+
+        // Extract HSL values
+        let [_, h, _s, l, a] = hslMatch.map(Number);
+
+        // Set new saturation (keeping it within 0-100 range)
+        const s = Math.max(0, Math.min(100, saturation * 100));
+
+        // Create new HSL string
+        const hslString = a
+            ? `hsla(${h}, ${s}%, ${l}%, ${a})`
+            : `hsl(${h}, ${s}%, ${l}%)`;
+
+        // Convert to RGB
+        const rgb = this.hslToRgb(h, s / 100, l / 100);
+        const rgbString = a
+            ? `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${a})`
+            : `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+
+        // Convert to HEX
+        const hex = this.rgbToHex(rgb.r, rgb.g, rgb.b);
+
+        return {
+            hex,
+            rgb: rgbString,
+            hsl: hslString,
+            alpha: a || 1
+        };
+    }
+
+    // Helper method to validate and normalize saturation value
+    // private normalizeSaturation(saturation: number): number {
+    //     if (saturation < 0) return 0;
+    //     if (saturation > 1) return 1;
+    //     return saturation;
+    // }
 }

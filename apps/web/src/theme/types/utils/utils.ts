@@ -1,5 +1,5 @@
 // src/types/theme/utils.ts
-import type { Mode } from '../core/base';
+import type { ThemeMode } from '../core/base';
 import type { ThemeConfig } from '../core/config';
 
 /**
@@ -13,7 +13,7 @@ export type DeepPartial<T> = T extends object ? {
  * Represents a value that can be either static or dynamic based on theme mode
  * @template T The type of the value
  */
-export type ThemeValue<T> = T | ((mode: Mode) => T);
+export type ThemeValue<T> = T | ((mode: ThemeMode) => T);
 
 /**
  * Color manipulation functions interface
@@ -100,15 +100,15 @@ export const isThemeValue = <T>(value: unknown): value is ThemeValue<T> => {
 /**
  * Helper to resolve a ThemeValue
  */
-export const resolveThemeValue = <T>(value: ThemeValue<T>, mode: Mode): T => {
-    return typeof value === 'function' ? (value as (mode: Mode) => T)(mode) : value;
+export const resolveThemeValue = <T>(value: ThemeValue<T>, mode: ThemeMode): T => {
+    return typeof value === 'function' ? (value as (mode: ThemeMode) => T)(mode) : value;
 };
 
 /**
  * Type for theme value resolution context
  */
 export interface ThemeValueContext {
-    mode: Mode;
+    mode: ThemeMode;
     config: ThemeConfig;
 }
 
@@ -117,7 +117,7 @@ export interface ThemeValueContext {
  */
 export const createThemeValue = <T>(value: T | ((ctx: ThemeValueContext) => T)): ThemeValue<T> => {
     if (typeof value === 'function') {
-        return (mode: Mode) => (value as Function)({ mode });
+        return (mode: ThemeMode) => (value as Function)({ mode });
     }
     return value;
 };

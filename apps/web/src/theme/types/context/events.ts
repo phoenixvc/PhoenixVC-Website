@@ -1,31 +1,9 @@
 // src/types/theme/context/events.ts
 
-import { ColorScheme, Mode } from '../core/base';
+import { ThemeError, ThemeEventType } from '../core';
+import { ThemeColorScheme, ThemeMode } from '../core/base';
 import { ThemeState, ThemeConfig } from '../core/config';
-import { ThemeError } from './error';
-
-/**
- * Theme event types
- */
-export type ThemeEventType =
-    | 'theme:init'              // Theme initialization
-    | 'theme:change'           // General theme change
-    | 'theme:mode-change'      // Mode change
-    | 'theme:scheme-change'    // Color scheme change
-    | 'theme:system-change'    // System preference change
-    | 'theme:storage-change'   // Storage change
-    | 'theme:error'           // Error event
-    | 'theme:reset'           // Theme reset
-    | 'theme:ready';          // Theme ready
-
-/**
- * Base theme event payload
- */
-export interface BaseThemeEventPayload {
-    type: ThemeEventType;
-    timestamp: number;
-    source?: 'user' | 'system' | 'storage' | 'api';
-}
+import { BaseThemeEventPayload, ThemeErrorEventPayload } from './error';
 
 /**
  * Theme change event payload
@@ -40,8 +18,8 @@ export interface ThemeChangeEventPayload extends BaseThemeEventPayload {
  * Theme mode change event payload
  */
 export interface ThemeModeChangeEventPayload extends BaseThemeEventPayload {
-    previousMode: Mode;
-    currentMode: Mode;
+    previousMode: ThemeMode;
+    currentMode: ThemeMode;
     isSystemMode: boolean;
 }
 
@@ -49,8 +27,8 @@ export interface ThemeModeChangeEventPayload extends BaseThemeEventPayload {
  * Theme scheme change event payload
  */
 export interface ThemeSchemeChangeEventPayload extends BaseThemeEventPayload {
-    previousScheme: ColorScheme;
-    currentScheme: ColorScheme;
+    previousScheme: ThemeColorScheme;
+    currentScheme: ThemeColorScheme;
     isSystemScheme: boolean;
 }
 
@@ -58,17 +36,9 @@ export interface ThemeSchemeChangeEventPayload extends BaseThemeEventPayload {
  * Theme system change event payload
  */
 export interface ThemeSystemChangeEventPayload extends BaseThemeEventPayload {
-    systemMode: Mode;
-    systemColorScheme: ColorScheme;
+    systemMode: ThemeMode;
+    systemColorScheme: ThemeColorScheme;
     appliedChanges: boolean;
-}
-
-/**
- * Theme error event payload
- */
-export interface ThemeErrorEventPayload extends BaseThemeEventPayload {
-    error: ThemeError;
-    handled: boolean;
 }
 
 /**

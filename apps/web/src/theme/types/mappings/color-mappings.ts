@@ -1,185 +1,285 @@
-// /theme/types/mappings/color-mappings.ts
+// src/mappings/color-mappings.ts
 
-/**
- * Color Mapping API
- * Provides functions for retrieving and manipulating theme colors.
- *
- * @example
- * const themeColors: ColorMappingAPI = {
- *   setColor: (path, value) => console.log(`Setting ${path} to`, value),
- *   getColor: (path) => ({ hex: '#FF5733', rgb: '255,87,51', hsl: '11,100%,60%' }),
- *   setShades: (name, shades) => console.log(`Setting shades for ${name}`, shades),
- *   getShades: (name) => ({
- *     50: { hex: '#FFE5E0', rgb: '255,229,224', hsl: '11,100%,95%' },
- *     500: { hex: '#FF5733', rgb: '255,87,51', hsl: '11,100%,60%' }
- *   })
- * };
- */
+import { createBaseMappingContext } from "@/theme/mappings";
+import { BaseMappingContext, BaseVariableMapping, ComputedColorSet, ComputedComponentSet, ComputedSemanticSet } from "./base-mappings";
+import { ColorDefinition, ColorShades } from "../core";
+import { ColorMappingConfig } from "./config";
 
-import { SemanticColorSet } from '@/theme/mappings/base-mappings';
-import { ComponentColorSet, BorderColorSet, ButtonColorSet, ChartColorSet, InputColorSet, NavigationColorSet, TableColorSet, TextColorSet } from '../components/base-colors';
-import {
-    ColorDefinition,
-    ColorShades,
-    BaseColors,
-    SemanticColors,
-    ColorSet,
-    ColorScaleConfig,
-    ColorPaletteConfig,
-    ColorExportFormat,
-    ShadowSet
-} from '../core/colors';
-import { BaseMappingConfig, ColorContext } from './base-mappings';
+  export class ColorMapping {
+    private context: BaseMappingContext;
+    private config: ColorMappingConfig;
 
-export interface ColorTransformOptions {
-    format?: ColorExportFormat;
-    preserveAlpha?: boolean;
-    round?: boolean;
-}
+    constructor(config?: Partial<ColorMappingConfig>) {
+      this.config = {
+        prefix: config?.prefix ?? "color",
+        scope: config?.scope ?? ":root",
+        format: config?.format ?? "rgb",
+        separator: config?.separator ?? "-",
+        enforceContrast: config?.enforceContrast ?? true,
+        minimumContrast: config?.minimumContrast ?? 4.5,
+      };
 
-export interface ColorTransforms {
-    lighten: (color: ColorDefinition, amount: number, options?: ColorTransformOptions) => ColorDefinition;
-    darken: (color: ColorDefinition, amount: number, options?: ColorTransformOptions) => ColorDefinition;
-    alpha: (color: ColorDefinition, amount: number) => ColorDefinition;
-    mix: (color1: ColorDefinition, color2: ColorDefinition, weight?: number) => ColorDefinition;
-    adjust: (color: ColorDefinition, adjustments: Partial<ColorDefinition>) => ColorDefinition;
-}
+      this.context = createBaseMappingContext({
+        prefix: this.config.prefix,
+        scope: this.config.scope,
+        format: this.config.format,
+        separator: this.config.separator,
+      });
+    }
 
-export interface ColorMappingConfig extends BaseMappingConfig {
-    enforceContrast?: boolean;
-    minimumContrast?: number;
-    defaultShades?: Partial<ColorShades>;
-}
+    // Color Definition Management
+    setColor(path: string, color: ColorDefinition): void {
+      const formatted = this.formatColorDefinition(color);
+      const mapping: BaseVariableMapping = {
+        name: path,
+        value: formatted,
+        format: this.config.format,
+      };
 
-export interface ColorMappingAPI {
-    // Base color operations
-    setColor(path: string, value: ColorDefinition): void;
-    getColor(path: string, format?: ColorExportFormat): ColorDefinition | undefined;
+      this.context.registry.variables.set(path, mapping);
+      this.context.registry.colors.set(path, formatted);
+    }
 
-    // Shade operations
-    setShades(name: string, shades: ColorShades): void;
-    getShades(name: string): ColorShades | undefined;
-    generateShades(base: ColorDefinition, config?: ColorScaleConfig): ColorShades;
+    getColor(path: string): ColorDefinition | undefined {
+      const value = this.context.registry.colors.get(path);
+      return value ? this.parseColorDefinition(value) : undefined;
+    }
 
-    // Color set generation
-    generateColorSet(base: ColorDefinition): ColorSet;
-    generateSemanticSet(base: ColorDefinition): SemanticColorSet;
-    generateComponentSet(base: ColorDefinition): ComponentColorSet;
+    // Color Shades Management
+    setShades(name: string, shades: ColorShades): void {
+      Object.entries(shades).forEach(([shade, color]) => {
+        const path = `${name}-${shade}`;
+        this.setColor(path, color);
+      });
+    }
 
-    // Palette operations
-    generatePalette(config: ColorPaletteConfig): BaseColors;
-    generateSemanticPalette(base: BaseColors): SemanticColors;
+    getShades(name: string): ColorShades | undefined {
+      const shades: Partial<ColorShades> = {};
+      const shadeKeys = [
+        "50",
+        "100",
+        "200",
+        "300",
+        "400",
+        "500",
+        "600",
+        "700",
+        "800",
+        "900",
+      ] as const;
+      type ShadeKey = typeof shadeKeys[number];
 
-    // Context-specific operations
-    getContextColors(context: ColorContext): Record<string, ColorDefinition>;
+      for (const shade of shadeKeys) {
+        const color = this.getColor(`${name}-${shade}`);
+        if (color) {
+          shades[shade as ShadeKey] = color;
+        }
+      }
+
+      return Object.keys(shades).length === 10 ? (shades as ColorShades) : undefined;
+    }
+
+    // Color Set Generation
+
+    generateColorSet(base: ColorDefinition): ComputedColorSet {
+      const set: ComputedColorSet = {
+        background: this.formatColorDefinition(base),
+        foreground: this.calculateContrast(base),
+        border: this.adjustAlpha(base, 0.2),
+        outline: this.adjustAlpha(base, 0.5),
+      };
+
+      return set;
+    }
+
+    generateSemanticSet(base: ColorDefinition): ComputedSemanticSet {
+      const baseSet = this.generateColorSet(base);
+      return {
+        ...baseSet,
+        light: this.lighten(base, 0.2),
+        dark: this.darken(base, 0.2),
+        muted: this.adjustAlpha(base, 0.6),
+        emphasis: this.darken(base, 0.3),
+      };
+    }
+
+    generateComponentSet(base: ColorDefinition): ComputedComponentSet {
+      const baseSet = this.generateColorSet(base);
+      return {
+        ...baseSet,
+        hover: this.lighten(base, 0.1),
+        active: this.darken(base, 0.1),
+        disabled: this.adjustAlpha(base, 0.5),
+        focus: this.adjustAlpha(this.lighten(base, 0.2), 0.8),
+      };
+    }
 
     // Export/Import
-    toFormat(format: ColorExportFormat, prefix?: string): Record<string, string>;
-    fromFormat(data: Record<string, string>, format: ColorExportFormat): void;
-}
+    toCSS(): Record<string, ColorDefinition> {
+      const css: Record<string, ColorDefinition> = {};
+      this.context.registry.variables.forEach((mapping, path) => {
+        const varName = this.context.operations.resolve(path);
+        css[varName] = mapping.value;
+      });
+      return css;
+    }
 
-// ============================================
-// Color Mappings & Variables
-// ============================================
+    fromCSS(variables: Record<string, ColorDefinition>): void {
+      Object.entries(variables).forEach(([key, value]) => {
+        if (key.startsWith(`--${this.config.prefix}`)) {
+          const path = key.replace(`--${this.config.prefix}${this.config.separator}`, "");
+          this.context.registry.variables.set(path, {
+            name: path,
+            value,
+            format: this.config.format,
+          });
+        }
+      });
+    }
 
-/**
-* Complete color mappings
-* @description Comprehensive color definitions for the entire theme
-*/
-export interface ColorMappings {
-  base: Record<keyof BaseColors, ColorSet>;
-  semantic: Record<keyof SemanticColors, SemanticColorSet>;
-  text: TextColorSet;
-  border: BorderColorSet;
-  shadow: ShadowSet;
-
-  interactive: {
-      focusRing: string;
-      overlay: string;
-      selection: string;
-      highlight: string;
-  };
-
-  components: {
-      // Form Elements
-      input: InputColorSet;
-      select: InputColorSet;
-      checkbox: InputColorSet;
-      radio: InputColorSet;
-      switch: InputColorSet;
-
-      // Buttons
-      button: Record<'primary' | 'secondary' | 'ghost' | 'link' | 'danger', ButtonColorSet>;
-
-      // Navigation
-      navigation :
-      {
-        navbar: NavigationColorSet;
-        sidebar: NavigationColorSet;
-        tab: NavigationColorSet;
-        breadcrumb: NavigationColorSet;
+    private formatColorDefinition(color: ColorDefinition): ColorDefinition {
+      // Ensure all color formats are properly calculated and stored
+      return {
+        hex: color.hex || this.convertToHex(color),
+        rgb: color.rgb || this.convertToRGB(color),
+        hsl: color.hsl || this.convertToHSL(color),
+        alpha: color.alpha ?? 1,
       };
+    }
 
-      containers: {
-          card: ComponentColorSet;
-          modal: ComponentColorSet & {
-              overlay: string;
-          };
-          drawer: ComponentColorSet;
-          popover: ComponentColorSet;
-          tooltip: ComponentColorSet;
+    private convertToHex(color: ColorDefinition): string {
+      if (color.hex) return color.hex;
+      if (color.rgb) {
+        const match = color.rgb.match(/\d+/g);
+        if (match) {
+          const [r, g, b] = match.map(Number);
+          return `#${((1 << 24) + (r << 16) + (g << 8) + b)
+            .toString(16)
+            .slice(1)}`;
+        }
       }
-
-      feedback: {
-        alert: Record<keyof SemanticColors, ComponentColorSet>;
-        toast: Record<keyof SemanticColors, ComponentColorSet>;
+      if (color.hsl) {
+        // Convert HSL to RGB first, then to HEX
+        // Implementation needed
       }
+      throw new Error("Unable to convert color to HEX");
+    }
 
-
-      dataDisplay: {
-        table: TableColorSet;
-        badge: ComponentColorSet;
-        tag: ComponentColorSet;
-        avatar: ComponentColorSet;
-        progress: ComponentColorSet;
-        spinner: ComponentColorSet;
+    private convertToRGB(color: ColorDefinition): string {
+      if (color.rgb) return color.rgb;
+      if (color.hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(color.hex);
+        if (result) {
+          const [, r, g, b] = result;
+          return `rgb(${parseInt(r, 16)}, ${parseInt(g, 16)}, ${parseInt(b, 16)})`;
+        }
       }
+      if (color.hsl) {
+        // Convert HSL to RGB
+        // Implementation needed
+      }
+      throw new Error("Unable to convert color to RGB");
+    }
 
-      // Code and Syntax
-      code: ComponentColorSet & {
-          syntax: {
-              comment: string;
-              string: string;
-              keyword: string;
-              variable: string;
-              function: string;
-              operator: string;
-              class: string;
-          };
+    private convertToHSL(color: ColorDefinition): string {
+      if (color.hsl) return color.hsl;
+      if (color.rgb) {
+        const match = color.rgb.match(/\d+/g);
+        if (match) {
+          const [r, g, b] = match.map(n => parseInt(n, 10) / 255);
+          const max = Math.max(r, g, b);
+          const min = Math.min(r, g, b);
+          let h = 0, s = 0, l = (max + min) / 2;
+          if (max !== min) {
+            const d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            switch (max) {
+              case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+              case g: h = (b - r) / d + 2; break;
+              case b: h = (r - g) / d + 4; break;
+            }
+            h /= 6;
+          }
+          return `hsl(${Math.round(h * 360)}, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%)`;
+        }
+      }
+      throw new Error("Unable to convert color to HSL");
+    }
+
+    private parseColorDefinition(value: ColorDefinition): ColorDefinition {
+      // In a real implementation, this would parse a CSS string back to a ColorDefinition.
+      // For now, we'll assume the stored value is already a valid ColorDefinition.
+      return value;
+    }
+
+    private calculateContrast(color: ColorDefinition): ColorDefinition {
+      // Calculate the contrast color.
+      const contrastRatio = this.getContrastRatio(color);
+      const lightContrast: ColorDefinition = {
+        hex: "#FFFFFF",
+        rgb: "rgb(255, 255, 255)",
+        hsl: "hsl(0, 0%, 100%)",
+        alpha: 1,
       };
-
-      // Charts and Visualization
-      chart: ChartColorSet;
-
-      // Skeleton Loading
-      skeleton: {
-          base: string;
-          highlight: string;
-          animation: string;
+      const darkContrast: ColorDefinition = {
+        hex: "#000000",
+        rgb: "rgb(0, 0, 0)",
+        hsl: "hsl(0, 0%, 0%)",
+        alpha: 1,
       };
+      return contrastRatio > 0.5 ? darkContrast : lightContrast;
+    }
 
-      // Scrollbar
-      scrollbar: {
-          track: string;
-          thumb: string;
-          thumbHover: string;
+    private getContrastRatio(color: ColorDefinition): number {
+      const luminance = this.calculateLuminance(color);
+      const whiteRatio = (1 + 0.05) / (luminance + 0.05);
+      const blackRatio = (luminance + 0.05) / (0 + 0.05);
+      return Math.max(whiteRatio, blackRatio);
+    }
+
+    private calculateLuminance(color: ColorDefinition): number {
+      const rgb = this.getRGBComponents(color);
+      const [r, g, b] = rgb.map(c => {
+        c = c / 255;
+        return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    }
+
+    private getRGBComponents(color: ColorDefinition): number[] {
+      const match = color.rgb.match(/\d+/g);
+      return match ? match.map(Number) : [0, 0, 0];
+    }
+
+    private lighten(color: ColorDefinition, amount: number): ColorDefinition {
+      const hsl = this.convertToHSL(color);
+      const match = hsl.match(/\d+/g);
+      if (match) {
+        const [h, s, l] = match.map(Number);
+        const newL = Math.min(100, l + amount * 100);
+        const newHSL = `hsl(${h}, ${s}%, ${newL}%)`;
+        return {
+          hsl: newHSL,
+          rgb: this.convertToRGB({ hsl: newHSL } as ColorDefinition),
+          hex: this.convertToHex({ hsl: newHSL } as ColorDefinition),
+          alpha: color.alpha,
+        };
+      }
+      throw new Error("Invalid color format");
+    }
+
+    private darken(color: ColorDefinition, amount: number): ColorDefinition {
+      return this.lighten(color, -amount);
+    }
+
+    private adjustAlpha(color: ColorDefinition, amount: number): ColorDefinition {
+      const newAlpha = Math.max(0, Math.min(1, amount));
+      return {
+        ...color,
+        alpha: newAlpha,
+        rgb: color.rgb.replace("rgb", "rgba").replace(")", `, ${newAlpha})`),
+        hex: color.hex + Math.round(newAlpha * 255).toString(16).padStart(2, "0"),
+        hsl: color.hsl.replace("hsl", "hsla").replace(")", `, ${newAlpha})`),
       };
-  };
-
-  // States
-  states: {
-      disabled: ComponentColorSet;
-      loading: ComponentColorSet;
-      readonly: ComponentColorSet;
-  };
-}
+    }
+  }
