@@ -57,6 +57,22 @@ const generateColorSchemeClasses = (scheme: ThemeColorScheme): ColorSchemeClasse
   border: `theme-${scheme}-border`
 });
 
+const formatThemeForLogging = (theme: unknown): string => {
+  try {
+    if (typeof theme === 'string') {
+      return theme.substring(0, 200);
+    } else if (theme === null) {
+      return 'null';
+    } else if (typeof theme === 'object') {
+      return JSON.stringify(theme).substring(0, 200);
+    } else {
+      return String(theme).substring(0, 200);
+    }
+  } catch (e) {
+    return `[Unable to stringify theme: ${typeof theme}]`;
+  }
+};
+
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const useTheme = (): ThemeContextType => {
@@ -110,14 +126,46 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     }
   }, [config]);
 
-  useEffect(() => {
-    const initTheme = async () => {
-      try {
-        const theme = await loadTheme(state.colorScheme);
-        validateTheme(theme);
+    useEffect(() => {
+      const initTheme = async () => {
+        try {
+          console.log("[ThemeProvider] Starting theme initialization...");
+          console.log("[ThemeProvider] Current state:", {
+            colorScheme: state.colorScheme,
+            mode: state.mode,
+            initialized: state.initialized
+          });
 
-        const transformedTheme = transformTheme(theme, state.mode);
-        const variables = generateThemeVariables(transformedTheme, state.mode);
+          const theme = await loadTheme(state.colorScheme);
+          console.log("[ThemeProvider] Loaded theme data:", {
+            themeType: typeof theme,
+            themeContent: JSON.stringify(theme, null, 2).substring(0, 500) + "..." // First 500 chars
+          });
+
+          try {
+            console.log("[ThemeProvider] Validating theme...");
+            validateTheme(theme);
+            console.log("[ThemeProvider] Theme validation successful");
+          } catch (validationError) {
+            console.error("[ThemeProvider] Theme validation failed:", {
+              error: validationError,
+              theme: formatThemeForLogging(theme)
+            });
+            throw validationError;
+          }
+
+          console.log("[ThemeProvider] Transforming theme...");
+          const transformedTheme = transformTheme(theme, state.mode);
+          console.log("[ThemeProvider] Theme transformed successfully:", {
+            mode: state.mode,
+            transformedThemeKeys: Object.keys(transformedTheme)
+          });
+
+          console.log("[ThemeProvider] Generating variables...");
+          const variables = generateThemeVariables(transformedTheme, state.mode);
+          console.log("[ThemeProvider] Variables generated:", {
+            categoriesGenerated: Object.keys(variables.computed)
+          });
 
         // Example: using ColorUtils to adjust the primary color before applying
         const adjustedPrimary = ColorUtils.darken(
@@ -141,8 +189,28 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
         setState(prev => ({ ...prev, initialized: true }));
       } catch (err) {
-        setError(err instanceof Error ? err : new Error("Theme initialization failed"));
-        console.error("[ThemeProvider] Initialization error:", err);
+        const errorDetails = {
+          message: err instanceof Error ? err.message : String(err),
+          stack: err instanceof Error ? err.stack : undefined,
+          type: err instanceof Error ? err.constructor.name : typeof err,
+          state: {
+            colorScheme: state.colorScheme,
+            mode: state.mode,
+            initialized: state.initialized
+          }
+        };
+
+        console.error("[ThemeProvider] Detailed initialization error:", errorDetails);
+
+        // If the error is related to HTML content being returned instead of JSON
+        if (err instanceof Error && err.message.includes('<!DOCTYPE')) {
+          console.error("[ThemeProvider] Received HTML instead of JSON. This might indicate a server error or incorrect endpoint.");
+          console.error("[ThemeProvider] First 500 characters of response:",
+            err.message.substring(0, 500)
+          );
+        }
+
+        setError(err instanceof Error ? err : new Error(`Theme initialization failed: ${String(err)}`));
       }
     };
 
@@ -288,10 +356,29 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     }
   }), [state, onThemeChange]);
 
-  if (error) {
-    console.error("[ThemeProvider] Error:", error);
-    return <div>Theme Error: {error.message}</div>;
-  }
+ // Modified error handling in render
+ if (error) {
+  const errorDetails = {
+    message: error.message,
+    stack: error.stack,
+    type: error.constructor.name,
+    state: {
+      colorScheme: state.colorScheme,
+      mode: state.mode,
+      initialized: state.initialized
+    }
+  };
+
+  console.error("[ThemeProvider] Render error details:", errorDetails);
+
+  return (
+    <div style={{ padding: '20px', color: 'red', border: '1px solid red', margin: '10px' }}>
+      <h3>Theme Error</h3>
+      <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+        {JSON.stringify(errorDetails, null, 2)}
+      </pre>
+    </div>
+  );
 
   return (
     <ThemeErrorBoundary>
@@ -302,6 +389,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
       </ThemeContext.Provider>
     </ThemeErrorBoundary>
   );
+}
 };
 
 export default ThemeProvider;
