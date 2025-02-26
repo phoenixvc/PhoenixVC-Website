@@ -11,7 +11,7 @@ export const headerAnimations = {
       }
     },
     mobileMenu: {
-      hidden: { opacity: 0, x: '100%' },
+      hidden: { opacity: 0, x: "100%" },
       visible: {
         opacity: 1,
         x: 0,
@@ -23,7 +23,7 @@ export const headerAnimations = {
       },
       exit: {
         opacity: 0,
-        x: '100%',
+        x: "100%",
         transition: {
           duration: 0.3,
           ease: "easeInOut"
