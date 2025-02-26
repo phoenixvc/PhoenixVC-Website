@@ -1,8 +1,8 @@
-import { motion } from "framer-motion"
-import { LayoutProps } from "../types"
-import { Header } from "./Header/Header"
-import { Footer } from "./Footer/Footer"
-import { containerVariants } from "../animations"
+import { motion } from "framer-motion";
+import { LayoutProps } from "../types";
+import { Header } from "./Header/Header";
+import { Footer } from "./Footer/Footer";
+import { containerVariants } from "../animations";
 
 const Layout = ({ children }: LayoutProps) => {
   return (
@@ -16,7 +16,7 @@ const Layout = ({ children }: LayoutProps) => {
         <main id="home" className="flex-grow pt-20">{children}</main>
       <Footer />
     </motion.div>
-  )
-}
+  );
+};
 
-export default Layout
+export default Layout;

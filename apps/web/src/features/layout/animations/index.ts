@@ -1,5 +1,5 @@
 // features/layout/animations/index.ts
-import { Variants } from 'framer-motion';
+import { Variants } from "framer-motion";
 
 export const containerVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
@@ -38,7 +38,7 @@ export const containerVariants: Variants = {
   } as const;
 
   export const mobileMenuVariants: Variants = {
-    hidden: { opacity: 0, x: '100%' },
+    hidden: { opacity: 0, x: "100%" },
     visible: {
       opacity: 1,
       x: 0,
@@ -50,7 +50,7 @@ export const containerVariants: Variants = {
     },
     exit: {
       opacity: 0,
-      x: '100%',
+      x: "100%",
       transition: {
         duration: 0.3
       }

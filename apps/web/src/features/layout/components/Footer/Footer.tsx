@@ -34,13 +34,13 @@ export const Footer: React.FC = () => {
                     href={item.path}
                     className={styles.link}
                     onClick={(e) => {
-                      if (item.type === 'section') {
+                      if (item.type === "section") {
                         e.preventDefault();
-                        const targetId = item.reference || item.path.replace('/#', '');
+                        const targetId = item.reference || item.path.replace("/#", "");
                         const element = document.getElementById(targetId);
 
                         if (element) {
-                          element.scrollIntoView({ behavior: 'smooth' });
+                          element.scrollIntoView({ behavior: "smooth" });
                         } else {
                           // Fallback to hash change if element isn't found
                           window.location.hash = targetId;

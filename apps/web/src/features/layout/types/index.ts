@@ -1,6 +1,6 @@
 // features/layout/types/index.ts
-import { ThemeColorScheme, ThemeConfig } from '@/theme';
-import { ReactNode } from 'react';
+import { ThemeColorScheme, ThemeConfig } from "@/theme";
+import { ReactNode } from "react";
 
 export interface NavigationItem {
   readonly href: string;
@@ -32,6 +32,6 @@ export interface NavigationProps {
   onItemClick?: () => void;
   className?: string;
   colorScheme?: ThemeColorScheme;
-  variant?: 'header' | 'simple';
+  variant?: "header" | "simple";
   activeSection?: string;
 }
