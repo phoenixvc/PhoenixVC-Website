@@ -1,8 +1,8 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { twMerge } from 'tailwind-merge';
-import styles from './MobileMenu.module.css';
-import { MobileMenuProps } from '../../types';
-import { menuVariants, itemVariants } from '../../animations';
+import { motion, AnimatePresence } from "framer-motion";
+import { twMerge } from "tailwind-merge";
+import styles from "./MobileMenu.module.css";
+import { MobileMenuProps } from "../../types";
+import { menuVariants, itemVariants } from "../../animations";
 
 /**
  * Mobile navigation menu component
@@ -48,7 +48,7 @@ export const MobileMenu = ({
                       e.preventDefault();
                       onClose();
                       const element = document.querySelector(item.path);
-                      element?.scrollIntoView({ behavior: 'smooth' });
+                      element?.scrollIntoView({ behavior: "smooth" });
                     }}
                     className={styles.navLink}
                   >

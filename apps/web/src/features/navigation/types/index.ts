@@ -3,12 +3,12 @@
 /**
  * Defines the type of navigation item
  */
-export type NavigationType = 'section' | 'page';
+export type NavigationType = "section" | "page";
 
 /**
  * Defines the visual variant of navigation items
  */
-export type NavigationVariant = 'header' | 'simple';
+export type NavigationVariant = "header" | "simple";
 
 /**
  * Base navigation item interface

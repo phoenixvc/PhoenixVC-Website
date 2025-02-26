@@ -6,21 +6,21 @@ import React from "react";
 
 type IconProp = LucideIcon | React.ReactNode | string | undefined;
 
-interface ExtendedNavLinkProps extends Omit<NavigationItemProps, 'icon'> {
+interface ExtendedNavLinkProps extends Omit<NavigationItemProps, "icon"> {
   isMobile?: boolean;
-  variant?: 'header' | 'simple';
+  variant?: "header" | "simple";
   isActive?: boolean;
   onClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
   icon?: IconProp;
 }
 
 // Type for aria-current
-type AriaCurrent = 'page' | 'step' | 'location' | 'date' | 'time' | 'true' | 'false' | boolean | undefined;
+type AriaCurrent = "page" | "step" | "location" | "date" | "time" | "true" | "false" | boolean | undefined;
 
 const renderIcon = (icon: IconProp) => {
   if (!icon) return null;
 
-  if (typeof icon === 'string') {
+  if (typeof icon === "string") {
     // If icon is a string, you might want to map it to a Lucide icon
     return null; // Or handle string-based icons differently
   }
