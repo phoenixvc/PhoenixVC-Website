@@ -8,8 +8,13 @@ import {
   ThemeInitOptions,
   ThemeMode,
   ThemeColorScheme,
-  ThemeStorage
+  ThemeStorage,
+  ThemeSchemeInitial,
+  SemanticColors,
+  ValidationResult,
+  ValidationErrorDetails
 } from "@/theme/types";
+import ColorUtils from "../utils/color-utils";
 
 // Constants
 const REQUIRED_BASE_COLORS = ['primary', 'secondary', 'accent'] as const;
@@ -25,16 +30,100 @@ export class ThemeValidationError extends Error {
 }
 
 // Color validation functions
-const validateColorDefinition = (color: ColorDefinition, path: string) => {
-  if (!color.hex || typeof color.hex !== 'string') {
-    throw new ThemeValidationError(`Invalid hex value at ${path}`);
+const validateColorDef = (color: ColorDefinition, path: string): ValidationResult => {
+  try {
+    const result = ColorUtils.validateColorDefinition(color, path);
+
+    // Print validation results with context
+    printValidationResults(result, `Color Definition - ${path}`);
+
+    return result;
+
+  } catch (error) {
+    const errorResult: ValidationResult = {
+      isValid: false,
+      errors: [{
+        code: 'UNEXPECTED_ERROR',
+        message: error instanceof Error ? error.message : 'Unknown error occurred',
+        path,
+        details: {
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+          timestamp: new Date().toISOString()
+        } as ValidationErrorDetails
+      }],
+      path,
+      value: color
+    };
+
+    // Print error result with context
+    printValidationResults(errorResult, `Error in Color Definition - ${path}`);
+
+    return errorResult;
   }
-  if (!color.rgb || typeof color.rgb !== 'string') {
-    throw new ThemeValidationError(`Invalid rgb value at ${path}`);
-  }
-  if (!color.hsl || typeof color.hsl !== 'string') {
-    throw new ThemeValidationError(`Invalid hsl value at ${path}`);
-  }
+};
+
+const printValidationResults = (results: ValidationResult | ValidationResult[], context?: string): void => {
+  const resultArray = Array.isArray(results) ? results : [results];
+
+  console.group(context ? `Validation Results: ${context}` : 'Validation Results');
+
+  resultArray.forEach(result => {
+    const icon = result.isValid ? '✅' : '❌';
+    const status = result.isValid ? 'Valid' : 'Invalid';
+
+    console.group(`${icon} ${result.path} - ${status}`);
+
+    if (!result.isValid && result.errors && result.errors.length > 0) {
+      console.group(`Errors (${result.errors.length}):`);
+
+      result.errors.forEach((error, index) => {
+        console.group(`Error ${index + 1} of ${result.errors!.length}`);
+
+        const errorInfo = {
+          Code: error.code,
+          Message: error.message,
+          Path: error.path
+        };
+
+        if (error.details) {
+          console.log('Details:', error.details);
+        }
+
+        console.table(errorInfo);
+        console.groupEnd();
+      });
+
+      console.groupEnd();
+    }
+
+    if (result.value) {
+      console.group('Validated Value:');
+      console.dir(result.value, { depth: null });
+      console.groupEnd();
+    }
+
+    console.groupEnd();
+  });
+
+  const summary = resultArray.reduce(
+    (acc, curr) => ({
+      total: acc.total + 1,
+      valid: acc.valid + (curr.isValid ? 1 : 0),
+      invalid: acc.invalid + (curr.isValid ? 0 : 1),
+      totalErrors: acc.totalErrors + (curr.errors?.length || 0)
+    }),
+    { total: 0, valid: 0, invalid: 0, totalErrors: 0 }
+  );
+
+  console.log('Summary:', {
+    'Total Validations': summary.total,
+    'Valid': summary.valid,
+    'Invalid': summary.invalid,
+    'Total Errors': summary.totalErrors
+  });
+
+  console.groupEnd();
 };
 
 const validateStorage = (storage: Partial<ThemeStorage>) => {
@@ -64,49 +153,177 @@ const validateColorShades = (shades: Record<ShadeLevel, ColorDefinition>, path: 
     if (!shades[shade]) {
       throw new ThemeValidationError(`Missing shade ${shade} at ${path}`);
     }
-    validateColorDefinition(shades[shade], `${path}.${shade}`);
+    validateColorDef(shades[shade], `${path}.${shade}`);
   }
 };
 
-// Theme colors validation
-export const validateTheme = (theme: ThemeColors): void => {
-  if (!theme.schemes || typeof theme.schemes !== 'object') {
-    throw new ThemeValidationError('Theme must include color schemes');
+export const validateHexOnly = (colorDef: ColorDefinition, path?: string): ValidationResult => {
+  // Assume that the ColorDefinition has a 'hex' property that is a string.
+  const hex = colorDef.hex;
+  // Regular expression: Optional '#' followed by exactly 3 or 6 hexadecimal digits.
+  const hexRegex = /^#?([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$/;
+
+  if (typeof hex !== 'string' || !hexRegex.test(hex)) {
+    return {
+      isValid: false,
+      errors: [{
+        code: 'COLOR_INVALID_HEX',
+        message: `Invalid hex color format at ${path || 'unknown path'}: ${hex}. Expected "#FFF" or "#FFFFFF".`,
+        path: path || '',
+        details: {
+          error: `Color value ${hex} does not match hex pattern`,
+          timestamp: new Date().toISOString()
+        } as ValidationErrorDetails
+      }],
+      path: path || '',
+      value: colorDef
+    };
   }
+
+  return {
+    isValid: true,
+    path: path || '',
+    value: colorDef
+  };
+};
+
+export const validateInitialTheme = (theme: ThemeSchemeInitial & { semantic?: SemanticColors }): void => {
+  // Validate base colors
+  if (!theme.base) {
+    throw new ThemeValidationError('Theme must include base colors');
+  }
+
+  REQUIRED_BASE_COLORS.forEach(color => {
+    if (!theme.base[color]) {
+      throw new ThemeValidationError(`Missing base color ${color}`);
+    }
+    // Just validate the color definition itself, not shades
+    validateHexOnly(theme.base[color], `base.${color}`);
+  });
+
+  // Validate mode colors
+  ['light', 'dark'].forEach(mode => {
+    const modeColors = theme[mode as 'light' | 'dark'];
+    if (!modeColors) {
+      throw new ThemeValidationError(`Missing ${mode} mode colors`);
+    }
+    const modePath = mode;
+    REQUIRED_MODE_COLORS.forEach(color => {
+      if (!modeColors[color]) {
+        throw new ThemeValidationError(`Missing ${mode} mode color ${color} in ${modePath}`);
+      }
+      validateHexOnly(modeColors[color], `${modePath}.${color}`);
+    });
+  });
+
+  // Validate semantic colors if present
+  if (theme.semantic) {
+    REQUIRED_SEMANTIC_COLORS.forEach(color => {
+      if (!theme.semantic?.[color]) {
+        throw new ThemeValidationError(`Missing semantic color ${color}`);
+      }
+      validateHexOnly(theme.semantic[color], `semantic.${color}`);
+    });
+  }
+};
+
+// Validation for processed theme (post-transform)
+export const validateProcessedTheme = (theme: ThemeColors): void => {
+  console.groupCollapsed("validateProcessedTheme");
+  console.log("Starting processed theme validation...");
+
+  if (!theme.schemes || typeof theme.schemes !== "object") {
+    console.error("[Validation Error] Processed theme must include color schemes");
+    console.groupEnd();
+    throw new ThemeValidationError("Processed theme must include color schemes");
+  }
+
+  // Iterate over each scheme
   Object.entries(theme.schemes).forEach(([schemeName, scheme]) => {
+    console.group(`Scheme: "${schemeName}"`);
+
     const basePath = `schemes.${schemeName}`;
+
+    // Validate base colors
     if (!scheme.base) {
+      console.error(`[Validation Error] Missing base colors in ${basePath}`);
+      console.groupEnd();
       throw new ThemeValidationError(`Missing base colors in ${basePath}`);
     }
-    REQUIRED_BASE_COLORS.forEach(color => {
+
+    REQUIRED_BASE_COLORS.forEach((color) => {
       if (!scheme.base[color]) {
-        throw new ThemeValidationError(`Missing base color ${color} in ${basePath}`);
+        console.error(
+          `[Validation Error] Missing base color "${color}" in ${basePath}`
+        );
+        console.groupEnd();
+        throw new ThemeValidationError(
+          `Missing base color ${color} in ${basePath}`
+        );
       }
+      console.group(`Validating base color: "${color}"`);
       validateColorShades(scheme.base[color], `${basePath}.base.${color}`);
+      console.groupEnd();
     });
-    ['light', 'dark'].forEach(mode => {
-      const modeColors = scheme[mode as 'light' | 'dark'];
+
+    // Validate mode colors
+    ["light", "dark"].forEach((mode) => {
+      console.group(`Validating "${mode}" mode colors`);
+      const modeColors = scheme[mode as "light" | "dark"];
       if (!modeColors) {
-        throw new ThemeValidationError(`Missing ${mode} mode colors in ${basePath}`);
+        console.error(
+          `[Validation Error] Missing ${mode} mode colors in ${basePath}`
+        );
+        console.groupEnd();
+        console.groupEnd();
+        throw new ThemeValidationError(
+          `Missing ${mode} mode colors in ${basePath}`
+        );
       }
+
       const modePath = `${basePath}.${mode}`;
-      REQUIRED_MODE_COLORS.forEach(color => {
+      REQUIRED_MODE_COLORS.forEach((color) => {
         if (!modeColors[color]) {
-          throw new ThemeValidationError(`Missing ${mode} mode color ${color} in ${modePath}`);
+          console.error(
+            `[Validation Error] Missing ${mode} mode color "${color}" in ${modePath}`
+          );
+          console.groupEnd();
+          console.groupEnd();
+          throw new ThemeValidationError(
+            `Missing ${mode} mode color ${color} in ${modePath}`
+          );
         }
-        validateColorDefinition(modeColors[color], `${modePath}.${color}`);
+        console.group(`Validating ${mode} mode color: "${color}"`);
+        validateColorDef(modeColors[color], `${modePath}.${color}`);
+        console.groupEnd();
       });
+
+      console.groupEnd(); // End validating "<mode>" mode colors
     });
+
+    console.groupEnd(); // End Scheme: "schemeName"
   });
-  if (!theme.semantic) {
-    throw new ThemeValidationError('Theme must include semantic colors');
+
+  // Validate semantic colors if present
+  console.group("Validating semantic colors");
+  if (theme.semantic) {
+    REQUIRED_SEMANTIC_COLORS.forEach((color) => {
+      if (!theme.semantic?.[color]) {
+        console.error(`[Validation Error] Missing semantic color "${color}"`);
+        console.groupEnd();
+        throw new ThemeValidationError(`Missing semantic color ${color}`);
+      }
+      console.group(`Validating semantic color: "${color}"`);
+      validateColorDef(theme.semantic[color], `semantic.${color}`);
+      console.groupEnd();
+    });
+  } else {
+    console.warn("No semantic colors found.");
   }
-  REQUIRED_SEMANTIC_COLORS.forEach(color => {
-    if (!theme.semantic[color]) {
-      throw new ThemeValidationError(`Missing semantic color ${color}`);
-    }
-    validateColorDefinition(theme.semantic[color], `semantic.${color}`);
-  });
+  console.groupEnd(); // End "Validating semantic colors"
+
+  console.log("Processed theme validation completed successfully.");
+  console.groupEnd(); // End "validateProcessedTheme"
 };
 
 // Config validation
@@ -169,7 +386,7 @@ export const validateThemeProvider = (
     storageKey?: string;
   }
 ): void => {
-  validateTheme(theme);
+  validateProcessedTheme(theme);
   validateThemeConfig(config);
 };
 
