@@ -1,4 +1,3 @@
-// ContactForm.tsx
 import { FC, memo, useState } from "react";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
@@ -16,23 +15,26 @@ const ContactForm: FC<ContactFormProps> = memo(({ onSubmit, isLoading }) => {
     formState: { errors }
   } = useForm<ContactFormData>();
 
-  const onSubmitForm = async (data: ContactFormData) => {
-    try {
-      await onSubmit(data);
-      setIsSuccess(true);
-      reset();
-      setTimeout(() => setIsSuccess(false), 3000);
-    } catch (error) {
-      console.error("Form submission error:", error);
-    }
+  // Define the submit handler to return void.
+  const onSubmitForm = (data: ContactFormData): void => {
+    // Wrap the async work in an IIFE.
+    void (async () => {
+      try {
+        // Wrap the onSubmit callback in Promise.resolve so that even if it isn’t a promise,
+        // it is treated as a thenable.
+        await Promise.resolve(onSubmit(data));
+        setIsSuccess(true);
+        reset();
+        setTimeout(() => setIsSuccess(false), 3000);
+      } catch (error) {
+        console.error("Form submission error:", error);
+      }
+    })();
   };
 
   return (
-    <motion.div
-      className={styles.card}
-      variants={contactAnimations.item}
-    >
-      <form className={styles.form} onSubmit={handleSubmit(onSubmitForm)}>
+    <motion.div className={styles.card} variants={contactAnimations.item}>
+      <form className={styles.form} onSubmit={void handleSubmit(onSubmitForm)}>
         <div className={styles.inputGrid}>
           <div>
             <input
@@ -41,7 +43,9 @@ const ContactForm: FC<ContactFormProps> = memo(({ onSubmit, isLoading }) => {
               className={styles.input}
               disabled={isLoading}
             />
-            {errors.name && <span className={styles.error}>{errors.name.message}</span>}
+            {errors.name && (
+              <span className={styles.error}>{errors.name.message}</span>
+            )}
           </div>
           <div>
             <input
@@ -50,7 +54,9 @@ const ContactForm: FC<ContactFormProps> = memo(({ onSubmit, isLoading }) => {
               className={styles.input}
               disabled={isLoading}
             />
-            {errors.email && <span className={styles.error}>{errors.email.message}</span>}
+            {errors.email && (
+              <span className={styles.error}>{errors.email.message}</span>
+            )}
           </div>
         </div>
 
@@ -61,7 +67,9 @@ const ContactForm: FC<ContactFormProps> = memo(({ onSubmit, isLoading }) => {
             className={styles.input}
             disabled={isLoading}
           />
-          {errors.subject && <span className={styles.error}>{errors.subject.message}</span>}
+          {errors.subject && (
+            <span className={styles.error}>{errors.subject.message}</span>
+          )}
         </div>
 
         <div>
@@ -72,14 +80,12 @@ const ContactForm: FC<ContactFormProps> = memo(({ onSubmit, isLoading }) => {
             className={styles.textarea}
             disabled={isLoading}
           />
-          {errors.message && <span className={styles.error}>{errors.message.message}</span>}
+          {errors.message && (
+            <span className={styles.error}>{errors.message.message}</span>
+          )}
         </div>
 
-        <button
-          type="submit"
-          className={styles.button}
-          disabled={isLoading}
-        >
+        <button type="submit" className={styles.button} disabled={isLoading}>
           {isLoading ? (
             <span className={styles.loading}>Sending...</span>
           ) : isSuccess ? (

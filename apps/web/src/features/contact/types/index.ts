@@ -1,5 +1,5 @@
 // features/contact/types/index.ts
-import { Variants } from 'framer-motion';
+import { Variants } from "framer-motion";
 
 export interface ContactFormData {
   name: string;

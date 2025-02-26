@@ -4,7 +4,7 @@ import ContactHeader from "../ContactHeader/ContactHeader";
 import ContactForm from "../ContactForm/ContactForm";
 import { contactAnimations } from "../../animations";
 import { DEFAULT_CONTACT_CONTENT } from "../../constants";
-import styles from "./Contact.module.css"; // CSS module for contact section
+import styles from "./Contact.module.css";
 import type { ContactFormData, ContactState } from "../../types";
 import { useSectionObserver } from "@/hooks/useSectionObserver";
 
@@ -14,8 +14,6 @@ const Contact: FC = memo(() => {
     error: null,
   });
 
-  // Use our observer hook and log when the section becomes visible
-  // this shouldn't be needed with newer react versions
   const sectionRef = useSectionObserver("contact", (id) => {
     console.log(`[Contact] Section "${id}" is now visible`);
   });
@@ -36,6 +34,12 @@ const Contact: FC = memo(() => {
       setState((prev) => ({ ...prev, isLoading: false }));
     }
   }, []);
+
+  // Wrap the async call in a synchronous handler.
+  const handleSubmitWrapper = useCallback((data: ContactFormData) => {
+    // We use the void operator to "ignore" the returned promise.
+    void handleSubmit(data);
+  }, [handleSubmit]);
 
   return (
     <section id="contact" ref={sectionRef} className={styles.section}>
@@ -58,7 +62,10 @@ const Contact: FC = memo(() => {
             </motion.div>
           )}
 
-          <ContactForm onSubmit={handleSubmit} isLoading={state.isLoading} />
+          {/* Use the wrapper so that the function passed to onSubmit returns void */}
+          {/* You can disable the no-misused-promises rule on this line if needed */}
+          { }
+          <ContactForm onSubmit={handleSubmitWrapper} isLoading={state.isLoading} />
         </motion.div>
       </div>
     </section>

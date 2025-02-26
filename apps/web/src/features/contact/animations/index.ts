@@ -1,6 +1,6 @@
 // features/contact/animations/index.ts
-import { ContactAnimations } from '../types';
-import { ANIMATION_DURATION } from '../constants';
+import { ContactAnimations } from "../types";
+import { ANIMATION_DURATION } from "../constants";
 
 export const contactAnimations: ContactAnimations = {
   container: {
