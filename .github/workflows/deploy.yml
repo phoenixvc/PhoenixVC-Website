@@ -195,6 +195,33 @@ jobs:
         env:
           LOCATION_CODE: ${{ env.LOCATION_CODE }}
 
+      - name: Notify Stakeholders via Teams
+        if: success()  # Only run if previous steps succeeded
+        run: |
+          echo "Notifying Teams via Webhook..."
+          curl -X POST -H "Content-Type: application/json" \
+            -d '{
+              "@type": "MessageCard",
+              "@context": "http://schema.org/extensions",
+              "summary": "Phoenix VC Deployment Notification",
+              "themeColor": "0076D7",
+              "title": "Production Deployment Complete",
+              "sections": [
+                {
+                  "activityTitle": "Deployment to Production Succeeded",
+                  "activitySubtitle": "Branch: '"${{ github.ref }}"'",
+                  "facts": [
+                    { "name": "Environment", "value": "Production" },
+                    { "name": "Location Code", "value": "'"${LOCATION_CODE}"'" },
+                    { "name": "Resource Group", "value": "prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website" }
+                  ],
+                  "markdown": true
+                }
+              ],
+              "text": "The production deployment has completed successfully. 🎉"
+            }' \
+            "https://prod-21.northeurope.logic.azure.com:443/workflows/9a94f520b85d4bdd99f015511d5ee3ea/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oiVbSb17Wfkzg3wvU3-b1JXUkOR6X7t_yhvkGg8CJ-Q"
+
   # ────────────────────────────────────────────
   # ✅ TRIGGER DNS CONFIGURATION WORKFLOW
   # ────────────────────────────────────────────
