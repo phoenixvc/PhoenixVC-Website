@@ -105,7 +105,12 @@ jobs:
           repository: JustAGhosT/PhoenixVC-Modernized
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-
+  
+      - name: Azure Login (Staging)
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+  
       - name: Run Staging Resource Deployment Script
         run: ./scripts/deployment/deploy.sh --env staging
         env:
