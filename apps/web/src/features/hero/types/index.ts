@@ -1,5 +1,5 @@
 // features/hero/types/index.ts
-import { Variants } from 'framer-motion';
+import { Variants } from "framer-motion";
 
 export interface HeroAnimations {
   container: Variants;
@@ -20,4 +20,4 @@ export interface HeroProps {
   className?: string;
 }
 
-export type HeroLinks = '#investment' | '#contact';
+export type HeroLinks = "#investment" | "#contact";

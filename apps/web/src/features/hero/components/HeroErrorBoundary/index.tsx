@@ -1,5 +1,5 @@
 // features/hero/components/HeroErrorBoundary/index.tsx
-import { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, ErrorInfo, ReactNode } from "react";
 
 interface Props {
   children: ReactNode;
@@ -19,7 +19,7 @@ class HeroErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Hero error:', error, errorInfo);
+    console.error("Hero error:", error, errorInfo);
   }
 
   public render() {
