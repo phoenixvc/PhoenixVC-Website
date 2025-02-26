@@ -16,11 +16,13 @@
     "web": "npm run dev --workspace=@phoenixvc/web",
     "design": "npm run dev --workspace=@phoenixvc/design-system",
     "build:web": "npm run build --workspace=@phoenixvc/web",
-    "type-check:web": "npm run type-check --workspace=@phoenixvc/web",
     "build:design": "npm run build --workspace=@phoenixvc/design-system",
+    "type-check:web": "npm run type-check --workspace=@phoenixvc/web",
+    "type-check:design": "npm run type-check --workspace=@phoenixvc/design-system",
     "format-check": "prettier --check .",
     "docs": "cd .config && poetry run docs",
-    "status:web": "./git-tree-status.sh apps/web"
+    "status:web": "./git-tree-status.sh apps/web",
+    "status:design": "./git-tree-status.sh apps/design-system"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.0.3",
