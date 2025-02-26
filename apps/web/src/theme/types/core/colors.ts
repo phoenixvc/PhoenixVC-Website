@@ -103,7 +103,7 @@ export interface ThemeScheme {
 
 export interface ThemeColors {
   schemes: Record<string, ThemeScheme>;
-  semantic: SemanticColors;
+  semantic?: SemanticColors;
 }
 
 export interface ColorConfig {

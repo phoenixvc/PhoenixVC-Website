@@ -1,14 +1,18 @@
-// src/theme/providers/theme-transformer.ts
+// transformTheme.ts
 import {
   ColorDefinition,
+  ColorShades,
   ProcessedBaseColors,
   REQUIRED_MODE_COLORS,
   REQUIRED_SEMANTIC_COLORS,
+  SemanticColors,
   ShadeLevel,
   ThemeColors,
-  ThemeMode
+  ThemeMode,
+  ThemeSchemeInitial
 } from "@/theme/types";
 import ColorUtils from "@/theme/utils/color-utils";
+import { THEME_CONSTANTS } from "../constants";
 
 interface DarkModeOptions {
   darkenBackground?: number;
@@ -21,6 +25,18 @@ interface LightModeOptions {
   darkenText?: number;
   adjustSaturation?: number;
 }
+
+const fallbackLight: LightModeOptions = {
+  lightenBackground: 0,
+  darkenText: 0,
+  adjustSaturation: 0,
+};
+
+const fallbackDark: DarkModeOptions = {
+  darkenBackground: 0,
+  lightenText: 0,
+  adjustSaturation: 0,
+};
 
 interface TransformOptions {
   darkMode?: DarkModeOptions;
@@ -40,44 +56,34 @@ const defaultOptions: Required<TransformOptions> = {
   },
 };
 
-// Type guard for ShadeLevel
-function isValidShadeLevel(value: number): value is ShadeLevel {
-  const validShadeLevels: ShadeLevel[] = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
-  return validShadeLevels.includes(value as ShadeLevel);
-}
-
 /**
- * Helper that creates a uniform palette (a ColorShades object) from a single ColorDefinition.
- * In a production system, you’d generate a proper palette.
+ * Helper: Log transformation options based on the mode.
+ * (Logged only once per theme transformation.)
  */
-function createUniformShades(color: ColorDefinition): Record<ShadeLevel, ColorDefinition> {
-  return {
-    50: color,
-    100: color,
-    200: color,
-    300: color,
-    400: color,
-    500: color,
-    600: color,
-    700: color,
-    800: color,
-    900: color,
-  };
-}
-
-/**
- * Ensure the base color is processed.
- * If it's not already a palette (i.e. an object with a "500" key), generate one.
- */
-function ensureProcessedBase(
-  color: ColorDefinition | Record<ShadeLevel, ColorDefinition>
-): Record<ShadeLevel, ColorDefinition> {
-  if (typeof color === "object" && "500" in color) {
-    return color as Record<ShadeLevel, ColorDefinition>;
+function logTransformationOptions(mode: ThemeMode, modeOptions: DarkModeOptions | LightModeOptions) {
+  console.group("Transformation Options");
+  console.log("Mode:", mode);
+  if (mode === "dark") {
+    const darkOptions = modeOptions as DarkModeOptions;
+    console.log("Dark Mode Options:", {
+      darkenBackground: darkOptions.darkenBackground,
+      lightenText: darkOptions.lightenText,
+      adjustSaturation: darkOptions.adjustSaturation
+    });
+  } else {
+    const lightOptions = modeOptions as LightModeOptions;
+    console.log("Light Mode Options:", {
+      lightenBackground: lightOptions.lightenBackground,
+      darkenText: lightOptions.darkenText,
+      adjustSaturation: lightOptions.adjustSaturation
+    });
   }
-  return createUniformShades(color as ColorDefinition);
+  console.groupEnd();
 }
 
+/**
+ * Transform a single color according to the given mode and options.
+ */
 const transformColor = (
   color: ColorDefinition,
   mode: ThemeMode,
@@ -100,61 +106,155 @@ const transformColor = (
   }
 };
 
+/**
+ * Refactored transformTheme function
+ */
 export function transformTheme(
-  theme: ThemeColors,
+  theme: ThemeSchemeInitial,
+  // NOTE: We still pass an explicit mode, but we’ll transform both blocks below.
   mode: ThemeMode,
+  semantic?: SemanticColors,
   options: TransformOptions = defaultOptions
 ): ThemeColors {
-  // Deep clone the theme to avoid mutating the original.
-  const transformed = JSON.parse(JSON.stringify(theme)) as ThemeColors;
-  const modeOptions = mode === "dark" ? options.darkMode : options.lightMode;
-  if (!modeOptions) return transformed;
+  console.groupCollapsed("transformTheme: Start");
+
+  // Build an initial ThemeColors object with only one scheme
+  const transformed: ThemeColors = {
+    schemes: {
+      [THEME_CONSTANTS.DEFAULTS.COLOR_SCHEME]: JSON.parse(JSON.stringify(theme)),
+    },
+    // If you have a separate semantic definition, you could add it here:
+    // semantic: theme.semantic || ({} as SemanticColors),
+    semantic: JSON.parse(JSON.stringify(semantic)),
+  };
+
+  console.log("Cloned theme:", transformed);
+
+  const scheme = transformed.schemes[THEME_CONSTANTS.DEFAULTS.COLOR_SCHEME];
+
+  // Decide how we handle transform options for both modes:
+  const lightModeOptions = options.lightMode ?? fallbackLight;
+  const darkModeOptions = options.darkMode ?? fallbackDark;
+
+  logTransformationOptions("light", lightModeOptions);
+  logTransformationOptions("dark", darkModeOptions);
 
   try {
-    // Transform each scheme.
-    Object.entries(transformed.schemes).forEach(([schemeName, scheme]) => {
-      if (!scheme.base || !schemeName) return;
+    /****************************************************
+     * PROCESS BASE COLORS (Same for all modes)
+     ****************************************************/
+    if (scheme.base) {
+      console.group("Processing base colors");
 
-      // Process each base color (e.g., primary, secondary, accent)
+      // For each base color (primary, secondary, accent, etc.)
       Object.entries(scheme.base).forEach(([colorKey, baseValue]) => {
-        // Ensure the base color is a processed palette.
-        const processedShades = ensureProcessedBase(baseValue);
-        // Replace the initial base with the processed palette.
-        scheme.base[colorKey as keyof ProcessedBaseColors] = processedShades;
-        // Transform each shade.
-        Object.entries(processedShades).forEach(([shadeKey, shadeColor]) => {
-          const shadeNum = Number(shadeKey);
-          if (isValidShadeLevel(shadeNum) && shadeColor) {
-            processedShades[shadeNum] = transformColor(shadeColor, mode, modeOptions);
-          }
+        console.group(`Processing base color: ${colorKey}`);
+
+        const baseHex = baseValue.hex;
+
+        // Generate a palette of 10 steps from the base hex
+        const paletteArray = ColorUtils.createPalette(baseHex, 10);
+        console.log("Generated palette array:", paletteArray);
+
+        const shadeLevels: ShadeLevel[] = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
+        const colorShades: Partial<ColorShades> = {};
+
+        paletteArray.forEach((colorDef, index) => {
+          const shade = shadeLevels[index];
+          // We still choose "mode" to transform each shade
+          // or you could skip transforming base if you only want raw color
+          const currentModeOptions = mode === "dark" ? darkModeOptions : lightModeOptions;
+          const transformedDef = transformColor(colorDef, mode, currentModeOptions);
+
+          colorShades[shade] = {
+            hex: transformedDef.hex,
+            rgb: transformedDef.rgb,
+            hsl: transformedDef.hsl,
+            alpha: transformedDef.alpha ?? 1,
+          };
         });
+
+        scheme.base[colorKey as keyof ProcessedBaseColors] = colorShades as ColorShades;
+        console.groupEnd();
       });
 
-      // Transform mode-specific colors (light/dark)
-      const modeColors = scheme[mode as "light" | "dark"];
-      if (modeColors) {
-        REQUIRED_MODE_COLORS.forEach((colorKey) => {
-          const color = modeColors[colorKey];
-          if (color) {
-            modeColors[colorKey] = transformColor(color, mode, modeOptions);
-          }
-        });
-      }
-    });
-
-    // Transform semantic colors
-    if (transformed.semantic) {
-      REQUIRED_SEMANTIC_COLORS.forEach((colorKey) => {
-        const color = transformed.semantic[colorKey];
-        if (color) {
-          transformed.semantic[colorKey] = transformColor(color, mode, modeOptions);
-        }
-      });
+      console.groupEnd();
+    } else {
+      console.warn("No base colors found in scheme.");
     }
 
+    /****************************************************
+     * PROCESS MODE-SPECIFIC COLORS FOR BOTH 'LIGHT' AND 'DARK'
+     ****************************************************/
+    // TODO: Revisit if we want to validate just one mode at a time
+    // For now, let's transform & validate BOTH to ensure fully populated fields.
+
+    (["light", "dark"] as ThemeMode[]).forEach((m) => {
+      console.group(`Transforming mode-specific colors for: ${m}`);
+      const modeColors = scheme[m];
+      const currentModeOptions = m === "dark" ? darkModeOptions : lightModeOptions;
+
+      if (modeColors) {
+        REQUIRED_MODE_COLORS.forEach((colorKey) => {
+          const singleColor = modeColors[colorKey];
+          if (singleColor) {
+            const ensuredColor = ColorUtils.ensureColorDefinition(singleColor);
+            modeColors[colorKey] = transformColor(ensuredColor, m, currentModeOptions);
+            console.log(`Transformed ${m} mode color ${colorKey}:`, modeColors[colorKey]);
+          } else {
+            console.warn(`Missing ${m} mode color for key: ${colorKey}`);
+          }
+        });
+      } else {
+        console.warn(`No ${m} mode-specific colors found.`);
+      }
+      console.groupEnd();
+    });
+
+    /****************************************************
+     * PROCESS SEMANTIC COLORS
+     ****************************************************/
+    //TODO: Make optional
+    console.group("Transforming semantic colors");
+
+    if (!transformed.semantic) {
+      console.warn("No semantic colors found.");
+    } else {
+      const semanticColors = transformed.semantic;
+
+      // We'll transform each semantic color once for "light" mode, then again for "dark" mode.
+      (["light", "dark"] as ThemeMode[]).forEach((m) => {
+        console.group(`Transforming semantic colors for: ${m}`);
+        const currentModeOptions =
+          m === "dark" ? darkModeOptions : lightModeOptions;
+
+          REQUIRED_SEMANTIC_COLORS.forEach((colorKey) => {
+            const color = semanticColors[colorKey];
+            if (color) {
+              // Ensure each color has valid hex/rgb/hsl before transforming
+              const ensured = ColorUtils.ensureColorDefinition(color);
+
+              const transformedDef = transformColor(ensured, m, currentModeOptions);
+              semanticColors[colorKey] = transformedDef;
+
+              console.log(
+                `Transformed semantic color "${colorKey}" for mode "${m}":`,
+                semanticColors[colorKey]
+              );
+            } else {
+              console.warn(`Missing semantic color for key: ${colorKey}`);
+            }
+          });
+
+          console.groupEnd();
+        });
+      }
+
+    console.groupEnd(); // End transformTheme group.
     return transformed;
   } catch (error) {
     console.error("Error transforming theme:", error);
+    console.groupEnd();
     return transformed;
   }
 }

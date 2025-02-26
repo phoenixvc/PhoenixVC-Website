@@ -1,10 +1,13 @@
+// src/theme/utils/color-utils.ts
 import {
   ColorDefinition,
   ColorAdjustments,
   HSLColor,
   ColorPaletteConfig,
   ColorShades,
-  ShadeLevel
+  ShadeLevel,
+  ValidationResult,
+  ValidationError,
 } from "../types";
 
 /**
@@ -17,94 +20,242 @@ export class ColorError extends Error {
   }
 }
 
+// Regex constants
+const HEX_FULL_REGEX = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+const RGB_REGEX = /^rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/;
+const HSL_REGEX = /hsla?\(([\d.]+),\s*([\d.]+)%,\s*([\d.]+)%(?:,\s*([\d.]+))?\)/;
+
 /**
- * Consolidated color utilities.
+ * Color utility object
  */
 export const ColorUtils = {
+  //------------------------------------------------
+  //                PRIVATE HELPERS
+  //------------------------------------------------
+
   /**
-   * Parse an HSL(A) string into an HSLColor object.
+   * Parse a hex string (with optional shorthand) into numeric RGB components.
    */
-  parseHSL: (color: string): HSLColor => {
-    const match = color.match(/hsla?\((\d+),\s*([\d.]+)%,\s*([\d.]+)%(?:,\s*([\d.]+))?\)/);
-    if (!match) {
-      throw new ColorError(`Invalid HSL(A) color format: ${color}`);
+  _getRgbComponentsFromHex(hex: string): { r: number; g: number; b: number } {
+    hex = hex.replace("#", "");
+    if (hex.length === 3) {
+      // Expand shorthand #RGB => #RRGGBB
+      hex = hex.split("").map((c) => c + c).join("");
     }
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    return { r, g, b };
+  },
+
+  /**
+   * Convert numeric RGB components to a 6-digit uppercase hex string (#RRGGBB).
+   */
+  _rgbToHex(r: number, g: number, b: number): string {
+    const toHex = (n: number) => n.toString(16).padStart(2, "0");
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase();
+  },
+
+  /**
+   * Convert numeric RGB (0–255) to an HSLColor,
+   * rounding hue and clamping s/l in [0..100].
+   */
+  _hslFromRgb(r: number, g: number, b: number): HSLColor {
+    // Normalize to [0..1]
+    r /= 255; g /= 255; b /= 255;
+
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const l = (max + min) / 2;
+    const d = max - min;
+
+    let h = 0;
+    let s = 0;
+
+    if (d !== 0) {
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
+      }
+      h /= 6;
+    }
+
+    // Convert to degrees + percentages
+    // 1) Round hue
+    h = Math.round(h * 360);
+
+    // 2) s, l => decimal but clamp to [0..100]
+    s = s * 100;
+    s = Math.min(100, Math.max(0, s));
+    // If you only want 2 decimal places, do s = parseFloat(s.toFixed(2));
+
+    let light = l * 100;
+    light = Math.min(100, Math.max(0, light));
+    // If you only want 2 decimal places, do light = parseFloat(light.toFixed(2));
+
     return {
-      h: Math.min(360, Math.max(0, parseInt(match[1], 10))),
-      s: Math.min(100, Math.max(0, parseFloat(match[2]))),
-      l: Math.min(100, Math.max(0, parseFloat(match[3]))),
+      h,
+      s,
+      l: light,
     };
   },
 
   /**
-   * Convert an HSLColor object to an HSL/HSLA string.
+   * Convert numeric h, s, l to an {r, g, b} object (0-255).
    */
-  toHSL: (color: HSLColor, alpha?: number): string => {
-    const { h, s, l } = color;
-    return alpha !== undefined
-      ? `hsla(${h}, ${s}%, ${l}%, ${alpha})`
-      : `hsl(${h}, ${s}%, ${l}%)`;
-  },
+  _hslToRgb(h: number, s: number, l: number): { r: number; g: number; b: number } {
+    s /= 100;
+    l /= 100;
 
-  /**
-   * Convert a hex color to an RGB string.
-   */
-  hexToRgb: (hex: string): string => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    if (!result) {
-      throw new ColorError(`Invalid hex color format: ${hex}`);
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const hh = h / 60;
+    const x = c * (1 - Math.abs((hh % 2) - 1));
+    let r = 0,
+      g = 0,
+      b = 0;
+
+    if (hh >= 0 && hh < 1) {
+      r = c;
+      g = x;
+    } else if (hh >= 1 && hh < 2) {
+      r = x;
+      g = c;
+    } else if (hh >= 2 && hh < 3) {
+      g = c;
+      b = x;
+    } else if (hh >= 3 && hh < 4) {
+      g = x;
+      b = c;
+    } else if (hh >= 4 && hh < 5) {
+      r = x;
+      b = c;
+    } else if (hh >= 5 && hh < 6) {
+      r = c;
+      b = x;
     }
-    const [, r, g, b] = result;
-    return `${parseInt(r, 16)},${parseInt(g, 16)},${parseInt(b, 16)}`;
-  },
 
-  /**
-   * Convert a hex color to an HSL string.
-   * (Placeholder: Replace with a proper conversion as needed)
-   */
-  hexToHsl: (_hex: string): string => {
-    // TODO: Implement a proper hex to HSL conversion.
-    return "0,0%,0%";
-  },
-
-  /**
-   * Create a ColorDefinition from a hex value.
-   */
-  createColorDefinition: (hex: string): ColorDefinition => {
+    const m = l - c / 2;
     return {
-      hex,
-      rgb: ColorUtils.hexToRgb(hex),
-      hsl: ColorUtils.hexToHsl(hex),
+      r: Math.round((r + m) * 255),
+      g: Math.round((g + m) * 255),
+      b: Math.round((b + m) * 255),
+    };
+  },
+
+  //------------------------------------------------
+  //            DEPRECATED METHODS
+  //------------------------------------------------
+
+  /**
+   * @deprecated
+   * Use `createColorDefinition` + `validateColorDefinition` instead
+   */
+  createValidColorDefinition: (color: string): ColorDefinition => {
+    console.warn("[DEPRECATED] createValidColorDefinition => use createColorDefinition + validateColorDefinition");
+    // Now we rely on createColorDefinition
+    const def = ColorUtils.createColorDefinition(color);
+    // optionally validate
+    // ... your validation logic, or none
+    return def;
+  },
+
+  /**
+   * @deprecated
+   * Use `createPalette` instead
+   */
+  generatePalette: (config: ColorPaletteConfig): ColorDefinition[] => {
+    console.warn("[DEPRECATED] generatePalette => use createPalette");
+    return ColorUtils.createPalette(config.baseColor, config.shades || 10);
+  },
+
+  /**
+   * @deprecated
+   * Use `hslToRgb` instead
+   */
+  hslToRGB: (_hsl: string): string => {
+    console.warn("[DEPRECATED] hslToRGB => use hslToRgb");
+    return ColorUtils.hslToRgb(_hsl);
+  },
+
+  /**
+   * @deprecated
+   * Use `createColorDefinition` or `ensureColorDefinition` instead
+   */
+  createColorObject: (color: string): { hex: string; rgb: string; hsl: string } => {
+    console.warn("[DEPRECATED] createColorObject => use createColorDefinition or ensureColorDefinition");
+    // Reuse createColorDefinition here
+    const cd = ColorUtils.createColorDefinition(color);
+    return {
+      hex: cd.hex,
+      rgb: cd.rgb,
+      hsl: cd.hsl,
+    };
+  },
+
+  //------------------------------------------------
+  //             PUBLIC API
+  //------------------------------------------------
+
+  /**
+   * Create a ColorDefinition from a hex *or* any recognized string (hex/rgb/hsl).
+   */
+  createColorDefinition(color: string): ColorDefinition {
+    // If color is hex, just parse directly
+    const normalized = ColorUtils.normalizeColor(color);
+    const { r, g, b } = ColorUtils._getRgbComponentsFromHex(normalized);
+    const hsl = ColorUtils._hslFromRgb(r, g, b);
+
+    return {
+      hex: normalized,
+      rgb: `rgb(${r}, ${g}, ${b})`,
+      hsl: ColorUtils.toHSL(hsl),
     };
   },
 
   /**
-   * Adjust a color by modifying its HSL values.
+   * Adjust a color's HSL by given offsets (hue, saturation, lightness, alpha).
    */
-  adjustColor: (color: ColorDefinition, adjustments: ColorAdjustments): ColorDefinition => {
+  adjustColor(color: ColorDefinition, adjustments: ColorAdjustments): ColorDefinition {
     try {
       const parsed = ColorUtils.parseHSL(color.hsl);
+      const newH = ((parsed.h + (adjustments.hue ?? 0)) % 360 + 360) % 360;
       const newHSL: HSLColor = {
-        h: (parsed.h + (adjustments.hue ?? 0)) % 360,
+        h: newH,
         s: Math.max(0, Math.min(100, parsed.s + (adjustments.saturation ?? 0))),
         l: Math.max(0, Math.min(100, parsed.l + (adjustments.lightness ?? 0))),
       };
       const newHSLString = ColorUtils.toHSL(newHSL, adjustments.alpha);
       return {
         hex: ColorUtils.hslToHex(newHSLString),
-        rgb: ColorUtils.hslToRGB(newHSLString),
+        rgb: ColorUtils.hslToRgb(newHSLString),
         hsl: newHSLString,
         alpha: adjustments.alpha ?? color.alpha,
       };
     } catch (error) {
-      throw new ColorError(`Failed to adjust color: ${error instanceof Error ? error.message : error}`);
+      throw new ColorError(`Failed to adjust color: ${error instanceof Error ? error.message : String(error)}`);
     }
   },
 
   /**
-   * Mix two colors given in HSL string format.
+   * Lighten a color by a given amount (0-100).
    */
-  mix: (color1: string, color2: string, weight: number = 0.5): string => {
+  lighten(color: ColorDefinition, amount: number): ColorDefinition {
+    return ColorUtils.adjustColor(color, { lightness: amount });
+  },
+
+  /**
+   * Darken a color by a given amount (0-100).
+   */
+  darken(color: ColorDefinition, amount: number): ColorDefinition {
+    return ColorUtils.adjustColor(color, { lightness: -amount });
+  },
+
+  /**
+   * Mix two HSL(A) color strings with a given weight.
+   */
+  mix(color1: string, color2: string, weight: number = 0.5): string {
     try {
       const c1 = ColorUtils.parseHSL(color1);
       const c2 = ColorUtils.parseHSL(color2);
@@ -115,69 +266,370 @@ export const ColorUtils = {
       };
       return ColorUtils.toHSL(mixed);
     } catch (error) {
-      throw new ColorError(`Failed to mix colors: ${error instanceof Error ? error.message : error}`);
+      throw new ColorError(`Failed to mix colors: ${error instanceof Error ? error.message : String(error)}`);
     }
   },
 
   /**
-   * Generate a simple color palette from a base HSL color string.
+   * Generate a palette of ColorDefinition objects from a base hex color.
    */
-  createPalette: (baseColor: string, steps: number = 9): string[] => {
+  createPalette(baseHex: string, steps: number = 9): ColorDefinition[] {
     try {
-      const base = ColorUtils.parseHSL(baseColor);
+      const baseHsl = ColorUtils.hexToHsl(baseHex);
       return Array.from({ length: steps }, (_, i) => {
+        // Lightness from 0 to 100
         const lightness = (100 / (steps - 1)) * i;
-        return ColorUtils.toHSL({ ...base, l: lightness });
+        const hslObj: HSLColor = { h: baseHsl.h, s: baseHsl.s, l: lightness };
+        const hslString = ColorUtils.toHSL(hslObj);
+        return {
+          hex: ColorUtils.hslToHex(hslString),
+          rgb: ColorUtils.hslToRgb(hslString),
+          hsl: hslString,
+        };
       });
     } catch (error) {
-      throw new ColorError(`Failed to create palette: ${error instanceof Error ? error.message : error}`);
+      throw new ColorError(
+        `Failed to create palette from '${baseHex}': ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   },
 
-  // Additional utility functions as defined in ColorUtilities.
-  darken: (color: ColorDefinition, amount: number): ColorDefinition => {
-    return ColorUtils.adjustColor(color, { lightness: -amount });
+  /**
+   * Convert an HSLColor to an HSL/HSLA string.
+   */
+  toHSL(color: HSLColor, alpha?: number): string {
+    const { h, s, l } = color;
+    return alpha !== undefined
+      ? `hsla(${h}, ${s}%, ${l}%, ${alpha})`
+      : `hsl(${h}, ${s}%, ${l}%)`;
   },
 
-  lighten: (color: ColorDefinition, amount: number): ColorDefinition => {
-    return ColorUtils.adjustColor(color, { lightness: amount });
+  /**
+   * Parse an HSL/HSLA string, rounding hue and clamping s/l.
+   * For example: "hsl(221.3, 77.4%, -5%)" => hue=221, s=77.4 clamped to e.g. 77.4, l=0
+   */
+  parseHSL(color: string): HSLColor {
+    const match = color.match(/hsla?\(([\d.]+),\s*([\d.]+)%,\s*([\d.]+)%(?:,\s*([\d.]+))?\)/);
+    if (!match) {
+      throw new ColorError(`Invalid HSL(A) color format: ${color}`);
+    }
+
+    // Convert to floats
+    let hue = parseFloat(match[1]);
+    let sat = parseFloat(match[2]);
+    let lig = parseFloat(match[3]);
+
+    // 1) Round hue
+    hue = Math.round(hue);
+    // 2) s, l => decimal but clamp to [0..100]
+    sat = Math.min(100, Math.max(0, sat));
+    lig = Math.min(100, Math.max(0, lig));
+    // if you want 2 decimals for s/l => sat = +sat.toFixed(2); etc.
+
+    return { h: hue, s: sat, l: lig };
   },
 
-  getContrastRatio: (_background: ColorDefinition, _foreground: ColorDefinition): number => {
-    // TODO: Implement a proper contrast ratio calculation.
-    return 1;
+  /**
+   * Convert a hex color to an RGB string.
+   */
+  hexToRgb(hex: string): string {
+    const { r, g, b } = ColorUtils._getRgbComponentsFromHex(hex);
+    return `rgb(${r}, ${g}, ${b})`;
   },
 
-  // Functions from ColorSchemeGenerator
-  fromBase: (baseColor: ColorDefinition): ColorShades => {
-    // Generate a palette of 10 steps and assign them to standard shade levels.
-    const palette = ColorUtils.createPalette(baseColor.hsl, 10);
-    const levels: ShadeLevel[] = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
-    const shades: Partial<ColorShades> = {};
-    levels.forEach((level, i) => {
-      shades[level] = {
-        hex: baseColor.hex, // Placeholder – in a real implementation, convert the HSL to a hex value.
-        rgb: baseColor.rgb,
-        hsl: palette[i] || baseColor.hsl,
+  /**
+   * Convert a hex color to an HSLColor object.
+   */
+  hexToHsl(hex: string): HSLColor {
+    const { r, g, b } = ColorUtils._getRgbComponentsFromHex(hex);
+    return ColorUtils._hslFromRgb(r, g, b);
+  },
+
+  /**
+   * Convert an HSL string to an RGB string.
+   */
+  hslToRgb(hsl: string): string {
+    const { h, s, l } = ColorUtils.parseHSL(hsl);
+    const { r, g, b } = ColorUtils._hslToRgb(h, s, l);
+    return `rgb(${r}, ${g}, ${b})`;
+  },
+
+  /**
+   * Convert an HSL string to a hex color.
+   */
+  hslToHex(hsl: string): string {
+    const { h, s, l } = ColorUtils.parseHSL(hsl);
+    const { r, g, b } = ColorUtils._hslToRgb(h, s, l);
+    return ColorUtils._rgbToHex(r, g, b);
+  },
+
+  /**
+   * Convert an RGB string to hex format (e.g., "#rrggbb").
+   */
+  rgbToHex(rgb: string): string {
+    const match = rgb.match(/\d+/g);
+    if (!match) throw new ColorError(`Invalid RGB color: ${rgb}`);
+    const [r, g, b] = match.map(Number);
+    return ColorUtils._rgbToHex(r, g, b);
+  },
+
+  /**
+   * Convert an RGB string to an HSL string.
+   */
+  rgbToHsl(rgb: string): string {
+    const match = rgb.match(/\d+/g);
+    if (!match) throw new ColorError(`Invalid RGB color: ${rgb}`);
+    const [ri, gi, bi] = match.map((n) => parseInt(n, 10) / 255);
+    const max = Math.max(ri, gi, bi);
+    const min = Math.min(ri, gi, bi);
+    let h = 0;
+    let s = 0;
+    const l = (max + min) / 2;
+
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case ri:
+          h = (gi - bi) / d + (gi < bi ? 6 : 0);
+          break;
+        case gi:
+          h = (bi - ri) / d + 2;
+          break;
+        case bi:
+          h = (ri - gi) / d + 4;
+          break;
+      }
+      h /= 6;
+    }
+
+    const hDeg = Math.round(h * 360);
+    const sPct = Math.round(s * 100);
+    const lPct = Math.round(l * 100);
+    return `hsl(${hDeg}, ${sPct}%, ${lPct}%)`;
+  },
+
+  /**
+   * Normalize a color string to a 6-digit hex (e.g., "#rrggbb").
+   */
+  normalizeColor(color: string): string {
+    color = color.trim().toLowerCase();
+    const rgbMatch = color.match(RGB_REGEX);
+    if (rgbMatch) {
+      const [_, r, g, b] = rgbMatch;
+      return ColorUtils._rgbToHex(Number(r), Number(g), Number(b));
+    }
+    if (color.match(/^#[0-9a-f]{3}$/)) {
+      // Expand #rgb => #rrggbb
+      return `#${color[1]}${color[1]}${color[2]}${color[2]}${color[3]}${color[3]}`;
+    }
+    if (color.match(HEX_FULL_REGEX)) {
+      return color;
+    }
+    throw new ColorError(`Invalid color format: ${color}`);
+  },
+
+  /**
+   * Check if a color string is valid by attempting to normalize it.
+   */
+  isValidColor(color: string): boolean {
+    try {
+      ColorUtils.normalizeColor(color);
+      return true;
+    } catch {
+      return false;
+    }
+  },
+
+  /**
+   * Ensure a partial ColorDefinition has hex/rgb/hsl.
+   */
+  ensureColorDefinition(color: Partial<ColorDefinition>): ColorDefinition {
+    // If we already have all 3, done
+    if (ColorUtils.isCompleteColorDefinition(color)) {
+      return color as ColorDefinition;
+    }
+
+    const result: Partial<ColorDefinition> = { ...color };
+    if (!result.hex && !result.rgb && !result.hsl) {
+      throw new ColorError("Color definition must have at least hex, rgb, or hsl");
+    }
+
+    // Priority: hex > rgb > hsl
+    if (result.hex) {
+      if (!result.rgb) result.rgb = ColorUtils.hexToRgb(result.hex);
+      if (!result.hsl) result.hsl = ColorUtils.rgbToHsl(result.rgb);
+    } else if (result.rgb) {
+      if (!result.hex) result.hex = ColorUtils.rgbToHex(result.rgb);
+      if (!result.hsl) result.hsl = ColorUtils.rgbToHsl(result.rgb);
+    } else if (result.hsl) {
+      // Derive from HSL
+      const rgb = ColorUtils.hslToRgb(result.hsl);
+      result.rgb = rgb;
+      result.hex = ColorUtils.rgbToHex(rgb);
+    }
+
+    if (color.alpha !== undefined) {
+      result.alpha = color.alpha;
+    }
+    return result as ColorDefinition;
+  },
+
+  /**
+   * Check if a partial color definition has hex+rgb+hsl.
+   */
+  isCompleteColorDefinition(color: Partial<ColorDefinition>): boolean {
+    return !!(color.hex && color.rgb && color.hsl);
+  },
+
+  /**
+   * Determine the contrast ratio (WCAG) between two ColorDefinitions (background vs. foreground).
+   */
+  getContrastRatio(background: ColorDefinition, foreground: ColorDefinition): number {
+    const getLuminance = (c: ColorDefinition): number => {
+      const { r, g, b } = ColorUtils.getRgbComponents(c.hex);
+      const srgb = [r, g, b].map((val) => val / 255);
+      const linear = srgb.map((ch) => (ch <= 0.03928 ? ch / 12.92 : Math.pow((ch + 0.055) / 1.055, 2.4)));
+      return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+    };
+
+    const lumBg = getLuminance(background);
+    const lumFg = getLuminance(foreground);
+    const lighter = Math.max(lumBg, lumFg);
+    const darker = Math.min(lumBg, lumFg);
+    return (lighter + 0.05) / (darker + 0.05);
+  },
+
+  /**
+   * Return numeric (r,g,b) from a hex color.
+   */
+  getRgbComponents(color: string): { r: number; g: number; b: number } {
+    const normalized = ColorUtils.normalizeColor(color);
+    return ColorUtils._getRgbComponentsFromHex(normalized);
+  },
+
+  /**
+   * [Optional debug] Print color details.
+   */
+  debugColor(color: string): void {
+    console.group("Color Debugger");
+    console.log("Input:", color);
+    try {
+      const normalized = ColorUtils.normalizeColor(color);
+      console.log("Normalized hex:", normalized);
+
+      const comps = ColorUtils.getRgbComponents(normalized);
+      console.log("RGB components:", comps);
+
+      const colorDef = ColorUtils.createColorDefinition(normalized);
+      console.log("Full color definition:", colorDef);
+    } catch (err) {
+      console.error("Failed to debug color:", err);
+    }
+    console.groupEnd();
+  },
+
+  //------------------------------------------------
+  //   Basic Validation / Checking (Optional)
+  //------------------------------------------------
+
+  /**
+   * Validate a ColorDefinition object thoroughly (hex, rgb, hsl).
+   * Returns a ValidationResult with any errors.
+   */
+  validateColorDefinition(color: ColorDefinition, path: string): ValidationResult {
+    console.group(`Validating color definition at ${path}`);
+    try {
+      const errors = ColorUtils._collectValidationErrors(color, path);
+      if (errors.length > 0) {
+        console.warn("Validation failed:", errors[0]);
+        console.groupEnd();
+        // Return isValid=false with the full array of errors
+        return {
+          isValid: false,
+          path,
+          value: color,
+          errors,
+        };
+      }
+      console.log("Validation passed");
+      console.groupEnd();
+      // Return isValid=true with no errors
+      return {
+        isValid: true,
+        path,
+        value: color,
       };
-    });
-    return shades as ColorShades;
+    } catch (error) {
+      console.error("Validation error:", error);
+      console.groupEnd();
+      // Return isValid=false with a single unexpected error
+      return {
+        isValid: false,
+        path,
+        value: color,
+        errors: [
+          {
+            code: "UNEXPECTED_ERROR",
+            message: "Unexpected error during color validation",
+            path,
+            details: { error: String(error) },
+          },
+        ],
+      };
+    }
   },
 
-  generatePalette: (config: ColorPaletteConfig): any => {
-    return ColorUtils.createPalette(config.baseColor, config.shades || 9);
+  /**
+   * Returns true if color definition passes validation, otherwise false.
+   */
+  isValidColorDefinition(color: unknown, path: string = "color"): boolean {
+    if (!color || typeof color !== "object") return false;
+    const cd = color as ColorDefinition;
+    const errors = ColorUtils._collectValidationErrors(cd, path);
+    return errors.length === 0;
   },
 
-  // Conversion utilities (placeholders)
-  hslToHex: (_hsl: string): string => {
-    // TODO: Implement HSL to hex conversion.
-    return "#000000";
-  },
+  /**
+   * [Private] Gather potential validation errors for a ColorDefinition.
+   */
+  _collectValidationErrors(color: ColorDefinition, path: string): ValidationError[] {
+    const errors: ValidationError[] = [];
 
-  hslToRGB: (_hsl: string): string => {
-    // TODO: Implement HSL to RGB conversion.
-    return "0,0,0";
-  }
+    // 1) Hex check
+    if (!color.hex || !HEX_FULL_REGEX.test(color.hex)) {
+      errors.push({
+        code: "COLOR_INVALID_HEX",
+        message: "Invalid or missing hex format (#RGB or #RRGGBB)",
+        path: `${path}.hex`,
+        details: { received: color.hex },
+      });
+    }
+
+    // 2) RGB check
+    if (!color.rgb || !RGB_REGEX.test(color.rgb)) {
+      errors.push({
+        code: "COLOR_INVALID_RGB",
+        message: "Invalid or missing RGB format (rgb(r,g,b))",
+        path: `${path}.rgb`,
+        details: { received: color.rgb },
+      });
+    }
+
+    // 3) HSL check
+    if (!color.hsl || !HSL_REGEX.test(color.hsl)) {
+      errors.push({
+        code: "COLOR_INVALID_HSL",
+        message: "Invalid or missing HSL format (hsl(h,s%,l%))",
+        path: `${path}.hsl`,
+        details: { received: color.hsl },
+      });
+    }
+
+    // [Optional] cross-check hex/rgb for consistency
+    // ...
+    return errors;
+  },
 };
 
 export default ColorUtils;

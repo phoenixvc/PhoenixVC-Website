@@ -11,14 +11,13 @@ import {
   ThemeClassSuffix,
   CssVariableConfig,
   ThemeConfig,
-  ValidationResult
+  ValidationResult,
+  ValidationError
 } from "@/theme/types";
-import { transformTheme } from "./theme-transformer";
-import { generateThemeVariables } from "./theme-variables";
-import { validateTheme, validateThemeConfig } from "./validation";
+import { generateSchemeSemantics, generateThemeVariables } from "./theme-variables";
+import { validateProcessedTheme, validateThemeConfig } from "./validation";
 import { ThemeErrorBoundary } from "@/theme/components/theme-error-boundary";
 import { ExtendedThemeState } from "@/theme/types/context/state";
-import ColorUtils from "../utils/color-utils";
 
 const SUPPORTED_COLOR_SCHEMES: ThemeColorScheme[] = ["classic"];
 
@@ -36,11 +35,30 @@ const defaultState: ThemeState = {
 const validateConfig = (config: Partial<ThemeConfig>): ValidationResult => {
   try {
     validateThemeConfig(config);
-    return { isValid: true };
+    return {
+      isValid: true,
+      path: 'theme',
+      value: config
+    };
   } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : "Invalid theme configuration";
-    console.error("[ThemeProvider] Configuration validation error:", errorMessage);
-    return { isValid: false, errors: [errorMessage] };
+    const error: ValidationError = {
+      code: 'INVALID_THEME_CONFIG',
+      message: err instanceof Error ? err.message : "Invalid theme configuration",
+      path: 'theme',
+      details: {
+        error: err instanceof Error ? err.message : String(err),
+        config: config
+      }
+    };
+
+    console.error("[ThemeProvider] Configuration validation error:", error);
+
+    return {
+      isValid: false,
+      errors: [error],
+      path: 'theme',
+      value: config
+    };
   }
 };
 
@@ -111,8 +129,11 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   ]);
 
   useEffect(() => {
-    if (!validationResult.isValid && validationResult.errors?.length) {
-      setError(new Error(validationResult.errors[0]));
+    if (!validationResult.isValid && validationResult.errors?.[0]) {
+      const firstError = validationResult.errors[0];
+      const error = new Error(`${firstError.code}: ${firstError.message}`) as Error & { details: ValidationError };
+      error.details = firstError; // Attach the full validation error for reference
+      setError(error);
     } else {
       setError(null);
     }
@@ -137,14 +158,27 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
           });
 
           const theme = await loadTheme(state.colorScheme);
-          console.log("[ThemeProvider] Loaded theme data:", {
-            themeType: typeof theme,
-            themeContent: JSON.stringify(theme, null, 2).substring(0, 500) + "..." // First 500 chars
+          console.groupCollapsed("[ThemeProvider] Loaded theme data");
+          console.log("Theme type:", typeof theme)
+          console.log("Raw object:", theme);
+          console.log("Stringified object:", JSON.stringify(theme, null, 2).substring(0, 500) + "...")
+          console.groupEnd();
+
+          console.log("[ThemeProvider] Generating semantics...");
+          const semantics = generateSchemeSemantics(theme, state.mode);
+          console.log("[ThemeProvider] semantics generated:", {
+            semanticsGenerated: Object.keys(semantics)
+          });
+
+          console.log("[ThemeProvider] Generating variables...");
+          const variables = generateThemeVariables(theme, state.mode);
+          console.log("[ThemeProvider] Variables generated:", {
+            categoriesGenerated: Object.keys(variables.computed)
           });
 
           try {
             console.log("[ThemeProvider] Validating theme...");
-            validateTheme(theme);
+            validateProcessedTheme(theme);
             console.log("[ThemeProvider] Theme validation successful");
           } catch (validationError) {
             console.error("[ThemeProvider] Theme validation failed:", {
@@ -153,26 +187,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
             });
             throw validationError;
           }
-
-          console.log("[ThemeProvider] Transforming theme...");
-          const transformedTheme = transformTheme(theme, state.mode);
-          console.log("[ThemeProvider] Theme transformed successfully:", {
-            mode: state.mode,
-            transformedThemeKeys: Object.keys(transformedTheme)
-          });
-
-          console.log("[ThemeProvider] Generating variables...");
-          const variables = generateThemeVariables(transformedTheme, state.mode);
-          console.log("[ThemeProvider] Variables generated:", {
-            categoriesGenerated: Object.keys(variables.computed)
-          });
-
-        // Example: using ColorUtils to adjust the primary color before applying
-        const adjustedPrimary = ColorUtils.darken(
-          transformedTheme.schemes[state.colorScheme].light.background,
-          10
-        );
-        console.log("Adjusted primary (for demonstration):", adjustedPrimary);
+        // // Example: using ColorUtils to adjust the primary color before applying
+        // const adjustedPrimary = ColorUtils.darken(
+        //   theme.schemes[state.colorScheme].light.background,
+        //   10
+        // );
+        // console.log("Adjusted primary (for demonstration):", adjustedPrimary);
 
         // Apply computed theme variables as CSS variables
         Object.entries(variables.computed).forEach(([category, values]) => {
@@ -188,7 +208,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
         document.documentElement.setAttribute("data-direction", state.direction);
 
         setState(prev => ({ ...prev, initialized: true }));
-      } catch (err) {
+         } catch (err) {
         const errorDetails = {
           message: err instanceof Error ? err.message : String(err),
           stack: err instanceof Error ? err.stack : undefined,
@@ -372,14 +392,21 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   console.error("[ThemeProvider] Render error details:", errorDetails);
 
   return (
-    <div style={{ padding: '20px', color: 'red', border: '1px solid red', margin: '10px' }}>
-      <h3>Theme Error</h3>
-      <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-        {JSON.stringify(errorDetails, null, 2)}
-      </pre>
-    </div>
+    <ThemeErrorBoundary>
+      <ThemeContext.Provider value={contextValue}>
+        <div
+          className={className}
+          data-theme={state.colorScheme}
+          data-mode={state.mode}
+          data-direction={state.direction}
+        >
+          {children}
+        </div>
+      </ThemeContext.Provider>
+    </ThemeErrorBoundary>
   );
-
+} else {
+  console.log("ThemeProvider returning children now...");
   return (
     <ThemeErrorBoundary>
       <ThemeContext.Provider value={contextValue}>
@@ -390,6 +417,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     </ThemeErrorBoundary>
   );
 }
-};
+}
 
 export default ThemeProvider;
