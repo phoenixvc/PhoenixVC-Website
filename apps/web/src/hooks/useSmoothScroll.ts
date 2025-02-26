@@ -1,5 +1,5 @@
 // hooks/useSmoothScroll.ts
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
 export const useSmoothScroll = () => {
   useEffect(() => {
@@ -10,20 +10,20 @@ export const useSmoothScroll = () => {
         const element = document.querySelector(target.hash);
         if (element) {
           element.scrollIntoView({
-            behavior: 'smooth'
+            behavior: "smooth"
           });
         }
       }
     };
 
-    const anchors = document.querySelectorAll('a[href^="#"]');
+    const anchors = document.querySelectorAll("a[href^=\"#\"]");
     anchors.forEach(anchor => {
-      anchor.addEventListener('click', handleAnchorClick);
+      anchor.addEventListener("click", handleAnchorClick);
     });
 
     return () => {
       anchors.forEach(anchor => {
-        anchor.removeEventListener('click', handleAnchorClick);
+        anchor.removeEventListener("click", handleAnchorClick);
       });
     };
   }, []);

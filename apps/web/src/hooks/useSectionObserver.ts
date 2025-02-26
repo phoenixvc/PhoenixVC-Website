@@ -1,5 +1,5 @@
 // src/hooks/useSectionObserver.ts
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
 interface SectionObserverOptions {
   threshold?: number;
@@ -9,7 +9,7 @@ interface SectionObserverOptions {
 export const useSectionObserver = (
   sectionId: string,
   callback?: (id: string) => void,
-  options: SectionObserverOptions = { threshold: 0.5, rootMargin: '0px 0px -10% 0px' }
+  options: SectionObserverOptions = { threshold: 0.5, rootMargin: "0px 0px -10% 0px" }
 ) => {
   const ref = useRef<HTMLDivElement>(null);
 
