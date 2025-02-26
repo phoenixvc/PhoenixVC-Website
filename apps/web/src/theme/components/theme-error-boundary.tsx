@@ -19,14 +19,14 @@ export class ThemeErrorBoundary extends React.Component<
 > {
   public state: ThemeErrorBoundaryState = {
     hasError: false,
-    error: null
+    error: null,
   };
 
   public static getDerivedStateFromError(error: Error): ThemeErrorBoundaryState {
     // Update state so the next render will show the fallback UI.
     return {
       hasError: true,
-      error
+      error,
     };
   }
 
@@ -49,7 +49,7 @@ export class ThemeErrorBoundary extends React.Component<
       // Reset the error state
       this.setState({
         hasError: false,
-        error: null
+        error: null,
       });
 
       // Reload the page
@@ -66,11 +66,7 @@ export class ThemeErrorBoundary extends React.Component<
     }
 
     return (
-      <div
-        className="theme-error-fallback"
-        role="alert"
-        aria-live="polite"
-      >
+      <div className="theme-error-fallback" role="alert" aria-live="polite">
         <h2>Theme Error</h2>
         <p>Something went wrong with the theme system.</p>
         {this.state.error && (
@@ -78,11 +74,7 @@ export class ThemeErrorBoundary extends React.Component<
             {this.state.error.message}
           </pre>
         )}
-        <button
-          onClick={this.handleReset}
-          type="button"
-          className="theme-reset-button"
-        >
+        <button onClick={this.handleReset} type="button" className="theme-reset-button">
           Reset Theme
         </button>
       </div>
@@ -93,7 +85,7 @@ export class ThemeErrorBoundary extends React.Component<
     if (this.state.hasError) {
       return this.renderErrorUI();
     }
-
+    console.log("Error Boundary rendered");
     return this.props.children;
   }
 }
