@@ -129,6 +129,13 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build_apps, deploy_resources_staging]
     steps:
+      - name: Checkout Repository for Staging Resources
+        uses: actions/checkout@v4
+        with:
+          repository: JustAGhosT/PhoenixVC-Modernized
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+          
       - name: Use SWA Deploy Action for Staging
         uses: ./.github/actions/swa-deploy
         with:
