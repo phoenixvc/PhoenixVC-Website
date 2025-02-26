@@ -5,6 +5,8 @@ import { Contact } from '@/features/contact';
 import { BrowserRouter } from 'react-router-dom';
 
 const App = () => {
+  console.log("App rendered");
+
   return (
     <BrowserRouter>
       <Layout>

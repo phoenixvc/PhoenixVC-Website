@@ -3,14 +3,14 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import { ThemeProvider } from "@/theme"; // or use your barrel file import
 import "./theme/theme.css";
-
+console.log("Index file is running");
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider
       config={{
-        defaultScheme: "classic",  // Use classic color scheme by default
-        defaultMode: "dark",        // Set initial mode to light (will be overridden if system mode is enabled)
-        useSystem: true,             // Enable system mode so OS settings are applied
+        defaultScheme: "classic",
+        defaultMode: "dark",
+        useSystem: true,
         storage: {
           type: "localStorage",
           prefix: "my-app-theme"
@@ -23,8 +23,7 @@ createRoot(document.getElementById("root")!).render(
       className="theme-wrapper"
       onThemeChange={(theme) => {
         console.log(`Theme changed:`, theme);
-      }}
-    >
+      }}>
       <App />
     </ThemeProvider>
   </StrictMode>
