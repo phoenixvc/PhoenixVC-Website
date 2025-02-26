@@ -32,6 +32,7 @@ runs:
         path: ${{ inputs.artifact-path }}
 
     - name: Deploy Site via SWA CLI
+      shell: bash
       run: |
         echo "Deploying to ${{ inputs.env }} using SWA CLI from artifact..."
         npx swa deploy ${{ inputs.artifact-path }} \
