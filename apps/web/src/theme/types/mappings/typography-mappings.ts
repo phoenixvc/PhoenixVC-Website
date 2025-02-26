@@ -64,7 +64,7 @@ export interface TypographyMappings {
     };
 
     display: {
-        '2xl': TextStyles;
+        "2xl": TextStyles;
         xl: TextStyles;
         lg: TextStyles;
         md: TextStyles;

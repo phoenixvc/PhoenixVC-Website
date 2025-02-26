@@ -1,9 +1,9 @@
-import React from 'react';
+import React from "react";
 import {
   ThemeContextValue
-} from '../types';
-import { ThemeContextError } from '../types/context/error';
-import { ThemeContextState } from '../types/context/state';
+} from "../types";
+import { ThemeContextError } from "../types/context/error";
+import { ThemeContextState } from "../types/context/state";
 
 /**
  * Creates a new Theme Context.
@@ -54,7 +54,7 @@ export const createUseThemeContext = (
     return () => {
         const context = React.useContext(Context);
         if (!context) {
-            throw new Error('useThemeContext must be used within a ThemeProvider');
+            throw new Error("useThemeContext must be used within a ThemeProvider");
         }
         return context;
     };

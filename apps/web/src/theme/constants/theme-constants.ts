@@ -10,38 +10,38 @@ import {
 
 const createColorDefinition = (hex: string): ColorDefinition => ({
   hex,
-  rgb: '', // These would be computed by a utility function
-  hsl: '', // These would be computed by a utility function
+  rgb: "", // These would be computed by a utility function
+  hsl: "", // These would be computed by a utility function
 });
 
 const createInitialBaseColors = (): InitialBaseColors => ({
-  primary: createColorDefinition('#1C3F8D'),
-  secondary: createColorDefinition('#2A5777'),
-  accent: createColorDefinition('#D41F4B')
+  primary: createColorDefinition("#1C3F8D"),
+  secondary: createColorDefinition("#2A5777"),
+  accent: createColorDefinition("#D41F4B")
 });
 
 const createBaseScheme = (): ThemeSchemeInitial => ({
   base: createInitialBaseColors(),
   light: {
-    background: createColorDefinition('#FFFFFF'),
-    text: createColorDefinition('#1C2333'),
-    muted: createColorDefinition('#A7B3C2'),
-    border: createColorDefinition('#D4D9E0'),
+    background: createColorDefinition("#FFFFFF"),
+    text: createColorDefinition("#1C2333"),
+    muted: createColorDefinition("#A7B3C2"),
+    border: createColorDefinition("#D4D9E0"),
   },
   dark: {
-    background: createColorDefinition('#1C2333'),
-    text: createColorDefinition('#FFFFFF'),
-    muted: createColorDefinition('#3C4858'),
-    border: createColorDefinition('#252B3A'),
+    background: createColorDefinition("#1C2333"),
+    text: createColorDefinition("#FFFFFF"),
+    muted: createColorDefinition("#3C4858"),
+    border: createColorDefinition("#252B3A"),
   }
 });
 
 // Using ColorDefinition for semantic colors as well
 const createSemanticColors = (): SemanticColors => ({
-  success: createColorDefinition('#2F855A'),
-  warning: createColorDefinition('#E2B027'),
-  error: createColorDefinition('#E53E3E'),
-  info: createColorDefinition('#3182CE'),
+  success: createColorDefinition("#2F855A"),
+  warning: createColorDefinition("#E2B027"),
+  error: createColorDefinition("#E53E3E"),
+  info: createColorDefinition("#3182CE"),
 });
 
 export const THEME_CONSTANTS: ThemeConstantsType = {

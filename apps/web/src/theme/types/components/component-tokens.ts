@@ -1,6 +1,6 @@
 
-  import { ColorDefinition, ColorSet, SemanticColors } from '../core/colors';
-  import { ButtonColorSet, ChartColorSet, ComponentColorSet, InputColorSet, InteractiveStates, NavigationColorSet, TableColorSet, TextColorSet } from './base-colors';
+  import { ColorDefinition, ColorSet, SemanticColors } from "../core/colors";
+  import { ButtonColorSet, ChartColorSet, ComponentColorSet, InputColorSet, InteractiveStates, NavigationColorSet, TableColorSet, TextColorSet } from "./base-colors";
 
   /**
    * Base interactive component states for higher–level components.
@@ -82,7 +82,7 @@
     indicator: ComponentColorSet & {
       active: string;
       hover: string;
-      position: 'left' | 'right' | 'top' | 'bottom';
+      position: "left" | "right" | "top" | "bottom";
       transition: string;
     };
     icon: {
@@ -145,19 +145,19 @@
    * Extends base table colors with header, row, cell, pagination, selection, loading, and empty states.
    */
   export interface TableComponentColorSet extends TableColorSet {
-    header: TableColorSet['header'] & {
+    header: TableColorSet["header"] & {
       states: ExtendedInteractiveStates;
       sortIcon: ColorSet;
       filterIcon: ColorSet;
     };
-    row: TableColorSet['row'] & {
+    row: TableColorSet["row"] & {
       states: ExtendedInteractiveStates;
       alternate: ColorSet;
       expanded: ColorSet;
     };
-    cell: TableColorSet['cell'] & {
+    cell: TableColorSet["cell"] & {
       padding: string;
-      alignment: 'left' | 'center' | 'right';
+      alignment: "left" | "center" | "right";
     };
     pagination: {
       active: ColorSet & { states: ExtendedInteractiveStates };
@@ -188,12 +188,12 @@
     primary: ColorDefinition[];   // Additional palette options
     secondary: ColorDefinition[];
     accent: ColorDefinition[];
-    grid: ChartColorSet['grid'] & {
+    grid: ChartColorSet["grid"] & {
       line: string;
       tick: string;
       background: string;
     };
-    axis: ChartColorSet['axis'] & {
+    axis: ChartColorSet["axis"] & {
       line: string;
       text: string;
       title: string;
@@ -203,7 +203,7 @@
       secondary: string;
       value: string;
     };
-    tooltip: ChartColorSet['tooltip'] & {
+    tooltip: ChartColorSet["tooltip"] & {
       states: ExtendedInteractiveStates;
       arrow: string;
       shadow: string;
@@ -288,9 +288,9 @@
     };
     label: TextColorSet;
     validation: {
-      error: SemanticColors['error'];
-      success: SemanticColors['success'];
-      warning: SemanticColors['warning'];
+      error: SemanticColors["error"];
+      success: SemanticColors["success"];
+      warning: SemanticColors["warning"];
     };
     helper: {
       text: string;

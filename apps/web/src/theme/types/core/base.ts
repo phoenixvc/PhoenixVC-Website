@@ -6,19 +6,19 @@ import { SemanticColors, ThemeSchemeInitial } from "./colors";
  * Core Theme Identity
  */
 export type ThemeColorScheme = "classic" | "forest" | "ocean" | "phoenix" | "lavender" | "cloud";
-export type ThemeMode = 'light' | 'dark';
+export type ThemeMode = "light" | "dark";
 
 /**
  * Theme Scale System
  */
 export namespace ThemeScale {
-  export type Spacing = 'spacing';
-  export type FontSize = 'fontSize';
-  export type LineHeight = 'lineHeight';
-  export type BorderRadius = 'borderRadius';
-  export type BorderWidth = 'borderWidth';
-  export type Opacity = 'opacity';
-  export type ZIndex = 'zIndex';
+  export type Spacing = "spacing";
+  export type FontSize = "fontSize";
+  export type LineHeight = "lineHeight";
+  export type BorderRadius = "borderRadius";
+  export type BorderWidth = "borderWidth";
+  export type Opacity = "opacity";
+  export type ZIndex = "zIndex";
 
   export type All =
     | Spacing
@@ -34,8 +34,8 @@ export namespace ThemeScale {
  * Layout System
  */
 export namespace Layout {
-  export type CSSUnit = 'px' | 'rem' | 'em' | 'vh' | 'vw' | '%';
-  export type Direction = 'ltr' | 'rtl';
+  export type CSSUnit = "px" | "rem" | "em" | "vh" | "vw" | "%";
+  export type Direction = "ltr" | "rtl";
 }
 
 /**

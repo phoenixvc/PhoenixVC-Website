@@ -4,16 +4,16 @@ import { THEME_CONSTANTS } from "../constants";
 import { transformTheme } from "./theme-transformer";
 
 export interface ThemeLoaderConfig {
-  source: 'static' | 'api';
+  source: "static" | "api";
   themePath?: string;
   apiBaseUrl?: string;
   cacheDuration: number;
 }
 
 const DEFAULT_CONFIG: ThemeLoaderConfig = {
-  source: 'static',
-  themePath: '/themes',
-  apiBaseUrl: '/api/themes',
+  source: "static",
+  themePath: "/themes",
+  apiBaseUrl: "/api/themes",
   cacheDuration: 1000 * 60 * 5 // 5 minutes
 };
 
@@ -168,14 +168,14 @@ const loadThemeFromSource = async (
 ): Promise<ThemeSchemeInitial & { semantic?: SemanticColors }> => {
   let rawTheme: ThemeSchemeInitial & { semantic?: SemanticColors };
 
-  if (config.source === 'static') {
+  if (config.source === "static") {
     if (!config.themePath) {
-      throw new Error('Theme path is required for static theme loading');
+      throw new Error("Theme path is required for static theme loading");
     }
     rawTheme = await loadStaticTheme(colorScheme, config.themePath);
   } else {
     if (!config.apiBaseUrl) {
-      throw new Error('API base URL is required for API theme loading');
+      throw new Error("API base URL is required for API theme loading");
     }
     rawTheme = await loadApiTheme(colorScheme, config.apiBaseUrl);
   }
@@ -200,7 +200,7 @@ const loadStaticTheme = async (
 
     // Type guard to ensure the loaded data matches our expected structure
     if (!isThemeSchemeInitial(theme)) {
-      throw new Error('Invalid theme structure in static file');
+      throw new Error("Invalid theme structure in static file");
     }
 
     // Validate the initial theme structure
@@ -211,7 +211,7 @@ const loadStaticTheme = async (
     if (error instanceof Error) {
       throw error; // Preserve original error
     }
-    throw new Error(`Error loading static theme: Unknown error`);
+    throw new Error("Error loading static theme: Unknown error");
   }
 };
 
@@ -229,7 +229,7 @@ const loadApiTheme = async (
 
     // Type guard to ensure the loaded data matches our expected structure
     if (!isThemeSchemeInitial(theme)) {
-      throw new Error('Invalid theme structure in API response');
+      throw new Error("Invalid theme structure in API response");
     }
 
     // Validate the initial theme structure
@@ -240,35 +240,35 @@ const loadApiTheme = async (
     if (error instanceof Error) {
       throw error; // Preserve original error
     }
-    throw new Error(`Error loading API theme: Unknown error`);
+    throw new Error("Error loading API theme: Unknown error");
   }
 };
 
 // Type guard function to verify the theme structure
 const isThemeSchemeInitial = (theme: unknown): theme is ThemeSchemeInitial & { semantic?: SemanticColors } => {
-  if (!theme || typeof theme !== 'object' || theme === null) {
+  if (!theme || typeof theme !== "object" || theme === null) {
     return false;
   }
 
   const themeObj = theme as Record<string, unknown>;
 
   // Check for required properties existence and type
-  const hasBase = 'base' in themeObj &&
+  const hasBase = "base" in themeObj &&
     themeObj.base !== null &&
-    typeof themeObj.base === 'object';
+    typeof themeObj.base === "object";
 
-  const hasLight = 'light' in themeObj &&
+  const hasLight = "light" in themeObj &&
     themeObj.light !== null &&
-    typeof themeObj.light === 'object';
+    typeof themeObj.light === "object";
 
-  const hasDark = 'dark' in themeObj &&
+  const hasDark = "dark" in themeObj &&
     themeObj.dark !== null &&
-    typeof themeObj.dark === 'object';
+    typeof themeObj.dark === "object";
 
   // Semantic colors are optional but must be an object if present
-  const hasValidSemantic = !('semantic' in themeObj) ||
+  const hasValidSemantic = !("semantic" in themeObj) ||
     (themeObj.semantic !== null &&
-    typeof themeObj.semantic === 'object');
+    typeof themeObj.semantic === "object");
 
   return Boolean(hasBase && hasLight && hasDark && hasValidSemantic);
 };
@@ -281,7 +281,7 @@ export const preloadTheme = async (
   try {
     await loadTheme(colorScheme, config);
   } catch (error) {
-    console.error('Failed to preload theme:', error);
+    console.error("Failed to preload theme:", error);
   }
 };
 

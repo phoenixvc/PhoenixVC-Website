@@ -4,11 +4,11 @@ import {
     ColorDefinition,
     ColorShades,
     ColorSet,
-    SemanticColors} from '../types/core/colors';
-import { createBaseMappingContext, BaseVariableMapping } from './base-mappings';
-import { BaseMappingContext } from '../types/mappings/base-mappings';
-import { ColorMappingConfig } from '../types/mappings/config';
-import { ComponentColorSet } from '../types';
+    SemanticColors} from "../types/core/colors";
+import { createBaseMappingContext, BaseVariableMapping } from "./base-mappings";
+import { BaseMappingContext } from "../types/mappings/base-mappings";
+import { ColorMappingConfig } from "../types/mappings/config";
+import { ComponentColorSet } from "../types";
 
 export class ColorMapping {
     private context: BaseMappingContext;
@@ -16,10 +16,10 @@ export class ColorMapping {
 
     constructor(config?: Partial<ColorMappingConfig>) {
         this.config = {
-            prefix: config?.prefix ?? 'color',
-            scope: config?.scope ?? ':root',
-            format: config?.format ?? 'rgb',
-            separator: config?.separator ?? '-',
+            prefix: config?.prefix ?? "color",
+            scope: config?.scope ?? ":root",
+            format: config?.format ?? "rgb",
+            separator: config?.separator ?? "-",
             enforceContrast: config?.enforceContrast ?? true,
             minimumContrast: config?.minimumContrast ?? 4.5
         };
@@ -60,7 +60,7 @@ export class ColorMapping {
 
     getShades(name: string): ColorShades | undefined {
         const shades: Partial<ColorShades> = {};
-        const shadeKeys = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900'] as const;
+        const shadeKeys = ["50", "100", "200", "300", "400", "500", "600", "700", "800", "900"] as const;
         type ShadeKey = typeof shadeKeys[number];
 
         for (const shade of shadeKeys) {
@@ -107,10 +107,10 @@ export class ColorMapping {
             border: this.adjustAlpha(this.darken(base, 0.1), 0.5),
             shadow: {
                 color: this.adjustAlpha(base, 0.2),
-                offsetX: '0px',
-                offsetY: '2px',
-                blur: '4px',
-                spread: '0px',
+                offsetX: "0px",
+                offsetY: "2px",
+                blur: "4px",
+                spread: "0px",
                 inset: false
             }
         };
@@ -129,7 +129,7 @@ export class ColorMapping {
     fromCSS(variables: Record<string, ColorDefinition>): void {
         Object.entries(variables).forEach(([key, value]) => {
             if (key.startsWith(`--${this.config.prefix}`)) {
-                const path = key.replace(`--${this.config.prefix}${this.config.separator}`, '');
+                const path = key.replace(`--${this.config.prefix}${this.config.separator}`, "");
                 this.context.registry.variables.set(path, {
                     name: path,
                     value,
@@ -162,7 +162,7 @@ export class ColorMapping {
             // Convert HSL to RGB first, then to HEX
             // Implementation needed
         }
-        throw new Error('Unable to convert color to HEX');
+        throw new Error("Unable to convert color to HEX");
     }
 
     private convertToRGB(color: ColorDefinition): string {
@@ -178,7 +178,7 @@ export class ColorMapping {
             // Convert HSL to RGB
             // Implementation needed
         }
-        throw new Error('Unable to convert color to RGB');
+        throw new Error("Unable to convert color to RGB");
     }
 
     private convertToHSL(color: ColorDefinition): string {
@@ -206,7 +206,7 @@ export class ColorMapping {
                 return `hsl(${Math.round(h * 360)}, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%)`;
             }
         }
-        throw new Error('Unable to convert color to HSL');
+        throw new Error("Unable to convert color to HSL");
     }
 
     // When you need the string format for CSS variables
@@ -217,9 +217,9 @@ export class ColorMapping {
     private parseColorDefinition(_value: ColorDefinition): ColorDefinition {
         // Implementation to parse string back to ColorDefinition
         return {
-            hex: '',
-            rgb: '',
-            hsl: '',
+            hex: "",
+            rgb: "",
+            hsl: "",
             alpha: 1
         };
     }
@@ -297,7 +297,7 @@ export class ColorMapping {
                 alpha: color.alpha
             };
         }
-        throw new Error('Invalid color format');
+        throw new Error("Invalid color format");
     }
 
     private darken(color: ColorDefinition, amount: number): ColorDefinition {
@@ -309,9 +309,9 @@ export class ColorMapping {
         return {
             ...color,
             alpha: newAlpha,
-            rgb: color.rgb.replace('rgb', 'rgba').replace(')', `, ${newAlpha})`),
-            hex: color.hex + Math.round(newAlpha * 255).toString(16).padStart(2, '0'),
-            hsl: color.hsl.replace('hsl', 'hsla').replace(')', `, ${newAlpha})`)
+            rgb: color.rgb.replace("rgb", "rgba").replace(")", `, ${newAlpha})`),
+            hex: color.hex + Math.round(newAlpha * 255).toString(16).padStart(2, "0"),
+            hsl: color.hsl.replace("hsl", "hsla").replace(")", `, ${newAlpha})`)
         };
     }
 
@@ -319,7 +319,7 @@ export class ColorMapping {
         // Parse the HSL values from the color's hsl string
         const hslMatch = color.hsl.match(/hsla?\((\d+),\s*(\d+)%,\s*(\d+)%(?:,\s*([\d.]+))?\)/);
         if (!hslMatch) {
-            throw new Error('Invalid HSL color format');
+            throw new Error("Invalid HSL color format");
         }
 
         // Extract HSL values
@@ -355,10 +355,10 @@ export class ColorMapping {
         // Convert color to RGB values
         let rgb: { r: number, g: number, b: number };
 
-        if (color.rgb.startsWith('rgb')) {
+        if (color.rgb.startsWith("rgb")) {
             const rgbMatch = color.rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
             if (!rgbMatch) {
-                throw new Error('Invalid RGB color format');
+                throw new Error("Invalid RGB color format");
             }
             rgb = {
                 r: parseInt(rgbMatch[1]),
@@ -375,15 +375,15 @@ export class ColorMapping {
         // Determine if we should use black or white text
         const contrastColor = luminance > 0.5 ?
             {
-                hex: '#000000',
-                rgb: 'rgb(0, 0, 0)',
-                hsl: 'hsl(0, 0%, 0%)',
+                hex: "#000000",
+                rgb: "rgb(0, 0, 0)",
+                hsl: "hsl(0, 0%, 0%)",
                 alpha: 1
             } :
             {
-                hex: '#FFFFFF',
-                rgb: 'rgb(255, 255, 255)',
-                hsl: 'hsl(0, 0%, 100%)',
+                hex: "#FFFFFF",
+                rgb: "rgb(255, 255, 255)",
+                hsl: "hsl(0, 0%, 100%)",
                 alpha: 1
             };
 
@@ -433,7 +433,7 @@ export class ColorMapping {
     private rgbToHex(r: number, g: number, b: number): string {
         const toHex = (n: number) => {
             const hex = n.toString(16);
-            return hex.length === 1 ? '0' + hex : hex;
+            return hex.length === 1 ? "0" + hex : hex;
         };
 
         return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
@@ -442,7 +442,7 @@ export class ColorMapping {
     private hexToRgb(hex: string): { r: number, g: number, b: number } {
         const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
         if (!result) {
-            throw new Error('Invalid hex color format');
+            throw new Error("Invalid hex color format");
         }
 
         return {
@@ -456,7 +456,7 @@ export class ColorMapping {
         // Parse the HSL values from the color's hsl string
         const hslMatch = color.hsl.match(/hsla?\((\d+),\s*(\d+)%,\s*(\d+)%(?:,\s*([\d.]+))?\)/);
         if (!hslMatch) {
-            throw new Error('Invalid HSL color format');
+            throw new Error("Invalid HSL color format");
         }
 
         // Extract HSL values
@@ -492,7 +492,7 @@ export class ColorMapping {
         // Parse the HSL values from the color's hsl string
         const hslMatch = color.hsl.match(/hsla?\((\d+),\s*(\d+)%,\s*(\d+)%(?:,\s*([\d.]+))?\)/);
         if (!hslMatch) {
-            throw new Error('Invalid HSL color format');
+            throw new Error("Invalid HSL color format");
         }
 
         // Extract HSL values

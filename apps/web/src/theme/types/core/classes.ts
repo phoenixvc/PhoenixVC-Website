@@ -1,7 +1,7 @@
 // /theme/types/core/classes.ts
 
-import { ThemeColorScheme, ThemeMode } from './base';
-import { ThemeClassSuffix } from './enums';
+import { ThemeColorScheme, ThemeMode } from "./base";
+import { ThemeClassSuffix } from "./enums";
 
 export interface ThemeClassParts {
     prefix: string;

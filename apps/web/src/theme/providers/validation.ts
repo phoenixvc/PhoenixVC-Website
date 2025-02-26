@@ -17,15 +17,15 @@ import {
 import ColorUtils from "../utils/color-utils";
 
 // Constants
-const REQUIRED_BASE_COLORS = ['primary', 'secondary', 'accent'] as const;
-const REQUIRED_MODE_COLORS = ['background', 'text', 'border'] as const;
-const VALID_COLOR_SCHEMES: ThemeColorScheme[] = ['classic'];
-const VALID_MODES: ThemeMode[] = ['light', 'dark'];
+const REQUIRED_BASE_COLORS = ["primary", "secondary", "accent"] as const;
+const REQUIRED_MODE_COLORS = ["background", "text", "border"] as const;
+const VALID_COLOR_SCHEMES: ThemeColorScheme[] = ["classic"];
+const VALID_MODES: ThemeMode[] = ["light", "dark"];
 
 export class ThemeValidationError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'ThemeValidationError';
+    this.name = "ThemeValidationError";
   }
 }
 
@@ -43,8 +43,8 @@ const validateColorDef = (color: ColorDefinition, path: string): ValidationResul
     const errorResult: ValidationResult = {
       isValid: false,
       errors: [{
-        code: 'UNEXPECTED_ERROR',
-        message: error instanceof Error ? error.message : 'Unknown error occurred',
+        code: "UNEXPECTED_ERROR",
+        message: error instanceof Error ? error.message : "Unknown error occurred",
         path,
         details: {
           error: error instanceof Error ? error.message : String(error),
@@ -66,11 +66,11 @@ const validateColorDef = (color: ColorDefinition, path: string): ValidationResul
 const printValidationResults = (results: ValidationResult | ValidationResult[], context?: string): void => {
   const resultArray = Array.isArray(results) ? results : [results];
 
-  console.group(context ? `Validation Results: ${context}` : 'Validation Results');
+  console.group(context ? `Validation Results: ${context}` : "Validation Results");
 
   resultArray.forEach(result => {
-    const icon = result.isValid ? '✅' : '❌';
-    const status = result.isValid ? 'Valid' : 'Invalid';
+    const icon = result.isValid ? "✅" : "❌";
+    const status = result.isValid ? "Valid" : "Invalid";
 
     console.group(`${icon} ${result.path} - ${status}`);
 
@@ -87,7 +87,7 @@ const printValidationResults = (results: ValidationResult | ValidationResult[], 
         };
 
         if (error.details) {
-          console.log('Details:', error.details);
+          console.log("Details:", error.details);
         }
 
         console.table(errorInfo);
@@ -98,7 +98,7 @@ const printValidationResults = (results: ValidationResult | ValidationResult[], 
     }
 
     if (result.value) {
-      console.group('Validated Value:');
+      console.group("Validated Value:");
       console.dir(result.value, { depth: null });
       console.groupEnd();
     }
@@ -116,34 +116,34 @@ const printValidationResults = (results: ValidationResult | ValidationResult[], 
     { total: 0, valid: 0, invalid: 0, totalErrors: 0 }
   );
 
-  console.log('Summary:', {
-    'Total Validations': summary.total,
-    'Valid': summary.valid,
-    'Invalid': summary.invalid,
-    'Total Errors': summary.totalErrors
+  console.log("Summary:", {
+    "Total Validations": summary.total,
+    "Valid": summary.valid,
+    "Invalid": summary.invalid,
+    "Total Errors": summary.totalErrors
   });
 
   console.groupEnd();
 };
 
 const validateStorage = (storage: Partial<ThemeStorage>) => {
-  if (storage.type && !['localStorage', 'sessionStorage', 'memory'].includes(storage.type)) {
+  if (storage.type && !["localStorage", "sessionStorage", "memory"].includes(storage.type)) {
       throw new ThemeValidationError(`Invalid storage type: ${storage.type}`);
   }
-  if (storage.prefix && typeof storage.prefix !== 'string') {
-      throw new ThemeValidationError('Storage prefix must be a string');
+  if (storage.prefix && typeof storage.prefix !== "string") {
+      throw new ThemeValidationError("Storage prefix must be a string");
   }
-  if (storage.version && typeof storage.version !== 'string') {
-      throw new ThemeValidationError('Storage version must be a string');
+  if (storage.version && typeof storage.version !== "string") {
+      throw new ThemeValidationError("Storage version must be a string");
   }
-  if (storage.expiration !== undefined && typeof storage.expiration !== 'number') {
-      throw new ThemeValidationError('Storage expiration must be a number');
+  if (storage.expiration !== undefined && typeof storage.expiration !== "number") {
+      throw new ThemeValidationError("Storage expiration must be a number");
   }
-  if (storage.keys && typeof storage.keys !== 'object') {
-      throw new ThemeValidationError('Storage keys must be an object');
+  if (storage.keys && typeof storage.keys !== "object") {
+      throw new ThemeValidationError("Storage keys must be an object");
   }
-  if (storage.defaults && typeof storage.defaults !== 'object') {
-      throw new ThemeValidationError('Storage defaults must be an object');
+  if (storage.defaults && typeof storage.defaults !== "object") {
+      throw new ThemeValidationError("Storage defaults must be an object");
   }
 };
 
@@ -163,26 +163,26 @@ export const validateHexOnly = (colorDef: ColorDefinition, path?: string): Valid
   // Regular expression: Optional '#' followed by exactly 3 or 6 hexadecimal digits.
   const hexRegex = /^#?([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$/;
 
-  if (typeof hex !== 'string' || !hexRegex.test(hex)) {
+  if (typeof hex !== "string" || !hexRegex.test(hex)) {
     return {
       isValid: false,
       errors: [{
-        code: 'COLOR_INVALID_HEX',
-        message: `Invalid hex color format at ${path || 'unknown path'}: ${hex}. Expected "#FFF" or "#FFFFFF".`,
-        path: path || '',
+        code: "COLOR_INVALID_HEX",
+        message: `Invalid hex color format at ${path || "unknown path"}: ${hex}. Expected "#FFF" or "#FFFFFF".`,
+        path: path || "",
         details: {
           error: `Color value ${hex} does not match hex pattern`,
           timestamp: new Date().toISOString()
         } as ValidationErrorDetails
       }],
-      path: path || '',
+      path: path || "",
       value: colorDef
     };
   }
 
   return {
     isValid: true,
-    path: path || '',
+    path: path || "",
     value: colorDef
   };
 };
@@ -190,7 +190,7 @@ export const validateHexOnly = (colorDef: ColorDefinition, path?: string): Valid
 export const validateInitialTheme = (theme: ThemeSchemeInitial & { semantic?: SemanticColors }): void => {
   // Validate base colors
   if (!theme.base) {
-    throw new ThemeValidationError('Theme must include base colors');
+    throw new ThemeValidationError("Theme must include base colors");
   }
 
   REQUIRED_BASE_COLORS.forEach(color => {
@@ -202,8 +202,8 @@ export const validateInitialTheme = (theme: ThemeSchemeInitial & { semantic?: Se
   });
 
   // Validate mode colors
-  ['light', 'dark'].forEach(mode => {
-    const modeColors = theme[mode as 'light' | 'dark'];
+  ["light", "dark"].forEach(mode => {
+    const modeColors = theme[mode as "light" | "dark"];
     if (!modeColors) {
       throw new ThemeValidationError(`Missing ${mode} mode colors`);
     }
@@ -342,37 +342,37 @@ export const validateThemeConfig = (config: ThemeInitOptions & {
   if (defaultMode && !VALID_MODES.includes(defaultMode)) {
       throw new ThemeValidationError(`Invalid default mode: ${defaultMode}`);
   }
-  ['useSystem', 'debug', 'disableTransitionsOnLoad', 'disableTransitions', 'disableStorage'].forEach(
+  ["useSystem", "debug", "disableTransitionsOnLoad", "disableTransitions", "disableStorage"].forEach(
       (flag) => {
           const value = config[flag as keyof typeof config];
-          if (value !== undefined && typeof value !== 'boolean') {
+          if (value !== undefined && typeof value !== "boolean") {
               throw new ThemeValidationError(`${flag} must be a boolean`);
           }
       }
   );
   if (!disableStorage) {
-      if (storage && typeof storage !== 'object') {
-          throw new ThemeValidationError('Storage configuration must be an object');
+      if (storage && typeof storage !== "object") {
+          throw new ThemeValidationError("Storage configuration must be an object");
       }
-      if (storageKey && typeof storageKey !== 'string') {
-          throw new ThemeValidationError('Storage key must be a string');
+      if (storageKey && typeof storageKey !== "string") {
+          throw new ThemeValidationError("Storage key must be a string");
       }
       if (storage) {
           validateStorage(storage);
       }
   }
   if (transition) {
-      if (typeof transition !== 'object') {
-          throw new ThemeValidationError('Transition configuration must be an object');
+      if (typeof transition !== "object") {
+          throw new ThemeValidationError("Transition configuration must be an object");
       }
-      if (transition.duration && typeof transition.duration !== 'number') {
-          throw new ThemeValidationError('Transition duration must be a number');
+      if (transition.duration && typeof transition.duration !== "number") {
+          throw new ThemeValidationError("Transition duration must be a number");
       }
-      if (transition.timing && typeof transition.timing !== 'string') {
-          throw new ThemeValidationError('Transition timing function must be a string');
+      if (transition.timing && typeof transition.timing !== "string") {
+          throw new ThemeValidationError("Transition timing function must be a string");
       }
       if (transition.properties && !Array.isArray(transition.properties)) {
-          throw new ThemeValidationError('Transition properties must be an array');
+          throw new ThemeValidationError("Transition properties must be an array");
       }
   }
 };
@@ -390,10 +390,10 @@ export const validateThemeProvider = (
   validateThemeConfig(config);
 };
 
-export const isValidColorScheme = (scheme: any): scheme is ThemeColorScheme => {
+export const isValidColorScheme = (scheme: ThemeColorScheme): scheme is ThemeColorScheme => {
   return VALID_COLOR_SCHEMES.includes(scheme);
 };
 
-export const isValidThemeMode = (mode: any): mode is ThemeMode => {
+export const isValidThemeMode = (mode: ThemeMode): mode is ThemeMode => {
   return VALID_MODES.includes(mode);
 };

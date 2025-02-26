@@ -24,7 +24,7 @@ export interface ThemeStorage {
     prefix: string;
 
     /** Storage type to use */
-    type: 'localStorage' | 'sessionStorage' | 'memory';
+    type: "localStorage" | "sessionStorage" | "memory";
 
     /** Version for storage schema */
     version: string;
@@ -39,8 +39,8 @@ export interface ThemeStorage {
  * Theme default values
  */
 export interface ThemeDefaults {
-    colorScheme: 'light' | 'dark';
-    mode: 'system' | 'manual';
+    colorScheme: "light" | "dark";
+    mode: "system" | "manual";
     useSystem: boolean;
     preferences: ThemePreferences;
 }
@@ -49,11 +49,11 @@ export interface ThemeDefaults {
  * Theme preferences
  */
 export interface ThemePreferences {
-    contrast: 'normal' | 'high' | 'low';
+    contrast: "normal" | "high" | "low";
     reducedMotion: boolean;
     fontSize: number;
     fontFamily?: string;
-    spacing?: 'compact' | 'normal' | 'comfortable';
+    spacing?: "compact" | "normal" | "comfortable";
     roundedCorners?: boolean;
     animations?: boolean;
 }
@@ -82,11 +82,11 @@ export interface ThemeTransition {
  * Storage event types
  */
 export type StorageEventType =
-    | 'update'
-    | 'clear'
-    | 'error'
-    | 'expired'
-    | 'quota_exceeded';
+    | "update"
+    | "clear"
+    | "error"
+    | "expired"
+    | "quota_exceeded";
 
 /**
  * Storage event payload
@@ -163,7 +163,7 @@ export interface StorageMigration {
  */
 export interface StorageConfig {
     prefix?: string;
-    type?: ThemeStorage['type'];
+    type?: ThemeStorage["type"];
     defaults?: Partial<ThemeDefaults>;
     encryption?: StorageEncryption;
     migrations?: StorageMigration[];
@@ -175,7 +175,7 @@ export interface StorageConfig {
  * Create storage manager
  */
 export const createStorageManager = (
-    _config?: StorageConfig
+    // _config?: StorageConfig
 ): StorageManager => {
     // Implementation would go here
     return {} as StorageManager;
@@ -203,7 +203,7 @@ export interface StorageUtils {
     /**
      * Check storage availability
      */
-    isAvailable: (type: ThemeStorage['type']) => boolean;
+    isAvailable: (type: ThemeStorage["type"]) => boolean;
 
     /**
      * Get storage quota information
@@ -229,7 +229,7 @@ export interface StorageSyncOptions {
     syncOnStorage?: boolean;
 
     /** Custom sync strategy */
-    strategy?: 'merge' | 'overwrite' | 'keep';
+    strategy?: "merge" | "overwrite" | "keep";
 }
 
 /**

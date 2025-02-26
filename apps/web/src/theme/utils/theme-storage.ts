@@ -1,6 +1,6 @@
 // storage.ts
-import { THEME_CONSTANTS } from '../constants/theme-constants';
-import { ColorScheme, ThemeMode } from '../types';
+import { THEME_CONSTANTS } from "../constants/theme-constants";
+import { ColorScheme, ThemeMode } from "../types";
 
 /**
  * Manages theme-related local storage operations
@@ -17,7 +17,7 @@ export class ThemeStorage {
    * @returns parsed value or null
    */
   static get<T>(key: string): T | null {
-    if (typeof window === 'undefined') return null;
+    if (typeof window === "undefined") return null;
 
     try {
       const item = localStorage.getItem(key);
@@ -44,7 +44,7 @@ export class ThemeStorage {
    * @throws Error if value is invalid or storage fails
    */
   static set<T>(key: string, value: T): void {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
     try {
       if (!this.isValidValue(key, value)) {
@@ -53,7 +53,7 @@ export class ThemeStorage {
 
       localStorage.setItem(key, JSON.stringify(value));
     } catch (err) {
-      const error = err instanceof Error ? err : new Error('Unknown error');
+      const error = err instanceof Error ? err : new Error("Unknown error");
       console.error(`[ThemeStorage] Failed to set ${key}:`, error);
       throw error;
     }
@@ -112,7 +112,7 @@ export class ThemeStorage {
    * @param useSystem boolean value to save
    */
   static saveUseSystem(useSystem: boolean): void {
-    if (typeof useSystem !== 'boolean') {
+    if (typeof useSystem !== "boolean") {
       throw new Error(`Invalid useSystem value: ${useSystem}`);
     }
     this.set(this.KEYS.USE_SYSTEM, useSystem);
@@ -122,14 +122,14 @@ export class ThemeStorage {
    * Clear all theme related storage
    */
   static clearStorage(): void {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
     try {
       Object.values(this.KEYS).forEach(key => {
         localStorage.removeItem(key);
       });
     } catch (err) {
-      console.error('[ThemeStorage] Failed to clear storage:', err);
+      console.error("[ThemeStorage] Failed to clear storage:", err);
     }
   }
 
@@ -146,7 +146,7 @@ export class ThemeStorage {
       case this.KEYS.MODE:
         return this.isValidMode(value);
       case this.KEYS.USE_SYSTEM:
-        return typeof value === 'boolean';
+        return typeof value === "boolean";
       default:
         return false;
     }
@@ -158,7 +158,7 @@ export class ThemeStorage {
    * @returns type predicate for ColorScheme
    */
   private static isValidColorScheme(value: unknown): value is ColorScheme {
-    return typeof value === 'string' &&
+    return typeof value === "string" &&
            this.VALID_COLOR_SCHEMES.includes(value as ColorScheme);
   }
 
@@ -168,7 +168,7 @@ export class ThemeStorage {
    * @returns type predicate for Mode
    */
   private static isValidMode(value: unknown): value is ThemeMode {
-    return typeof value === 'string' &&
+    return typeof value === "string" &&
            this.VALID_MODES.includes(value as ThemeMode);
   }
 }

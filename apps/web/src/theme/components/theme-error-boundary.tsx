@@ -1,6 +1,6 @@
 // src/theme/components/theme-error-boundary.tsx
-import React from 'react';
-import { ThemeManager } from '@/theme/core/theme-manager';
+import React from "react";
+import { ThemeManager } from "@/theme/core/theme-manager";
 
 interface ThemeErrorBoundaryProps {
   children: React.ReactNode;
@@ -32,8 +32,8 @@ export class ThemeErrorBoundary extends React.Component<
 
   public componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
     // Log the error
-    console.error('[ThemeErrorBoundary] Error caught:', error);
-    console.error('[ThemeErrorBoundary] Error info:', errorInfo);
+    console.error("[ThemeErrorBoundary] Error caught:", error);
+    console.error("[ThemeErrorBoundary] Error info:", errorInfo);
 
     // Call the error handler if provided
     if (this.props.onError) {
@@ -55,8 +55,8 @@ export class ThemeErrorBoundary extends React.Component<
       // Reload the page
       window.location.reload();
     } catch (e) {
-      const error = e instanceof Error ? e : new Error('Unknown error during reset');
-      console.error('[ThemeErrorBoundary] Reset failed:', error);
+      const error = e instanceof Error ? e : new Error("Unknown error during reset");
+      console.error("[ThemeErrorBoundary] Reset failed:", error);
     }
   };
 

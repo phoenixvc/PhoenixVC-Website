@@ -1,37 +1,37 @@
 // src/types/theme/guards.ts
-import type { ThemeColorScheme, ThemeMode } from '../core/base';
-import type { ThemeConfig, ThemeState } from '../core/config';
+import type { ThemeColorScheme, ThemeMode } from "../core/base";
+import type { ThemeConfig, ThemeState } from "../core/config";
 
 /**
  * Type guard to check if a value is a valid Theme Mode
  */
 export const isThemeMode = (value: unknown): value is ThemeMode => {
-    if (typeof value !== 'string') return false;
-    return ['light', 'dark'].includes(value);
+    if (typeof value !== "string") return false;
+    return ["light", "dark"].includes(value);
 };
 
 /**
  * Type guard to check if a value is a valid Color Scheme
  */
 export const isColorScheme = (value: unknown): value is ThemeColorScheme => {
-    if (typeof value !== 'string') return false;
-    return ['classic', 'forest', 'ocean', 'phoenix', 'lavender', 'cloud'].includes(value);
+    if (typeof value !== "string") return false;
+    return ["classic", "forest", "ocean", "phoenix", "lavender", "cloud"].includes(value);
 };
 
 /**
  * Type guard to check if a value is a valid Theme Config
  */
 export const isThemeConfig = (value: unknown): value is ThemeConfig => {
-    if (!value || typeof value !== 'object') return false;
+    if (!value || typeof value !== "object") return false;
 
     const config = value as Partial<ThemeConfig>;
     return (
-        'mode' in config &&
+        "mode" in config &&
         isThemeMode(config.mode) &&
-        'colorScheme' in config &&
+        "colorScheme" in config &&
         isColorScheme(config.colorScheme) &&
-        'useSystem' in config &&
-        typeof config.useSystem === 'boolean'
+        "useSystem" in config &&
+        typeof config.useSystem === "boolean"
     );
 };
 
@@ -43,12 +43,12 @@ export const isThemeState = (value: unknown): value is ThemeState => {
 
     const state = value as Partial<ThemeState>;
     return (
-        'systemMode' in state &&
+        "systemMode" in state &&
         isThemeMode(state.systemMode) &&
-        'initialized' in state &&
-        typeof state.initialized === 'boolean' &&
-        'timestamp' in state &&
-        typeof state.timestamp === 'number' &&
+        "initialized" in state &&
+        typeof state.initialized === "boolean" &&
+        "timestamp" in state &&
+        typeof state.timestamp === "number" &&
         (!state.previous || (
             isThemeMode(state.previous.mode) &&
             isColorScheme(state.previous.colorScheme)

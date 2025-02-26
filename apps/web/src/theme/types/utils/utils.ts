@@ -1,6 +1,6 @@
 // src/types/theme/utils.ts
-import type { ThemeMode } from '../core/base';
-import type { ThemeConfig } from '../core/config';
+import type { ThemeMode } from "../core/base";
+import type { ThemeConfig } from "../core/config";
 
 /**
  * Makes all properties in T optional recursively
@@ -94,14 +94,14 @@ export interface ColorTransforms {
  * Type guard for ThemeValue
  */
 export const isThemeValue = <T>(value: unknown): value is ThemeValue<T> => {
-    return typeof value === 'function' || value !== undefined;
+    return typeof value === "function" || value !== undefined;
 };
 
 /**
  * Helper to resolve a ThemeValue
  */
 export const resolveThemeValue = <T>(value: ThemeValue<T>, mode: ThemeMode): T => {
-    return typeof value === 'function' ? (value as (mode: ThemeMode) => T)(mode) : value;
+    return typeof value === "function" ? (value as (mode: ThemeMode) => T)(mode) : value;
 };
 
 /**
@@ -116,7 +116,7 @@ export interface ThemeValueContext {
  * Helper to create a theme value
  */
 export const createThemeValue = <T>(value: T | ((ctx: ThemeValueContext) => T)): ThemeValue<T> => {
-    if (typeof value === 'function') {
+    if (typeof value === "function") {
         return (mode: ThemeMode) => (value as Function)({ mode });
     }
     return value;

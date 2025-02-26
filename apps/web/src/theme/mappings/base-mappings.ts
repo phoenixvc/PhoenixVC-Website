@@ -1,7 +1,7 @@
 // src/types/theme/mappings/base.ts
 
-import { BaseMappingContext, BaseMappingOperations, BaseMappingRegistry, BaseMappingValidator, BaseVariableMapping } from '../types/mappings/base-mappings';
-import { BaseMappingConfig, BaseMappingGeneratorOptions } from '../types/mappings/config';
+import { BaseMappingContext, BaseMappingOperations, BaseMappingRegistry, BaseMappingValidator, BaseVariableMapping } from "../types/mappings/base-mappings";
+import { BaseMappingConfig, BaseMappingGeneratorOptions } from "../types/mappings/config";
 
 /**
  * Creates a base mapping context
@@ -10,10 +10,10 @@ export const createBaseMappingContext = (
     options?: BaseMappingGeneratorOptions
 ): BaseMappingContext => {
     const config: BaseMappingConfig = {
-        prefix: options?.prefix ?? 'theme',
-        scope: options?.scope ?? ':root',
-        format: options?.format ?? 'rgb',
-        separator: options?.separator ?? '-'
+        prefix: options?.prefix ?? "theme",
+        scope: options?.scope ?? ":root",
+        format: options?.format ?? "rgb",
+        separator: options?.separator ?? "-"
     };
 
     const registry: BaseMappingRegistry = {
@@ -55,7 +55,7 @@ export const baseMappingUtils = {
     },
 
     flattenObject: (
-        _obj: Record<string, any>,
+        _obj: Record<string, unknown>,
         _prefix: string[] = []
     ): Map<string, string> => {
         const result = new Map<string, string>();

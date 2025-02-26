@@ -1,10 +1,10 @@
 // theme/types/context/context.ts
 
-import { ReactNode } from 'react';
-import { ThemeChangeEvent, ThemeConfig, ThemeErrorFallback, ThemeErrorHandler, ThemeInitOptions } from '../core/config';
-import { ThemeColorScheme, ThemeMode } from '../core/base';
-import { ColorSchemeClasses, CssVariableConfig, ThemeClassSuffix } from '../core';
-import { ExtendedThemeState, ThemeContextState } from './state';
+import { ReactNode } from "react";
+import { ThemeChangeEvent, ThemeConfig, ThemeErrorFallback, ThemeErrorHandler, ThemeInitOptions } from "../core/config";
+import { ThemeColorScheme, ThemeMode } from "../core/base";
+import { ColorSchemeClasses, CssVariableConfig, ThemeClassSuffix } from "../core";
+import { ExtendedThemeState, ThemeContextState } from "./state";
 
 /**
  * Additional provider configuration options specific to the context.

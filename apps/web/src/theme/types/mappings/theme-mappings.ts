@@ -29,11 +29,11 @@
  * };
  */
 
-import { ColorMapping } from './color-mappings';
-import { ComponentMappings } from './component-mappings';
-import { StateMappings } from './state-mappings';
-import { SystemMappings } from './system-mappings';
-import { TypographyMappings } from './typography-mappings';
+import { ColorMapping } from "./color-mappings";
+import { ComponentMappings } from "./component-mappings";
+import { StateMappings } from "./state-mappings";
+import { SystemMappings } from "./system-mappings";
+import { TypographyMappings } from "./typography-mappings";
 
 export interface ThemeMappings {
     colors: ColorMapping;
@@ -53,7 +53,7 @@ export interface ThemeMappings {
         md: string;
         lg: string;
         xl: string;
-        '2xl': string;
+        "2xl": string;
     };
     borderRadius: {
         none: string;

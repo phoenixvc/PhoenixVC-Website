@@ -107,7 +107,7 @@ export interface ThemeColors {
 }
 
 export interface ColorConfig {
-  mode: 'light' | 'dark';
+  mode: "light" | "dark";
   scheme: string;
   accessibility: ColorAccessibility;
   scale?: ColorScaleConfig;
@@ -125,8 +125,8 @@ export interface ColorScaleConfig {
   start: string;
   end: string;
   steps: number;
-  mode?: 'rgb' | 'hsl' | 'lab';
-  distribution?: 'linear' | 'exponential';
+  mode?: "rgb" | "hsl" | "lab";
+  distribution?: "linear" | "exponential";
 }
 
 export interface ColorPaletteConfig {
@@ -176,8 +176,8 @@ export interface ShadowSet {
 /**
  * Utility Types
  */
-export type GradientType = 'linear' | 'radial' | 'conic';
-export type ColorExportFormat = 'css' | 'scss' | 'less' | 'json' | 'ts';
+export type GradientType = "linear" | "radial" | "conic";
+export type ColorExportFormat = "css" | "scss" | "less" | "json" | "ts";
 
 /**
  * Validation Types and Constants
@@ -187,21 +187,21 @@ export type RequiredModeColorKeys = keyof RequiredModeColors;
 export type RequiredSemanticColorKeys = keyof RequiredSemanticColors;
 
 export const REQUIRED_INITIAL_COLORS: ReadonlyArray<InitialBaseColorKeys> = [
-  'primary',
-  'secondary',
-  'accent'
+  "primary",
+  "secondary",
+  "accent"
 ] as const;
 
 export const REQUIRED_MODE_COLORS: ReadonlyArray<RequiredModeColorKeys> = [
-  'background',
-  'text',
-  'muted',
-  'border'
+  "background",
+  "text",
+  "muted",
+  "border"
 ] as const;
 
 export const REQUIRED_SEMANTIC_COLORS: ReadonlyArray<RequiredSemanticColorKeys> = [
-  'success',
-  'warning',
-  'error',
-  'info'
+  "success",
+  "warning",
+  "error",
+  "info"
 ] as const;

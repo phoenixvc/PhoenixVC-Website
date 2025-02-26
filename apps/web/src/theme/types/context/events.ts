@@ -1,9 +1,9 @@
 // src/types/theme/context/events.ts
 
-import { ThemeError, ThemeEventType } from '../core';
-import { ThemeColorScheme, ThemeMode } from '../core/base';
-import { ThemeState, ThemeConfig } from '../core/config';
-import { BaseThemeEventPayload, ThemeErrorEventPayload } from './error';
+import { ThemeError, ThemeEventType } from "../core";
+import { ThemeColorScheme, ThemeMode } from "../core/base";
+import { ThemeState, ThemeConfig } from "../core/config";
+import { BaseThemeEventPayload, ThemeErrorEventPayload } from "./error";
 
 /**
  * Theme change event payload
@@ -73,7 +73,7 @@ export interface ThemeEventSubscriptionOptions {
     /**
      * Specific sources to listen to
      */
-    sources?: Array<'user' | 'system' | 'storage' | 'api'>;
+    sources?: Array<"user" | "system" | "storage" | "api">;
 
     /**
      * Whether to receive past events

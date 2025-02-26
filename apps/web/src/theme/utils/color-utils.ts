@@ -4,8 +4,6 @@ import {
   ColorAdjustments,
   HSLColor,
   ColorPaletteConfig,
-  ColorShades,
-  ShadeLevel,
   ValidationResult,
   ValidationError,
 } from "../types";
@@ -276,7 +274,7 @@ export const ColorUtils = {
   createPalette(baseHex: string, steps: number = 9): ColorDefinition[] {
     try {
       const baseHsl = ColorUtils.hexToHsl(baseHex);
-      return Array.from({ length: steps }, (_, i) => {
+      return Array.from({ length: steps }, (_next, i) => {
         // Lightness from 0 to 100
         const lightness = (100 / (steps - 1)) * i;
         const hslObj: HSLColor = { h: baseHsl.h, s: baseHsl.s, l: lightness };

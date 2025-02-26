@@ -5,7 +5,7 @@ export interface SystemMappings {
         md: string;
         lg: string;
         xl: string;
-        '2xl': string;
+        "2xl": string;
     };
     zIndices: {
         hide: number;

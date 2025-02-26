@@ -1,4 +1,4 @@
-import { ColorDefinition, ShadowProperties, SemanticColors } from '../core/colors';
+import { ColorDefinition, ShadowProperties, SemanticColors } from "../core/colors";
 
 /**
  * Base Component Colors

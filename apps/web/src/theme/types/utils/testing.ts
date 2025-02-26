@@ -1,6 +1,6 @@
 // src/types/theme/testing.ts
-import type { ThemeConfig } from '../core/config';
-import type { DeepPartial } from './utils';
+import type { ThemeConfig } from "../core/config";
+import type { DeepPartial } from "./utils";
 
 /**
  * Creates a base theme configuration with defaults.
@@ -8,8 +8,8 @@ import type { DeepPartial } from './utils';
  */
 export const createTheme = (config?: Partial<ThemeConfig>): ThemeConfig => {
   return {
-    mode: config?.mode ?? 'light',
-    colorScheme: config?.colorScheme ?? 'classic',
+    mode: config?.mode ?? "light",
+    colorScheme: config?.colorScheme ?? "classic",
     useSystem: config?.useSystem ?? true,
     direction: config?.direction,
     version: config?.version,
@@ -32,6 +32,6 @@ export const createTestTheme = (overrides?: DeepPartial<ThemeConfig>): ThemeConf
   return {
     ...baseTheme,
     ...overrides,
-    useSystem: overrides && 'useSystem' in overrides ? overrides.useSystem! : baseTheme.useSystem,
+    useSystem: overrides && "useSystem" in overrides ? overrides.useSystem! : baseTheme.useSystem,
   };
 };

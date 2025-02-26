@@ -1,7 +1,7 @@
 // /theme/types/core/config.ts
 
-import type { Layout, ThemeColorScheme, ThemeMode } from './base';
-import type { ThemeStorage, ThemeTransition } from './storage';
+import type { Layout, ThemeColorScheme, ThemeMode } from "./base";
+import type { ThemeStorage, ThemeTransition } from "./storage";
 
 // Core Configuration Interfaces
 export interface ThemeConfig {
@@ -42,7 +42,7 @@ export interface ThemeChangeEvent {
     currentMode: ThemeMode;
     previousColorScheme?: ThemeColorScheme;
     currentColorScheme: ThemeColorScheme;
-    source: 'user' | 'system' | 'storage' | 'default';
+    source: "user" | "system" | "storage" | "default";
 }
 
 // Error Handling

@@ -37,14 +37,14 @@ const validateConfig = (config: Partial<ThemeConfig>): ValidationResult => {
     validateThemeConfig(config);
     return {
       isValid: true,
-      path: 'theme',
+      path: "theme",
       value: config
     };
   } catch (err) {
     const error: ValidationError = {
-      code: 'INVALID_THEME_CONFIG',
+      code: "INVALID_THEME_CONFIG",
       message: err instanceof Error ? err.message : "Invalid theme configuration",
-      path: 'theme',
+      path: "theme",
       details: {
         error: err instanceof Error ? err.message : String(err),
         config: config
@@ -56,7 +56,7 @@ const validateConfig = (config: Partial<ThemeConfig>): ValidationResult => {
     return {
       isValid: false,
       errors: [error],
-      path: 'theme',
+      path: "theme",
       value: config
     };
   }
@@ -77,17 +77,17 @@ const generateColorSchemeClasses = (scheme: ThemeColorScheme): ColorSchemeClasse
 
 const formatThemeForLogging = (theme: unknown): string => {
   try {
-    if (typeof theme === 'string') {
+    if (typeof theme === "string") {
       return theme.substring(0, 200);
     } else if (theme === null) {
-      return 'null';
-    } else if (typeof theme === 'object') {
+      return "null";
+    } else if (typeof theme === "object") {
       return JSON.stringify(theme).substring(0, 200);
     } else {
       return String(theme).substring(0, 200);
     }
   } catch (e) {
-    return `[Unable to stringify theme: ${typeof theme}]`;
+    return `[Unable to stringify theme: ${typeof theme}, error: ${e}]`;
   }
 };
 
@@ -159,9 +159,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
           const theme = await loadTheme(state.colorScheme);
           console.groupCollapsed("[ThemeProvider] Loaded theme data");
-          console.log("Theme type:", typeof theme)
+          console.log("Theme type:", typeof theme);
           console.log("Raw object:", theme);
-          console.log("Stringified object:", JSON.stringify(theme, null, 2).substring(0, 500) + "...")
+          console.log("Stringified object:", JSON.stringify(theme, null, 2).substring(0, 500) + "...");
           console.groupEnd();
 
           console.log("[ThemeProvider] Generating semantics...");
@@ -223,7 +223,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
         console.error("[ThemeProvider] Detailed initialization error:", errorDetails);
 
         // If the error is related to HTML content being returned instead of JSON
-        if (err instanceof Error && err.message.includes('<!DOCTYPE')) {
+        if (err instanceof Error && err.message.includes("<!DOCTYPE")) {
           console.error("[ThemeProvider] Received HTML instead of JSON. This might indicate a server error or incorrect endpoint.");
           console.error("[ThemeProvider] First 500 characters of response:",
             err.message.substring(0, 500)
@@ -235,7 +235,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     };
 
     if (!state.initialized && !error) {
-      initTheme();
+      void initTheme();
     }
   }, [state.colorScheme, state.mode, state.initialized, error]);
 
@@ -417,6 +417,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     </ThemeErrorBoundary>
   );
 }
-}
+};
 
 export default ThemeProvider;

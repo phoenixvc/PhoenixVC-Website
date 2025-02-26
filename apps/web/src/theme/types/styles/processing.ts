@@ -1,6 +1,6 @@
 // /theme/types/styles/processing.ts
 
-import { CSSVariableMappings } from '../core/variables';
+import { CSSVariableMappings } from "../core/variables";
 
 /**
  * Utility Types
@@ -16,11 +16,11 @@ export interface StyleGenerationOptions {
   prefix?: string;
   scope?: string;
   important?: boolean;
-  format?: 'css' | 'json' | 'object' | 'module';
+  format?: "css" | "json" | "object" | "module";
   minify?: boolean;
   sourceMap?: boolean;
   includeDependencies?: boolean;
-  target?: 'modern' | 'legacy';
+  target?: "modern" | "legacy";
   customProperties?: boolean;
 }
 

@@ -1,5 +1,5 @@
 // /theme/types/context/state.ts
-import { ThemeState } from "../core"
+import { ThemeState } from "../core";
 import { ThemeContextError } from "./error";
 
 /**

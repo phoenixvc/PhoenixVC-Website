@@ -9,5 +9,5 @@ export interface FormElementMappings {
     radio: InputColorSet;
     switch: InputColorSet;
     textarea: InputColorSet;
-    button: Record<'primary' | 'secondary' | 'ghost' | 'link' | 'danger', ButtonColorSet>;
+    button: Record<"primary" | "secondary" | "ghost" | "link" | "danger", ButtonColorSet>;
 }

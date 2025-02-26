@@ -6,20 +6,20 @@ import { ThemeError } from "../core";
  * Theme error codes indicating the type of error that occurred.
  */
 export type ThemeErrorCode =
-  | 'INVALID_SCHEME'           // Invalid color scheme
-  | 'INVALID_MODE'             // Invalid mode
-  | 'STORAGE_ERROR'            // Storage-related error
-  | 'INITIALIZATION_ERROR'     // Initialization error
-  | 'SYSTEM_DETECTION_ERROR'   // System preference detection error
-  | 'TRANSITION_ERROR'         // Transition-related error
-  | 'INVALID_CONFIG'           // Invalid configuration
-  | 'EVENT_ERROR'              // Event handling error
-  | 'CONTEXT_ERROR';           // Context-related error
+  | "INVALID_SCHEME"           // Invalid color scheme
+  | "INVALID_MODE"             // Invalid mode
+  | "STORAGE_ERROR"            // Storage-related error
+  | "INITIALIZATION_ERROR"     // Initialization error
+  | "SYSTEM_DETECTION_ERROR"   // System preference detection error
+  | "TRANSITION_ERROR"         // Transition-related error
+  | "INVALID_CONFIG"           // Invalid configuration
+  | "EVENT_ERROR"              // Event handling error
+  | "CONTEXT_ERROR";           // Context-related error
 
 /**
  * Levels indicating the severity of an error.
  */
-export type ThemeErrorLevel = 'error' | 'warning' | 'info';
+export type ThemeErrorLevel = "error" | "warning" | "info";
 
 /**
  * Theme context error interface extending the standard Error object.
@@ -27,7 +27,7 @@ export type ThemeErrorLevel = 'error' | 'warning' | 'info';
  */
 export interface ThemeContextError extends Error {
   code: string;
-  context?: any;
+  context?: unknown;
 }
 
 /**
@@ -36,7 +36,7 @@ export interface ThemeContextError extends Error {
 export interface BaseThemeEventPayload {
   type: string;
   timestamp: number;
-  source?: 'user' | 'system' | 'storage' | 'api';
+  source?: "user" | "system" | "storage" | "api";
 }
 
 /**
