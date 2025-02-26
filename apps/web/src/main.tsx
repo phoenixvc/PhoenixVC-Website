@@ -22,7 +22,7 @@ createRoot(document.getElementById("root")!).render(
       }}
       className="theme-wrapper"
       onThemeChange={(theme) => {
-        console.log(`Theme changed:`, theme);
+        console.log("Theme changed:", theme);
       }}>
       <App />
     </ThemeProvider>

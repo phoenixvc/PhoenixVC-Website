@@ -1,7 +1,7 @@
 // src/components/ThemedTest.tsx
-import React from 'react';
-import { useTheme } from '@/theme';
-import "./theme/theme.css"
+import React from "react";
+import { useTheme } from "@/theme";
+import "./theme/theme.css";
 
 const ThemedTest: React.FC = () => {
   const { colorScheme, mode, colorSchemeClasses } = useTheme();
