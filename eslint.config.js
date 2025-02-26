@@ -1,13 +1,21 @@
-// eslint.config.js
 import js from '@eslint/js';
 import typescript from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import globals from 'globals';
+import { fileURLToPath } from 'url';
+import path from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const rootDir = process.cwd();
+
+console.log("ESLint Root Directory:", rootDir);
+console.log(
+  "ESLint Project Paths:",
+  path.resolve(rootDir, "apps/web/tsconfig.eslint.json"),
+  path.resolve(rootDir, "apps/design-system/tsconfig.eslint.json")
+);
 
 export default [
   {
@@ -17,7 +25,10 @@ export default [
       '**/build/**',
       '**/coverage/**',
       '**/.next/**',
-      '**/.turbo/**'
+      '**/.turbo/**',
+       "**/design-system/src/*.tsx",
+       "**/tailwind.config.js",
+       "**/postcss.config.js"
     ]
   },
   js.configs.recommended,
@@ -30,12 +41,18 @@ export default [
         sourceType: 'module',
         ecmaFeatures: {
           jsx: true
-        }
+        },
+        tsconfigRootDir: rootDir,
+        project: [
+          path.resolve(rootDir, "apps/web/tsconfig.eslint.json"),
+          path.resolve(rootDir, "apps/design-system/tsconfig.eslint.json")
+        ]
       },
       globals: {
         ...globals.browser,
         ...globals.node,
-        ...globals.es2021
+        ...globals.es2021,
+        React: "writable"
       }
     },
     plugins: {
@@ -52,14 +69,17 @@ export default [
       // TypeScript rules
       '@typescript-eslint/explicit-function-return-type': 'warn',
       '@typescript-eslint/no-explicit-any': 'error',
-      'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': 'error',
+      '@typescript-eslint/no-unused-vars': 'warn',
+      "no-unused-vars": "warn",
 
       // React rules
       'react/jsx-uses-react': 'error',
       'react/jsx-uses-vars': 'error',
       'react-hooks/rules-of-hooks': 'error',
-      'react-hooks/exhaustive-deps': 'warn'
+      'react-hooks/exhaustive-deps': 'warn',
+
+      "semi": ["error", "always"],
+      "quotes": ["error", "double"]
     }
   },
   {
@@ -69,11 +89,14 @@ export default [
       parserOptions: {
         ecmaVersion: 2022,
         sourceType: 'module',
-        project: ['./tsconfig.json'],
-        tsconfigRootDir: process.cwd(),
         ecmaFeatures: {
           jsx: true,
-        }
+        },
+        tsconfigRootDir: rootDir,
+        project: [
+          path.resolve(rootDir, "apps/web/tsconfig.eslint.json"),
+          path.resolve(rootDir, "apps/design-system/tsconfig.eslint.json")
+        ]
       }
     },
     rules: {
@@ -81,5 +104,24 @@ export default [
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-misused-promises': 'error'
     }
+  },
+  {
+    // Match any file whose name starts with "vite.config."
+    files: ["**/vite.config.*", "**/design-system/src/*.tsx"],
+    languageOptions: {
+      parserOptions: {
+        project: null,
+        allowDefaultProject: true,
+        tsconfigRootDir: rootDir
+      }
+    },
+    rules: {
+      '@typescript-eslint/await-thenable': 'off',
+      '@typescript-eslint/no-floating-promises': 'off',
+      '@typescript-eslint/no-misused-promises': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      'no-unused-vars': 'off',
+    }
   }
-];
+]

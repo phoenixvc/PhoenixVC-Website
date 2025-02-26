@@ -1,14 +1,15 @@
-// apps/web/tsconfig.json
 {
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
-    }
+    },
+    "jsx": "react-jsx",
   },
-  // This references your other configs if you have them
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }
-  ]
+  ],
+  "include": ["src/**/*", "vite.config.ts", "**/*.config.js", "**/*.config.ts", "vite.config.d.ts"]
 }

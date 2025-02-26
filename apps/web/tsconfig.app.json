@@ -1,5 +1,5 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "./tsconfig.json",
   "compilerOptions": {
     // Project Reference Settings
     "composite": true,         // Enables project references
@@ -41,11 +41,9 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/**/*.js",
-    "src/**/*.jsx",
+    "src/**/*",
     "vite.config.ts",
+    "vite.config.d.ts",
     ".eslintrc.js",
     "*.config.js",
     "*.config.ts"
