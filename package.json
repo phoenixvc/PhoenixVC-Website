@@ -37,6 +37,7 @@
     "glob": "^10.3.10",
     "globals": "^13.24.0",
     "husky": "^9.1.7",
+    "package": "^1.0.1",
     "prettier": "^3.2.5",
     "rimraf": "^5.0.5",
     "stylelint": "^16.2.1",
