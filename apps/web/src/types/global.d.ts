@@ -1,4 +1,4 @@
-declare module '@/*' {
-    const value: any;
+declare module "@/*" {
+    const value: unknown;
     export default value;
   }
