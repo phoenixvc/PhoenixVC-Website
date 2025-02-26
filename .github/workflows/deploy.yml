@@ -129,28 +129,13 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build_apps, deploy_resources_staging]
     steps:
-      - name: Checkout Repository for Staging SWA Deploy
-        uses: actions/checkout@v4
+      - name: Use SWA Deploy Action for Staging
+        uses: ./.github/actions/swa-deploy
         with:
-          repository: JustAGhosT/PhoenixVC-Modernized
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
-
-      - name: Download Web App Artifact for Staging
-        uses: actions/download-artifact@v3
-        with:
-          name: web-dist
-          path: ./build-artifact
-
-      - name: Deploy Staging Site via SWA CLI
-        run: |
-          echo "Deploying to Staging using SWA CLI from artifact..."
-          npx swa deploy ./build-artifact \
-            --app-name staging-${{ env.LOCATION_CODE }}-swa-phoenixvc-website \
-            --resource-group staging-${{ env.LOCATION_CODE }}-rg-phoenixvc-website \
-            --env staging
-        env:
-          LOCATION_CODE: ${{ env.LOCATION_CODE }}
+          artifact-name: web-dist
+          app-name: staging-${{ env.LOCATION_CODE }}-swa-phoenixvc-website
+          resource-group: staging-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
+          env: staging
 
   # ───────────────────────────────────────────────
   # ✅ PRODUCTION RESOURCE CREATION (Run deploy.sh)
