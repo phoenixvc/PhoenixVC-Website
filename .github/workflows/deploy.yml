@@ -106,10 +106,14 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
   
-      - name: Azure Login (Staging)
-        uses: azure/login@v1
+      - name: Use Composite Azure Deployment
+        uses: ./.github/actions/setup-azure-deployment
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          repository: JustAGhosT/PhoenixVC-Modernized
+          ref: ${{ github.ref }}
   
       - name: Run Staging Resource Deployment Script
         run: ./scripts/deployment/deploy.sh --env staging
