@@ -55,9 +55,8 @@ jobs:
           fi
           echo "==========================="
 
-
   # ────────────────────────────────────────────
-  # ✅ Build apps with Vite
+  # ✅ Build Applications
   # ────────────────────────────────────────────
   build_apps:
     runs-on: ubuntu-latest
@@ -95,7 +94,7 @@ jobs:
           retention-days: 5
 
   # ────────────────────────────────────────────
-  # ✅ STAGING DEPLOYMENT
+  # ✅ Staging Deployment
   # ────────────────────────────────────────────
   deploy_staging:
     needs: [log_debug_information]
@@ -106,14 +105,14 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - name: Checkout Repository
+      - name: Checkout Repository (Staging)
         uses: actions/checkout@v4
         with:
           repository: JustAGhosT/PhoenixVC-Modernized
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      - name: Use Composite Azure Deployment
+      - name: Provision Staging Infrastructure
         uses: ./.github/actions/setup-azure-deployment
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -122,7 +121,7 @@ jobs:
           repository: JustAGhosT/PhoenixVC-Modernized
           ref: ${{ github.ref }}
 
-      - name: Deploy to Staging
+      - name: Deploy Resources to Staging
         run: ./scripts/deployment/deploy.sh --env staging
         env:
           ENVIRONMENT: staging
@@ -130,23 +129,23 @@ jobs:
           SWA_NAME: staging-${{ env.LOCATION_CODE }}-swa-phoenixvc-website
 
   # ────────────────────────────────────────────
-  # ✅ MANUAL APPROVAL CHECK
+  # ✅ Manual Approval Check
   # ────────────────────────────────────────────
   manual_approval:
     needs: [deploy_staging]
     if: ${{ github.event.inputs.APPROVAL_STATE == 'false' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Notify Manual Approval Ready
+      - name: Notify Manual Approval Required
         run: |
           echo "✅ Staging deployment passed successfully."
           echo "🔎 Production deployment is now ready."
           echo "Please re-run the workflow with APPROVAL_STATE set to 'true' to deploy to production."
 
   # ────────────────────────────────────────────
-  # ✅ PRODUCTION DEPLOYMENT
+  # ✅ Production Deployment (Resource Provisioning)
   # ────────────────────────────────────────────
-  deploy_prod:
+  deploy_prod_resources:
     needs: [log_debug_information]
     runs-on: ubuntu-latest
     environment: production
@@ -156,7 +155,7 @@ jobs:
       id-token: write
     if: ${{ github.event.inputs.APPROVAL_STATE == 'true' }}
     steps:
-      - name: Checkout Repository
+      - name: Checkout Repository (Production)
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
@@ -164,7 +163,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      - name: Log Environment Variables for Debugging
+      - name: Log Production Environment Variables
         run: |
           echo "==========================="
           echo "✅ Logging Production Deployment"
@@ -180,7 +179,7 @@ jobs:
           echo "🚀 Deploying to Production"
           echo "==========================="
 
-      - name: Use Composite Azure Deployment
+      - name: Provision Production Resources
         uses: ./.github/actions/setup-azure-deployment
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -189,7 +188,7 @@ jobs:
           repository: ${{ github.repository }}
           ref: ${{ github.ref }}
 
-      - name: Deploy to Production
+      - name: Deploy Resources to Production
         run: ./scripts/deployment/deploy.sh --ENVIRONMENT prod
         env:
           ENVIRONMENT: prod
@@ -197,10 +196,37 @@ jobs:
           SWA_NAME: prod-${{ env.LOCATION_CODE }}-swa-phoenixvc-website
 
   # ────────────────────────────────────────────
-  # ✅ TRIGGER DNS CONFIGURATION WORKFLOW
+  # ✅ Deploy Site Content
+  # ────────────────────────────────────────────
+  deploy_site_content:
+    needs: [deploy_prod_resources]
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout Repository (Content Deploy)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: refs/heads/main
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Deploy Site Content to SWA
+        run: |
+          echo "Deploying site content using SWA CLI..."
+          npx swa deploy \
+            --app-name prod-${{ env.LOCATION_CODE }}-swa-phoenixvc-website \
+            --resource-group prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website \
+            --output-location apps/web/dist \
+            --env prod
+        env:
+          LOCATION_CODE: ${{ env.LOCATION_CODE }}
+
+  # ────────────────────────────────────────────
+  # ✅ Trigger DNS Configuration Workflow
   # ────────────────────────────────────────────
   trigger_dns_update:
-    needs: deploy_prod
+    needs: [deploy_site_content]
     runs-on: ubuntu-latest
     steps:
       - name: Trigger DNS Workflow
@@ -211,30 +237,30 @@ jobs:
           -d '{"ref": "refs/heads/main", "inputs": {"ENVIRONMENT": "prod"}}'
 
   # ────────────────────────────────────────────
-  # ✅ DEPLOY DOCUMENTATION
+  # ✅ Deploy Documentation
   # ────────────────────────────────────────────
   deploy_docs:
-      needs: [log_debug_information]
-      if: >
-        (github.event_name == 'push' &&
-        (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/'))) ||
-        (github.event_name == 'pull_request' &&
-        github.event.pull_request.merged == true &&
-        (github.event.pull_request.base.ref == 'main' || startsWith(github.event.pull_request.base.ref, 'refs/heads/release/')))
-      runs-on: ubuntu-latest
-      environment: production
-      steps:
-        - uses: actions/checkout@v4
-        - name: Setup Python
-          uses: actions/setup-python@v5
-          with:
-            python-version: '3.x'
-            cache: 'pip'
-        - name: Install MkDocs and Dependencies
-          run: |
-            python -m pip install --upgrade pip
-            pip install mkdocs mkdocs-material
-        - name: Build MkDocs Site
-          run: mkdocs build -f docs/mkdocs.yml
-        - name: Deploy MkDocs Site
-          run: mkdocs gh-deploy --force
+    needs: [log_debug_information]
+    if: >
+      (github.event_name == 'push' &&
+      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/'))) ||
+      (github.event_name == 'pull_request' &&
+      github.event.pull_request.merged == true &&
+      (github.event.pull_request.base.ref == 'main' || startsWith(github.event.pull_request.base.ref, 'refs/heads/release/')))
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+          cache: 'pip'
+      - name: Install MkDocs and Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install mkdocs mkdocs-material
+      - name: Build MkDocs Site
+        run: mkdocs build -f docs/mkdocs.yml
+      - name: Deploy MkDocs Site
+        run: mkdocs gh-deploy --force
