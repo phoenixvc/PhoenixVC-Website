@@ -1,0 +1,26 @@
+@layer base {
+    :root {
+      /* Design tokens */
+      --radius-sm: 0.25rem;
+      --radius-md: 0.375rem;
+      --radius-lg: 0.5rem;
+
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+
+      --transition-fast: 150ms;
+      --transition-normal: 200ms;
+      --transition-slow: 300ms;
+
+      /* Semantic tokens */
+      --color-background: var(--theme-background);
+      --color-foreground: var(--theme-foreground);
+      --color-primary: var(--theme-primary);
+      --color-secondary: var(--theme-secondary);
+      --color-accent: var(--theme-accent);
+      --color-muted: var(--theme-muted);
+      --color-border: var(--theme-border);
+      --color-hover: var(--theme-hover);
+      --color-active: var(--theme-active);
+    }
+  }

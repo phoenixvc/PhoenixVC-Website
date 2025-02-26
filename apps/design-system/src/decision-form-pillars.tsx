@@ -1,11 +1,11 @@
-import React from 'react'
-import { Select } from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
+import React from "react.js";
+import { Select } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 const DesignDecisionForm = () => {
   return (
@@ -183,7 +183,7 @@ const DesignDecisionForm = () => {
         <Button className="w-full">Generate Design Guidelines</Button>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default DesignDecisionForm
+export default DesignDecisionForm;

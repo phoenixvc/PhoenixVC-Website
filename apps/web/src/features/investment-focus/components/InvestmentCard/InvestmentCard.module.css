@@ -1,0 +1,34 @@
+.card {
+  position: relative;
+  background-color: hsl(var(--card));
+  border-radius: 1rem;
+  padding: 1.5rem;
+  text-align: center;
+  transition: transform 0.2s ease-in-out, box-shadow 0.3s ease-in-out;
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+.icon {
+  font-size: 2rem; /* or 4xl, adjust as needed */
+  margin-bottom: 1rem;
+  color: hsl(var(--card-foreground));
+}
+
+.title {
+  color: hsl(var(--card-foreground));
+  font-size: 1.25rem; /* text-xl */
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.description {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.875rem; /* text-sm */
+  line-height: 1.6;
+}

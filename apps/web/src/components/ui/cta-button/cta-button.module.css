@@ -1,0 +1,68 @@
+.base {
+  @apply inline-flex items-center justify-center px-6 py-3
+         font-medium text-center rounded-md border-2 border-transparent
+         outline-none cursor-pointer
+         transition-colors duration-200 ease-in-out;
+}
+
+.base:focus-visible {
+  @apply outline-none ring-2 ring-offset-2 ring-primary/50;
+}
+
+.base:disabled {
+  @apply opacity-50 cursor-not-allowed pointer-events-none;
+}
+
+/* Primary Button */
+.primary {
+  @apply bg-primary text-primary-foreground hover:bg-primary/90;
+}
+
+.primary:hover {
+  @apply transform -translate-y-0.5 shadow-lg;
+}
+
+.primary:active {
+  @apply bg-primary/80 transform translate-y-0 shadow-none;
+}
+
+/* Secondary Button */
+.secondary {
+  @apply bg-secondary text-secondary-foreground border-2 border-secondary;
+}
+
+.secondary:hover {
+  @apply bg-secondary/80 transform -translate-y-0.5 shadow-lg;
+}
+
+.secondary:active {
+  @apply bg-secondary/70 transform translate-y-0 shadow-none;
+}
+
+/* Outline Button */
+.outline {
+  @apply border-2 border-input bg-background hover:bg-accent hover:text-accent-foreground;
+}
+
+/* Ghost Button */
+.ghost {
+  @apply hover:bg-accent hover:text-accent-foreground;
+}
+
+/* Destructive Button */
+.destructive {
+  @apply bg-destructive text-destructive-foreground hover:bg-destructive/90;
+}
+
+/* Link Button */
+.link {
+  @apply text-primary underline-offset-4 hover:underline;
+}
+
+
+/* TODO:
+ - Add loading state styles
+ - Consider adding size variants (sm, lg)
+ - Add icon support classes
+ - Add group hover states for icon animations
+ - Consider adding dark mode specific adjustments if needed */

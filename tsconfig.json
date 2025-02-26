@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.base.json",
+  "files": [],
+  "references": [
+    { "path": "./apps/web" },
+    { "path": "./apps/design-system" }
+  ],
+  "compilerOptions": {
+    "jsx": "react-jsx"
+  }
+}

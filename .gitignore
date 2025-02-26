@@ -53,3 +53,5 @@ poetry.lock
 .vscode/
 *.swp
 *.swo
+.cache
+__pycache__/

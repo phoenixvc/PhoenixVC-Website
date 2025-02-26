@@ -1,0 +1,89 @@
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 50;
+  transition:
+    background 0.4s ease-in-out,
+    box-shadow 0.3s ease-in-out,
+    border-bottom 0.3s ease-in-out,
+    backdrop-filter 0.3s ease-in-out;
+}
+
+.headerTransparent {
+  background: linear-gradient(
+    to bottom,
+    hsl(var(--alternate-background) / 0.80) 0%,
+    transparent
+  );
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+
+  box-shadow: 0 1px 6px hsl(var(--color-shadow) / 0.3);
+  border-bottom: 1px solid hsl(var(--border) / 0.15);
+}
+
+.headerScrolled {
+  background: linear-gradient(
+    to bottom,
+    hsl(var(--alternate-background) / 0.7) 0%,
+    hsl(var(--alternate-background) / 0.4) 50%,
+    hsl(var(--alternate-background) / 0.2) 100%
+  );
+  backdrop-filter: blur(15px) brightness(0.95);
+
+  box-shadow: 0 2px 15px hsl(var(--color-shadow) / 0.35);
+  border-bottom: 1px solid hsl(var(--color-border) / 0.25);
+}
+
+.navContainer {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navContainer a {
+  color: hsl(var(--color-foreground));
+  position: relative;
+  padding: 0.5rem 0.75rem;
+  transition: color 0.2s ease-in-out;
+}
+
+.navContainer a:hover {
+  color: hsl(var(--color-foreground) / 0.7);
+}
+
+.navContainer a[aria-current="page"] {
+  color: hsl(var(--color-foreground) / 0.95);
+  font-weight: 600;
+}
+
+.navContainer a[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: hsl(var(--color-foreground));
+}
+
+.menuButton {
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: background-color 0.2s ease-in-out;
+}
+.menuButton:hover {
+  background-color: hsl(var(--color-hover));
+}
+
+.icon {
+  width: 24px;
+  height: 24px;
+}

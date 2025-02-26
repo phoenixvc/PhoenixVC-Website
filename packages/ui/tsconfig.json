@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@ui/*": ["./src/*"] // an example alias for the UI package
+    }
+  },
+  "include": ["src"]
+}

@@ -1,0 +1,84 @@
+.footer {
+    padding: 4rem 0;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      hsl(var(--alternate-background) / 0.4)
+    );
+    backdrop-filter: blur(15px) brightness(0.95);
+    border-top: 1px solid hsl(var(--color-border) / 0.25);
+  }
+
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  .gridContainer {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  @media (min-width: 768px) {
+    .gridContainer {
+      grid-template-columns: 2fr 1fr 1fr;
+    }
+  }
+
+  .logoSection {
+    max-width: 24rem;
+  }
+
+  .description {
+    margin-top: 1rem;
+    color: hsl(var(--color-muted));
+    line-height: 1.6;
+  }
+
+  .sectionTitle {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: hsl(var(--color-text));
+  }
+
+  .linkList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .link {
+    color: hsl(var(--color-muted));
+    transition: color 0.2s ease-in-out;
+    position: relative;
+    display: inline-block;
+  }
+
+  .link:hover {
+    color: hsl(var(--color-text));
+  }
+
+  .link:hover::after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background-color: hsl(var(--color-text) / 0.3);
+  }
+
+  .footerBottom {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid hsl(var(--color-border) / 0.1);
+    text-align: center;
+  }
+
+  .copyright {
+    color: hsl(var(--color-muted));
+    font-size: 0.875rem;
+  }

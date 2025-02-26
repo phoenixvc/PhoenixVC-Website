@@ -1,0 +1,29 @@
+.heading {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  background-clip: text;
+  -webkit-background-clip: text;
+  background-image: linear-gradient(
+    to right,
+    hsl(var(--color-primary)) 0%,
+    hsl(var(--color-accent)) 100%
+  );
+  color: hsl(var(--color-foreground));
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.25);
+  line-height: 1.2;
+}
+
+.subtitle {
+  font-size: 1.125rem;
+  margin-bottom: 2rem;
+  max-width: 40rem;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+  color: hsl(var(--color-text));
+}
+
+.dark .subtitle {
+  color: hsl(var(--color-text));
+}
