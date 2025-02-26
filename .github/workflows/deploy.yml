@@ -41,13 +41,11 @@ jobs:
           echo "Resource Group Name: prod-${LOCATION_CODE}-rg-phoenixvc-website"
           echo "Static Web App Name: prod-${LOCATION_CODE}-swa-phoenixvc-website"
           echo "Log repository: ${{ github.repository }}"
-
           if [[ -n "${{ secrets.GITHUB_TOKEN }}" ]]; then
             echo "✅ GITHUB_TOKEN is set."
           else
             echo "⚠️  GITHUB_TOKEN is missing!"
           fi
-
           if [[ "${{ github.event.inputs.APPROVAL_STATE }}" == "true" ]]; then
             echo "🚀 Deploying to Production - Manual approval was bypassed!"
           else
@@ -56,7 +54,7 @@ jobs:
           echo "==========================="
 
   # ────────────────────────────────────────────
-  # ✅ Build Applications
+  # ✅ BUILD APPS WITH VITE
   # ────────────────────────────────────────────
   build_apps:
     runs-on: ubuntu-latest
@@ -94,10 +92,10 @@ jobs:
           retention-days: 5
 
   # ────────────────────────────────────────────
-  # ✅ Staging Deployment
+  # ✅ STAGING DEPLOYMENT (Artifact Based)
   # ────────────────────────────────────────────
   deploy_staging:
-    needs: [log_debug_information]
+    needs: [log_debug_information, build_apps]
     if: ${{ github.event.inputs.APPROVAL_STATE != 'true' }}
     runs-on: ubuntu-latest
     environment: staging
@@ -105,14 +103,20 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - name: Checkout Repository (Staging)
+      - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           repository: JustAGhosT/PhoenixVC-Modernized
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      - name: Provision Staging Infrastructure
+      - name: Download Web App Artifact for Staging
+        uses: actions/download-artifact@v3
+        with:
+          name: web-dist
+          path: ./build-artifact
+
+      - name: Use Composite Azure Deployment (Staging)
         uses: ./.github/actions/setup-azure-deployment
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -121,32 +125,35 @@ jobs:
           repository: JustAGhosT/PhoenixVC-Modernized
           ref: ${{ github.ref }}
 
-      - name: Deploy Resources to Staging
-        run: ./scripts/deployment/deploy.sh --env staging
+      - name: Deploy to Staging via SWA CLI
+        run: |
+          echo "Deploying to Staging using SWA CLI from artifact..."
+          npx swa deploy ./build-artifact \
+            --app-name staging-${{ env.LOCATION_CODE }}-swa-phoenixvc-website \
+            --resource-group staging-${{ env.LOCATION_CODE }}-rg-phoenixvc-website \
+            --env staging
         env:
-          ENVIRONMENT: staging
-          RG_NAME: staging-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
-          SWA_NAME: staging-${{ env.LOCATION_CODE }}-swa-phoenixvc-website
+          LOCATION_CODE: ${{ env.LOCATION_CODE }}
 
   # ────────────────────────────────────────────
-  # ✅ Manual Approval Check
+  # ✅ MANUAL APPROVAL CHECK
   # ────────────────────────────────────────────
   manual_approval:
     needs: [deploy_staging]
     if: ${{ github.event.inputs.APPROVAL_STATE == 'false' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Notify Manual Approval Required
+      - name: Notify Manual Approval Ready
         run: |
           echo "✅ Staging deployment passed successfully."
           echo "🔎 Production deployment is now ready."
           echo "Please re-run the workflow with APPROVAL_STATE set to 'true' to deploy to production."
 
   # ────────────────────────────────────────────
-  # ✅ Production Deployment (Resource Provisioning)
+  # ✅ PRODUCTION DEPLOYMENT (Artifact Based)
   # ────────────────────────────────────────────
-  deploy_prod_resources:
-    needs: [log_debug_information]
+  deploy_prod:
+    needs: [log_debug_information, build_apps]
     runs-on: ubuntu-latest
     environment: production
     permissions:
@@ -155,7 +162,7 @@ jobs:
       id-token: write
     if: ${{ github.event.inputs.APPROVAL_STATE == 'true' }}
     steps:
-      - name: Checkout Repository (Production)
+      - name: Checkout Repository for Production Deployment
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
@@ -163,23 +170,13 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      - name: Log Production Environment Variables
-        run: |
-          echo "==========================="
-          echo "✅ Logging Production Deployment"
-          echo "==========================="
-          echo "GitHub Event Name: ${{ github.event_name }}"
-          echo "Ref: ${{ github.ref }}"
-          echo "Approval State: ${{ github.event.inputs.APPROVAL_STATE }}"
-          echo "Environment: prod"
-          echo "Location Code: ${LOCATION_CODE}"
-          echo "Resource Group: prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website"
-          echo "Static Web App Name: prod-${{ env.LOCATION_CODE }}-swa-phoenixvc-website"
-          echo "✅ GITHUB_TOKEN is set."
-          echo "🚀 Deploying to Production"
-          echo "==========================="
+      - name: Download Web App Artifact for Production
+        uses: actions/download-artifact@v3
+        with:
+          name: web-dist
+          path: ./build-artifact
 
-      - name: Provision Production Resources
+      - name: Use Composite Azure Deployment (Production)
         uses: ./.github/actions/setup-azure-deployment
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -188,45 +185,21 @@ jobs:
           repository: ${{ github.repository }}
           ref: ${{ github.ref }}
 
-      - name: Deploy Resources to Production
-        run: ./scripts/deployment/deploy.sh --ENVIRONMENT prod
-        env:
-          ENVIRONMENT: prod
-          RG_NAME: prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
-          SWA_NAME: prod-${{ env.LOCATION_CODE }}-swa-phoenixvc-website
-
-  # ────────────────────────────────────────────
-  # ✅ Deploy Site Content
-  # ────────────────────────────────────────────
-  deploy_site_content:
-    needs: [deploy_prod_resources]
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
-      - name: Checkout Repository (Content Deploy)
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ github.repository }}
-          ref: refs/heads/main
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
-
-      - name: Deploy Site Content to SWA
+      - name: Deploy to Production via SWA CLI
         run: |
-          echo "Deploying site content using SWA CLI..."
-          npx swa deploy \
+          echo "Deploying to Production using SWA CLI from artifact..."
+          npx swa deploy ./build-artifact \
             --app-name prod-${{ env.LOCATION_CODE }}-swa-phoenixvc-website \
             --resource-group prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website \
-            --output-location apps/web/dist \
             --env prod
         env:
           LOCATION_CODE: ${{ env.LOCATION_CODE }}
 
   # ────────────────────────────────────────────
-  # ✅ Trigger DNS Configuration Workflow
+  # ✅ TRIGGER DNS CONFIGURATION WORKFLOW
   # ────────────────────────────────────────────
   trigger_dns_update:
-    needs: [deploy_site_content]
+    needs: [deploy_prod]
     runs-on: ubuntu-latest
     steps:
       - name: Trigger DNS Workflow
@@ -237,10 +210,10 @@ jobs:
           -d '{"ref": "refs/heads/main", "inputs": {"ENVIRONMENT": "prod"}}'
 
   # ────────────────────────────────────────────
-  # ✅ Deploy Documentation
+  # ✅ DEPLOY DOCUMENTATION (Depends on Prod Deployment)
   # ────────────────────────────────────────────
   deploy_docs:
-    needs: [log_debug_information]
+    needs: [deploy_prod]
     if: >
       (github.event_name == 'push' &&
       (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/'))) ||
@@ -251,7 +224,7 @@ jobs:
     environment: production
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Python
+      - name: Setup Python for Docs
         uses: actions/setup-python@v5
         with:
           python-version: '3.x'
