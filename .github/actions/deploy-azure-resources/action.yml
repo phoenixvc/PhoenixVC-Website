@@ -50,6 +50,10 @@ runs:
           echo "Azure CLI logic extension is already installed."
         fi
 
+    - name: Make deploy script executable
+      run: chmod +x ./scripts/deployment/deploy.sh
+      shell: bash
+      
     - name: Run Resource Deployment Script
       shell: bash
       run: |
