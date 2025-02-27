@@ -52,6 +52,21 @@ echo "ENABLE_COST_CHECKS: $ENABLE_COST_CHECKS"
 echo "POLICY_ENFORCEMENT_MODE: $POLICY_ENFORCEMENT_MODE"
 echo "================================="
 
+if [ -f "$PARAMETERS_FILE" ]; then
+  # parse the JSON for specific parameters you care about
+  deployKeyVaultVal="$(jq -r '.parameters.deployKeyVault.value // "not-set"' < "$PARAMETERS_FILE")"
+  deployLogicAppVal="$(jq -r '.parameters.deployLogicApp.value // "not-set"' < "$PARAMETERS_FILE")"
+  deployBudget="$(jq -r '.parameters.deployBudget.value // "not-set"' < "$PARAMETERS_FILE")"
+else
+  deployKeyVaultVal="N/A"
+  deployLogicAppVal="N/A"
+  deployBudget="N/A"
+fi
+
+echo "deployKeyVault: $deployKeyVaultVal"
+echo "deployLogicApp: $deployLogicAppVal"
+echo "deployLogicApp: $deployBudget"
+
 # Timestamp for naming
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 
