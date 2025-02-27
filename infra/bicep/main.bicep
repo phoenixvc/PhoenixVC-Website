@@ -17,7 +17,7 @@ param deployBudget bool = false
 
 // Key Vault parameters
 param deployKeyVault bool = true
-param keyVaultName string = '${environment}-${locCode}-kv-phoenixvc-website'
+param keyVaultName string = '${environment}-${locCode}-kv-phoenixvc'
 param keyVaultSku string = 'standard'
 param keyVaultAccessPolicies array = []
 param enabledForDeployment bool = false
