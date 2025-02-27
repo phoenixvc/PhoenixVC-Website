@@ -90,9 +90,9 @@ const tenantTheme = colorMap.generateTheme({
 
 ## Additional Resources
 
-- [Architecture Guide](./docs/architecture.md)
-- [Best Practices Guide](./docs/best-practices.md)
-- [Migration Guide](./docs/migration.md)
+- [Architecture Guide](./architecture.md)
+- [Best Practices Guide](./best-practices.md)
+- [Migration Guide](./migration.md)
 
 ## Support
 
