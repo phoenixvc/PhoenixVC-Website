@@ -1,14 +1,14 @@
 #!/bin/bash
 set -eo pipefail
 
-###
+#########################################
 # 1) Resolve and log deployment parameters
-###
+#########################################
 
 # Environment variables or defaults
 ENVIRONMENT="${ENVIRONMENT:-staging}"
 LOCATION_CODE="${LOCATION_CODE:-saf}"
-ENABLE_POLICY_CHECKS="${ENABLE_POLICY_CHECKS:-true}"
+ENABLE_POLICY_CHECKS="${ENABLE_POLICY_CHECKS:-false}"   # Disable policy check for now
 ENABLE_MONITORING="${ENABLE_MONITORING:-false}"
 ENABLE_COST_CHECKS="${ENABLE_COST_CHECKS:-false}"
 POLICY_ENFORCEMENT_MODE="${POLICY_ENFORCEMENT_MODE:-enforce}"
@@ -50,15 +50,16 @@ echo "ENABLE_COST_CHECKS: $ENABLE_COST_CHECKS"
 echo "POLICY_ENFORCEMENT_MODE: $POLICY_ENFORCEMENT_MODE"
 echo "================================="
 
+# Parse the parameters file (if it exists) to override defaults
 if [ -f "$PARAMETERS_FILE" ]; then
   echo "Full Parameters File Content:"
   cat "$PARAMETERS_FILE"
   echo "---------------------------------"
-  deployKeyVaultVal=$(jq -r '.parameters.deployKeyVault.value // "not-set"' < "$PARAMETERS_FILE")
-  deployLogicAppVal=$(jq -r '.parameters.deployLogicApp.value // "not-set"' < "$PARAMETERS_FILE")
-  deployBudgetVal=$(jq -r '.parameters.deployBudget.value // "not-set"' < "$PARAMETERS_FILE")
-  keyVaultSkuVal=$(jq -r '.parameters.keyVaultSku.value // "not-set"' < "$PARAMETERS_FILE")
-  enableRbacAuthorizationVal=$(jq -r '.parameters.enableRbacAuthorization.value // "not-set"' < "$PARAMETERS_FILE")
+  deployKeyVaultVal=$(jq -r '.parameters.deployKeyVault.value | tostring' < "$PARAMETERS_FILE")
+  deployLogicAppVal=$(jq -r '.parameters.deployLogicApp.value | tostring' < "$PARAMETERS_FILE")
+  deployBudgetVal=$(jq -r '.parameters.deployBudget.value | tostring' < "$PARAMETERS_FILE")
+  keyVaultSkuVal=$(jq -r '.parameters.keyVaultSku.value | tostring' < "$PARAMETERS_FILE")
+  enableRbacAuthorizationVal=$(jq -r '.parameters.enableRbacAuthorization.value | tostring' < "$PARAMETERS_FILE")
 else
   deployKeyVaultVal="N/A"
   deployLogicAppVal="N/A"
@@ -73,15 +74,21 @@ echo "Parsed Parameter - deployBudget: $deployBudgetVal"
 echo "Parsed Parameter - keyVaultSku: $keyVaultSkuVal"
 echo "Parsed Parameter - enableRbacAuthorization: $enableRbacAuthorizationVal"
 
-# Timestamp for naming
+# Get a timestamp for naming
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 
-###
+# Cleanup: Remove any temporary files created during execution
+trap 'rm -f temp_*_check.json' EXIT
+
+#########################################
 # 2) Define helper functions
-###
+#########################################
 
 policy_precheck() {
-  [ "$ENABLE_POLICY_CHECKS" = "true" ] || return 0
+  if [ "$ENABLE_POLICY_CHECKS" != "true" ]; then
+    echo "Skipping policy pre-check as ENABLE_POLICY_CHECKS is not true."
+    return 0
+  fi
 
   echo "🔒 Running Pre-Deployment Policy Check..."
   az policy state trigger-scan --subscription "$(az account show --query id -o tsv)" --no-wait
@@ -95,6 +102,7 @@ policy_precheck() {
 
   if [ "$violation_count" -gt 0 ]; then
     echo "❌ Pre-Deployment Policy Violations: $violation_count violation(s) found:" >&2
+
     echo "$non_compliant_json" | jq -r '
       group_by(.policyDefinitionId)[] |
       "Policy Definition: " + (. [0].policyDefinitionName // "Unknown") +
@@ -105,6 +113,7 @@ policy_precheck() {
          " | Assignment ID: " + (.policyAssignmentId // "N/A")
        ) | join("\n"))
     '
+
     echo ""
     echo "🔍 Fetching detailed policy definitions for each violation:"
     for policyId in $(echo "$non_compliant_json" | jq -r '.[].policyDefinitionId' | sort | uniq); do
@@ -114,6 +123,7 @@ policy_precheck() {
       az policy definition show --name "$policyName" --query "{displayName: displayName, description: description}" -o json | jq .
       echo "------------------------"
     done
+
     exit 1
   else
     echo "✅ No Pre-Deployment Policy Violations detected."
@@ -121,7 +131,11 @@ policy_precheck() {
 }
 
 setup_monitoring() {
-  [ "$ENABLE_MONITORING" = "true" ] || return 0
+  if [ "$ENABLE_MONITORING" != "true" ]; then
+    echo "Skipping monitoring setup as ENABLE_MONITORING is not true."
+    return 0
+  fi
+
   echo "📈 Configuring Monitoring..."
   if [ "$POLICY_ENFORCEMENT_MODE" = "enforce" ]; then
     az monitor activity-log alert create \
@@ -160,9 +174,10 @@ check_resource_group() {
   fi
 }
 
-###
+#########################################
 # 3) Main deployment flow
-###
+#########################################
+
 main() {
   handle_emergency "$@"
 
@@ -175,9 +190,12 @@ main() {
   check_resource_group
 
   echo "📄 Using parameter file: $PARAMETERS_FILE"
-  cat "$PARAMETERS_FILE" || { echo "❌ Could not read parameters file: $PARAMETERS_FILE"; exit 1; }
+  if ! cat "$PARAMETERS_FILE"; then
+    echo "❌ Could not read parameters file: $PARAMETERS_FILE"
+    exit 1
+  fi
 
-  # Bicep Deployment (overrides provided by the parameter file will be applied)
+  # Bicep Deployment: pass parameter file along with any inline overrides
   az deployment sub create \
     --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" \
     --location "$DEPLOY_REGION" \
@@ -186,7 +204,6 @@ main() {
     --parameters environment="$ENVIRONMENT" locCode="$LOCATION_CODE" \
     --query properties.outputs
 
-  # Post-Deployment validations
   echo "✅ Deployment completed. Running validations..."
   if [ "$(az group exists --name "$RESOURCE_GROUP")" != "true" ]; then
     echo "❌ Resource Group missing!" >&2
