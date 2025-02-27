@@ -1,13 +1,8 @@
 #!/bin/bash
 set -eo pipefail
 
-###
-# 1) Resolve environment variables *before* logging them
-###
-
-# Feature Configuration
+# Feature Configuration (set defaults if not already defined)
 ENVIRONMENT="${ENVIRONMENT:-staging}"
-# Expected values: "euw" for West Europe, "saf" for South Africa
 LOCATION_CODE="${LOCATION_CODE:-saf}"
 DEPLOY_REGION="westeurope"
 ENABLE_POLICY_CHECKS="${ENABLE_POLICY_CHECKS:-true}"
@@ -19,7 +14,7 @@ POLICY_ENFORCEMENT_MODE="${POLICY_ENFORCEMENT_MODE:-enforce}"
 BICEP_FILE="${BICEP_FILE:-./infra/bicep/main.bicep}"
 PARAMETERS_FILE="${PARAMETERS_FILE:-./infra/bicep/parameters-${ENVIRONMENT}.json}"
 
-# Now determine final region from LOCATION_CODE
+# Determine deployment region based on LOCATION_CODE
 if [ "$LOCATION_CODE" = "euw" ]; then
   DEPLOY_REGION="westeurope"
 elif [ "$LOCATION_CODE" = "saf" ]; then
@@ -29,8 +24,9 @@ else
   DEPLOY_REGION="westeurope"
 fi
 
-# Resource group name
+# Resource Group name and timestamp
 RESOURCE_GROUP="${ENVIRONMENT}-${LOCATION_CODE}-rg-phoenixvc-website"
+TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 
 # Check that jq is installed
 if ! command -v jq > /dev/null; then
@@ -52,30 +48,27 @@ echo "ENABLE_COST_CHECKS: $ENABLE_COST_CHECKS"
 echo "POLICY_ENFORCEMENT_MODE: $POLICY_ENFORCEMENT_MODE"
 echo "================================="
 
+# Read and log the complete parameters file (if it exists)
 if [ -f "$PARAMETERS_FILE" ]; then
-  # parse the JSON for specific parameters you care about
-  deployKeyVaultVal="$(jq -r '.parameters.deployKeyVault.value // "not-set"' < "$PARAMETERS_FILE")"
-  deployLogicAppVal="$(jq -r '.parameters.deployLogicApp.value // "not-set"' < "$PARAMETERS_FILE")"
-  deployBudget="$(jq -r '.parameters.deployBudget.value // "not-set"' < "$PARAMETERS_FILE")"
+  echo "Full Parameters File Content:"
+  jq . "$PARAMETERS_FILE"
+
+  # Parse specific parameters from the JSON file
+  deployKeyVaultVal=$(jq -r '.parameters.deployKeyVault.value' "$PARAMETERS_FILE")
+  deployLogicAppVal=$(jq -r '.parameters.deployLogicApp.value' "$PARAMETERS_FILE")
+  deployBudgetVal=$(jq -r '.parameters.deployBudget.value' "$PARAMETERS_FILE")
 else
   deployKeyVaultVal="N/A"
   deployLogicAppVal="N/A"
-  deployBudget="N/A"
+  deployBudgetVal="N/A"
 fi
 
-echo "deployKeyVault: $deployKeyVaultVal"
-echo "deployLogicApp: $deployLogicAppVal"
-echo "deployLogicApp: $deployBudget"
+echo "Parsed Parameter - deployKeyVault: $deployKeyVaultVal"
+echo "Parsed Parameter - deployLogicApp: $deployLogicAppVal"
+echo "Parsed Parameter - deployBudget: $deployBudgetVal"
+echo ""
 
-# Timestamp for naming
-TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-
-# Cleanup
-trap 'rm -f temp_*_check.json' EXIT
-
-###
-# 2) Define functions
-###
+### Function Definitions ###
 
 policy_precheck() {
   [ "$ENABLE_POLICY_CHECKS" = "true" ] || return 0
@@ -88,7 +81,6 @@ policy_precheck() {
   local non_compliant_json
   non_compliant_json=$(az policy state list --all \
     --query "[?complianceState=='NonCompliant' && resourceGroup=='$RESOURCE_GROUP']" -o json)
-
   local violation_count
   violation_count=$(echo "$non_compliant_json" | jq 'length')
 
@@ -109,7 +101,6 @@ policy_precheck() {
 
     echo ""
     echo "🔍 Fetching detailed policy definitions for each violation:"
-    # For each unique policyDefinitionId, fetch and display policy details
     for policyId in $(echo "$non_compliant_json" | jq -r '.[].policyDefinitionId' | sort | uniq); do
       local policyName="${policyId##*/}"
       echo "Policy ID: $policyId"
@@ -167,9 +158,7 @@ check_resource_group() {
   fi
 }
 
-###
-# 3) Main deployment flow
-###
+### Main Deployment Flow ###
 main() {
   handle_emergency "$@"
 
@@ -196,7 +185,7 @@ main() {
     --parameters environment="$ENVIRONMENT" locCode="$LOCATION_CODE" \
     --query properties.outputs
 
-  # Post-Deployment
+  # Post-Deployment Validations
   echo "✅ Deployment completed. Running validations..."
   if [ "$(az group exists --name "$RESOURCE_GROUP")" != "true" ]; then
     echo "❌ Resource Group missing!" >&2
