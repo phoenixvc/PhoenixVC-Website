@@ -43,32 +43,50 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Build Payload
-      shell: bash
-      id: build_payload
-      run: |
-        PAYLOAD=$(cat <<-EOF
-        {
-          "title": "${{ inputs.title }}",
-          "environment": "${{ inputs.environment }}",
-          "deploymentUrl": "${{ inputs.deployment_url }}",
-          "branch": "${{ inputs.branch }}",
-          "locationCode": "${{ inputs.location_code }}",
-          "resourceGroup": "${{ inputs.resource_group }}",
-          "color": "${{ inputs.color }}",
-          "approvalUrl": "${{ inputs.approval_url }}",
-          "rollbackUrl": "${{ inputs.rollback_url }}",
-          "webhookUrl": "${{ inputs.webhook_url }}"
-        }
-        EOF
-        )
-        echo "Generated Payload:"
-        echo "$PAYLOAD" | jq .
-        echo "payload=$PAYLOAD" >> $GITHUB_OUTPUT
+  - name: Build Payload with jq
+    shell: bash
+    id: build_payload
+    run: |
+      # Use jq's --arg to safely pass shell variables into a JSON object
+      PAYLOAD=$(jq -n \
+        --arg title "${{ inputs.title }}" \
+        --arg environment "${{ inputs.environment }}" \
+        --arg deploymentUrl "${{ inputs.deployment_url }}" \
+        --arg branch "${{ inputs.branch }}" \
+        --arg locationCode "${{ inputs.location_code }}" \
+        --arg resourceGroup "${{ inputs.resource_group }}" \
+        --arg color "${{ inputs.color }}" \
+        --arg approvalUrl "${{ inputs.approval_url }}" \
+        --arg rollbackUrl "${{ inputs.rollback_url }}" \
+        --arg webhookUrl "${{ inputs.webhook_url }}" \
+        '{
+          title: $title,
+          environment: $environment,
+          deploymentUrl: $deploymentUrl,
+          branch: $branch,
+          locationCode: $locationCode,
+          resourceGroup: $resourceGroup,
+          color: $color,
+          approvalUrl: $approvalUrl,
+          rollbackUrl: $rollbackUrl,
+          webhookUrl: $webhookUrl
+        }'
+      )
 
-    - name: Invoke Logic App HTTP Trigger
-      shell: bash
-      run: |
-        echo "Invoking Logic App via HTTP trigger..."
-        echo '${{ steps.build_payload.outputs.payload }}' | jq .
-        curl -X POST -H "Content-Type: application/json" -d "$(echo '${{ steps.build_payload.outputs.payload }}' | jq -c .)" "${{ inputs.logic_app_url }}"
+      echo "Generated Payload:"
+      echo "$PAYLOAD" | jq .
+
+      # Write the payload to GITHUB_OUTPUT (multiline-safe)
+      echo "payload<<EOF" >> $GITHUB_OUTPUT
+      echo "$PAYLOAD" >> $GITHUB_OUTPUT
+      echo "EOF" >> $GITHUB_OUTPUT
+
+  - name: Invoke Logic App HTTP Trigger
+    shell: bash
+    run: |
+      echo "Invoking Logic App via HTTP trigger..."
+      echo "${{ steps.build_payload.outputs.payload }}" | jq .
+      curl -X POST \
+        -H "Content-Type: application/json" \
+        -d "$(echo '${{ steps.build_payload.outputs.payload }}' | jq -c .)" \
+        "${{ inputs.logic_app_url }}"
