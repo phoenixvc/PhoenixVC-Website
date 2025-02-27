@@ -244,34 +244,57 @@ jobs:
         run: mkdocs gh-deploy --force
 
   # ───────────────────────────────────────────────
-  # ✅ NOTIFY STAKEHOLDERS (After Production Deployments, DNS Update & Docs)
+  # ✅ NOTIFY STAGING DEPLOYMENT
   # ───────────────────────────────────────────────
-  notify_stakeholders:
+  notify_staging:
     runs-on: ubuntu-latest
-    needs: [swa_deploy_prod, trigger_dns_update, deploy_docs]
+    needs: [swa_deploy_staging]
+    if: ${{ github.event.inputs.APPROVAL_STATE != 'true' }}
     steps:
-      - name: Notify Stakeholders via Teams
-        run: |
-          echo "Notifying Teams via Webhook..."
-          curl -X POST -H "Content-Type: application/json" \
-            -d '{
-              "@type": "MessageCard",
-              "@context": "http://schema.org/extensions",
-              "summary": "Phoenix VC Deployment Notification",
-              "themeColor": "0076D7",
-              "title": "Production Deployment Complete",
-              "sections": [
-                {
-                  "activityTitle": "Deployment to Production Succeeded",
-                  "activitySubtitle": "Branch: '"${{ github.ref }}"'",
-                  "facts": [
-                    { "name": "Environment", "value": "Production" },
-                    { "name": "Location Code", "value": "'"${LOCATION_CODE}"'" },
-                    { "name": "Resource Group", "value": "prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website" }
-                  ],
-                  "markdown": true
-                }
-              ],
-              "text": "The production deployment has completed successfully. 🎉"
-            }' \
-            "https://prod-21.northeurope.logic.azure.com:443/workflows/9a94f520b85d4bdd99f015511d5ee3ea/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oiVbSb17Wfkzg3wvU3-b1JXUkOR6X7t_yhvkGg8CJ-Q"
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          repository: JustAGhosT/PhoenixVC-Modernized
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+          
+      - name: Send Teams Notification
+        uses: ./.github/actions/teams-notification
+        with:
+          webhook_url: "https://prod-21.northeurope.logic.azure.com:443/workflows/9a94f520b85d4bdd99f015511d5ee3ea/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oiVbSb17Wfkzg3wvU3-b1JXUkOR6X7t_yhvkGg8CJ-Q"
+          title: "Staging Deployment Complete"
+          environment: "staging"
+          deployment_url: ${{ needs.swa_deploy_staging.outputs.staging_url }}
+          branch: ${{ github.ref }}
+          location_code: ${{ env.LOCATION_CODE }}
+          resource_group: staging-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
+          color: "0076D7"
+          approval_url: "https://github.com/${{ github.repository }}/actions/workflows/deploy.yml/dispatches?workflow=Phoenix+VC+Deployment+Pipeline&ref=${{ github.ref }}&inputs%5BAPPROVAL_STATE%5D=true"
+
+  # ───────────────────────────────────────────────
+  # ✅ NOTIFY PRODUCTION DEPLOYMENT
+  # ───────────────────────────────────────────────
+  notify_production:
+    runs-on: ubuntu-latest
+    needs: [swa_deploy_prod]
+    if: ${{ github.event.inputs.APPROVAL_STATE == 'true' }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+          
+      - name: Send Teams Notification
+        uses: ./.github/actions/teams-notification
+        with:
+          webhook_url: "https://prod-21.northeurope.logic.azure.com:443/workflows/9a94f520b85d4bdd99f015511d5ee3ea/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oiVbSb17Wfkzg3wvU3-b1JXUkOR6X7t_yhvkGg8CJ-Q"
+          title: "Production Deployment Complete"
+          environment: "production"
+          deployment_url: ${{ needs.swa_deploy_prod.outputs.prod_url }}
+          branch: ${{ github.ref }}
+          location_code: ${{ env.LOCATION_CODE }}
+          resource_group: prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
+          color: "00A300"
+          rollback_url: "https://github.com/${{ github.repository }}/actions/workflows/rollback.yml/dispatches?workflow=Phoenix+VC+Rollback+Pipeline&ref=${{ github.ref }}"
