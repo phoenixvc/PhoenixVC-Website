@@ -1,15 +1,9 @@
 #!/bin/bash
 set -eo pipefail
 
-# Log key deployment parameters
-echo "===== Deployment Parameters ====="
-echo "ENVIRONMENT: $ENVIRONMENT"
-echo "LOCATION_CODE: $LOCATION_CODE"
-echo "DEPLOY_REGION: $DEPLOY_REGION (will be determined from LOCATION_CODE)"
-echo "RESOURCE_GROUP: ${ENVIRONMENT}-${LOCATION_CODE}-rg-phoenixvc-website"
-echo "BICEP_FILE: $BICEP_FILE"
-echo "PARAMETERS_FILE: $PARAMETERS_FILE"
-echo "================================="
+###
+# 1) Resolve environment variables *before* logging them
+###
 
 # Feature Configuration
 ENVIRONMENT="${ENVIRONMENT:-staging}"
@@ -21,13 +15,11 @@ ENABLE_MONITORING="${ENABLE_MONITORING:-false}"
 ENABLE_COST_CHECKS="${ENABLE_COST_CHECKS:-false}"
 POLICY_ENFORCEMENT_MODE="${POLICY_ENFORCEMENT_MODE:-enforce}"
 
-# Check that jq is installed
-if ! command -v jq > /dev/null; then
-  echo "jq is not installed. Please install jq to run this script."
-  exit 1
-fi
+# Paths
+BICEP_FILE="${BICEP_FILE:-./infra/bicep/main.bicep}"
+PARAMETERS_FILE="${PARAMETERS_FILE:-./infra/bicep/parameters-${ENVIRONMENT}.json}"
 
-# Determine deployment region based on LOCATION_CODE
+# Now determine final region from LOCATION_CODE
 if [ "$LOCATION_CODE" = "euw" ]; then
   DEPLOY_REGION="westeurope"
 elif [ "$LOCATION_CODE" = "saf" ]; then
@@ -37,16 +29,39 @@ else
   DEPLOY_REGION="westeurope"
 fi
 
-# Path Configuration
-BICEP_FILE="./infra/bicep/main.bicep"
-PARAMETERS_FILE="./infra/bicep/parameters-${ENVIRONMENT}.json"
+# Resource group name
 RESOURCE_GROUP="${ENVIRONMENT}-${LOCATION_CODE}-rg-phoenixvc-website"
+
+# Check that jq is installed
+if ! command -v jq > /dev/null; then
+  echo "jq is not installed. Please install jq to run this script."
+  exit 1
+fi
+
+# Log key deployment parameters
+echo "===== Deployment Parameters ====="
+echo "ENVIRONMENT: $ENVIRONMENT"
+echo "LOCATION_CODE: $LOCATION_CODE"
+echo "DEPLOY_REGION: $DEPLOY_REGION"
+echo "RESOURCE_GROUP: $RESOURCE_GROUP"
+echo "BICEP_FILE: $BICEP_FILE"
+echo "PARAMETERS_FILE: $PARAMETERS_FILE"
+echo "ENABLE_POLICY_CHECKS: $ENABLE_POLICY_CHECKS"
+echo "ENABLE_MONITORING: $ENABLE_MONITORING"
+echo "ENABLE_COST_CHECKS: $ENABLE_COST_CHECKS"
+echo "POLICY_ENFORCEMENT_MODE: $POLICY_ENFORCEMENT_MODE"
+echo "================================="
+
+# Timestamp for naming
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 
 # Cleanup
 trap 'rm -f temp_*_check.json' EXIT
 
-# Policy Functions
+###
+# 2) Define functions
+###
+
 policy_precheck() {
   [ "$ENABLE_POLICY_CHECKS" = "true" ] || return 0
 
@@ -56,7 +71,9 @@ policy_precheck() {
   sleep 20
 
   local non_compliant_json
-  non_compliant_json=$(az policy state list --all --query "[?complianceState=='NonCompliant' && resourceGroup=='$RESOURCE_GROUP']" -o json)
+  non_compliant_json=$(az policy state list --all \
+    --query "[?complianceState=='NonCompliant' && resourceGroup=='$RESOURCE_GROUP']" -o json)
+
   local violation_count
   violation_count=$(echo "$non_compliant_json" | jq 'length')
 
@@ -77,11 +94,13 @@ policy_precheck() {
 
     echo ""
     echo "🔍 Fetching detailed policy definitions for each violation:"
+    # For each unique policyDefinitionId, fetch and display policy details
     for policyId in $(echo "$non_compliant_json" | jq -r '.[].policyDefinitionId' | sort | uniq); do
       local policyName="${policyId##*/}"
       echo "Policy ID: $policyId"
       echo "Details:"
-      az policy definition show --name "$policyName" --query "{displayName: displayName, description: description}" -o json | jq .
+      az policy definition show --name "$policyName" \
+        --query "{displayName: displayName, description: description}" -o json | jq .
       echo "------------------------"
     done
 
@@ -91,7 +110,6 @@ policy_precheck() {
   fi
 }
 
-# Monitoring Setup
 setup_monitoring() {
   [ "$ENABLE_MONITORING" = "true" ] || return 0
 
@@ -109,7 +127,6 @@ setup_monitoring() {
   fi
 }
 
-# Emergency Handling
 handle_emergency() {
   if [[ "$*" == *"--emergency-override"* ]]; then
     echo "⚠️ EMERGENCY OVERRIDE: Disabling policy enforcement"
@@ -119,7 +136,6 @@ handle_emergency() {
   fi
 }
 
-# Check if Resource Group exists and is not in a 'Deleting' state
 check_resource_group() {
   echo "🔍 Checking resource group '$RESOURCE_GROUP'..."
   if az group exists --name "$RESOURCE_GROUP" | grep -q "true"; then
@@ -136,7 +152,9 @@ check_resource_group() {
   fi
 }
 
-# Main Deployment Flow
+###
+# 3) Main deployment flow
+###
 main() {
   handle_emergency "$@"
 
@@ -148,8 +166,11 @@ main() {
   # Check resource group status before deployment
   check_resource_group
 
-  echo "📄 Using parameter file:"
-  cat "$PARAMETERS_FILE"
+  echo "📄 Using parameter file: $PARAMETERS_FILE"
+  cat "$PARAMETERS_FILE" || {
+    echo "❌ Could not read parameters file: $PARAMETERS_FILE"
+    exit 1
+  }
 
   # Bicep Deployment
   az deployment sub create \
@@ -177,7 +198,6 @@ main() {
   echo "🛡️ Deployment Health Check Complete"
 }
 
-# Help Documentation
 show_help() {
   echo -e "Usage: ENVIRONMENT=staging ./deploy.sh [--emergency-override]"
   echo -e "\nFeature Flags (set as env vars):"
