@@ -25,57 +25,6 @@ outputs:
     value: ${{ steps.deploy.outputs.staticSiteUrl }}
   logicAppUrl:
     description: "URL of the deployed Logic App"
-    value: ${{ steps.deploy.outputs.logicAppUrl }}
-runs:
-  using: "composite"
-  steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
-      with:
-        repository: ${{ inputs.repository }}
-        token: ${{ inputs.token }}
-        fetch-depth: 0
-
-    - name: Azure Login
-      uses: azure/login@v1
-      with:
-        creds: ${{ inputs.azure_credentials }}
-
-    - name: Ensure Azure CLI Logic App Extension is Installed
-      shell: bash
-      run: |
-        if ! az extension show --name logic &>/dev/null; then
-          az extension add --name logic --yes
-        else
-          echo "Azure CLI logic extension is already installed."
-        fi
-name: "Deploy Azure Resources"
-description: "Deploys infrastructure resources for a given environment"
-inputs:
-  environment:
-    description: "The deployment environment (staging or prod)"
-    required: true
-  azure_subscription_id:
-    description: "Azure Subscription ID"
-    required: true
-  azure_credentials:
-    description: "Azure credentials for authentication"
-    required: true
-  location_code:
-    description: "Location code for resource naming"
-    required: true
-  repository:
-    description: "GitHub repository to use"
-    required: true
-  token:
-    description: "GitHub token"
-    required: true
-outputs:
-  staticSiteUrl:
-    description: "URL of the deployed Static Web App"
-    value: ${{ steps.deploy.outputs.staticSiteUrl }}
-  logicAppUrl:
-    description: "URL of the deployed Logic App"
     value: ${{ steps.retrieve_logic_url.outputs.logicAppUrl }}
 runs:
   using: "composite"
@@ -101,6 +50,10 @@ runs:
           echo "Azure CLI logicapp extension is already installed."
         fi
 
+    - name: Make deploy script executable
+      run: chmod +x ./scripts/deployment/deploy.sh
+      shell: bash
+      
     - name: Run Resource Deployment Script
       shell: bash
       run: |
@@ -137,16 +90,3 @@ runs:
         else
           echo "logicAppUrl=" >> "$GITHUB_OUTPUT"
         fi
-
-    - name: Make deploy script executable
-      run: chmod +x ./scripts/deployment/deploy.sh
-      shell: bash
-
-    - name: Run Resource Deployment Script
-      shell: bash
-      run: |
-        ./scripts/deployment/deploy.sh --env ${{ inputs.environment }}
-      env:
-        ENVIRONMENT: ${{ inputs.environment }}
-        RG_NAME: ${{ inputs.environment }}-${{ inputs.location_code }}-rg-phoenixvc-website
-        SWA_NAME: ${{ inputs.environment }}-${{ inputs.location_code }}-swa-phoenixvc-website
