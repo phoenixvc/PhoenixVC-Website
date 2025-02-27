@@ -6,6 +6,7 @@
     "locCode": { "value": "euw" },
     "branch": { "value": "staging" },
     "deployBudget": { "value": false },
-    "deployKeyVault": { "value": true }
+    "deployKeyVault": { "value": false },
+    "deployLogicApp": { "value": true }
   }
 }

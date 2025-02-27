@@ -5,7 +5,8 @@
     "environment": { "value": "prod" },
     "locCode": { "value": "euw" },
     "deployBudget": { "value": false },
-    "deployKeyVault": { "value": true },
+    "deployKeyVault": { "value": false },
+    "deployLogicApp": { "value": true },
     "keyVaultSku": { "value": "standard" },
     "enableRbacAuthorization": { "value": true }
   }
