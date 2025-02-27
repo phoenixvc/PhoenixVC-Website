@@ -26,7 +26,7 @@ graph TD
   BICEP --> SEC
   BICEP --> MON
   BICEP --> DR
-  
+
   SEC --> MON
   MON --> DR
 ```
@@ -34,11 +34,11 @@ graph TD
 ### Core Documents {: #core-documents}
 | Document | Purpose | Primary Audience | Content |
 |----------|---------|-----------------|---------|
-| 📐 [ARCHITECTURE.md](/src/main/guides/infrastructure/ARCHITECTURE.md) | System design and components | Architects, Engineers | System architecture, Component relationships, Network design |
-| 🏗️ [BICEP_TEMPLATES.md](/src/main/guides/infrastructure/BICEP_TEMPLATES.md) | IaC deployment templates | DevOps Team | Infrastructure code, Deployment procedures, Configurations |
-| 🔒 [SECURITY.md](/src/main/guides/infrastructure/SECURITY.md) | Security configurations | Security Team | Access control, Network security, Key management |
-| 📊 [MONITORING.md](/src/main/guides/infrastructure/MONITORING.md) | Monitoring setup | Operations Team | Logging, Alerts, Performance metrics |
-| 🔄 [DISASTER_RECOVERY.md](/src/main/guides/infrastructure/DISASTER_RECOVERY.md) | DR procedures | Platform Team | Backup, Recovery, Business continuity |
+| 📐 [ARCHITECTURE.md](./ARCHITECTURE.md) | System design and components | Architects, Engineers | System architecture, Component relationships, Network design |
+| 🏗️ [BICEP_TEMPLATES.md](./BICEP_TEMPLATES.md) | IaC deployment templates | DevOps Team | Infrastructure code, Deployment procedures, Configurations |
+| 🔒 [SECURITY.md](./SECURITY.md) | Security configurations | Security Team | Access control, Network security, Key management |
+| 📊 [MONITORING.md](./MONITORING.md) | Monitoring setup | Operations Team | Logging, Alerts, Performance metrics |
+| 🔄 [DISASTER_RECOVERY.md](./DISASTER_RECOVERY.md) | DR procedures | Platform Team | Backup, Recovery, Business continuity |
 
 ## Quick Start {: #quick-start}
 ### Prerequisites {: #prerequisites}
@@ -155,8 +155,8 @@ graph LR
 ## Cost Management {: #cost-management}
 ### Monitoring and Controls {: #monitoring-and-controls}
 - [Cost Management Portal](https://portal.azure.com/#blade/Microsoft_Azure_CostManagement)
-- [Budget Alerts Configuration](/src/main/guides/infrastructure/MONITORING.md#budget-alerts)
-- [Resource Optimization Guidelines](/src/main/guides/infrastructure/ARCHITECTURE.md#optimization)
+- [Budget Alerts Configuration](./MONITORING.md#budget-alerts)
+- [Resource Optimization Guidelines](./ARCHITECTURE.md#optimization)
 
 ### Cost Optimization Best Practices {: #cost-optimization-best-practices}
 - Use auto-scaling for dynamic workloads
