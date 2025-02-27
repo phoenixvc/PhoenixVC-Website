@@ -17,6 +17,12 @@ inputs:
     description: "Local path to download the artifact to"
     required: false
     default: "./build-artifact"
+  azure_credentials:
+    description: "Azure credentials for authentication"
+    required: true
+  deployment_token:
+    description: "SWA deployment token"
+    required: true
 runs:
   using: "composite"
   steps:
@@ -30,28 +36,6 @@ runs:
       with:
         name: ${{ inputs.artifact-name }}
         path: ${{ inputs.artifact-path }}
-        
-    - name: Fix staticwebapp.config.json
-      shell: bash
-      run: |
-        CONFIG_PATH="${{ inputs.artifact-path }}/.config/staticwebapp.config.json"
-        
-        if [ -f "$CONFIG_PATH" ]; then
-          echo "Updating $CONFIG_PATH to use 'rewrite' instead of 'serve'..."
-          sed -i 's/"serve":/"rewrite":/g' "$CONFIG_PATH"
-          sed -i 's/,"statusCode": 200//g' "$CONFIG_PATH"
-          echo "Configuration updated successfully."
-          cat "$CONFIG_PATH"
-          
-          # Copy to root if it doesn't exist there (as a fallback)
-          ROOT_CONFIG="${{ inputs.artifact-path }}/staticwebapp.config.json"
-          if [ ! -f "$ROOT_CONFIG" ]; then
-            echo "Copying config to root location as well..."
-            cp "$CONFIG_PATH" "$ROOT_CONFIG"
-          fi
-        else
-          echo "Warning: Config file not found at $CONFIG_PATH"
-        fi
 
     - name: Setup Node.js
       uses: actions/setup-node@v3
@@ -75,23 +59,18 @@ runs:
         # Use chmod to ensure executable permissions
         chmod -R 755 ${{ inputs.artifact-path }}
         
-        # Try deployment with explicit options
+        # Try deployment with explicit token
         swa deploy "${{ inputs.artifact-path }}" \
-          --deployment-token "${{ env.AZURE_STATIC_WEB_APPS_API_TOKEN }}" \
+          --deployment-token "${{ inputs.deployment_token }}" \
           --env "${{ inputs.env }}" || echo "swa_cli_failed=true" >> $GITHUB_OUTPUT
-      env:
-        AZURE_STATIC_WEB_APPS_API_TOKEN: ${{ env.AZURE_STATIC_WEB_APPS_API_TOKEN }}
       continue-on-error: true
 
     # Only try Azure CLI if SWA CLI fails
-    - name: Install Azure CLI (Fallback)
+    - name: Azure Login (Fallback)
       if: ${{ steps.swa_cli_deploy.outputs.swa_cli_failed == 'true' }}
-      shell: bash
-      run: |
-        echo "SWA CLI deployment failed, installing Azure CLI as fallback..."
-        # Skip installation since Azure CLI is already available on the runner
-        echo "Azure CLI is already installed on GitHub runner"
-      continue-on-error: true
+      uses: azure/login@v1
+      with:
+        creds: ${{ inputs.azure_credentials }}
         
     - name: Deploy using Azure CLI (Fallback Method)
       if: ${{ steps.swa_cli_deploy.outputs.swa_cli_failed == 'true' }}
@@ -106,7 +85,5 @@ runs:
           --resource-group ${{ inputs.resource-group }} \
           --source ${{ inputs.artifact-path }} \
           --env ${{ inputs.env }} \
-          --token "${{ env.AZURE_STATIC_WEB_APPS_API_TOKEN }}" \
+          --token "${{ inputs.deployment_token }}" \
           --verbose
-      env:
-        AZURE_STATIC_WEB_APPS_API_TOKEN: ${{ env.AZURE_STATIC_WEB_APPS_API_TOKEN }}
