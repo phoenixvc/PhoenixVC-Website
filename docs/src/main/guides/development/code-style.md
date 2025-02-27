@@ -3,7 +3,7 @@
 # Code Style Guide {: #code-style-guide}
 This guide ensures consistent, maintainable, and readable code across our project. By following these guidelines and using our automated linting/pre-commit hooks, you’ll help keep our codebase robust and uniform.
 
-> **Note:** For broader naming conventions (including documentation file names and Azure resource naming), please see [../naming-conventions.md](/src/main/guides/development/naming-conventions.md). This document focuses on language-specific and framework-specific coding practices.
+> **Note:** For broader naming conventions (including documentation file names and Azure resource naming), please see [../naming-conventions.md](./naming-conventions.md). This document focuses on language-specific and framework-specific coding practices.
 
 ## Table of Contents {: #table-of-contents}
 - [General Principles](#general-principles)
@@ -17,19 +17,19 @@ This guide ensures consistent, maintainable, and readable code across our projec
 ---
 
 ## General Principles {: #general-principles}
-1. **Readability Above All**  
-   - Write code that is easy to understand for others (and future you).  
+1. **Readability Above All**
+   - Write code that is easy to understand for others (and future you).
    - Use meaningful variable names and short, focused functions.
 
-2. **Single Responsibility**  
-   - Keep components and functions small and singular in purpose.  
+2. **Single Responsibility**
+   - Keep components and functions small and singular in purpose.
    - Split large modules or files into logical parts.
 
-3. **Consistency**  
-   - Stick to one style rule across the entire codebase (e.g., function naming, bracket placement).  
+3. **Consistency**
+   - Stick to one style rule across the entire codebase (e.g., function naming, bracket placement).
    - Use the same patterns for similar problems.
 
-4. **Avoid Duplication**  
+4. **Avoid Duplication**
    - Use utility functions and shared components where possible.
 
 ---
@@ -51,21 +51,21 @@ Below is a simplified representation of our `src/` folder. The structure may var
 └── 📁 pages/
 ```
 
-> **Key Points:**  
-> - Group related code in feature or domain-based directories.  
+> **Key Points:**
+> - Group related code in feature or domain-based directories.
 > - Name files consistently in **kebab-case** (e.g., `user-profile.tsx`).
 
 ---
 
 ## Language-Specific Guidelines {: #language-specific-guidelines}
 ### JavaScript / TypeScript {: #javascript--typescript}
-- **Variable and Function Names:** Use **camelCase** for variables and functions (e.g., `fetchData`, `userName`).  
-- **Classes and Interfaces:** Use **PascalCase** (e.g., `UserProfile`, `ApiService`, `UserProps`).  
-- **Constants:** Use **UPPER_SNAKE_CASE** (e.g., `MAX_RETRY_COUNT`).  
-- **Import Order:**  
-  1. Node or core modules  
-  2. Third-party libraries  
-  3. Local utilities, services, or hooks  
+- **Variable and Function Names:** Use **camelCase** for variables and functions (e.g., `fetchData`, `userName`).
+- **Classes and Interfaces:** Use **PascalCase** (e.g., `UserProfile`, `ApiService`, `UserProps`).
+- **Constants:** Use **UPPER_SNAKE_CASE** (e.g., `MAX_RETRY_COUNT`).
+- **Import Order:**
+  1. Node or core modules
+  2. Third-party libraries
+  3. Local utilities, services, or hooks
   4. Styles (if applicable)
 
 ```typescript
@@ -78,30 +78,30 @@ import './Component.scss';
 - **Type Assertions:** Prefer using `as Type` and type guards over angle-bracket assertions in TypeScript.
 
 ### React {: #react}
-- **Components:**  
-  - Use **PascalCase** for component file names and component definitions (e.g., `UserCard.tsx`).  
-  - Keep components small and focused.  
+- **Components:**
+  - Use **PascalCase** for component file names and component definitions (e.g., `UserCard.tsx`).
+  - Keep components small and focused.
   - Default exports for single major components in a file; named exports for additional helpers.
 
-- **Hooks:**  
-  - Use `use` prefix (e.g., `useUserData`) to clearly identify custom hooks.  
+- **Hooks:**
+  - Use `use` prefix (e.g., `useUserData`) to clearly identify custom hooks.
   - Keep side effects minimal and avoid deep nesting in hooks.
 
-- **Styles:**  
-  - For CSS/SCSS modules, use **kebab-case** for filenames (e.g., `user-card.module.scss`).  
+- **Styles:**
+  - For CSS/SCSS modules, use **kebab-case** for filenames (e.g., `user-card.module.scss`).
   - Adhere to BEM or a consistent naming convention for class selectors.
 
 ### Node.js / Express {: #nodejs--express}
-- **Controllers:** Keep logic minimal; delegate heavy lifting to services.  
-- **Services:** Encapsulate business logic or external API calls.  
-- **Routes:** Use RESTful endpoints (e.g., `GET /api/users`, `POST /api/users`).  
+- **Controllers:** Keep logic minimal; delegate heavy lifting to services.
+- **Services:** Encapsulate business logic or external API calls.
+- **Routes:** Use RESTful endpoints (e.g., `GET /api/users`, `POST /api/users`).
 - **Error Handling:** Centralize error handling and use consistent error responses.
 
 ### Additional Languages / Frameworks {: #additional-languages--frameworks}
 - If you are using other frameworks (e.g., Angular, Vue) or other languages (e.g., Python for scripts), maintain similar principles:
-  - Clear structure  
-  - Consistent naming  
-  - Appropriate partitioning of logic  
+  - Clear structure
+  - Consistent naming
+  - Appropriate partitioning of logic
 
 ---
 
@@ -149,13 +149,13 @@ module.exports = {
 ---
 
 ## Testing Guidelines {: #testing-guidelines}
-- **Testing Frameworks:** (e.g., Jest, React Testing Library, Mocha)  
-  - Organize tests either alongside the code (`__tests__` folder) or in a separate `tests/` directory.  
+- **Testing Frameworks:** (e.g., Jest, React Testing Library, Mocha)
+  - Organize tests either alongside the code (`__tests__` folder) or in a separate `tests/` directory.
   - Name test files clearly (e.g., `Component.test.tsx`).
 
-- **Unit Tests:** Test small pieces of logic (functions, components).  
-- **Integration Tests:** Test interactions among multiple components/services.  
-- **Coverage:** Aim for high coverage but focus on meaningful tests.  
+- **Unit Tests:** Test small pieces of logic (functions, components).
+- **Integration Tests:** Test interactions among multiple components/services.
+- **Coverage:** Aim for high coverage but focus on meaningful tests.
 - **Mocking/Stubbing:** Use mocks for external services or complex dependencies.
 
 ```typescript
@@ -175,8 +175,8 @@ describe('UserCard', () => {
 ---
 
 ## Documentation in Code {: #documentation-in-code}
-- **JSDoc/TSDoc:**  
-  Use inline documentation for complex logic, helper utilities, or public APIs.  
+- **JSDoc/TSDoc:**
+  Use inline documentation for complex logic, helper utilities, or public APIs.
   ```typescript
   /**
    * Fetches user data from the server.
@@ -187,17 +187,17 @@ describe('UserCard', () => {
     // ...
   }
   ```
-- **Comments:**  
-  Keep comments short, relevant, and avoid restating obvious logic.  
-- **External Docs Link:**  
+- **Comments:**
+  Keep comments short, relevant, and avoid restating obvious logic.
+- **External Docs Link:**
   If your function references a complex domain concept, consider linking to relevant domain documentation.
 
 ---
 
 ## Additional Resources {: #additional-resources}
-- [Naming Conventions](/src/main/guides/development/naming-conventions.md)
-- [Contributing Guidelines](/src/main/guides/development/contributing.md)
-- [Development Setup Guide](/src/main/guides/development/development-setup.md)
+- [Naming Conventions](./naming-conventions.md)
+- [Contributing Guidelines](./contributing.md)
+- [Development Setup Guide](./development-setup.md)
 - [GitHub Issue Tracker](https://github.com/your-organization/phoenixvc-modernized/issues)
 
 ---

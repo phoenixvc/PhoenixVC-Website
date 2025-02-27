@@ -31,4 +31,4 @@ The **Color Mappings System** is an enterprise-grade solution designed to stream
 
 ## Next Steps
 
-To learn more about how the Color Mappings System works, refer to our [Technical Guide](./technical-guide.md). For implementation best practices, see our [Best Practices Guide](./docs/best-practices.md).
+To learn more about how the Color Mappings System works, refer to our [Technical Guide](./technical-guide.md). For implementation best practices, see our [Best Practices Guide](./best-practices.md).

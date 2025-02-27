@@ -1,15 +1,15 @@
 # Azure Environment Setup {: #azure-environment-setup}
 📄 `/docs/deployment/azure-environment-setup.md`
 
-**Version:** 0.1.0  
+**Version:** 0.1.0
 **Last Updated:** 2025-02-14
 
 ## Overview {: #overview}
-This document provides advanced instructions for setting up an Azure environment for PhoenixVC deployments. It includes guidelines for creating a new subscription, resource groups, and additional configuration such as networking and custom domain settings. If your environment requires only basic setup, consider merging these steps into the [Prerequisites](/src/main/guides/deployment/prerequisites.md) or [Configuration](/src/main/guides/deployment/configuration.md) documents.
+This document provides advanced instructions for setting up an Azure environment for PhoenixVC deployments. It includes guidelines for creating a new subscription, resource groups, and additional configuration such as networking and custom domain settings. If your environment requires only basic setup, consider merging these steps into the [Prerequisites](./prerequisites.md) or [Configuration](./configuration.md) documents.
 
 ## Prerequisites {: #prerequisites}
 - A valid Azure subscription
-- [Azure CLI installed](/src/main/guides/deployment/prerequisites.md#azure-cli)
+- [Azure CLI installed](./prerequisites.md#azure-cli)
 - Appropriate permissions to create resource groups and configure networking
 
 ## Setup Steps {: #setup-steps}
@@ -37,7 +37,7 @@ az group create --name "phoenixvc-rg" --location "South Africa North"
 # Create a service principal with the 'contributor' role (adjust as necessary) {: #create-a-service-principal-with-the-contributor-role-adjust-as-necessary}
 az ad sp create-for-rbac --name "phoenixvc-deployer" --role contributor --scopes "/subscriptions/<YourSubscriptionID>" --sdk-auth
 ```
-For more information, refer to [Service Principals](/src/main/guides/deployment/service-principals.md).
+For more information, refer to [Service Principals](./service-principals.md).
 
 ### 5. Validate the Setup {: #5-validate-the-setup}
 ```bash
@@ -49,7 +49,7 @@ az role assignment list --assignee "<SPN_App_ID>"
 ```
 
 ## Next Steps {: #next-steps}
-- Review [Configuration](/src/main/guides/deployment/configuration.md) to set environment variables based on your new setup.
+- Review [Configuration](./configuration.md) to set environment variables based on your new setup.
 - Use this document as a reference during automated deployments or DR drills.
 
 ## TODO {: #todo}

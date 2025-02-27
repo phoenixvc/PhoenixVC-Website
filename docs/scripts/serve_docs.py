@@ -19,31 +19,31 @@ class DocIssues:
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def apply_fixes_to_file(file_path: Path, docs_dir: Path, fixes_links: Optional[List[Tuple[str, str]]] = None, 
+def apply_fixes_to_file(file_path: Path, docs_dir: Path, fixes_links: Optional[List[Tuple[str, str]]] = None,
                        fixes_anchors: Optional[List[Tuple[str, str]]] = None) -> bool:
     """Apply fixes to a single file"""
     try:
         content = file_path.read_text(encoding='utf-8')
         original_content = content
-        
+
         if fixes_links:
             logger.debug(f"Applying {len(fixes_links)} link fixes to {file_path}")
             for old, new in fixes_links:
                 logger.debug(f"  Link fix: {old} -> {new}")
                 content = content.replace(old, new)
-        
+
         if fixes_anchors:
             logger.debug(f"Applying {len(fixes_anchors)} anchor fixes to {file_path}")
             for old, new in fixes_anchors:
                 logger.debug(f"  Anchor fix: {old} -> {new}")
                 content = content.replace(old, new)
-        
+
         if content != original_content:
             file_path.write_text(content, encoding='utf-8')
             logger.info(f"Updated {file_path.relative_to(docs_dir)}")
         else:
             logger.debug(f"No changes needed for {file_path}")
-        
+
         return True
     except Exception as e:
         logger.error(f"Error applying fixes to {file_path}: {str(e)}")
@@ -52,15 +52,15 @@ def apply_fixes_to_file(file_path: Path, docs_dir: Path, fixes_links: Optional[L
 def scan_documentation_issues(docs_dir: Path) -> DocIssues:
     """Scan documentation for all types of issues"""
     issues = DocIssues()
-    
+
     # Scan for missing files first
     issues.files_missing = find_missing_files(docs_dir)
-    
+
     # Scan for link and anchor issues
     for file in docs_dir.rglob('*.md'):
         try:
             content = file.read_text(encoding='utf-8')
-            
+
             # Check for link fixes
             links = find_links(content)
             if links:
@@ -76,20 +76,20 @@ def scan_documentation_issues(docs_dir: Path) -> DocIssues:
             changes = get_header_changes(content)
             if changes:
                 issues.files_needing_anchors[file] = changes
-                
+
         except Exception as e:
             logger.error(f"Error scanning {file}: {str(e)}")
-            
+
     return issues
-    
+
 def fix_relative_links(content: str, base_path: str) -> str:
     """Convert absolute /src/ links to relative links."""
     pattern = r'\/src\/([^"\')\s]+)'
-    
+
     def replace_link(match):
         path = match.group(1)
         return os.path.relpath(path, base_path)
-        
+
     return re.sub(pattern, replace_link, content)
 
 def handle_documentation_fixes(docs_dir: Path, issues: DocIssues) -> None:
@@ -164,20 +164,28 @@ def handle_documentation_fixes(docs_dir: Path, issues: DocIssues) -> None:
 def main():
     """Main entry point"""
     logging.basicConfig(level=logging.INFO)
-    
+
     try:
-        root_dir = Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        root_dir = Path(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
         logger.info(f"Project root directory: {root_dir}")
-        
+
         os.chdir(root_dir)
-        
+
         config_file = root_dir / "mkdocs.yml"
+        # If not found in root, check in the docs directory
+        if not config_file.exists():
+            config_file = root_dir / "docs" / "mkdocs.yml"
+
         if not config_file.exists():
             logger.error(f"mkdocs.yml not found at {config_file}")
             sys.exit(1)
-        
-        docs_dir = root_dir / "src"
-        logger.info(f"Documentation directory: {docs_dir}")
+
+        logger.info(f"Using mkdocs config: {config_file}")
+
+        if str(config_file).endswith("docs/mkdocs.yml"):
+            docs_dir = root_dir / "docs" / "src"
+        else:
+            docs_dir = root_dir / "src"
 
         print("\nChecking for documentation issues...")
         response = input("Would you like to scan for potential documentation issues? [Y/n] ").lower()
@@ -192,7 +200,7 @@ def main():
             ["poetry", "run", "mkdocs", "serve", "-f", str(config_file)],
             check=True
         )
-        
+
     except subprocess.CalledProcessError as e:
         logger.error(f"MkDocs error: {e}")
         sys.exit(1)

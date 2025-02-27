@@ -184,4 +184,4 @@ The Color Mappings System delivers significant cost savings and efficiency impro
 
 ---
 
-*For technical documentation, please refer to our [Technical Documentation](./TECHNICAL.md)*
+*For technical documentation, please refer to our [Technical Documentation](../technical/TECHNICAL.md)*

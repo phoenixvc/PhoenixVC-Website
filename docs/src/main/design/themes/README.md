@@ -9,18 +9,28 @@
 **Quick Links**
 | 📚 Documentation | 🛠️ Development | 🔍 More |
 |-----------------|----------------|----------|
-| [API Reference](./themes/api-reference.md) | [Theme Development](./themes/development.md) | [Color Schemes](./themes/color-schemes.md) |
-| [Usage Guide](./themes/usage-guide.md) | [Contributing](./themes/contributing.md) | [Customization](./themes/customization.md) |
+| [API Reference](./development.md) | [Theme Development](./development.md) | [Color Schemes](./development.md) |
+| [Usage Guide](./development.md) | [Contributing](./development.md) | [Customization](./development.md) |
 
 ## Table of Contents
-- [Overview](#overview)
-- [Features](#features)
-- [Getting Started](#getting-started)
-- [Basic Usage](#basic-usage)
-- [Advanced Configuration](#advanced-configuration)
-- [API Reference](#api-reference)
-- [Customization Guide](#customization-guide)
-- [Best Practices](#best-practices)
+- [Theme System Documentation](#theme-system-documentation)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+    - [Key Features](#key-features)
+  - [Getting Started](#getting-started)
+    - [Installation](#installation)
+    - [Basic Setup](#basic-setup)
+  - [Usage](#usage)
+    - [Using the Theme Hook](#using-the-theme-hook)
+    - [CSS Integration](#css-integration)
+  - [Advanced Configuration](#advanced-configuration)
+    - [Custom Initial Config](#custom-initial-config)
+    - [System Theme Integration](#system-theme-integration)
+  - [API Reference](#api-reference)
+    - [ThemeProvider Props](#themeprovider-props)
+    - [useTheme Hook](#usetheme-hook)
+  - [Best Practices](#best-practices)
+  - [Further Reading](#further-reading)
 
 ## Overview
 
@@ -190,7 +200,6 @@ function ThemeSettings() {
 
 ## Further Reading
 
-- [Color Scheme Guide](./themes/color-schemes.md)
-- [Theme Development](./themes/development.md)
-- [Customization Guide](./themes/customization.md)
-- [Contributing Guidelines](./themes/contributing.md)
+- [Color Scheme Guide](./color-schemes.md)
+- [Theme Development](./development.md)
+- [Customization Guide](./customization.md)

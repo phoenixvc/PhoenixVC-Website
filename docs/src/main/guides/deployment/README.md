@@ -27,42 +27,42 @@ Our **manual_approval** job requires an environment variable named `APPROVAL_STA
 ## Documentation Structure {: #documentation-structure}
 Below is an overview of the core deployment files. Each document focuses on a specific aspect of the deployment process:
 
-1. **[Prerequisites](/src/main/guides/deployment/prerequisites.md)**
+1. **[Prerequisites](./prerequisites.md)**
    - System requirements (e.g., Azure CLI, Node.js, Bicep)
    - Permission details and validation script
 
-2. **[Configuration](/src/main/guides/deployment/configuration.md)**
+2. **[Configuration](./configuration.md)**
    - Environment variables and resource naming
    - Key Vault policies, monitoring, and validation procedures
 
-3. **[Deployment Guide](/src/main/guides/deployment/deployment-guide.md)** *(Optional)*
-   - Step-by-step instructions for running the deployment  
+3. **[Deployment Guide](./deployment-guide.md)** *(Optional)*
+   - Step-by-step instructions for running the deployment
    - Use this if you prefer a concise bullet-style guide separate from configuration details
 
-4. **[Operations](/src/main/guides/deployment/operations.md)**
+4. **[Operations](./operations.md)**
    - Day-to-day operational tasks (health checks, backups, maintenance)
 
-5. **[Troubleshooting](/src/main/guides/deployment/troubleshooting.md)**
+5. **[Troubleshooting](./troubleshooting.md)**
    - Common issues, error codes, quick fixes, and rollback procedures
 
-6. **[Azure Environment Setup](/src/main/guides/deployment/azure-environment-setup.md)** *(Placeholder)*
+6. **[Azure Environment Setup](./azure-environment-setup.md)** *(Placeholder)*
    - Advanced steps (e.g., private endpoints, custom domain config)
    - Currently a placeholder to be expanded or merged if not needed
 
-7. **[Deploy Script Reference](/src/main/guides/deployment/deploy-script-reference.md)** *(Placeholder)*
+7. **[Deploy Script Reference](./deploy-script-reference.md)** *(Placeholder)*
    - Usage and parameters for scripts like `deploy.sh`, `health-check.sh`, etc.
    - To be filled in as needed
 
-8. **[Service Principals](/src/main/guides/deployment/service-principals.md)** *(Placeholder)*
+8. **[Service Principals](./service-principals.md)** *(Placeholder)*
    - Guidelines for creating and managing SPNs (see ADR 001 for rotation details)
 
-9. **[DNS Configuration](/src/main/guides/deployment/dns-configuration.md)**
+9. **[DNS Configuration](./dns-configuration.md)**
    - Guidelines for creating and managing DNS
 
 ### ADRs {: #adrs}
 The `adrs` folder contains Architectural Decision Records:
-- **[ADR 001: Credential Rotation](/src/main/guides/deployment/adrs/adr-001-credential-rotation.md)**
-- **[ADR 002: Disaster Recovery](/src/main/guides/deployment/adrs/adr-002-disaster-recovery.md)** *(Placeholder)*
+- **[ADR 001: Credential Rotation](./adrs/adr-001-credential-rotation.md)**
+- **[ADR 002: Disaster Recovery](./adrs/adr-002-disaster-recovery.md)** *(Placeholder)*
 
 ## Infrastructure Overview {: #infrastructure-overview}
 ```mermaid
@@ -74,7 +74,7 @@ graph TDs
     E --> C
 ```
 
-_For more details, see the [Infrastructure Overview](/src/main/guides/deployment/infrastructure/README.md)._
+_For more details, see the [Infrastructure Overview](./infrastructure/README.md)._
 
 ## Environment Matrix {: #environment-matrix}
 | Environment | Region   | Backend Type | URL Pattern                   |
@@ -85,25 +85,25 @@ _For more details, see the [Infrastructure Overview](/src/main/guides/deployment
 
 ## Key Concepts {: #key-concepts}
 ### 1. Deployment Types {: #1-deployment-types}
-- **Standard Deployment:** Full checks for production or staging  
-- **Emergency Deployment:** Expedited deployment with minimal checks  
+- **Standard Deployment:** Full checks for production or staging
+- **Emergency Deployment:** Expedited deployment with minimal checks
 - **BYOF Deployment:** Custom Functions backend
 
 ### 2. Security Model {: #2-security-model}
-- Service Principal–based authentication  
-- Key Vault–integrated secrets management  
+- Service Principal–based authentication
+- Key Vault–integrated secrets management
 - Role-based access control (RBAC)
 
 ### 3. Monitoring & Operations {: #3-monitoring--operations}
-- Azure Monitor integration  
-- Alerts configuration  
+- Azure Monitor integration
+- Alerts configuration
 - Backup and disaster recovery procedures
 
 ## Additional Resources {: #additional-resources}
 ### Internal References {: #internal-references}
-- [Architecture Overview](/src/main/guides/deployment/infrastructure/README.md)
-- [Security Guidelines](/src/main/guides/deployment/compliance/azure-security-baseline.md) *(if applicable)*
-- [Cost Management](/src/main/guides/deployment/operations/cost-management.md) *(if applicable)*
+- [Architecture Overview](./infrastructure/README.md)
+- [Security Guidelines](./compliance/azure-security-baseline.md) *(if applicable)*
+- [Cost Management](./operations/cost-management.md) *(if applicable)*
 
 ### External Documentation {: #external-documentation}
 - [Azure Static Web Apps](https://learn.microsoft.com/azure/static-web-apps)
@@ -119,15 +119,15 @@ _For more details, see the [Infrastructure Overview](/src/main/guides/deployment
 ### Emergency Procedures {: #emergency-procedures}
 For production issues:
 1. Check the [Status Page](https://status.phoenixvc.za).
-2. Follow the [Emergency Response Guide](/src/main/guides/deployment/operations.md#emergency-procedures).
+2. Follow the [Emergency Response Guide](./operations.md#emergency-procedures).
 3. Contact on-call support if needed.
 
 ## Contributing {: #contributing}
-- See [CONTRIBUTING.md](/src/main/guides/deployment/contributing.md) for guidelines
+- See [CONTRIBUTING.md](./contributing.md) for guidelines
 - Use [Conventional Commits](https://www.conventionalcommits.org/)
-- **Staging Deployments:** Note that deployments to staging are triggered on 
+- **Staging Deployments:** Note that deployments to staging are triggered on
   PRs to branches matching our naming conventions (e.g., staging/*, feat/*, bug/*, etc.).
-- **Production Deployments:** Note that deployments to prod are triggered on 
+- **Production Deployments:** Note that deployments to prod are triggered on
   PRs to branches matching our naming conventions (main/*, release/*).
 
 ## Version History {: #version-history}

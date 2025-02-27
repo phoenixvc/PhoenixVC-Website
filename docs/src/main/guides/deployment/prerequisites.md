@@ -1,6 +1,6 @@
 # Deployment Prerequisites {: #deployment-prerequisites}
-📄 `/docs/deployment/prerequisites.md`  
-**Version:** 1.2.0  
+📄 `/docs/deployment/prerequisites.md`
+**Version:** 1.2.0
 **Last Updated:** 2025-02-14
 
 ## Required Software {: #required-software}
@@ -20,13 +20,13 @@
 | **make**| Latest   | Build automation    | `sudo apt install make`    |
 
 ## System Requirements {: #system-requirements}
-- **CPU:** 2+ cores recommended  
-- **RAM:** 4GB minimum  
+- **CPU:** 2+ cores recommended
+- **RAM:** 4GB minimum
 - **Storage:** 10GB free space
 
 ## Network Requirements {: #network-requirements}
-- Outbound access to Azure endpoints  
-- HTTPS (443) access to GitHub  
+- Outbound access to Azure endpoints
+- HTTPS (443) access to GitHub
 - VPN access (if required)
 
 ## Permission Requirements {: #permission-requirements}
@@ -43,7 +43,7 @@
 ```
 
 ### Repository Access {: #repository-access}
-- Read access to the infrastructure repository  
+- Read access to the infrastructure repository
 - Write access for CI/CD configuration
 
 ## Validation Script {: #validation-script}
@@ -89,10 +89,10 @@ fi
    ```
 
 ## Next Steps {: #next-steps}
-1. Install required software.  
-2. Validate permissions.  
-3. Run the validation script.  
-4. Proceed to [configuration.md](/src/main/guides/deployment/configuration.md) for environment setup details.
+1. Install required software.
+2. Validate permissions.
+3. Run the validation script.
+4. Proceed to [configuration.md](./configuration.md) for environment setup details.
 
 ## Version History {: #version-history}
 | Version | Date       | Changes                        |

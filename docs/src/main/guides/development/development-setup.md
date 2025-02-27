@@ -28,9 +28,9 @@
 - Modern multi-core processor
 
 ### Additional Tools {: #additional-tools}
-- **CommitLint & Husky**:  
-  Our project uses [commitlint](/src/main/guides/development/.github/commitlint.config.js) to enforce commit message conventions and Husky for pre-commit hooks. When you commit, commitlint will validate that your messages follow our [Conventional Commits](/src/main/guides/development/contributing.md#commit-message-conventions).
-- **Azure CLI Setup**:  
+- **CommitLint & Husky**:
+  Our project uses [commitlint](./.github/commitlint.config.js) to enforce commit message conventions and Husky for pre-commit hooks. When you commit, commitlint will validate that your messages follow our [Conventional Commits](./contributing.md#commit-message-conventions).
+- **Azure CLI Setup**:
   To deploy to Azure or interact with services, ensure you run:
   ```bash
   az login
@@ -180,8 +180,8 @@ docker-compose ps
 # edit docker-compose.yml in the root of this repo. {: #edit-docker-composeyml-in-the-root-of-this-repo}
 ```
 
-> **Local vs. Production Docker**:  
-> For local development, we rely on `docker-compose.yml`. If you’re deploying to a production or staging environment, see [docker-workflow.md](/src/main/guides/development/infrastructure/docker-workflow.md) for details on advanced or different Docker configurations.
+> **Local vs. Production Docker**:
+> For local development, we rely on `docker-compose.yml`. If you’re deploying to a production or staging environment, see [docker-workflow.md](./infrastructure/docker-workflow.md) for details on advanced or different Docker configurations.
 
 ### 2. Database Migration {: #2-database-migration}
 ```bash
@@ -289,8 +289,8 @@ nvm use 18
 > **TODO**: If or when we adopt Cypress, Playwright, or another E2E tool, we’ll add docs for spinning up ephemeral containers or staging environments for integration tests.
 
 ## Additional Resources {: #additional-resources}
-- [Code Style Guide](/src/main/guides/development/code-style.md)
-- [Contributing Guide](/src/main/guides/development/contributing.md)
-- [Deployment Guide](/src/main/guides/development/deployment/deployment.md)
-- [Infrastructure Docs](/src/main/guides/development/infrastructure/readme.md)
-- [Troubleshooting Guide](/src/main/guides/development/deployment/troubleshooting.md)
+- [Code Style Guide](./code-style.md)
+- [Contributing Guide](./contributing.md)
+- [Deployment Guide](./deployment/deployment.md)
+- [Infrastructure Docs](./infrastructure/readme.md)
+- [Troubleshooting Guide](./deployment/troubleshooting.md)

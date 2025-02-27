@@ -80,7 +80,7 @@ sequenceDiagram
   participant Script
   participant PolicyEngine
   participant DNS
-  
+
   User->>Script: Request Change
   Script->>PolicyEngine: Validate
   alt Compliant
@@ -133,7 +133,7 @@ sequenceDiagram
 | Operational Standards | Monthly | DevOps | 2025-03 |
 
 ## Related Documentation {: #related-documentation}
-- [Security Baseline](/src/main/policies/compliance/azure-security-baseline.md)
-- [DNS Policy Checklist](/src/main/policies/compliance/dns-policy-checklist.md)
-- [SPN Audit & Rotation](/src/main/policies/compliance/spn-audit-rotation.md)
-- [Network Topology](/src/main/policies/compliance/network-topology.md)
+- [Security Baseline](./azure-security-baseline.md)
+- [DNS Policy Checklist](./dns-policy-checklist.md)
+- [SPN Audit & Rotation](./spn-audit-rotation.md)
+- [Network Topology](./network-topology.md)

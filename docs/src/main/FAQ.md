@@ -6,19 +6,19 @@ This FAQ provides answers to common questions about the Phoenix VC project, cove
 Phoenix VC is a comprehensive infrastructure and design system solution that provides enterprise-grade deployment capabilities, a robust design system, and development tools for modern web applications.
 
 ### How do I get started? {: #how-do-i-get-started}
-1. Review our [Development Setup](/src/main/guides/development/development-setup.md)
-2. Check the [Design System](/src/main/design/components/index.md)
-3. Follow our [Deployment Guide](/src/main/guides/deployment/deployment-guide.md)
+1. Review our [Development Setup](./guides/development/development-setup.md)
+2. Check the [Design System](./design/components/index.md)
+3. Follow our [Deployment Guide](./guides/deployment/deployment-guide.md)
 
 ## Development & Environment Setup {: #development--environment-setup}
 ### What development environment do you recommend? {: #what-development-environment-do-you-recommend}
-We recommend using our [Dev Containers](/src/main/guides/development/dev-containers.md) for the most consistent experience. Alternative options include:
+We recommend using our [Dev Containers](./guides/development/dev-containers.md) for the most consistent experience. Alternative options include:
 - A local Linux VM (e.g., via VirtualBox)
 - Docker containers for a consistent environment
 - Windows Subsystem for Linux (WSL) on Windows
 
 ### How do I contribute to the project? {: #how-do-i-contribute-to-the-project}
-See our [Contributing Guidelines](/src/main/design/guidelines/contributing.md) for detailed information.
+See our [Contributing Guidelines](./design/guidelines/contributing.md) for detailed information.
 
 ## Azure Configuration & Deployment {: #azure-configuration--deployment}
 ### What does "No subscriptions were found" mean when I run `az login`? {: #what-does-no-subscriptions-were-found-mean-when-i-run-az-login}
@@ -53,34 +53,34 @@ For unsupported regions (e.g., South Africa North), use the BYOF (Bring Your Own
 
 ## Design System {: #design-system}
 ### How do I use the design system components? {: #how-do-i-use-the-design-system-components}
-Start with our [Design System Installation Guide](/src/main/design/getting-started/installation.md) and review our [Usage Guidelines](/src/main/design/getting-started/usage.md).
+Start with our [Design System Installation Guide](./design/getting-started/installation.md) and review our [Usage Guidelines](./design/getting-started/usage.md).
 
 ### Where can I find design tokens? {: #where-can-i-find-design-tokens}
 All design tokens are documented in:
-- [Colors](/src/design/tokens/colors.md)
-- [Typography](/src/design/tokens/typography.md)
-- [Spacing](/src/design/tokens/spacing.md)
+- [Colors](../design-system/color-formats-tokens.md)
+- [Typography](../design-system/color-formats-tokens.md)
+- [Spacing](../design-system/color-formats-tokens.md)
 
 ## Security & Compliance {: #security--compliance}
 ### How do I report a security vulnerability? {: #how-do-i-report-a-security-vulnerability}
-Review our [Security Policy](/src/main/policies/SECURITY.md) for reporting procedures.
+Review our [Security Policy](./policies/SECURITY.md) for reporting procedures.
 
 ### What compliance standards do you follow? {: #what-compliance-standards-do-you-follow}
-See our [Compliance Framework](/src/main/policies/compliance/policy-framework.md) for details.
+See our [Compliance Framework](./policies/compliance/policy-framework.md) for details.
 
 ## Support & Troubleshooting {: #support--troubleshooting}
 ### How do I get help? {: #how-do-i-get-help}
 1. Check this FAQ first
-2. Search the [documentation](/src/main/search.md)
-3. Review the [Documentation Map](/src/main/meta/documentation-map.md)
-4. [Contact Support](/src/main/mailto:support@phoenixvc.za)
+2. Search the [documentation](./search.md)
+3. Review the [Documentation Map](./meta/documentation-map.md)
+4. [Contact Support](./mailto:support@phoenixvc.za)
 
 ### What do I do if I encounter deployment issues? {: #what-do-i-do-if-i-encounter-deployment-issues}
-Check our [Troubleshooting Guide](/src/main/guides/deployment/troubleshooting.md) for common issues and solutions.
+Check our [Troubleshooting Guide](./guides/deployment/troubleshooting.md) for common issues and solutions.
 
 ### How do I request a new feature? {: #how-do-i-request-a-new-feature}
 Submit feature requests through our [GitHub repository](https://github.com/JustAGhosT/PhoenixVC-Modernized/issues).
 
 ---
 
-If you have additional questions or need further assistance, please contact our support team at [support@phoenixvc.za](/src/main/mailto:support@phoenixvc.za).
+If you have additional questions or need further assistance, please contact our support team at [support@phoenixvc.za](./mailto:support@phoenixvc.za).
