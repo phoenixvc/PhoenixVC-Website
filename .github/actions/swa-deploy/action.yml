@@ -37,47 +37,19 @@ runs:
         name: ${{ inputs.artifact-name }}
         path: ${{ inputs.artifact-path }}
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-
-    - name: Install Azure Static Web Apps CLI
-      shell: bash
-      run: |
-        echo "Installing SWA CLI..."
-        npm install --no-fund --no-audit --loglevel=error -g @azure/static-web-apps-cli
-
-    # Try SWA CLI first as the primary method
-    - name: Deploy Site via SWA CLI (Primary Method)
-      id: swa_cli_deploy
-      shell: bash
-      run: |
-        echo "Deploying to ${{ inputs.env }} using SWA CLI from artifact..."
-        # Add sleep to ensure file system is ready
-        sleep 2
-        # Use chmod to ensure executable permissions
-        chmod -R 755 ${{ inputs.artifact-path }}
-        
-        # Try deployment with explicit token
-        swa deploy "${{ inputs.artifact-path }}" \
-          --deployment-token "${{ inputs.deployment_token }}" \
-          --env "${{ inputs.env }}" || echo "swa_cli_failed=true" >> $GITHUB_OUTPUT
-      continue-on-error: true
-
-    # Only try Azure CLI if SWA CLI fails
-    - name: Azure Login (Fallback)
-      if: ${{ steps.swa_cli_deploy.outputs.swa_cli_failed == 'true' }}
+    # Login to Azure first - this will prevent the interactive login prompt
+    - name: Azure Login
       uses: azure/login@v1
       with:
         creds: ${{ inputs.azure_credentials }}
-        
-    - name: Deploy using Azure CLI (Fallback Method)
-      if: ${{ steps.swa_cli_deploy.outputs.swa_cli_failed == 'true' }}
+
+    # Try direct Azure CLI deployment method first (most reliable in CI/CD)
+    - name: Deploy using Azure CLI (Primary Method)
+      id: az_cli_deploy
       shell: bash
       run: |
         echo "Installing Azure CLI extension for Static Web Apps..."
-        az extension add --name static-web-apps --only-show-errors || echo "Extension installation failed, continuing..."
+        az extension add --name static-web-apps --only-show-errors || echo "Extension already installed"
         
         echo "Deploying to ${{ inputs.env }} environment using Azure CLI..."
         az staticwebapps deploy \
@@ -86,4 +58,40 @@ runs:
           --source ${{ inputs.artifact-path }} \
           --env ${{ inputs.env }} \
           --token "${{ inputs.deployment_token }}" \
-          --verbose
+          --verbose || echo "az_cli_failed=true" >> $GITHUB_OUTPUT
+      continue-on-error: true
+
+    # Only try SWA CLI if Azure CLI fails
+    - name: Setup Node.js (Fallback)
+      if: ${{ steps.az_cli_deploy.outputs.az_cli_failed == 'true' }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install Azure Static Web Apps CLI (Fallback)
+      if: ${{ steps.az_cli_deploy.outputs.az_cli_failed == 'true' }}
+      shell: bash
+      run: |
+        echo "Installing SWA CLI..."
+        npm install --no-fund --no-audit --loglevel=error -g @azure/static-web-apps-cli
+
+    - name: Deploy Site via SWA CLI (Fallback Method)
+      if: ${{ steps.az_cli_deploy.outputs.az_cli_failed == 'true' }}
+      shell: bash
+      run: |
+        echo "Deploying to ${{ inputs.env }} using SWA CLI from artifact..."
+        # Add sleep to ensure file system is ready
+        sleep 2
+        # Use chmod to ensure executable permissions
+        chmod -R 755 ${{ inputs.artifact-path }}
+        
+        # Set SWA_CLI_DEPLOYMENT_TOKEN environment variable explicitly
+        # This is the recommended way to avoid authentication prompts
+        export SWA_CLI_DEPLOYMENT_TOKEN="${{ inputs.deployment_token }}"
+        
+        # Try deployment with explicit token and skip-deploy-wait to avoid hanging
+        swa deploy "${{ inputs.artifact-path }}" \
+          --deployment-token "${{ inputs.deployment_token }}" \
+          --env "${{ inputs.env }}" \
+          --skip-deploy-wait \
+          --no-use-keychain
