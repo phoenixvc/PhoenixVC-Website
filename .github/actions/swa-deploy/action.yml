@@ -47,26 +47,6 @@ runs:
       with:
         creds: ${{ inputs.azure_credentials }}
 
-    # Install Azure CLI extension for Static Web Apps
-    - name: Install Azure CLI extensions
-      shell: bash
-      run: |
-        echo "Installing Azure CLI extension for Static Web Apps..."
-        az extension add --name staticwebapp --only-show-errors || echo "Extension already installed"
-
-    # Setup Node.js for SWA CLI
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-
-    # Install SWA CLI
-    - name: Install Azure Static Web Apps CLI
-      shell: bash
-      run: |
-        echo "Installing SWA CLI..."
-        npm install --no-fund --no-audit --loglevel=error -g @azure/static-web-apps-cli
-
     # Ensure the config file is properly placed
     - name: Prepare configuration
       shell: bash
@@ -89,16 +69,19 @@ runs:
 
     # Deploy using the official Azure Static Web Apps GitHub Action
     - name: Deploy to Azure Static Web Apps
+      id: deploy
       uses: Azure/static-web-apps-deploy@v1
       with:
         azure_static_web_apps_api_token: ${{ inputs.deployment_token }}
-        repo_token: "dummy-token" # Not actually used for deployment
+        repo_token: ${{ github.token }}
         action: "upload"
         app_location: ${{ inputs.artifact-path }}
         api_location: ""
         output_location: ""
-        config_location: ".config"
+        config_file_location: ".config"
         skip_app_build: true
+      env:
+        DEPLOYMENT_PROVIDER: "DevOps"
       
     # Get the deployment URL for output
     - name: Get Deployment URL
