@@ -378,7 +378,7 @@ maintenance_schedule:
 ### Internal Documentation
 - [DNS Architecture Guide](../reference/technical.md)
 - [Security Policies](../reference/security.md)
-- [Incident Response Plan](../guides/operations.md)
+- [Incident Response Plan](./operations.md)
 
 ### Contact Information
 - **DNS Team:** dns-team@phoenixvc.tech

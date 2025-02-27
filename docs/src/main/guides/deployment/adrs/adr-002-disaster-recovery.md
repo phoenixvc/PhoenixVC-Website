@@ -1,15 +1,15 @@
 # ADR 0002: Disaster Recovery Approach {: #adr-0002-disaster-recovery-approach}
-**Status:** PROPOSED  
-**Effective:** TBD  
+**Status:** PROPOSED
+**Effective:** TBD
 **Review Cycle:** 6 months
 
 ## Context {: #context}
 - Our current disaster recovery (DR) plan requires a high-level architectural decision record to outline how we ensure business continuity.
-- A detailed DR runbook exists in [infrastructure/disaster-recovery.md](/src/main/guides/deployment/adrs/infrastructure/disaster-recovery.md), but we need an ADR to document the guiding principles and decisions behind the DR strategy.
+- A detailed DR runbook exists in [infrastructure/disaster-recovery.md](./infrastructure/disaster-recovery.md), but we need an ADR to document the guiding principles and decisions behind the DR strategy.
 
 ## Decision {: #decision}
 - We will adopt an **active-passive DR model** with region failover, leveraging Azure Front Door for traffic management.
-- **Recovery Point Objective (RPO):** Less than 15 minutes  
+- **Recovery Point Objective (RPO):** Less than 15 minutes
 - **Recovery Time Objective (RTO):** Less than 1 hour for production workloads
 
 ## Consequences {: #consequences}
