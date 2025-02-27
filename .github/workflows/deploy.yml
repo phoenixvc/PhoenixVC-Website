@@ -15,6 +15,14 @@ on:
         options:
           - "true"
           - "false"
+      INCLUDE_DNS_UPDATE:
+        description: 'Set to "true" to include DNS update in production deployment'
+        required: false
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
 
 env:
   LOCATION_CODE: 'euw'  # Default to Europe West
@@ -23,7 +31,11 @@ permissions:
   contents: read
   pages: write
   id-token: write
-
+  
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.inputs.APPROVAL_STATE == 'true' && 'prod' || 'staging' }}
+  cancel-in-progress: false
+  
 jobs:
   log_debug_information:
     runs-on: ubuntu-latest
@@ -37,6 +49,7 @@ jobs:
           echo "Ref: ${{ github.ref }}"
           echo "Base Ref: ${{ github.event.pull_request.base.ref || 'N/A' }}"
           echo "Approval State: ${{ github.event.inputs.APPROVAL_STATE }}"
+          echo "Include DNS Update: ${{ github.event.inputs.INCLUDE_DNS_UPDATE }}"
           echo "Location Code: ${LOCATION_CODE}"
           echo "Resource Group Name: prod-${LOCATION_CODE}-rg-phoenixvc-website"
           echo "Static Web App Name: prod-${LOCATION_CODE}-swa-phoenixvc-website"
@@ -67,6 +80,12 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
       - name: Build Web App
         uses: ./.github/actions/build-vite
         with:
@@ -82,15 +101,29 @@ jobs:
         with:
           name: web-dist
           path: apps/web/dist
-          retention-days: 5
+          retention-days: ${{ github.event.inputs.APPROVAL_STATE == 'true' && '30' || '5' }}
 
       - name: Upload Design System Artifact
         uses: actions/upload-artifact@v4
         with:
           name: design-system-dist
           path: apps/design-system/dist
-          retention-days: 5
+          retention-days: ${{ github.event.inputs.APPROVAL_STATE == 'true' && '30' || '5' }}
 
+          
+  # ───────────────────────────────────────────────
+  # ✅ SECURITY SCAN
+  # ───────────────────────────────────────────────
+  #security_scan:
+  #  runs-on: ubuntu-latest
+  #  needs: [build_apps]
+  #  steps:
+  #    - name: Checkout code
+  #      uses: actions/checkout@v4
+  #    
+  #    - name: Run security scan
+  #      uses: github/codeql-action/analyze@v2
+        
   # ───────────────────────────────────────────────
   # ✅ STAGING RESOURCE CREATION (Run deploy.sh)
   # ───────────────────────────────────────────────
@@ -128,6 +161,12 @@ jobs:
   swa_deploy_staging:
     runs-on: ubuntu-latest
     needs: [build_apps, deploy_resources_staging]
+    timeout-minutes: 15
+    outputs:
+      staging_url: ${{ steps.swa_deploy.outputs.deployment_url }}
+    environment:
+      name: staging
+      url: ${{ steps.swa_deploy.outputs.deployment_url }}
     steps:
       - name: Checkout Repository for Staging Resources
         uses: actions/checkout@v4
@@ -137,6 +176,7 @@ jobs:
           fetch-depth: 0
           
       - name: Use SWA Deploy Action for Staging
+        id: swa_deploy
         uses: ./.github/actions/swa-deploy
         with:
           artifact-name: web-dist
@@ -161,9 +201,18 @@ jobs:
           ref: refs/heads/main
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-
+  
+      - name: Use Composite Azure Deployment
+        uses: ./.github/actions/setup-azure-deployment
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          repository: ${{ github.repository }}
+          ref: refs/heads/main
+  
       - name: Run Production Resource Deployment Script
-        run: ./scripts/deployment/deploy.sh --ENVIRONMENT prod
+        run: ./scripts/deployment/deploy.sh --env prod
         env:
           ENVIRONMENT: prod
           RG_NAME: prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
@@ -175,6 +224,12 @@ jobs:
   swa_deploy_prod:
     runs-on: ubuntu-latest
     needs: [build_apps, deploy_resources_prod]
+    timeout-minutes: 15
+    outputs:
+      prod_url: ${{ steps.swa_deploy.outputs.deployment_url }}
+    environment:
+      name: production
+      url: ${{ steps.swa_deploy.outputs.deployment_url }}
     steps:
       - name: Checkout Repository for Production SWA Deploy
         uses: actions/checkout@v4
@@ -183,29 +238,45 @@ jobs:
           ref: refs/heads/main
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-
-      - name: Download Web App Artifact for Production
-        uses: actions/download-artifact@v3
+  
+      - name: Use SWA Deploy Action for Production
+        id: swa_deploy
+        uses: ./.github/actions/swa-deploy
         with:
-          name: web-dist
-          path: ./build-artifact
+          artifact-name: web-dist
+          app-name: prod-${{ env.LOCATION_CODE }}-swa-phoenixvc-website
+          resource-group: prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
+          env: prod
+          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          deployment_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
 
-      - name: Deploy Production Site via SWA CLI
+      - name: Verify SWA Deployment
+        id: verify_deployment
+        shell: bash
         run: |
-          echo "Deploying to Production using SWA CLI from artifact..."
-          npx swa deploy ./build-artifact \
-            --app-name prod-${{ env.LOCATION_CODE }}-swa-phoenixvc-website \
-            --resource-group prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website \
-            --env prod
-        env:
-          LOCATION_CODE: ${{ env.LOCATION_CODE }}
-
+          # Wait for deployment to be fully available
+          MAX_RETRIES=10
+          COUNT=0
+          while [ $COUNT -lt $MAX_RETRIES ]; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" ${{ steps.swa_deploy.outputs.deployment_url }})
+            if [ "$STATUS" == "200" ]; then
+              echo "✅ Deployment verified successfully!"
+              exit 0
+            fi
+            echo "Waiting for deployment to be available... (Attempt $COUNT/$MAX_RETRIES)"
+            sleep 30
+            COUNT=$((COUNT+1))
+          done
+          echo "❌ Deployment verification failed after $MAX_RETRIES attempts"
+          exit 1
+      
   # ───────────────────────────────────────────────
   # ✅ TRIGGER DNS CONFIGURATION WORKFLOW
   # ───────────────────────────────────────────────
   trigger_dns_update:
     runs-on: ubuntu-latest
     needs: [swa_deploy_prod]
+    if: ${{ github.event.inputs.APPROVAL_STATE == 'true' && github.event.inputs.INCLUDE_DNS_UPDATE == 'true' && success() }}
     steps:
       - name: Trigger DNS Workflow
         run: |
@@ -219,13 +290,14 @@ jobs:
   # ───────────────────────────────────────────────
   deploy_docs:
     runs-on: ubuntu-latest
-    needs: [swa_deploy_prod, trigger_dns_update]
+    needs: [swa_deploy_prod]
     if: >
-      (github.event_name == 'push' &&
+      github.event.inputs.APPROVAL_STATE == 'true' && success() &&
+      ((github.event_name == 'push' &&
        (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/'))) ||
       (github.event_name == 'pull_request' &&
        github.event.pull_request.merged == true &&
-       (github.event.pull_request.base.ref == 'main' || startsWith(github.event.pull_request.base.ref, 'refs/heads/release/')))
+       (github.event.pull_request.base.ref == 'main' || startsWith(github.event.pull_request.base.ref, 'refs/heads/release/'))))
     environment: production
     steps:
       - uses: actions/checkout@v4
@@ -234,12 +306,15 @@ jobs:
         with:
           python-version: '3.x'
           cache: 'pip'
+          
       - name: Install MkDocs and Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install mkdocs mkdocs-material
+          
       - name: Build MkDocs Site
         run: mkdocs build -f docs/mkdocs.yml
+        
       - name: Deploy MkDocs Site
         run: mkdocs gh-deploy --force
 
@@ -249,7 +324,7 @@ jobs:
   notify_staging:
     runs-on: ubuntu-latest
     needs: [swa_deploy_staging]
-    if: ${{ github.event.inputs.APPROVAL_STATE != 'true' }}
+    if: ${{ github.event.inputs.APPROVAL_STATE != 'true' && success() }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -269,14 +344,14 @@ jobs:
           location_code: ${{ env.LOCATION_CODE }}
           resource_group: staging-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
           color: "0076D7"
-          approval_url: "https://github.com/${{ github.repository }}/actions/workflows/deploy.yml/dispatches?workflow=Phoenix+VC+Deployment+Pipeline&ref=${{ github.ref }}&inputs%5BAPPROVAL_STATE%5D=true"
-
+          approval_url: "https://github.com/${{ github.repository }}/actions/workflows/deploy.yml/dispatches?workflow=Phoenix+VC+Rollback+Pipeline&ref=${{ github.ref }}"
+  
   # ───────────────────────────────────────────────
   # ✅ NOTIFY PRODUCTION DEPLOYMENT
   # ───────────────────────────────────────────────
   notify_production:
     runs-on: ubuntu-latest
-    needs: [swa_deploy_prod]
+    needs: [swa_deploy_prod, trigger_dns_update, deploy_docs]
     if: ${{ github.event.inputs.APPROVAL_STATE == 'true' }}
     steps:
       - name: Checkout Repository
@@ -298,3 +373,4 @@ jobs:
           resource_group: prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
           color: "00A300"
           rollback_url: "https://github.com/${{ github.repository }}/actions/workflows/rollback.yml/dispatches?workflow=Phoenix+VC+Rollback+Pipeline&ref=${{ github.ref }}"
+
