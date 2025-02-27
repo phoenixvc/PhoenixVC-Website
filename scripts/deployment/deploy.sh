@@ -224,6 +224,15 @@ main() {
     exit 1
   fi
 
+  # After deployment, capture and echo the final Logic App definition text from the outputs
+  finalDefinition=$(az deployment sub show --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" --query "properties.outputs.finalLogicAppDefinitionTextOutput.value" -o tsv)
+  if [ -n "$finalDefinition" ]; then
+    echo "✅ Final Logic App Definition:"
+    echo "$finalDefinition"
+  else
+    echo "⚠️ No final logic app definition output was found."
+  fi
+
   setup_monitoring
 
   if [ "$ENABLE_COST_CHECKS" = "true" ]; then

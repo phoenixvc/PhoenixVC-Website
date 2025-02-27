@@ -144,3 +144,4 @@ output budgetAmount string = deployBudget ? string(budget.outputs.budgetAmount) 
 // Optionally output logic app details if deployed
 output logicAppNameOut string = deployLogicApp ? logicAppModule.outputs.logicAppNameOut : 'Logic App not deployed'
 output logicAppId string = deployLogicApp ? logicAppModule.outputs.logicAppId : 'N/A'
+output finalLogicAppDefinition string = logicAppModule.outputs.finalLogicAppDefinitionTextOutput
