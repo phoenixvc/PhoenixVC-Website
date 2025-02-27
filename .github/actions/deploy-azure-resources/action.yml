@@ -44,10 +44,10 @@ runs:
     - name: Ensure Azure CLI Logic App Extension is Installed
       shell: bash
       run: |
-        if ! az extension show --name logicapp &>/dev/null; then
-          az extension add --name logicapp --yes
+        if ! az extension show --name logic &>/dev/null; then
+          az extension add --name logic --yes
         else
-          echo "Azure CLI logicapp extension is already installed."
+          echo "Azure CLI logic extension is already installed."
         fi
 
     - name: Run Resource Deployment Script
