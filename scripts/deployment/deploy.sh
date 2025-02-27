@@ -17,19 +17,20 @@ trap onError ERR
 # ------------------------------------------------------------------------------
 # 1) Resolve and log deployment parameters
 # ------------------------------------------------------------------------------
-# Set defaults (manually overriding policy checks to false)
+# Use environment variables (if set) or defaults.
 ENVIRONMENT="${ENVIRONMENT:-staging}"
 LOCATION_CODE="${LOCATION_CODE:-saf}"
-ENABLE_POLICY_CHECKS="${ENABLE_POLICY_CHECKS:-false}"  # POLICY CHECKS DISABLED FOR NOW
+# For now, disable policy checks:
+ENABLE_POLICY_CHECKS="${ENABLE_POLICY_CHECKS:-false}"
 ENABLE_MONITORING="${ENABLE_MONITORING:-false}"
 ENABLE_COST_CHECKS="${ENABLE_COST_CHECKS:-false}"
 POLICY_ENFORCEMENT_MODE="${POLICY_ENFORCEMENT_MODE:-enforce}"
 
-# Override file paths if provided; otherwise, use defaults
+# Override file paths if provided; otherwise, use defaults.
 BICEP_FILE="${BICEP_FILE:-./infra/bicep/main.bicep}"
 PARAMETERS_FILE="${PARAMETERS_FILE:-./infra/bicep/parameters-${ENVIRONMENT}.json}"
 
-# Determine DEPLOY_REGION from LOCATION_CODE
+# Determine DEPLOY_REGION from LOCATION_CODE.
 if [ "$LOCATION_CODE" = "euw" ]; then
   DEPLOY_REGION="westeurope"
 elif [ "$LOCATION_CODE" = "saf" ]; then
@@ -39,16 +40,16 @@ else
   DEPLOY_REGION="westeurope"
 fi
 
-# Compute resource group name
+# Compute resource group name.
 RESOURCE_GROUP="${ENVIRONMENT}-${LOCATION_CODE}-rg-phoenixvc-website"
 
-# Check that jq is installed
+# Check that jq is installed.
 if ! command -v jq > /dev/null; then
   echo "jq is not installed. Please install jq to run this script."
   exit 1
 fi
 
-# Log key deployment parameters
+# Log key deployment parameters.
 echo "===== Deployment Parameters ====="
 echo "ENVIRONMENT: $ENVIRONMENT"
 echo "LOCATION_CODE: $LOCATION_CODE"
@@ -62,16 +63,25 @@ echo "ENABLE_COST_CHECKS: $ENABLE_COST_CHECKS"
 echo "POLICY_ENFORCEMENT_MODE: $POLICY_ENFORCEMENT_MODE"
 echo "================================="
 
-# If the parameters file exists, parse override values
+# If the parameters file exists, parse override values.
 if [ -f "$PARAMETERS_FILE" ]; then
   echo "Full Parameters File Content:"
   cat "$PARAMETERS_FILE"
   echo "---------------------------------"
-  deployKeyVaultVal=$(jq -r '.parameters.deployKeyVault.value | tostring' < "$PARAMETERS_FILE")
-  deployLogicAppVal=$(jq -r '.parameters.deployLogicApp.value | tostring' < "$PARAMETERS_FILE")
-  deployBudgetVal=$(jq -r '.parameters.deployBudget.value | tostring' < "$PARAMETERS_FILE")
-  keyVaultSkuVal=$(jq -r '.parameters.keyVaultSku.value | tostring' < "$PARAMETERS_FILE")
-  enableRbacAuthorizationVal=$(jq -r '.parameters.enableRbacAuthorization.value | tostring' < "$PARAMETERS_FILE")
+
+  # For debugging, output the raw value (without tostring conversion) for each.
+  deployKeyVaultRaw=$(jq -r '.parameters.deployKeyVault.value' < "$PARAMETERS_FILE")
+  deployLogicAppRaw=$(jq -r '.parameters.deployLogicApp.value' < "$PARAMETERS_FILE")
+  deployBudgetRaw=$(jq -r '.parameters.deployBudget.value' < "$PARAMETERS_FILE")
+  keyVaultSkuRaw=$(jq -r '.parameters.keyVaultSku.value' < "$PARAMETERS_FILE")
+  enableRbacAuthorizationRaw=$(jq -r '.parameters.enableRbacAuthorization.value' < "$PARAMETERS_FILE")
+
+  # Use default "not-set" if the value is null.
+  deployKeyVaultVal=${deployKeyVaultRaw:-"not-set"}
+  deployLogicAppVal=${deployLogicAppRaw:-"not-set"}
+  deployBudgetVal=${deployBudgetRaw:-"not-set"}
+  keyVaultSkuVal=${keyVaultSkuRaw:-"not-set"}
+  enableRbacAuthorizationVal=${enableRbacAuthorizationRaw:-"not-set"}
 else
   deployKeyVaultVal="N/A"
   deployLogicAppVal="N/A"
@@ -89,8 +99,9 @@ echo "  enableRbacAuthorization: $enableRbacAuthorizationVal"
 echo "---------------------------------"
 
 # ------------------------------------------------------------------------------
-# 2) Define helper functions (policy check skipped since ENABLE_POLICY_CHECKS is false)
+# 2) Define helper functions
 # ------------------------------------------------------------------------------
+# (Policy check is skipped if ENABLE_POLICY_CHECKS is false.)
 policy_precheck() {
   [ "$ENABLE_POLICY_CHECKS" = "true" ] || return 0
 
@@ -180,14 +191,14 @@ main() {
 
   echo "🚀 Starting ${ENVIRONMENT} deployment (Features: Policy=${ENABLE_POLICY_CHECKS}, Monitoring=${ENABLE_MONITORING})"
 
-  # Skip policy precheck if disabled
+  # Run policy precheck if enabled.
   if [ "$ENABLE_POLICY_CHECKS" = "true" ]; then
     policy_precheck
   else
     echo "🔒 Pre-Deployment Policy Check skipped (disabled)."
   fi
 
-  # Check resource group status before deployment
+  # Check resource group status.
   check_resource_group
 
   echo "📄 Using parameter file: $PARAMETERS_FILE"
@@ -196,16 +207,7 @@ main() {
     exit 1
   fi
 
-  # Log the override values from the parameters file
-  echo "Override Values from Parameters File:"
-  echo "  deployKeyVault: $deployKeyVaultVal"
-  echo "  deployLogicApp: $deployLogicAppVal"
-  echo "  deployBudget: $deployBudgetVal"
-  echo "  keyVaultSku: $keyVaultSkuVal"
-  echo "  enableRbacAuthorization: $enableRbacAuthorizationVal"
-  echo "---------------------------------"
-
-  # Timestamp for naming the deployment
+  # Timestamp for naming the deployment.
   TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 
   echo "🚀 Deploying resources..."
@@ -217,16 +219,16 @@ main() {
     --parameters environment="$ENVIRONMENT" locCode="$LOCATION_CODE" \
     --query properties.outputs
 
-  # After deployment, capture and echo the final Logic App definition text from the outputs
-  finalDefinition=$(az deployment sub show --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" --query "properties.outputs.finalLogicAppDefinitionTextOutput.value" -o tsv)
-  if [ -n "$finalDefinition" ]; then
+  # Retrieve and log the final Logic App definition text output (if available).
+  finalLogicAppDefinitionTextOutput=$(az deployment sub show --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" --query "properties.outputs.finalLogicAppDefinitionTextOutput.value" -o tsv)
+  if [ -n "$finalLogicAppDefinitionTextOutput" ]; then
     echo "✅ Final Logic App Definition:"
-    echo "$finalDefinition"
+    echo "$finalLogicAppDefinitionTextOutput"
   else
     echo "⚠️ No final logic app definition output was found."
   fi
-  
-  # Post-Deployment validations
+
+  # Post-deployment validations.
   echo "✅ Deployment completed. Running validations..."
   if [ "$(az group exists --name "$RESOURCE_GROUP")" != "true" ]; then
     echo "❌ Resource Group missing!" >&2
