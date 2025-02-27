@@ -13,21 +13,20 @@ var logicAppDefinitionFile = './definitions/logicapp-definition.json'
 @description('Adaptive card definition file location (compile-time literal)')
 var adaptiveCardFile = './definitions/teams-adaptive-card.json'
 
-// Load file contents as text strings.
-var logicAppDefinitionText = loadTextContent(logicAppDefinitionFile)
-var adaptiveCardText = loadTextContent(adaptiveCardFile)
+// Load file contents as trimmed text.
+var logicAppDefinitionText = trim(loadTextContent(logicAppDefinitionFile))
+var adaptiveCardText = trim(loadTextContent(adaptiveCardFile))
 
-// Convert the adaptive card text to JSON and then back to a string
-// to ensure that all quotes and special characters are properly escaped.
+// Convert the adaptive card text to JSON and then back to a string (to escape quotes correctly)
 var adaptiveCardEscaped = string(json(adaptiveCardText))
 
-// Replace the placeholder in the logic app definition with the escaped adaptive card string.
+// Replace the placeholder in the logic app definition with the escaped adaptive card JSON string.
 var finalLogicAppDefinitionText = replace(logicAppDefinitionText, 'PLACEHOLDER_ADAPTIVE_CARD', adaptiveCardEscaped)
 
-// **Debug output:** Log the final definition text so you can verify its JSON validity.
+// For debugging: output the final definition text so you can verify it is valid JSON.
 output finalLogicAppDefinitionTextOutput string = finalLogicAppDefinitionText
 
-// Convert the final text into a JSON object.
+// Convert the final definition text into a JSON object.
 var finalLogicAppDefinition = json(finalLogicAppDefinitionText)
 
 resource logicApp 'Microsoft.Logic/workflows@2019-05-01' = {
@@ -37,7 +36,7 @@ resource logicApp 'Microsoft.Logic/workflows@2019-05-01' = {
   properties: {
     state: 'Enabled'
     definition: finalLogicAppDefinition
-    // If required, add a "kind": "Stateful" property here.
+    // If required, add "kind": "Stateful" here.
   }
 }
 
