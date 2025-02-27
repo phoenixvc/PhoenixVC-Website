@@ -10,9 +10,9 @@ runs:
       shell: bash
       id: build_payload
       run: |
-        # Read the JSON template file relative to this action's directory
-        TEMPLATE=$(cat "$(dirname "${BASH_SOURCE[0]}")/teams-template-schema.json")
-        # Replace placeholders (which are in the template as {{placeholder}}) with the input values
+        # Read the JSON template file from the repository root
+        TEMPLATE=$(cat "$(pwd)/.github/actions/teams-notification/teams-template-schema.json")
+        # Replace placeholders (the template should use placeholders like {{title}}, etc.) with the input values
         PAYLOAD=$(echo "$TEMPLATE" | sed \
           -e "s/{{title}}/${{ inputs.title }}/g" \
           -e "s/{{environment}}/${{ inputs.environment }}/g" \
