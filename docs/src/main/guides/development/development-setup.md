@@ -29,7 +29,7 @@
 
 ### Additional Tools {: #additional-tools}
 - **CommitLint & Husky**:
-  Our project uses [commitlint](./.github/commitlint.config.js) to enforce commit message conventions and Husky for pre-commit hooks. When you commit, commitlint will validate that your messages follow our [Conventional Commits](./contributing.md#commit-message-conventions).
+  Our project uses [commitlint](/.config/commitlint.config.js) to enforce commit message conventions and Husky for pre-commit hooks. When you commit, commitlint will validate that your messages follow our [Conventional Commits](./contributing.md#commit-message-conventions).
 - **Azure CLI Setup**:
   To deploy to Azure or interact with services, ensure you run:
   ```bash

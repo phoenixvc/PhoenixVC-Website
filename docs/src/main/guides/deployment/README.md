@@ -59,6 +59,9 @@ Below is an overview of the core deployment files. Each document focuses on a sp
 9. **[DNS Configuration](./dns-configuration.md)**
    - Guidelines for creating and managing DNS
 
+10. **[Why Static Web Apps](./swa-deployment.md)**
+   - More information on static web apps
+
 ### ADRs {: #adrs}
 The `adrs` folder contains Architectural Decision Records:
 - **[ADR 001: Credential Rotation](./adrs/adr-001-credential-rotation.md)**
