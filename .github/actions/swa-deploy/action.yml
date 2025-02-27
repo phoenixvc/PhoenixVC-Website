@@ -1,5 +1,5 @@
 name: "SWA Deploy"
-description: "Deploy site via SWA CLI from a downloaded artifact."
+description: "Deploy site via Azure CLI and SWA CLI from a downloaded artifact with fallback mechanism."
 inputs:
   artifact-name:
     description: "The name of the artifact to download"
