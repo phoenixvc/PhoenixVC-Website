@@ -1,5 +1,3 @@
-name: "Teams Notification"
-description: "Send a notification to Microsoft Teams with deployment information using a file-based JSON template."
 inputs:
   webhook_url:
     description: "The Microsoft Teams webhook URL"
@@ -35,9 +33,10 @@ inputs:
     required: false
     default: ""
   template_path:
-    description: "Path to the Teams template JSON file relative to the action directory"
+    description: "Path to the Teams template JSON file relative to this action’s directory"
     required: false
     default: "teams-template.json"
+
 runs:
   using: "composite"
   steps:
@@ -50,7 +49,7 @@ runs:
       shell: bash
       id: build_payload
       run: |
-        # Read the JSON template file using the provided template_path input.
+        # Read the JSON template file from the action’s directory using the provided template_path input.
         TEMPLATE=$(cat "$(pwd)/.github/actions/teams-notification/${{ inputs.template_path }}")
         # Replace placeholders in the template with the input values.
         PAYLOAD=$(echo "$TEMPLATE" | sed \
@@ -63,10 +62,10 @@ runs:
           -e "s|{{color}}|${{ inputs.color }}|g" \
           -e "s|{{approval_url}}|${{ inputs.approval_url }}|g" \
           -e "s|{{rollback_url}}|${{ inputs.rollback_url }}|g")
-        # Output the JSON payload for debugging purposes.
         echo "Generated Payload:" 
         echo "$PAYLOAD"
-        echo "::set-output name=payload::$PAYLOAD"
+        # Using the new environment-file method instead of set-output:
+        echo "payload=$PAYLOAD" >> $GITHUB_OUTPUT
 
     - name: Send Teams Notification
       shell: bash
