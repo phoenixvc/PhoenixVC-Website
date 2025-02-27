@@ -41,23 +41,17 @@ policy_precheck() {
   [ "$ENABLE_POLICY_CHECKS" = "true" ] || return 0
 
   echo "🔒 Running Pre-Deployment Policy Check..."
-
-  # Trigger a policy scan (non-blocking)
   az policy state trigger-scan --subscription "$(az account show --query id -o tsv)" --no-wait
-
-  # Optionally wait a few seconds for the scan to complete
   sleep 10
 
-  # Retrieve non-compliant policies for this resource group as JSON
   local non_compliant_json
   non_compliant_json=$(az policy state list --all --query "[?complianceState=='NonCompliant' && resourceGroup=='$RESOURCE_GROUP']" -o json)
-
   local violation_count
   violation_count=$(echo "$non_compliant_json" | jq 'length')
 
   if [ "$violation_count" -gt 0 ]; then
     echo "❌ Pre-Deployment Policy Violations: $violation_count violation(s) found:" >&2
-    echo "$non_compliant_json" | jq -r '.[] | "- " + (.policyAssignmentName // "Unknown") + ": " + (.policyDefinitionName // "Unknown")'
+    echo "$non_compliant_json" | jq -r '.[] | "- " + (.policyAssignmentName // "Unknown") + " (" + (.policyDefinitionName // "Unknown") + "): " + (.policyDefinitionId // "N/A")'
     exit 1
   else
     echo "✅ No Pre-Deployment Policy Violations detected."
