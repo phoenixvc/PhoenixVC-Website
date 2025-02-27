@@ -9,8 +9,8 @@ param tags object = {}
 
 //
 // Inline definition for the Logic App (workflow)
-// Note: The "references" property has been removed because it causes deserialization issues.
-// Replace "PLACEHOLDER_ADAPTIVE_CARD" with the adaptive card JSON.
+// This definition is fully hardcoded and does not use any placeholder replacement.
+// It defines a manual HTTP trigger and an action that posts an adaptive card to a Teams webhook.
 //
 var logicAppDefinitionText = '''
 {
@@ -49,10 +49,6 @@ var logicAppDefinitionText = '''
     }
   },
   "actions": {
-    "Compose_AdaptiveCard": {
-      "type": "Compose",
-      "inputs": "PLACEHOLDER_ADAPTIVE_CARD"
-    },
     "Post_to_Teams": {
       "type": "Http",
       "inputs": {
@@ -61,13 +57,42 @@ var logicAppDefinitionText = '''
         "headers": {
           "Content-Type": "application/json"
         },
-        "body": "@{json(outputs('Compose_AdaptiveCard'))}"
+        "body": {
+          "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+          "type": "AdaptiveCard",
+          "version": "1.2",
+          "body": [
+            {
+              "type": "TextBlock",
+              "text": "Deployment Notification",
+              "weight": "Bolder",
+              "size": "Large"
+            },
+            {
+              "type": "FactSet",
+              "facts": [
+                { "title": "Environment:", "value": "staging" },
+                { "title": "Branch:", "value": "staging" },
+                { "title": "Resource Group:", "value": "staging-euw-rg-phoenixvc-website" },
+                { "title": "Location Code:", "value": "euw" }
+              ]
+            },
+            {
+              "type": "TextBlock",
+              "text": "Deployment has completed successfully.",
+              "wrap": true
+            }
+          ],
+          "actions": [
+            {
+              "type": "Action.OpenUrl",
+              "title": "View Site",
+              "url": "https://example.com"
+            }
+          ]
+        }
       },
-      "runAfter": {
-        "Compose_AdaptiveCard": [
-          "Succeeded"
-        ]
-      }
+      "runAfter": {}
     }
   },
   "outputs": {}
@@ -75,77 +100,13 @@ var logicAppDefinitionText = '''
 '''
 
 //
-// Inline Adaptive Card JSON definition
+// Convert the inline string into a JSON object.
+// This will error out with a clear message if the JSON is not valid.
 //
-var adaptiveCardDefinitionText = '''
-{
-  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-  "type": "AdaptiveCard",
-  "version": "1.2",
-  "body": [
-    {
-      "type": "TextBlock",
-      "text": "{{title}}",
-      "weight": "Bolder",
-      "size": "Large"
-    },
-    {
-      "type": "FactSet",
-      "facts": [
-        { "title": "Environment:", "value": "{{environment}}" },
-        { "title": "Branch:", "value": "{{branch}}" },
-        { "title": "Resource Group:", "value": "{{resourceGroup}}" },
-        { "title": "Location Code:", "value": "{{locationCode}}" }
-      ]
-    },
-    {
-      "type": "TextBlock",
-      "text": "{{message}}",
-      "wrap": true
-    }
-  ],
-  "actions": [
-    {
-      "type": "Action.OpenUrl",
-      "title": "{{actions[0].title}}",
-      "url": "{{actions[0].url}}",
-      "tooltip": "{{actions[0].description}}"
-    },
-    {
-      "type": "Action.OpenUrl",
-      "title": "{{actions[1].title}}",
-      "url": "{{actions[1].url}}",
-      "tooltip": "{{actions[1].description}}"
-    }
-  ]
-}
-'''
+var finalLogicAppDefinition = json(logicAppDefinitionText)
 
 //
-// To ensure proper escaping, convert the adaptive card text to JSON and then back to a string.
-//
-var adaptiveCardEscaped = string(json(adaptiveCardDefinitionText))
-
-//
-// Replace the placeholder in the logic app definition with the escaped adaptive card JSON string.
-// The output is the complete logic app definition text that should be valid JSON.
-//
-var finalLogicAppDefinitionText = replace(logicAppDefinitionText, 'PLACEHOLDER_ADAPTIVE_CARD', adaptiveCardEscaped)
-
-//
-// (Optional) Output the final definition text for debugging purposes.
-// Copy this output and validate it with an online JSON validator if needed.
-//
-output finalLogicAppDefinitionTextOutput string = finalLogicAppDefinitionText
-
-//
-// Convert the final logic app definition text to a JSON object.
-// If the text is not valid JSON, this function will error out with a clear message.
-//
-var finalLogicAppDefinition = json(finalLogicAppDefinitionText)
-
-//
-// Deploy the Logic App resource
+// Deploy the Logic App resource using the final JSON definition.
 //
 resource logicApp 'Microsoft.Logic/workflows@2019-05-01' = {
   name: logicAppName
@@ -154,7 +115,7 @@ resource logicApp 'Microsoft.Logic/workflows@2019-05-01' = {
   properties: {
     state: 'Enabled'
     definition: finalLogicAppDefinition
-    // Optionally, add "kind": "Stateful" if your workflow requires it.
+    // Optionally add a "kind" property if needed (e.g., kind: 'Stateful')
   }
 }
 
