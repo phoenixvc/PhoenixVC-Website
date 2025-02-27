@@ -23,6 +23,10 @@ inputs:
   deployment_token:
     description: "SWA deployment token"
     required: true
+outputs:
+  deployment_url:
+    description: "The URL of the deployed application"
+    value: ${{ steps.get_deployment_url.outputs.url }}
 runs:
   using: "composite"
   steps:
@@ -49,10 +53,10 @@ runs:
       shell: bash
       run: |
         echo "Installing Azure CLI extension for Static Web Apps..."
-        az extension add --name static-web-apps --only-show-errors || echo "Extension already installed"
+        az extension add --name staticwebapp --only-show-errors || echo "Extension already installed"
         
         echo "Deploying to ${{ inputs.env }} environment using Azure CLI..."
-        az staticwebapps deploy \
+        az staticwebapp deploy \
           --name ${{ inputs.app-name }} \
           --resource-group ${{ inputs.resource-group }} \
           --source ${{ inputs.artifact-path }} \
@@ -89,9 +93,24 @@ runs:
         # This is the recommended way to avoid authentication prompts
         export SWA_CLI_DEPLOYMENT_TOKEN="${{ inputs.deployment_token }}"
         
-        # Try deployment with explicit token and skip-deploy-wait to avoid hanging
+        # Try deployment with explicit token but without the unsupported --skip-deploy-wait flag
         swa deploy "${{ inputs.artifact-path }}" \
           --deployment-token "${{ inputs.deployment_token }}" \
           --env "${{ inputs.env }}" \
-          --skip-deploy-wait \
           --no-use-keychain
+    
+    # Get the deployment URL for output
+    - name: Get Deployment URL
+      id: get_deployment_url
+      shell: bash
+      run: |
+        # Get the URL from Azure CLI
+        URL=$(az staticwebapp show --name ${{ inputs.app-name }} --resource-group ${{ inputs.resource-group }} --query "defaultHostname" -o tsv)
+        if [[ -n "$URL" ]]; then
+          FULL_URL="https://$URL"
+          echo "url=$FULL_URL" >> $GITHUB_OUTPUT
+          echo "Deployment URL: $FULL_URL"
+        else
+          echo "url=https://${{ inputs.app-name }}.azurestaticapps.net" >> $GITHUB_OUTPUT
+          echo "Could not retrieve URL, using default format"
+        fi
