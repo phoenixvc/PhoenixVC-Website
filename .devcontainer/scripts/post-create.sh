@@ -25,4 +25,9 @@ npm install
 echo "Installing additional Python tools..."
 pip install ruff
 
+# Call the Azure Functions setup script
+echo "Setting up Azure Functions tools..."
+bash .devcontainer/scripts/setup-azure-functions.sh
+
 echo "Setup complete!"
+
