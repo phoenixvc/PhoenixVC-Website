@@ -27,6 +27,7 @@ else
   DEPLOY_REGION="westeurope"
 fi
 
+# Resource group name
 RESOURCE_GROUP="${ENVIRONMENT}-${LOCATION_CODE}-rg-phoenixvc-website"
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 
@@ -54,27 +55,51 @@ if [ -f "$PARAMETERS_FILE" ]; then
   echo "Full Parameters File Content:"
   jq . "$PARAMETERS_FILE"
 
-  deployKeyVaultVal=$(jq -r '.parameters["deployKeyVault"].value // "not-set"' "$PARAMETERS_FILE")
-  deployLogicAppVal=$(jq -r '.parameters["deployLogicApp"].value // "not-set"' "$PARAMETERS_FILE")
-  deployBudgetVal=$(jq -r '.parameters["deployBudget"].value // "not-set"' "$PARAMETERS_FILE")
-  keyVaultSkuVal=$(jq -r '.parameters["keyVaultSku"].value // "not-set"' "$PARAMETERS_FILE")
-  enableRbacAuthorizationVal=$(jq -r '.parameters["enableRbacAuthorization"].value // "not-set"' "$PARAMETERS_FILE")
+  # Parse parameter values from JSON using jq bracket notation
+  raw_deployKeyVault=$(jq -r '.parameters["deployKeyVault"].value // "not-set"' "$PARAMETERS_FILE")
+  raw_deployLogicApp=$(jq -r '.parameters["deployLogicApp"].value // "not-set"' "$PARAMETERS_FILE")
+  raw_deployBudget=$(jq -r '.parameters["deployBudget"].value // "not-set"' "$PARAMETERS_FILE")
+  raw_keyVaultSku=$(jq -r '.parameters["keyVaultSku"].value // "not-set"' "$PARAMETERS_FILE")
+  raw_enableRbac=$(jq -r '.parameters["enableRbacAuthorization"].value // "not-set"' "$PARAMETERS_FILE")
 else
-  deployKeyVaultVal="N/A"
-  deployLogicAppVal="N/A"
-  deployBudgetVal="N/A"
-  keyVaultSkuVal="N/A"
-  enableRbacAuthorizationVal="N/A"
+  raw_deployKeyVault="N/A"
+  raw_deployLogicApp="N/A"
+  raw_deployBudget="N/A"
+  raw_keyVaultSku="N/A"
+  raw_enableRbac="N/A"
 fi
 
-echo "Parsed Parameter - deployKeyVault: $deployKeyVaultVal"
-echo "Parsed Parameter - deployLogicApp: $deployLogicAppVal"
-echo "Parsed Parameter - deployBudget: $deployBudgetVal"
-echo "Parsed Parameter - keyVaultSku: $keyVaultSkuVal"
-echo "Parsed Parameter - enableRbacAuthorization: $enableRbacAuthorizationVal"
+# Convert string values to booleans where appropriate
+if [ "$raw_deployKeyVault" = "true" ]; then
+  deployKeyVaultVal=true
+else
+  deployKeyVaultVal=false
+fi
+
+if [ "$raw_deployLogicApp" = "true" ]; then
+  deployLogicAppVal=true
+else
+  deployLogicAppVal=false
+fi
+
+if [ "$raw_deployBudget" = "true" ]; then
+  deployBudgetVal=true
+else
+  deployBudgetVal=false
+fi
+
+# For keyVaultSku and enableRbacAuthorization, we simply pass the string values
+keyVaultSkuVal="$raw_keyVaultSku"
+enableRbacAuthorizationVal="$raw_enableRbac"
+
+echo "Parsed Parameter - deployKeyVault: $deployKeyVaultVal (raw: $raw_deployKeyVault)"
+echo "Parsed Parameter - deployLogicApp: $deployLogicAppVal (raw: $raw_deployLogicApp)"
+echo "Parsed Parameter - deployBudget: $deployBudgetVal (raw: $raw_deployBudget)"
+echo "Parsed Parameter - keyVaultSku: $keyVaultSkuVal (raw: $raw_keyVaultSku)"
+echo "Parsed Parameter - enableRbacAuthorization: $enableRbacAuthorizationVal (raw: $raw_enableRbac)"
 echo ""
 
-### 2) Function Definitions
+### 2) Define functions
 
 policy_precheck() {
   [ "$ENABLE_POLICY_CHECKS" = "true" ] || return 0
@@ -85,13 +110,13 @@ policy_precheck() {
   sleep 20
 
   local non_compliant_json
-  non_compliant_json=$(az policy state list --all --query "[?complianceState=='NonCompliant' && resourceGroup=='$RESOURCE_GROUP']" -o json)
+  non_compliant_json=$(az policy state list --all \
+    --query "[?complianceState=='NonCompliant' && resourceGroup=='$RESOURCE_GROUP']" -o json)
   local violation_count
   violation_count=$(echo "$non_compliant_json" | jq 'length')
 
   if [ "$violation_count" -gt 0 ]; then
     echo "❌ Pre-Deployment Policy Violations: $violation_count violation(s) found:" >&2
-
     echo "$non_compliant_json" | jq -r '
       group_by(.policyDefinitionId)[] |
       "Policy Definition: " + (. [0].policyDefinitionName // "Unknown") +
@@ -102,7 +127,6 @@ policy_precheck() {
          " | Assignment ID: " + (.policyAssignmentId // "N/A")
        ) | join("\n"))
     '
-
     echo ""
     echo "🔍 Fetching detailed policy definitions for each violation:"
     for policyId in $(echo "$non_compliant_json" | jq -r '.[].policyDefinitionId' | sort | uniq); do
@@ -112,7 +136,6 @@ policy_precheck() {
       az policy definition show --name "$policyName" --query "{displayName: displayName, description: description}" -o json | jq .
       echo "------------------------"
     done
-
     exit 1
   else
     echo "✅ No Pre-Deployment Policy Violations detected."
@@ -166,7 +189,6 @@ main() {
   handle_emergency "$@"
 
   echo "🚀 Starting ${ENVIRONMENT} deployment (Features: Policy=${ENABLE_POLICY_CHECKS}, Monitoring=${ENABLE_MONITORING})"
-
   policy_precheck
   check_resource_group
 
