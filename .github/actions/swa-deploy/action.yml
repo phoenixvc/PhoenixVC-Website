@@ -1,5 +1,5 @@
 name: "SWA Deploy"
-description: "Deploy site via Azure CLI and SWA CLI from a downloaded artifact with fallback mechanism."
+description: "Deploy site via SWA CLI with Azure CLI fallback from a downloaded artifact."
 inputs:
   artifact-name:
     description: "The name of the artifact to download"
@@ -53,20 +53,45 @@ runs:
           echo "Warning: Config file not found at $CONFIG_PATH"
         fi
 
-    - name: Install Azure CLI
-      shell: bash
-      run: |
-        curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-        
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
     - name: Install Azure Static Web Apps CLI
       shell: bash
-      run: npm install -g @azure/static-web-apps-cli
+      run: |
+        echo "Installing SWA CLI..."
+        npm install --no-fund --no-audit --loglevel=error -g @azure/static-web-apps-cli
 
-    - name: Deploy using Azure CLI (Primary Method)
+    # Try SWA CLI first as the primary method
+    - name: Deploy Site via SWA CLI (Primary Method)
+      id: swa_cli_deploy
+      shell: bash
+      run: |
+        echo "Deploying to ${{ inputs.env }} using SWA CLI from artifact..."
+        swa deploy ${{ inputs.artifact-path }} \
+          --deployment-token ${{ env.AZURE_STATIC_WEB_APPS_API_TOKEN }} \
+          --env ${{ inputs.env }} || echo "::set-output name=swa_cli_failed::true"
+      env:
+        AZURE_STATIC_WEB_APPS_API_TOKEN: ${{ env.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+      continue-on-error: true
+
+    # Only try Azure CLI if SWA CLI fails
+    - name: Install Azure CLI (Fallback)
+      if: steps.swa_cli_deploy.outputs.swa_cli_failed == 'true'
+      shell: bash
+      run: |
+        echo "SWA CLI deployment failed, installing Azure CLI as fallback..."
+        curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+      continue-on-error: true
+        
+    - name: Deploy using Azure CLI (Fallback Method)
+      if: steps.swa_cli_deploy.outputs.swa_cli_failed == 'true'
       shell: bash
       run: |
         echo "Installing Azure CLI extension for Static Web Apps..."
-        az extension add --name staticwebapps --only-show-errors || true
+        az extension add --name staticwebapps --only-show-errors || echo "Extension installation failed, continuing..."
         
         echo "Deploying to ${{ inputs.env }} environment using Azure CLI..."
         az staticwebapp deployment create \
@@ -78,21 +103,3 @@ runs:
           --verbose
       env:
         AZURE_STATIC_WEB_APPS_API_TOKEN: ${{ env.AZURE_STATIC_WEB_APPS_API_TOKEN }}
-      continue-on-error: true
-
-    - name: Deploy Site via SWA CLI (Fallback Method)
-      shell: bash
-      run: |
-        # Check if previous step failed
-        if [ $? -ne 0 ]; then
-          echo "Azure CLI deployment failed, falling back to SWA CLI..."
-          echo "Deploying to ${{ inputs.env }} using SWA CLI from artifact..."
-          swa deploy ${{ inputs.artifact-path }} \
-            --deployment-token ${{ env.AZURE_STATIC_WEB_APPS_API_TOKEN }} \
-            --env ${{ inputs.env }}
-        else
-          echo "Azure CLI deployment was successful, skipping SWA CLI deployment."
-        fi
-      env:
-        AZURE_STATIC_WEB_APPS_API_TOKEN: ${{ env.AZURE_STATIC_WEB_APPS_API_TOKEN }}
-        LOCATION_CODE: ${{ env.LOCATION_CODE }}
