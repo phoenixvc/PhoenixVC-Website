@@ -23,3 +23,8 @@ resource staticSite 'Microsoft.Web/staticSites@2021-03-01' = {
     }
   }
 }
+
+// Outputs
+output staticSiteName string = staticSite.name
+output staticSiteUrl string = 'https://${staticSite.properties.defaultHostname}'
+output staticSiteId string = staticSite.id
