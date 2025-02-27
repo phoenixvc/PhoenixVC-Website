@@ -41,19 +41,10 @@ runs:
       with:
         creds: ${{ inputs.azure_credentials }}
 
-    - name: Ensure Azure CLI Logic App Extension is Installed
-      shell: bash
-      run: |
-        if ! az extension show --name logicapp &>/dev/null; then
-          az extension add --name logicapp --yes
-        else
-          echo "Azure CLI logicapp extension is already installed."
-        fi
-
     - name: Make deploy script executable
       run: chmod +x ./scripts/deployment/deploy.sh
       shell: bash
-      
+
     - name: Run Resource Deployment Script
       shell: bash
       run: |
