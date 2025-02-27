@@ -143,6 +143,8 @@ jobs:
           app-name: staging-${{ env.LOCATION_CODE }}-swa-phoenixvc-website
           resource-group: staging-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
           env: staging
+          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          deployment_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
 
   # ───────────────────────────────────────────────
   # ✅ PRODUCTION RESOURCE CREATION (Run deploy.sh)
