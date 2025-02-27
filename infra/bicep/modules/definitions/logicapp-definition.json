@@ -36,7 +36,7 @@
   "actions": {
     "Compose_AdaptiveCard": {
       "type": "Compose",
-      "inputs": "@{replace(replace(replace(replace(replace(replace(replace(replace(outputs('GetAdaptiveCard'), '\"{{locationCode}}\"', triggerBody()?['locationCode']), '\"{{resourceGroup}}\"', triggerBody()?['resourceGroup']), '\"{{environment}}\"', triggerBody()?['environment']), '\"{{branch}}\"', triggerBody()?['branch']), '\"{{message}}\"', triggerBody()?['message']), '\"{{deploymentUrl}}\"', triggerBody()?['deploymentUrl']), '\"{{approvalUrl}}\"', triggerBody()?['approvalUrl']), '\"{{rollbackUrl}}\"', triggerBody()?['rollbackUrl'])}"
+      "inputs": "PLACEHOLDER_ADAPTIVE_CARD"
     },
     "Post_to_Teams": {
       "type": "Http",
@@ -55,13 +55,5 @@
       }
     }
   },
-  "outputs": {},
-  "references": {
-    "GetAdaptiveCard": {
-      "type": "IntegrationAccountArtifact",
-      "integrationAccount": "None",
-      "artifactType": "Map",
-      "artifactName": "teams-adaptive-card.json"
-    }
-  }
+  "outputs": {}
 }
