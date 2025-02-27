@@ -47,58 +47,54 @@ runs:
       with:
         creds: ${{ inputs.azure_credentials }}
 
-    # Note: Direct deployment via Azure CLI is not supported
-    # This step is included for clarity but will be skipped in favor of SWA CLI
-    - name: Check Azure CLI capabilities
-      id: az_cli_check
+    # Install Azure CLI extension for Static Web Apps
+    - name: Install Azure CLI extensions
       shell: bash
       run: |
         echo "Installing Azure CLI extension for Static Web Apps..."
         az extension add --name staticwebapp --only-show-errors || echo "Extension already installed"
-        
-        echo "Checking Static Web App status..."
-        az staticwebapp show \
+
+    # Disconnect the Static Web App from GitHub if needed
+    - name: Disconnect Static Web App from GitHub
+      shell: bash
+      run: |
+        echo "Disconnecting Static Web App from GitHub source control..."
+        az staticwebapp disconnect \
           --name ${{ inputs.app-name }} \
           --resource-group ${{ inputs.resource-group }} \
-          --query "defaultHostname" -o tsv || echo "az_cli_failed=true" >> $GITHUB_OUTPUT
-        
-        # Direct deployment via CLI isn't supported, marking for SWA CLI fallback
-        echo "az_cli_failed=true" >> $GITHUB_OUTPUT
-      continue-on-error: true
+          --no-wait || echo "Failed to disconnect or already disconnected"
 
-    # Use SWA CLI for deployment (recommended method)
+    # Setup Node.js for SWA CLI
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
         node-version: '18'
 
+    # Install SWA CLI
     - name: Install Azure Static Web Apps CLI
       shell: bash
       run: |
         echo "Installing SWA CLI..."
         npm install --no-fund --no-audit --loglevel=error -g @azure/static-web-apps-cli
 
-    - name: Deploy Site via SWA CLI
+    # Deploy using the direct deployment token approach
+    - name: Deploy Site via SWA CLI Direct Token Method
       shell: bash
       run: |
-        echo "Deploying to ${{ inputs.env }} using SWA CLI from artifact..."
-        # Add sleep to ensure file system is ready
-        sleep 2
+        echo "Deploying to ${{ inputs.env }} using SWA CLI direct token method..."
+        # Add sleep to ensure file system is ready and disconnection completes
+        sleep 5
         # Use chmod to ensure executable permissions
         chmod -R 755 ${{ inputs.artifact-path }}
         
         # Set SWA_CLI_DEPLOYMENT_TOKEN environment variable explicitly
         export SWA_CLI_DEPLOYMENT_TOKEN="${{ inputs.deployment_token }}"
         
-        # Deploy using SWA CLI
+        # Deploy using direct token approach (doesn't require app-name or resource-group)
         swa deploy "${{ inputs.artifact-path }}" \
           --deployment-token "${{ inputs.deployment_token }}" \
-          --env "${{ inputs.env }}" \
-          --app-name "${{ inputs.app-name }}" \
-          --resource-group "${{ inputs.resource-group }}" \
-          --no-use-keychain \
           --verbose
-    
+      
     # Get the deployment URL for output
     - name: Get Deployment URL
       id: get_deployment_url
