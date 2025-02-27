@@ -41,7 +41,7 @@ runs:
         name: ${{ inputs.artifact-name }}
         path: ${{ inputs.artifact-path }}
 
-    # Login to Azure first - this will prevent the interactive login prompt
+    # Login to Azure
     - name: Azure Login
       uses: azure/login@v1
       with:
@@ -53,16 +53,6 @@ runs:
       run: |
         echo "Installing Azure CLI extension for Static Web Apps..."
         az extension add --name staticwebapp --only-show-errors || echo "Extension already installed"
-
-    # Disconnect the Static Web App from GitHub if needed
-    - name: Disconnect Static Web App from GitHub
-      shell: bash
-      run: |
-        echo "Disconnecting Static Web App from GitHub source control..."
-        az staticwebapp disconnect \
-          --name ${{ inputs.app-name }} \
-          --resource-group ${{ inputs.resource-group }} \
-          --no-wait || echo "Failed to disconnect or already disconnected"
 
     # Setup Node.js for SWA CLI
     - name: Setup Node.js
@@ -77,23 +67,38 @@ runs:
         echo "Installing SWA CLI..."
         npm install --no-fund --no-audit --loglevel=error -g @azure/static-web-apps-cli
 
-    # Deploy using the direct deployment token approach
-    - name: Deploy Site via SWA CLI Direct Token Method
+    # Ensure the config file is properly placed
+    - name: Prepare configuration
       shell: bash
       run: |
-        echo "Deploying to ${{ inputs.env }} using SWA CLI direct token method..."
-        # Add sleep to ensure file system is ready and disconnection completes
-        sleep 5
-        # Use chmod to ensure executable permissions
-        chmod -R 755 ${{ inputs.artifact-path }}
+        echo "Preparing configuration..."
+        # Ensure the config directory exists in the artifact
+        mkdir -p ${{ inputs.artifact-path }}/.config
         
-        # Set SWA_CLI_DEPLOYMENT_TOKEN environment variable explicitly
-        export SWA_CLI_DEPLOYMENT_TOKEN="${{ inputs.deployment_token }}"
+        # Copy the config file if it doesn't exist in the artifact
+        if [ ! -f "${{ inputs.artifact-path }}/.config/staticwebapp.config.json" ]; then
+          echo "Copying staticwebapp.config.json to artifact directory..."
+          cp .config/staticwebapp.config.json ${{ inputs.artifact-path }}/.config/
+        else
+          echo "Config file already exists in artifact directory"
+        fi
         
-        # Deploy using direct token approach (doesn't require app-name or resource-group)
-        swa deploy "${{ inputs.artifact-path }}" \
-          --deployment-token "${{ inputs.deployment_token }}" \
-          --verbose
+        # Display the config for verification
+        echo "Using configuration:"
+        cat ${{ inputs.artifact-path }}/.config/staticwebapp.config.json
+
+    # Deploy using the official Azure Static Web Apps GitHub Action
+    - name: Deploy to Azure Static Web Apps
+      uses: Azure/static-web-apps-deploy@v1
+      with:
+        azure_static_web_apps_api_token: ${{ inputs.deployment_token }}
+        repo_token: "dummy-token" # Not actually used for deployment
+        action: "upload"
+        app_location: ${{ inputs.artifact-path }}
+        api_location: ""
+        output_location: ""
+        config_location: ".config"
+        skip_app_build: true
       
     # Get the deployment URL for output
     - name: Get Deployment URL
