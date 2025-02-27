@@ -68,33 +68,33 @@ runs:
       id: retrieve_logic_url
       shell: bash
       run: |
-          # Define Variables
-          subscriptionId="${{ inputs.azure_subscription_id }}"
-          resourceGroupName="${{ inputs.environment }}-${{ inputs.location_code }}-rg-phoenixvc-website"
-          logicAppName="${{ inputs.environment }}-${{ inputs.location_code }}-la-phoenixvc"
-          workflowName="manual"
-          triggerName="manual"
+        # Define Variables
+        subscriptionId="${{ inputs.azure_subscription_id }}"
+        resourceGroupName="${{ inputs.environment }}-${{ inputs.location_code }}-rg-phoenixvc-website"
+        logicAppName="${{ inputs.environment }}-${{ inputs.location_code }}-la-phoenixvc"
+        workflowName="manual"
+        triggerName="manual"
 
-          # Log Values
-          echo "✅ Subscription ID: $subscriptionId"
-          echo "✅ Resource Group: $resourceGroupName"
-          echo "✅ Logic App: $logicAppName"
-          echo "✅ Workflow Name: $workflowName"
-          echo "✅ Trigger Name: $triggerName"
+        # Log Values
+        echo "✅ Subscription ID: $subscriptionId"
+        echo "✅ Resource Group: $resourceGroupName"
+        echo "✅ Logic App: $logicAppName"
+        echo "✅ Workflow Name: $workflowName"
+        echo "✅ Trigger Name: $triggerName"
 
-          # Construct the REST API URL
-          url="https://management.azure.com/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.Logic/workflows/$logicAppName/triggers/$triggerName/listCallbackUrl?api-version=2018-11-01"
+        # Construct the REST API URL with a valid API version
+        url="https://management.azure.com/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.Logic/workflows/$logicAppName/triggers/$triggerName/listCallbackUrl?api-version=2019-05-01"
 
-          echo "🚀 API Call: $url"
+        echo "🚀 API Call: $url"
 
-          # Retrieve the callback URL using az rest
-          response=$(az rest --method POST --uri "$url" --query "value" -o tsv)
+        # Retrieve the callback URL using az rest
+        response=$(az rest --method POST --uri "$url" --query "value" -o tsv)
 
-          # Validate Response
-          if [[ -n "$response" ]]; then
-            echo "✅ Retrieved Logic App URL"
-            echo "logicAppUrl=$response" >> "$GITHUB_OUTPUT"
-          else
-            echo "⚠️ Logic App URL could not be retrieved"
-            echo "logicAppUrl=" >> "$GITHUB_OUTPUT"
-          fi
+        # Validate Response
+        if [[ -n "$response" ]]; then
+          echo "✅ Retrieved Logic App URL"
+          echo "logicAppUrl=$response" >> "$GITHUB_OUTPUT"
+        else
+          echo "⚠️ Logic App URL could not be retrieved"
+          echo "logicAppUrl=" >> "$GITHUB_OUTPUT"
+        fi
