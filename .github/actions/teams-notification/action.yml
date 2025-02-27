@@ -1,5 +1,4 @@
 name: "Logic App Notification"
-
 description: "Invoke the Logic App HTTP trigger with a notification payload."
 
 inputs:
@@ -36,67 +35,40 @@ inputs:
     description: "URL for rollback action (prod only)"
     required: false
     default: ""
-  # The adaptive card/template functionality is currently disabled.
-  # template_path:
-  #   description: "Path to the Teams template JSON file relative to this action’s directory"
-  #   required: false
-  #   default: "teams-template.json"
+  webhook_url:
+    description: "Webhook URL for Teams notifications"
+    required: false
+    default: "https://phoenixvc568.webhook.office.com/webhookb2/17b0291f-b70b-4bdd-9266-f212ae03a2bd@7edf4423-ccb3-4275-bc80-64dae3ef0148/IncomingWebhook/3174ffcca3804d34ae923ba2e131f82e/a41dbcc0-67a6-4a23-bdec-b780dcebefa9/V2MOPWeKY7ywC8-iGptxHlSIZpwHVxw2FLAOAMU2N0hmM1"
 
 runs:
   using: "composite"
   steps:
-    # - name: Checkout Repository for Template
-    #   uses: actions/checkout@v4
-    #   with:
-    #     fetch-depth: 0
-
-    # - name: Read and Substitute Template
-    #   shell: bash
-    #   id: build_payload
-    #   run: |
-    #     # Read the JSON template file from the action’s directory using the provided template_path input.
-    #     TEMPLATE=$(cat "$(pwd)/.github/actions/teams-notification/${{ inputs.template_path }}")
-    #     # Replace placeholders in the template with the input values.
-    #     PAYLOAD=$(echo "$TEMPLATE" | sed \
-    #       -e "s|{{title}}|${{ inputs.title }}|g" \
-    #       -e "s|{{environment}}|${{ inputs.environment }}|g" \
-    #       -e "s|{{deployment_url}}|${{ inputs.deployment_url }}|g" \
-    #       -e "s|{{branch}}|${{ inputs.branch }}|g" \
-    #       -e "s|{{location_code}}|${{ inputs.location_code }}|g" \
-    #       -e "s|{{resource_group}}|${{ inputs.resource_group }}|g" \
-    #       -e "s|{{color}}|${{ inputs.color }}|g" \
-    #       -e "s|{{approval_url}}|${{ inputs.approval_url }}|g" \
-    #       -e "s|{{rollback_url}}|${{ inputs.rollback_url }}|g")
-    #     echo "Generated Payload:"
-    #     echo "$PAYLOAD"
-    #     # Using the new environment-file method instead of set-output:
-    #     echo "payload=$PAYLOAD" >> $GITHUB_OUTPUT
-
     - name: Build Payload
       shell: bash
       id: build_payload
       run: |
-        # Build a JSON payload inline.
         PAYLOAD=$(cat <<EOF
-          {
-            "title": "${{ inputs.title }}",
-            "environment": "${{ inputs.environment }}",
-            "deploymentUrl": "${{ inputs.deployment_url }}",
-            "branch": "${{ inputs.branch }}",
-            "locationCode": "${{ inputs.location_code }}",
-            "resourceGroup": "${{ inputs.resource_group }}",
-            "color": "${{ inputs.color }}",
-            "approvalUrl": "${{ inputs.approval_url }}",
-            "rollbackUrl": "${{ inputs.rollback_url }}"
-          }
-          EOF
+        {
+          "title": "${{ inputs.title }}",
+          "environment": "${{ inputs.environment }}",
+          "deploymentUrl": "${{ inputs.deployment_url }}",
+          "branch": "${{ inputs.branch }}",
+          "locationCode": "${{ inputs.location_code }}",
+          "resourceGroup": "${{ inputs.resource_group }}",
+          "color": "${{ inputs.color }}",
+          "approvalUrl": "${{ inputs.approval_url }}",
+          "rollbackUrl": "${{ inputs.rollback_url }}",
+          "webhookUrl": "${{ inputs.webhook_url }}"
+        }
+EOF
         )
         echo "Generated Payload:"
-        echo "$PAYLOAD"
+        echo "$PAYLOAD" | jq .
         echo "payload=$PAYLOAD" >> $GITHUB_OUTPUT
 
     - name: Invoke Logic App HTTP Trigger
       shell: bash
       run: |
         echo "Invoking Logic App via HTTP trigger..."
-        curl -X POST -H "Content-Type: application/json" -d "${{ steps.build_payload.outputs.payload }}" "${{ inputs.logic_app_url }}"
+        echo '${{ steps.build_payload.outputs.payload }}' | jq .
+        curl -X POST -H "Content-Type: application/json" -d "$(echo '${{ steps.build_payload.outputs.payload }}' | jq -c .)" "${{ inputs.logic_app_url }}"
