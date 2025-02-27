@@ -47,7 +47,7 @@ runs:
       shell: bash
       id: build_payload
       run: |
-        PAYLOAD=$(cat <<EOF
+        PAYLOAD=$(cat <<-EOF
         {
           "title": "${{ inputs.title }}",
           "environment": "${{ inputs.environment }}",
@@ -60,7 +60,7 @@ runs:
           "rollbackUrl": "${{ inputs.rollback_url }}",
           "webhookUrl": "${{ inputs.webhook_url }}"
         }
-EOF
+        EOF
         )
         echo "Generated Payload:"
         echo "$PAYLOAD" | jq .
