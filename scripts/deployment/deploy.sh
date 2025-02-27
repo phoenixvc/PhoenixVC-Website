@@ -2,32 +2,30 @@
 set -eo pipefail
 
 # ------------------------------------------------------------------------------
-# Define error handler to print detailed deployment logs on failure.
+# Error handler: On error, fetch and print detailed deployment operations and error info.
 # ------------------------------------------------------------------------------
 onError() {
   echo "❌ Deployment failed. Fetching detailed deployment operations..."
-  # Use the deployment name that we built in TIMESTAMP variable.
   DEPLOYMENT_NAME="PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}"
   echo "Deployment Operations:"
   az deployment sub operation list --name "$DEPLOYMENT_NAME" --query "[].{Operation:operationName, Status:provisioningState, Target:target}" -o table
   echo "Detailed Deployment Error:"
   az deployment sub show --name "$DEPLOYMENT_NAME" --query properties.error -o json
 }
-# Set trap to catch any error
 trap onError ERR
 
 # ------------------------------------------------------------------------------
 # 1) Resolve and log deployment parameters
 # ------------------------------------------------------------------------------
-# Environment variables or defaults
+# Set defaults (manually overriding policy checks to false)
 ENVIRONMENT="${ENVIRONMENT:-staging}"
 LOCATION_CODE="${LOCATION_CODE:-saf}"
-ENABLE_POLICY_CHECKS="${ENABLE_POLICY_CHECKS:-false}"
+ENABLE_POLICY_CHECKS="${ENABLE_POLICY_CHECKS:-false}"  # POLICY CHECKS DISABLED FOR NOW
 ENABLE_MONITORING="${ENABLE_MONITORING:-false}"
 ENABLE_COST_CHECKS="${ENABLE_COST_CHECKS:-false}"
 POLICY_ENFORCEMENT_MODE="${POLICY_ENFORCEMENT_MODE:-enforce}"
 
-# Override paths if provided; otherwise, use defaults
+# Override file paths if provided; otherwise, use defaults
 BICEP_FILE="${BICEP_FILE:-./infra/bicep/main.bicep}"
 PARAMETERS_FILE="${PARAMETERS_FILE:-./infra/bicep/parameters-${ENVIRONMENT}.json}"
 
@@ -64,11 +62,11 @@ echo "ENABLE_COST_CHECKS: $ENABLE_COST_CHECKS"
 echo "POLICY_ENFORCEMENT_MODE: $POLICY_ENFORCEMENT_MODE"
 echo "================================="
 
+# If the parameters file exists, parse override values
 if [ -f "$PARAMETERS_FILE" ]; then
   echo "Full Parameters File Content:"
   cat "$PARAMETERS_FILE"
   echo "---------------------------------"
-  # Parse individual parameters (forcing string conversion)
   deployKeyVaultVal=$(jq -r '.parameters.deployKeyVault.value | tostring' < "$PARAMETERS_FILE")
   deployLogicAppVal=$(jq -r '.parameters.deployLogicApp.value | tostring' < "$PARAMETERS_FILE")
   deployBudgetVal=$(jq -r '.parameters.deployBudget.value | tostring' < "$PARAMETERS_FILE")
@@ -82,16 +80,17 @@ else
   enableRbacAuthorizationVal="N/A"
 fi
 
-echo "Parsed Parameter - deployKeyVault: $deployKeyVaultVal"
-echo "Parsed Parameter - deployLogicApp: $deployLogicAppVal"
-echo "Parsed Parameter - deployBudget: $deployBudgetVal"
-echo "Parsed Parameter - keyVaultSku: $keyVaultSkuVal"
-echo "Parsed Parameter - enableRbacAuthorization: $enableRbacAuthorizationVal"
+echo "Override Values from Parameters File:"
+echo "  deployKeyVault: $deployKeyVaultVal"
+echo "  deployLogicApp: $deployLogicAppVal"
+echo "  deployBudget: $deployBudgetVal"
+echo "  keyVaultSku: $keyVaultSkuVal"
+echo "  enableRbacAuthorization: $enableRbacAuthorizationVal"
+echo "---------------------------------"
 
 # ------------------------------------------------------------------------------
-# 2) Define helper functions
+# 2) Define helper functions (policy check skipped since ENABLE_POLICY_CHECKS is false)
 # ------------------------------------------------------------------------------
-
 policy_precheck() {
   [ "$ENABLE_POLICY_CHECKS" = "true" ] || return 0
 
@@ -181,16 +180,23 @@ main() {
 
   echo "🚀 Starting ${ENVIRONMENT} deployment (Features: Policy=${ENABLE_POLICY_CHECKS}, Monitoring=${ENABLE_MONITORING})"
 
-  # Pre-Flight Checks
-  policy_precheck
+  # Skip policy precheck if disabled
+  if [ "$ENABLE_POLICY_CHECKS" = "true" ]; then
+    policy_precheck
+  else
+    echo "🔒 Pre-Deployment Policy Check skipped (disabled)."
+  fi
 
   # Check resource group status before deployment
   check_resource_group
 
   echo "📄 Using parameter file: $PARAMETERS_FILE"
-  cat "$PARAMETERS_FILE" || { echo "❌ Could not read parameters file: $PARAMETERS_FILE"; exit 1; }
+  if ! cat "$PARAMETERS_FILE"; then
+    echo "❌ Could not read parameters file: $PARAMETERS_FILE"
+    exit 1
+  fi
 
-  # Log the overrides from the parameters file
+  # Log the override values from the parameters file
   echo "Override Values from Parameters File:"
   echo "  deployKeyVault: $deployKeyVaultVal"
   echo "  deployLogicApp: $deployLogicAppVal"
@@ -199,10 +205,10 @@ main() {
   echo "  enableRbacAuthorization: $enableRbacAuthorizationVal"
   echo "---------------------------------"
 
-  # Timestamp for naming
+  # Timestamp for naming the deployment
   TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 
-  # Bicep Deployment
+  echo "🚀 Deploying resources..."
   az deployment sub create \
     --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" \
     --location "$DEPLOY_REGION" \
