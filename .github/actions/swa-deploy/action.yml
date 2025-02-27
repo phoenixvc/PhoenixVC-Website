@@ -1,0 +1,43 @@
+name: "SWA Deploy"
+description: "Deploy site via SWA CLI from a downloaded artifact."
+inputs:
+  artifact-name:
+    description: "The name of the artifact to download"
+    required: true
+  app-name:
+    description: "The SWA app name"
+    required: true
+  resource-group:
+    description: "The resource group for the SWA app"
+    required: true
+  env:
+    description: "The deployment environment (e.g. staging, prod)"
+    required: true
+  artifact-path:
+    description: "Local path to download the artifact to"
+    required: false
+    default: "./build-artifact"
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Download Web App Artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ inputs.artifact-path }}
+
+    - name: Deploy Site via SWA CLI
+      shell: bash
+      run: |
+        echo "Deploying to ${{ inputs.env }} using SWA CLI from artifact..."
+        npx swa deploy ${{ inputs.artifact-path }} \
+          --app-name ${{ inputs.app-name }} \
+          --resource-group ${{ inputs.resource-group }} \
+          --env ${{ inputs.env }}
+      env:
+        LOCATION_CODE: ${{ env.LOCATION_CODE }}
