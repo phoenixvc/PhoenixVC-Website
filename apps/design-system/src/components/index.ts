@@ -1,2 +1,2 @@
-export * from "./PreviewArea"
-export * from "./Sidebar"
+export * from "./PreviewArea/PreviewArea";
+export * from "./Sidebar/Sidebar";

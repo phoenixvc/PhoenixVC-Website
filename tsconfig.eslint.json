@@ -1,12 +1,7 @@
 {
   "extends": "./tsconfig.base.json",
-  "files": [],
   "include": ["eslint.config.js"],
-  "exclude": [".config/*"],
-  "references": [
-  ],
   "compilerOptions": {
-    "jsx": "react-jsx",
     "allowJs": true,
     "checkJs": true,
     "noEmit": true,

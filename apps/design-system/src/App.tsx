@@ -1,6 +1,6 @@
 import React from 'react';
 import Sidebar from './components/Sidebar';
-import PreviewArea from './components/PreviewArea';
+import PreviewArea from './components/PreviewArea/PreviewArea';
 
 const App: React.FC = () => {
   return (

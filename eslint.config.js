@@ -2,6 +2,7 @@ import js from '@eslint/js';
 import typescript from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 import reactPlugin from 'eslint-plugin-react';
+// @ts-ignore
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import globals from 'globals';
 import { fileURLToPath } from 'url';
@@ -14,7 +15,9 @@ console.log("ESLint Root Directory:", rootDir);
 console.log(
   "ESLint Project Paths:",
   path.resolve(rootDir, "apps/web/tsconfig.eslint.json"),
-  path.resolve(rootDir, "apps/design-system/tsconfig.eslint.json")
+  path.resolve(rootDir, "apps/design-system/tsconfig.eslint.json"),
+  path.resolve(rootDir, "apps/api/tsconfig.eslint.json"),
+  path.resolve(rootDir, "tsconfig.eslint.json")
 );
 
 export default [
@@ -28,7 +31,8 @@ export default [
       '**/.turbo/**',
        "**/design-system/src/*.tsx",
        "**/tailwind.config.js",
-       "**/postcss.config.js"
+       "**/postcss.config.js",
+       "types/eslint-plugin-react-hooks.d.ts"
     ]
   },
   js.configs.recommended,
@@ -45,7 +49,8 @@ export default [
         tsconfigRootDir: rootDir,
         project: [
           path.resolve(rootDir, "apps/web/tsconfig.eslint.json"),
-          path.resolve(rootDir, "apps/design-system/tsconfig.eslint.json")
+          path.resolve(rootDir, "apps/design-system/tsconfig.eslint.json"),
+          path.resolve(rootDir, "apps/api/tsconfig.eslint.json")
         ]
       },
       globals: {
@@ -58,7 +63,7 @@ export default [
     plugins: {
       '@typescript-eslint': typescript,
       'react': reactPlugin,
-      'react-hooks': reactHooksPlugin
+      'react-hooks': reactHooksPlugin,
     },
     settings: {
       react: {
@@ -95,7 +100,8 @@ export default [
         tsconfigRootDir: rootDir,
         project: [
           path.resolve(rootDir, "apps/web/tsconfig.eslint.json"),
-          path.resolve(rootDir, "apps/design-system/tsconfig.eslint.json")
+          path.resolve(rootDir, "apps/design-system/tsconfig.eslint.json"),
+          path.resolve(rootDir, "apps/api/tsconfig.eslint.json")
         ]
       }
     },
@@ -106,8 +112,13 @@ export default [
     }
   },
   {
-    // Match any file whose name starts with "vite.config."
-    files: ["**/vite.config.*", "**/design-system/src/*.tsx"],
+    // Match any file whose name starts with "vite.config." or Azure Functions config files
+    files: [
+      "**/vite.config.*",
+      "**/design-system/src/*.tsx",
+      "**/api/host.json",
+      "**/api/local.settings.json"
+    ],
     languageOptions: {
       parserOptions: {
         project: null,
@@ -122,6 +133,13 @@ export default [
       '@typescript-eslint/no-unused-vars': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
       'no-unused-vars': 'off',
+    }
+  },
+  {
+    files: ["**/api/src/**/*.ts"],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'warn', // Sometimes needed for HTTP request/response handling
+      '@typescript-eslint/explicit-function-return-type': 'error', // Enforce return types for Azure Functions
     }
   }
 ]

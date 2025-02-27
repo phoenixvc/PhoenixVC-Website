@@ -12,6 +12,7 @@ const Contact: FC = memo(() => {
   const [state, setState] = useState<ContactState>({
     isLoading: false,
     error: null,
+    success: false,
   });
 
   const sectionRef = useSectionObserver("contact", (id) => {
@@ -19,25 +20,44 @@ const Contact: FC = memo(() => {
   });
 
   const handleSubmit = useCallback(async (data: ContactFormData) => {
-    setState((prev) => ({ ...prev, isLoading: true, error: null }));
+    setState((prev) => ({ ...prev, isLoading: true, error: null, success: false }));
+
     try {
-      // Simulate async work
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("Form submitted:", data);
+      // Call your Azure Function - use the local URL during development
+      const functionUrl = process.env.NODE_ENV === "production"
+        ? "https://phoenixvc-api.azurewebsites.net/api/sendContactEmail"
+        : "http://localhost:7071/api/sendContactEmail";
+
+      const response = await fetch(functionUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to submit form");
+      }
+
+      // Success!
+      setState(prev => ({ ...prev, success: true }));
+      console.log("Form submitted successfully:", data);
+
     } catch (error) {
       console.error("Error submitting form:", error);
       setState((prev) => ({
         ...prev,
-        error: "Failed to submit form. Please try again.",
+        error: error instanceof Error ? error.message : "Failed to submit form. Please try again.",
       }));
     } finally {
       setState((prev) => ({ ...prev, isLoading: false }));
     }
   }, []);
 
-  // Wrap the async call in a synchronous handler.
+  // Wrap the async call in a synchronous handler
   const handleSubmitWrapper = useCallback((data: ContactFormData) => {
-    // We use the void operator to "ignore" the returned promise.
     void handleSubmit(data);
   }, [handleSubmit]);
 
@@ -62,10 +82,17 @@ const Contact: FC = memo(() => {
             </motion.div>
           )}
 
-          {/* Use the wrapper so that the function passed to onSubmit returns void */}
-          {/* You can disable the no-misused-promises rule on this line if needed */}
-          { }
-          <ContactForm onSubmit={handleSubmitWrapper} isLoading={state.isLoading} />
+          {state.success && (
+            <motion.div className={styles.success} variants={contactAnimations.item}>
+              Thank you for your message! We"ll get back to you soon.
+            </motion.div>
+          )}
+
+          <ContactForm
+            onSubmit={handleSubmitWrapper}
+            isLoading={state.isLoading}
+            isSuccess={state.success}
+          />
         </motion.div>
       </div>
     </section>

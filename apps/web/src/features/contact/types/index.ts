@@ -12,6 +12,7 @@ export interface ContactFormProps {
   onSubmit: (data: ContactFormData) => void;
   isLoading?: boolean;
   className?: string;
+  isSuccess?: boolean;
 }
 
 export interface ContactAnimations {
@@ -28,4 +29,5 @@ export interface ContactHeaderProps {
 export interface ContactState {
   isLoading: boolean;
   error: string | null;
+  success: boolean;
 }

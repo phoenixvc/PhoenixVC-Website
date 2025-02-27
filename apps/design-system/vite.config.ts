@@ -12,6 +12,11 @@ export default defineConfig({
       exclude: ["src/**/*.stories.{ts,tsx}", "src/**/*.test.{ts,tsx}"],
     }),
   ],
+  css: {
+    modules: {
+      localsConvention: "camelCase", // Ensures CSS Modules are properly read
+    }
+  },
   build: {
     lib: {
       entry: path.resolve(__dirname, "src/index.ts"),

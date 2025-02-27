@@ -19,7 +19,7 @@ yarn-error.log*
 Thumbs.db
 
 # IDE and Editor folders
-.vscode/
+
 .idea/
 *.suo
 *.ntvs*
@@ -50,7 +50,7 @@ poetry.lock
 
 # Development
 .env
-.vscode/
+
 *.swp
 *.swo
 .cache
