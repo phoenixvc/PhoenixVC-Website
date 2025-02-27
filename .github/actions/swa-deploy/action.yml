@@ -26,7 +26,7 @@ runs:
         fetch-depth: 0
 
     - name: Download Web App Artifact
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4  # Updated from v3 to v4
       with:
         name: ${{ inputs.artifact-name }}
         path: ${{ inputs.artifact-path }}
