@@ -48,31 +48,43 @@ jobs:
   log_debug_information:
     runs-on: ubuntu-latest
     steps:
-      - name: Show Workflow Inputs
-        run: |
-          echo "==========================="
-          echo "✅ Logging Deployment Variables"
-          echo "==========================="
-          echo "GitHub Event Name: ${{ github.event_name }}"
-          echo "Ref: ${{ github.ref }}"
-          echo "Base Ref: ${{ github.event.pull_request.base.ref || 'N/A' }}"
-          echo "Approval State: ${{ github.event.inputs.APPROVAL_STATE }}"
-          echo "Include DNS Update: ${{ github.event.inputs.INCLUDE_DNS_UPDATE }}"
-          echo "Location Code: ${LOCATION_CODE}"
-          echo "Resource Group Name: prod-${LOCATION_CODE}-rg-phoenixvc-website"
-          echo "Static Web App Name: prod-${LOCATION_CODE}-swa-phoenixvc-website"
-          echo "Log repository: ${{ github.repository }}"
-          if [[ -n "${{ secrets.GITHUB_TOKEN }}" ]]; then
-            echo "✅ GITHUB_TOKEN is set."
-          else
-            echo "⚠️  GITHUB_TOKEN is missing!"
-          fi
-          if [[ "${{ github.event.inputs.APPROVAL_STATE }}" == "true" ]]; then
-            echo "🚀 Deploying to Production - Manual approval was bypassed!"
-          else
-            echo "🔎 Deploying to Production - Manual approval was completed!"
-          fi
-          echo "==========================="
+    - name: Show Workflow Inputs
+      run: |
+        echo "==========================="
+        echo "✅ Logging Deployment Variables"
+        echo "==========================="
+        echo "GitHub Event Name: ${{ github.event_name }}"
+        echo "Ref: ${{ github.ref }}"
+        echo "Base Ref: ${{ github.event.pull_request.base.ref || 'N/A' }}"
+        echo "Approval State: ${{ github.event.inputs.APPROVAL_STATE }}"
+        echo "Include DNS Update: ${{ github.event.inputs.INCLUDE_DNS_UPDATE }}"
+        echo "Location Code: ${LOCATION_CODE}"
+        echo "Resource Group Name: [env]-${LOCATION_CODE}-rg-phoenixvc-website"
+        echo "Static Web App Name: [env]-${LOCATION_CODE}-swa-phoenixvc-website"
+        echo "Log repository: ${{ github.repository }}"
+        echo "Azure Subscription ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+
+        if [[ -n "${{ secrets.GITHUB_TOKEN }}" ]]; then
+          echo "✅ GITHUB_TOKEN is set."
+        else
+          echo "⚠️  GITHUB_TOKEN is missing!"
+        fi
+        if [[ "${{ secrets.AZURE_CREDENTIALS }}" ]]; then
+          echo "✅ AZURE_CREDENTIALS is set."
+        else
+          echo "⚠️ AZURE_CREDENTIALS is missing!"
+        fi
+        if [[ -n "${{ secrets.AZURE_SUBSCRIPTION_ID }}" ]]; then
+          echo "✅ AZURE_SUBSCRIPTION_ID is set."
+        else
+          echo "⚠️ AZURE_SUBSCRIPTION_ID is missing!"
+        fi
+        if [[ "${{ github.event.inputs.APPROVAL_STATE }}" == "true" ]]; then
+          echo "🚀 Deploying to Production - Manual approval was bypassed!"
+        else
+          echo "🔎 Deploying to Production - Manual approval was completed!"
+        fi
+        echo "==========================="
 
   # ───────────────────────────────────────────────
   # ✅ BUILD APPS WITH Vite
@@ -154,6 +166,7 @@ jobs:
         uses: ./.github/actions/deploy-azure-resources
         with:
           environment: staging
+          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
           location_code: ${{ env.LOCATION_CODE }}
           repository: JustAGhosT/PhoenixVC-Modernized
