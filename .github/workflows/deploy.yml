@@ -23,6 +23,14 @@ on:
         options:
           - "true"
           - "false"
+      SEND_STAGING_FAILED:
+        description: 'Set to "true" to notify stakeholders if staging deployment fails'
+        required: false
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
 
 env:
   LOCATION_CODE: 'euw'  # Default to Europe West
@@ -318,13 +326,20 @@ jobs:
       - name: Deploy MkDocs Site
         run: mkdocs gh-deploy --force
 
-  # ────────────────────────────────────────────
-  # ✅ NOTIFY DEPLOYMENT VIA TEAMS (Combined for Staging and Production)
-  # ────────────────────────────────────────────
+ # ───────────────────────────────────────────────
+# NOTIFY DEPLOYMENT VIA TEAMS (Combined Notification)
+# ───────────────────────────────────────────────
   notify_deployment:
     runs-on: ubuntu-latest
+    # For staging, notify if success OR if failure and SEND_STAGING_FAILED is true.
+    # For production, always notify regardless of outcome.
     needs: [swa_deploy_staging, swa_deploy_prod, trigger_dns_update, deploy_docs]
-    if: success()
+    if: >
+      (
+        (github.event.inputs.APPROVAL_STATE != 'true' && (success() || github.event.inputs.SEND_STAGING_FAILED == 'true'))
+        ||
+        (github.event.inputs.APPROVAL_STATE == 'true')
+      )
     steps:
       - name: Checkout Repository for Notification
         uses: actions/checkout@v4
@@ -333,30 +348,16 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      - name: Send Teams Notification for Staging
-        if: ${{ github.event.inputs.APPROVAL_STATE != 'true' }}
+      - name: Send Teams Notification
         uses: ./.github/actions/teams-notification
         with:
           webhook_url: "https://prod-21.northeurope.logic.azure.com:443/workflows/9a94f520b85d4bdd99f015511d5ee3ea/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oiVbSb17Wfkzg3wvU3-b1JXUkOR6X7t_yhvkGg8CJ-Q"
-          title: "Staging Deployment Complete"
-          environment: "staging"
-          deployment_url: ${{ needs.swa_deploy_staging.outputs.staging_url }}
+          title: ${{ github.event.inputs.APPROVAL_STATE != 'true' && 'Staging Deployment Complete' || 'Production Deployment Complete' }}
+          environment: ${{ github.event.inputs.APPROVAL_STATE != 'true' && 'staging' || 'production' }}
+          deployment_url: ${{ github.event.inputs.APPROVAL_STATE != 'true' && needs.swa_deploy_staging.outputs.staging_url || needs.swa_deploy_prod.outputs.prod_url }}
           branch: ${{ github.ref }}
           location_code: ${{ env.LOCATION_CODE }}
-          resource_group: staging-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
-          color: "0076D7"
+          resource_group: ${{ github.event.inputs.APPROVAL_STATE != 'true' && 'staging-' || 'prod-' }}${{ env.LOCATION_CODE }}-rg-phoenixvc-website
+          color: ${{ github.event.inputs.APPROVAL_STATE != 'true' && '0076D7' || '00A300' }}
           approval_url: "https://github.com/${{ github.repository }}/actions/workflows/deploy.yml/dispatches?workflow=Phoenix+VC+Rollback+Pipeline&ref=${{ github.ref }}"
-
-      - name: Send Teams Notification for Production
-        if: ${{ github.event.inputs.APPROVAL_STATE == 'true' }}
-        uses: ./.github/actions/teams-notification
-        with:
-          webhook_url: "https://prod-21.northeurope.logic.azure.com:443/workflows/9a94f520b85d4bdd99f015511d5ee3ea/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oiVbSb17Wfkzg3wvU3-b1JXUkOR6X7t_yhvkGg8CJ-Q"
-          title: "Production Deployment Complete"
-          environment: "production"
-          deployment_url: ${{ needs.swa_deploy_prod.outputs.prod_url }}
-          branch: ${{ github.ref }}
-          location_code: ${{ env.LOCATION_CODE }}
-          resource_group: prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
-          color: "00A300"
           rollback_url: "https://github.com/${{ github.repository }}/actions/workflows/rollback.yml/dispatches?workflow=Phoenix+VC+Rollback+Pipeline&ref=${{ github.ref }}"
