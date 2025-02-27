@@ -55,7 +55,7 @@ policy_precheck() {
     echo "$non_compliant_json" | jq -r '
       group_by(.policyDefinitionId)[] |
       "Policy Definition: " + (. [0].policyDefinitionName // "Unknown") +
-      " (" + (. [0].policyDefinitionId // "N/A") + ") - Violations: " + (tostring(length)) + "\n" +
+      " (" + (. [0].policyDefinitionId // "N/A") + ") - Violations: " + (length | tostring) + "\n" +
       (map("  - Resource: " + (.resourceId // "Unknown") + " [Assignment: " + (.policyAssignmentName // "Unknown") + "]") | join("\n"))
     '
     exit 1
