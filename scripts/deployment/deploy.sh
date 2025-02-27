@@ -217,13 +217,6 @@ main() {
     --parameters environment="$ENVIRONMENT" locCode="$LOCATION_CODE" \
     --query properties.outputs
 
-  # Post-Deployment validations
-  echo "✅ Deployment completed. Running validations..."
-  if [ "$(az group exists --name "$RESOURCE_GROUP")" != "true" ]; then
-    echo "❌ Resource Group missing!" >&2
-    exit 1
-  fi
-
   # After deployment, capture and echo the final Logic App definition text from the outputs
   finalDefinition=$(az deployment sub show --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" --query "properties.outputs.finalLogicAppDefinitionTextOutput.value" -o tsv)
   if [ -n "$finalDefinition" ]; then
@@ -231,6 +224,13 @@ main() {
     echo "$finalDefinition"
   else
     echo "⚠️ No final logic app definition output was found."
+  fi
+  
+  # Post-Deployment validations
+  echo "✅ Deployment completed. Running validations..."
+  if [ "$(az group exists --name "$RESOURCE_GROUP")" != "true" ]; then
+    echo "❌ Resource Group missing!" >&2
+    exit 1
   fi
 
   setup_monitoring
