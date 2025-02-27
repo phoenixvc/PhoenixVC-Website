@@ -24,3 +24,8 @@ resource budget 'Microsoft.Consumption/budgets@2021-10-01' = {
     }
   }
 }
+
+// Outputs
+output budgetName string = budget.name
+output budgetId string = budget.id
+output budgetAmount int = amount
