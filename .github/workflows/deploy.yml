@@ -154,7 +154,6 @@ jobs:
         uses: ./.github/actions/deploy-azure-resources
         with:
           environment: staging
-          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
           location_code: ${{ env.LOCATION_CODE }}
           repository: JustAGhosT/PhoenixVC-Modernized
@@ -208,7 +207,7 @@ jobs:
           ref: refs/heads/main
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-          
+
       - name: Deploy Production Resources
         uses: ./.github/actions/deploy-azure-resources
         with:
