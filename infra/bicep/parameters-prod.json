@@ -4,10 +4,10 @@
   "parameters": {
     "environment": { "value": "prod" },
     "locCode": { "value": "euw" },
+    "keyVaultSku": { "value": "standard" },
+    "enableRbacAuthorization": { "value": true },
     "deployBudget": { "value": false },
     "deployKeyVault": { "value": false },
-    "deployLogicApp": { "value": true },
-    "keyVaultSku": { "value": "standard" },
-    "enableRbacAuthorization": { "value": true }
+    "deployLogicApp": { "value": true }
   }
 }

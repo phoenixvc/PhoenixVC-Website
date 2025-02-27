@@ -1,23 +1,23 @@
 #!/bin/bash
 set -eo pipefail
 
-### 1) Resolve environment variables *before* logging them
+###
+# 1) Resolve and log deployment parameters
+###
 
-# Feature Configuration
+# Environment variables or defaults
 ENVIRONMENT="${ENVIRONMENT:-staging}"
-# Expected values: "euw" for West Europe, "saf" for South Africa
 LOCATION_CODE="${LOCATION_CODE:-saf}"
-DEPLOY_REGION="westeurope"
 ENABLE_POLICY_CHECKS="${ENABLE_POLICY_CHECKS:-true}"
 ENABLE_MONITORING="${ENABLE_MONITORING:-false}"
 ENABLE_COST_CHECKS="${ENABLE_COST_CHECKS:-false}"
 POLICY_ENFORCEMENT_MODE="${POLICY_ENFORCEMENT_MODE:-enforce}"
 
-# Paths
+# Override paths if provided; otherwise, use defaults
 BICEP_FILE="${BICEP_FILE:-./infra/bicep/main.bicep}"
 PARAMETERS_FILE="${PARAMETERS_FILE:-./infra/bicep/parameters-${ENVIRONMENT}.json}"
 
-# Determine deployment region based on LOCATION_CODE
+# Determine DEPLOY_REGION from LOCATION_CODE
 if [ "$LOCATION_CODE" = "euw" ]; then
   DEPLOY_REGION="westeurope"
 elif [ "$LOCATION_CODE" = "saf" ]; then
@@ -27,9 +27,8 @@ else
   DEPLOY_REGION="westeurope"
 fi
 
-# Resource group name
+# Compute resource group name
 RESOURCE_GROUP="${ENVIRONMENT}-${LOCATION_CODE}-rg-phoenixvc-website"
-TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 
 # Check that jq is installed
 if ! command -v jq > /dev/null; then
@@ -37,7 +36,7 @@ if ! command -v jq > /dev/null; then
   exit 1
 fi
 
-### Log key deployment parameters
+# Log key deployment parameters
 echo "===== Deployment Parameters ====="
 echo "ENVIRONMENT: $ENVIRONMENT"
 echo "LOCATION_CODE: $LOCATION_CODE"
@@ -51,55 +50,37 @@ echo "ENABLE_COST_CHECKS: $ENABLE_COST_CHECKS"
 echo "POLICY_ENFORCEMENT_MODE: $POLICY_ENFORCEMENT_MODE"
 echo "================================="
 
+# If the parameters file exists, parse override values
 if [ -f "$PARAMETERS_FILE" ]; then
   echo "Full Parameters File Content:"
-  jq . "$PARAMETERS_FILE"
-
-  # Parse parameter values from JSON using jq bracket notation
-  raw_deployKeyVault=$(jq -r '.parameters["deployKeyVault"].value // "not-set"' "$PARAMETERS_FILE")
-  raw_deployLogicApp=$(jq -r '.parameters["deployLogicApp"].value // "not-set"' "$PARAMETERS_FILE")
-  raw_deployBudget=$(jq -r '.parameters["deployBudget"].value // "not-set"' "$PARAMETERS_FILE")
-  raw_keyVaultSku=$(jq -r '.parameters["keyVaultSku"].value // "not-set"' "$PARAMETERS_FILE")
-  raw_enableRbac=$(jq -r '.parameters["enableRbacAuthorization"].value // "not-set"' "$PARAMETERS_FILE")
+  cat "$PARAMETERS_FILE"
+  echo "---------------------------------"
+  # Parse individual parameters (using jq to force conversion to string)
+  deployKeyVaultVal=$(jq -r '.parameters.deployKeyVault.value | tostring' < "$PARAMETERS_FILE")
+  deployLogicAppVal=$(jq -r '.parameters.deployLogicApp.value | tostring' < "$PARAMETERS_FILE")
+  deployBudgetVal=$(jq -r '.parameters.deployBudget.value | tostring' < "$PARAMETERS_FILE")
+  keyVaultSkuVal=$(jq -r '.parameters.keyVaultSku.value | tostring' < "$PARAMETERS_FILE")
+  enableRbacAuthorizationVal=$(jq -r '.parameters.enableRbacAuthorization.value | tostring' < "$PARAMETERS_FILE")
 else
-  raw_deployKeyVault="N/A"
-  raw_deployLogicApp="N/A"
-  raw_deployBudget="N/A"
-  raw_keyVaultSku="N/A"
-  raw_enableRbac="N/A"
+  deployKeyVaultVal="N/A"
+  deployLogicAppVal="N/A"
+  deployBudgetVal="N/A"
+  keyVaultSkuVal="N/A"
+  enableRbacAuthorizationVal="N/A"
 fi
 
-# Convert string values to booleans where appropriate
-if [ "$raw_deployKeyVault" = "true" ]; then
-  deployKeyVaultVal=true
-else
-  deployKeyVaultVal=false
-fi
+echo "Parsed Parameter - deployKeyVault: $deployKeyVaultVal"
+echo "Parsed Parameter - deployLogicApp: $deployLogicAppVal"
+echo "Parsed Parameter - deployBudget: $deployBudgetVal"
+echo "Parsed Parameter - keyVaultSku: $keyVaultSkuVal"
+echo "Parsed Parameter - enableRbacAuthorization: $enableRbacAuthorizationVal"
 
-if [ "$raw_deployLogicApp" = "true" ]; then
-  deployLogicAppVal=true
-else
-  deployLogicAppVal=false
-fi
+# Timestamp for naming
+TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 
-if [ "$raw_deployBudget" = "true" ]; then
-  deployBudgetVal=true
-else
-  deployBudgetVal=false
-fi
-
-# For keyVaultSku and enableRbacAuthorization, we simply pass the string values
-keyVaultSkuVal="$raw_keyVaultSku"
-enableRbacAuthorizationVal="$raw_enableRbac"
-
-echo "Parsed Parameter - deployKeyVault: $deployKeyVaultVal (raw: $raw_deployKeyVault)"
-echo "Parsed Parameter - deployLogicApp: $deployLogicAppVal (raw: $raw_deployLogicApp)"
-echo "Parsed Parameter - deployBudget: $deployBudgetVal (raw: $raw_deployBudget)"
-echo "Parsed Parameter - keyVaultSku: $keyVaultSkuVal (raw: $raw_keyVaultSku)"
-echo "Parsed Parameter - enableRbacAuthorization: $enableRbacAuthorizationVal (raw: $raw_enableRbac)"
-echo ""
-
-### 2) Define functions
+###
+# 2) Define helper functions
+###
 
 policy_precheck() {
   [ "$ENABLE_POLICY_CHECKS" = "true" ] || return 0
@@ -110,13 +91,13 @@ policy_precheck() {
   sleep 20
 
   local non_compliant_json
-  non_compliant_json=$(az policy state list --all \
-    --query "[?complianceState=='NonCompliant' && resourceGroup=='$RESOURCE_GROUP']" -o json)
+  non_compliant_json=$(az policy state list --all --query "[?complianceState=='NonCompliant' && resourceGroup=='$RESOURCE_GROUP']" -o json)
   local violation_count
   violation_count=$(echo "$non_compliant_json" | jq 'length')
 
   if [ "$violation_count" -gt 0 ]; then
     echo "❌ Pre-Deployment Policy Violations: $violation_count violation(s) found:" >&2
+
     echo "$non_compliant_json" | jq -r '
       group_by(.policyDefinitionId)[] |
       "Policy Definition: " + (. [0].policyDefinitionName // "Unknown") +
@@ -127,6 +108,7 @@ policy_precheck() {
          " | Assignment ID: " + (.policyAssignmentId // "N/A")
        ) | join("\n"))
     '
+
     echo ""
     echo "🔍 Fetching detailed policy definitions for each violation:"
     for policyId in $(echo "$non_compliant_json" | jq -r '.[].policyDefinitionId' | sort | uniq); do
@@ -136,6 +118,7 @@ policy_precheck() {
       az policy definition show --name "$policyName" --query "{displayName: displayName, description: description}" -o json | jq .
       echo "------------------------"
     done
+
     exit 1
   else
     echo "✅ No Pre-Deployment Policy Violations detected."
@@ -183,32 +166,35 @@ check_resource_group() {
   fi
 }
 
-### 3) Main Deployment Flow
-
+###
+# 3) Main deployment flow
+###
 main() {
   handle_emergency "$@"
 
   echo "🚀 Starting ${ENVIRONMENT} deployment (Features: Policy=${ENABLE_POLICY_CHECKS}, Monitoring=${ENABLE_MONITORING})"
+
+  # Pre-Flight Checks
   policy_precheck
+
+  # Check resource group status before deployment
   check_resource_group
 
   echo "📄 Using parameter file: $PARAMETERS_FILE"
   cat "$PARAMETERS_FILE" || { echo "❌ Could not read parameters file: $PARAMETERS_FILE"; exit 1; }
 
-  # Bicep Deployment with explicit parameter overrides
+  # Optionally, override additional parameters from the file.
+  # (Make sure that the names in the JSON match your Bicep parameter names.)
+  # The deployment command passes the JSON file (which will override defaults in Bicep)
   az deployment sub create \
     --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" \
     --location "$DEPLOY_REGION" \
     --template-file "$BICEP_FILE" \
     --parameters @"$PARAMETERS_FILE" \
     --parameters environment="$ENVIRONMENT" locCode="$LOCATION_CODE" \
-                 deployKeyVault="$deployKeyVaultVal" \
-                 deployLogicApp="$deployLogicAppVal" \
-                 deployBudget="$deployBudgetVal" \
-                 keyVaultSku="$keyVaultSkuVal" \
-                 enableRbacAuthorization="$enableRbacAuthorizationVal" \
     --query properties.outputs
 
+  # Post-Deployment validations
   echo "✅ Deployment completed. Running validations..."
   if [ "$(az group exists --name "$RESOURCE_GROUP")" != "true" ]; then
     echo "❌ Resource Group missing!" >&2
