@@ -49,11 +49,99 @@ runs:
         else
           echo "Azure CLI logic extension is already installed."
         fi
+name: "Deploy Azure Resources"
+description: "Deploys infrastructure resources for a given environment"
+inputs:
+  environment:
+    description: "The deployment environment (staging or prod)"
+    required: true
+  azure_subscription_id:
+    description: "Azure Subscription ID"
+    required: true
+  azure_credentials:
+    description: "Azure credentials for authentication"
+    required: true
+  location_code:
+    description: "Location code for resource naming"
+    required: true
+  repository:
+    description: "GitHub repository to use"
+    required: true
+  token:
+    description: "GitHub token"
+    required: true
+outputs:
+  staticSiteUrl:
+    description: "URL of the deployed Static Web App"
+    value: ${{ steps.deploy.outputs.staticSiteUrl }}
+  logicAppUrl:
+    description: "URL of the deployed Logic App"
+    value: ${{ steps.retrieve_logic_url.outputs.logicAppUrl }}
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ inputs.repository }}
+        token: ${{ inputs.token }}
+        fetch-depth: 0
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ inputs.azure_credentials }}
+
+    - name: Ensure Azure CLI Logic App Extension is Installed
+      shell: bash
+      run: |
+        if ! az extension show --name logicapp &>/dev/null; then
+          az extension add --name logicapp --yes
+        else
+          echo "Azure CLI logicapp extension is already installed."
+        fi
+
+    - name: Run Resource Deployment Script
+      shell: bash
+      run: |
+        ./scripts/deployment/deploy.sh --env ${{ inputs.environment }}
+      env:
+        ENVIRONMENT: ${{ inputs.environment }}
+        RG_NAME: ${{ inputs.environment }}-${{ inputs.location_code }}-rg-phoenixvc-website
+        SWA_NAME: ${{ inputs.environment }}-${{ inputs.location_code }}-swa-phoenixvc-website
+        AZURE_SUBSCRIPTION_ID: ${{ inputs.azure_subscription_id }}
+
+    - name: Retrieve Logic App Trigger URL
+      id: retrieve_logic_url
+      shell: bash
+      run: |
+        # Define Variables
+        subscriptionId="${{ inputs.azure_subscription_id }}"
+        resourceGroupName="${{ inputs.environment }}-${{ inputs.location_code }}-rg-phoenixvc-website"
+        logicAppName="${{ inputs.environment }}-${{ inputs.location_code }}-la-phoenixvc"
+        workflowName="manual"
+        triggerName="manual"
+
+        # Construct the REST API URL
+        url="https://management.azure.com/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.Logic/workflows/$workflowName/triggers/$triggerName/listCallbackUrl?api-version=2018-11-01"
+
+        # Retrieve the callback URL using az rest
+        response=$(az rest --method POST --uri "$url")
+
+        # Extract the callback URL from the response
+        logicAppUrl=$(echo $response | jq -r '.value')
+
+        # Output the result
+        if [ -n "$logicAppUrl" ]; then
+          echo "logicAppUrl=$logicAppUrl" >> "$GITHUB_OUTPUT"
+        else
+          echo "logicAppUrl=" >> "$GITHUB_OUTPUT"
+        fi
 
     - name: Make deploy script executable
       run: chmod +x ./scripts/deployment/deploy.sh
       shell: bash
-      
+
     - name: Run Resource Deployment Script
       shell: bash
       run: |

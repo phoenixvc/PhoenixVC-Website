@@ -227,14 +227,37 @@ main() {
     echo "staticSiteUrl=" >> "$GITHUB_OUTPUT"
   fi
 
-  # Retrieve the HTTP trigger URL for the Logic App.
-  # Note: This command requires that the Logic App has a manual trigger configured.
-  logicAppUrl=$(az logic workflow list-callback-url --name "$logicAppName" --resource-group "$RESOURCE_GROUP" --query "value" -o tsv)
-  if [ -n "$logicAppUrl" ]; then
-    echo "logicAppUrl=$logicAppUrl" >> "$GITHUB_OUTPUT"
-  else
-    echo "logicAppUrl=" >> "$GITHUB_OUTPUT"
-  fi
+  # # Retrieve the HTTP trigger URL for the Logic App.
+  # # Note: This command requires that the Logic App has a manual trigger configured.
+  # logicAppUrl=$(az logic workflow list-callback-url --name "$logicAppName" --resource-group "$RESOURCE_GROUP" --query "value" -o tsv)
+  # if [ -n "$logicAppUrl" ]; then
+  #   echo "logicAppUrl=$logicAppUrl" >> "$GITHUB_OUTPUT"
+  # else
+  #   echo "logicAppUrl=" >> "$GITHUB_OUTPUT"
+  # fi
+
+  # # Define variables
+  # subscriptionId="<Your-Subscription-ID>"
+  # resourceGroupName="<Your-Resource-Group-Name>"
+  # logicAppName="<Your-Logic-App-Name>"
+  # workflowName="<Your-Workflow-Name>"
+  # triggerName="<Your-Trigger-Name>"
+
+  # # Construct the REST API URL
+  # url="https://management.azure.com/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.Web/sites/$logicAppName/hostruntime/runtime/webhooks/workflow/api/management/workflows/$workflowName/triggers/$triggerName/listCallbackUrl?api-version=2018-11-01"
+
+  # # Retrieve the callback URL using az rest
+  # response=$(az rest --method POST --uri "$url")
+
+  # # Extract the callback URL from the response
+  # logicAppUrl=$(echo $response | jq -r '.value')
+
+  # # Output the result
+  # if [ -n "$logicAppUrl" ]; then
+  #   echo "logicAppUrl=$logicAppUrl" >> "$GITHUB_OUTPUT"
+  # else
+  #   echo "logicAppUrl=" >> "$GITHUB_OUTPUT"
+  # fi
 
   # Post-deployment validations.
   echo "✅ Deployment completed. Running validations..."
