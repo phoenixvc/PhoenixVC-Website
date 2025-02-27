@@ -50,17 +50,15 @@ echo "ENABLE_COST_CHECKS: $ENABLE_COST_CHECKS"
 echo "POLICY_ENFORCEMENT_MODE: $POLICY_ENFORCEMENT_MODE"
 echo "================================="
 
-# If the parameters file exists, parse override values
 if [ -f "$PARAMETERS_FILE" ]; then
   echo "Full Parameters File Content:"
   cat "$PARAMETERS_FILE"
   echo "---------------------------------"
-  # Parse individual parameters (using jq to force conversion to string)
-  deployKeyVaultVal=$(jq -r '.parameters.deployKeyVault.value | tostring' < "$PARAMETERS_FILE")
-  deployLogicAppVal=$(jq -r '.parameters.deployLogicApp.value | tostring' < "$PARAMETERS_FILE")
-  deployBudgetVal=$(jq -r '.parameters.deployBudget.value | tostring' < "$PARAMETERS_FILE")
-  keyVaultSkuVal=$(jq -r '.parameters.keyVaultSku.value | tostring' < "$PARAMETERS_FILE")
-  enableRbacAuthorizationVal=$(jq -r '.parameters.enableRbacAuthorization.value | tostring' < "$PARAMETERS_FILE")
+  deployKeyVaultVal=$(jq -r '.parameters.deployKeyVault.value // "not-set"' < "$PARAMETERS_FILE")
+  deployLogicAppVal=$(jq -r '.parameters.deployLogicApp.value // "not-set"' < "$PARAMETERS_FILE")
+  deployBudgetVal=$(jq -r '.parameters.deployBudget.value // "not-set"' < "$PARAMETERS_FILE")
+  keyVaultSkuVal=$(jq -r '.parameters.keyVaultSku.value // "not-set"' < "$PARAMETERS_FILE")
+  enableRbacAuthorizationVal=$(jq -r '.parameters.enableRbacAuthorization.value // "not-set"' < "$PARAMETERS_FILE")
 else
   deployKeyVaultVal="N/A"
   deployLogicAppVal="N/A"
@@ -97,7 +95,6 @@ policy_precheck() {
 
   if [ "$violation_count" -gt 0 ]; then
     echo "❌ Pre-Deployment Policy Violations: $violation_count violation(s) found:" >&2
-
     echo "$non_compliant_json" | jq -r '
       group_by(.policyDefinitionId)[] |
       "Policy Definition: " + (. [0].policyDefinitionName // "Unknown") +
@@ -108,7 +105,6 @@ policy_precheck() {
          " | Assignment ID: " + (.policyAssignmentId // "N/A")
        ) | join("\n"))
     '
-
     echo ""
     echo "🔍 Fetching detailed policy definitions for each violation:"
     for policyId in $(echo "$non_compliant_json" | jq -r '.[].policyDefinitionId' | sort | uniq); do
@@ -118,7 +114,6 @@ policy_precheck() {
       az policy definition show --name "$policyName" --query "{displayName: displayName, description: description}" -o json | jq .
       echo "------------------------"
     done
-
     exit 1
   else
     echo "✅ No Pre-Deployment Policy Violations detected."
@@ -127,7 +122,6 @@ policy_precheck() {
 
 setup_monitoring() {
   [ "$ENABLE_MONITORING" = "true" ] || return 0
-
   echo "📈 Configuring Monitoring..."
   if [ "$POLICY_ENFORCEMENT_MODE" = "enforce" ]; then
     az monitor activity-log alert create \
@@ -183,9 +177,7 @@ main() {
   echo "📄 Using parameter file: $PARAMETERS_FILE"
   cat "$PARAMETERS_FILE" || { echo "❌ Could not read parameters file: $PARAMETERS_FILE"; exit 1; }
 
-  # Optionally, override additional parameters from the file.
-  # (Make sure that the names in the JSON match your Bicep parameter names.)
-  # The deployment command passes the JSON file (which will override defaults in Bicep)
+  # Bicep Deployment (overrides provided by the parameter file will be applied)
   az deployment sub create \
     --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" \
     --location "$DEPLOY_REGION" \
