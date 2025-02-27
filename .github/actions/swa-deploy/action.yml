@@ -1,5 +1,5 @@
 name: "SWA Deploy"
-description: "Deploy site via SWA CLI from a downloaded artifact."
+description: "Deploy site via SWA CLI with Azure CLI fallback from a downloaded artifact."
 inputs:
   artifact-name:
     description: "The name of the artifact to download"
@@ -17,6 +17,16 @@ inputs:
     description: "Local path to download the artifact to"
     required: false
     default: "./build-artifact"
+  azure_credentials:
+    description: "Azure credentials for authentication"
+    required: true
+  deployment_token:
+    description: "SWA deployment token"
+    required: true
+outputs:
+  deployment_url:
+    description: "The URL of the deployed application"
+    value: ${{ steps.get_deployment_url.outputs.url }}
 runs:
   using: "composite"
   steps:
@@ -26,18 +36,73 @@ runs:
         fetch-depth: 0
 
     - name: Download Web App Artifact
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: ${{ inputs.artifact-name }}
         path: ${{ inputs.artifact-path }}
 
-    - name: Deploy Site via SWA CLI
+    # Login to Azure
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ inputs.azure_credentials }}
+
+    # Ensure the config file is properly placed
+    - name: Prepare configuration
       shell: bash
       run: |
-        echo "Deploying to ${{ inputs.env }} using SWA CLI from artifact..."
-        npx swa deploy ${{ inputs.artifact-path }} \
-          --app-name ${{ inputs.app-name }} \
-          --resource-group ${{ inputs.resource-group }} \
-          --env ${{ inputs.env }}
+        echo "Preparing configuration..."
+        # Ensure the config directory exists in the artifact
+        mkdir -p ${{ inputs.artifact-path }}/.config
+        
+        # Copy the config file if it doesn't exist in the artifact
+        if [ ! -f "${{ inputs.artifact-path }}/.config/staticwebapp.config.json" ]; then
+          echo "Copying staticwebapp.config.json to artifact directory..."
+          cp .config/staticwebapp.config.json ${{ inputs.artifact-path }}/.config/
+        else
+          echo "Config file already exists in artifact directory"
+        fi
+        
+        # Display the config for verification
+        echo "Using configuration:"
+        cat ${{ inputs.artifact-path }}/.config/staticwebapp.config.json
+        
+    - name: Get SWA Deployment Token
+      id: get_token
+      shell: bash
+      run: |
+        # Get deployment token using Azure CLI
+        TOKEN=$(az staticwebapp secrets list --name ${{ inputs.app-name }} --resource-group ${{ inputs.resource-group }} --query "properties.apiKey" -o tsv)
+        echo "::add-mask::$TOKEN"
+        echo "deployment_token=$TOKEN" >> $GITHUB_OUTPUT
+
+    - name: Deploy to Azure Static Web Apps
+      id: deploy
+      uses: Azure/static-web-apps-deploy@v1
+      with:
+        azure_static_web_apps_api_token: ${{ steps.get_token.outputs.deployment_token }}
+        repo_token: ${{ github.token }}
+        action: "upload"
+        app_location: ${{ inputs.artifact-path }}
+        api_location: ""
+        output_location: ""
+        config_file_location: ".config"
+        skip_app_build: true
       env:
-        LOCATION_CODE: ${{ env.LOCATION_CODE }}
+        DEPLOYMENT_PROVIDER: "DevOps"
+      
+    # Get the deployment URL for output
+    - name: Get Deployment URL
+      id: get_deployment_url
+      shell: bash
+      run: |
+        # Get the URL from Azure CLI
+        URL=$(az staticwebapp show --name ${{ inputs.app-name }} --resource-group ${{ inputs.resource-group }} --query "defaultHostname" -o tsv)
+        if [[ -n "$URL" ]]; then
+          FULL_URL="https://$URL"
+          echo "url=$FULL_URL" >> $GITHUB_OUTPUT
+          echo "Deployment URL: $FULL_URL"
+        else
+          echo "url=https://${{ inputs.app-name }}.azurestaticapps.net" >> $GITHUB_OUTPUT
+          echo "Could not retrieve URL, using default format"
+        fi

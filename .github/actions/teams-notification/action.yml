@@ -1,0 +1,75 @@
+inputs:
+  webhook_url:
+    description: "The Microsoft Teams webhook URL"
+    required: true
+  title:
+    description: "Title of the notification"
+    required: true
+  environment:
+    description: "Deployment environment (e.g. staging, prod)"
+    required: true
+  deployment_url:
+    description: "URL of the deployed site"
+    required: true
+  branch:
+    description: "Branch that was deployed"
+    required: true
+  location_code:
+    description: "Location code of the deployment"
+    required: true
+  resource_group:
+    description: "Resource group name"
+    required: true
+  color:
+    description: "Theme color for the card (hex code)"
+    required: false
+    default: "0076D7"
+  approval_url:
+    description: "URL for approval action (staging only)"
+    required: false
+    default: ""
+  rollback_url:
+    description: "URL for rollback action (prod only)"
+    required: false
+    default: ""
+  template_path:
+    description: "Path to the Teams template JSON file relative to this action’s directory"
+    required: false
+    default: "teams-template.json"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout Repository for Template
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Read and Substitute Template
+      shell: bash
+      id: build_payload
+      run: |
+        # Read the JSON template file from the action’s directory using the provided template_path input.
+        TEMPLATE=$(cat "$(pwd)/.github/actions/teams-notification/${{ inputs.template_path }}")
+        # Replace placeholders in the template with the input values.
+        PAYLOAD=$(echo "$TEMPLATE" | sed \
+          -e "s|{{title}}|${{ inputs.title }}|g" \
+          -e "s|{{environment}}|${{ inputs.environment }}|g" \
+          -e "s|{{deployment_url}}|${{ inputs.deployment_url }}|g" \
+          -e "s|{{branch}}|${{ inputs.branch }}|g" \
+          -e "s|{{location_code}}|${{ inputs.location_code }}|g" \
+          -e "s|{{resource_group}}|${{ inputs.resource_group }}|g" \
+          -e "s|{{color}}|${{ inputs.color }}|g" \
+          -e "s|{{approval_url}}|${{ inputs.approval_url }}|g" \
+          -e "s|{{rollback_url}}|${{ inputs.rollback_url }}|g")
+        echo "Generated Payload:" 
+        echo "$PAYLOAD"
+        # Using the new environment-file method instead of set-output:
+        echo "payload=$PAYLOAD" >> $GITHUB_OUTPUT
+
+    - name: Send Teams Notification
+      shell: bash
+      run: |
+        echo "Sending notification to Teams using the following payload:"
+        cat <<< "${{ steps.build_payload.outputs.payload }}"
+        curl -X POST -H "Content-Type: application/json" -d "${{ steps.build_payload.outputs.payload }}" "${{ inputs.webhook_url }}"
