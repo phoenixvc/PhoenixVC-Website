@@ -1,14 +1,28 @@
 #!/bin/bash
 set -eo pipefail
 
-###
-# 1) Resolve and log deployment parameters
-###
+# ------------------------------------------------------------------------------
+# Define error handler to print detailed deployment logs on failure.
+# ------------------------------------------------------------------------------
+onError() {
+  echo "❌ Deployment failed. Fetching detailed deployment operations..."
+  # Use the deployment name that we built in TIMESTAMP variable.
+  DEPLOYMENT_NAME="PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}"
+  echo "Deployment Operations:"
+  az deployment sub operation list --name "$DEPLOYMENT_NAME" --query "[].{Operation:operationName, Status:provisioningState, Target:target}" -o table
+  echo "Detailed Deployment Error:"
+  az deployment sub show --name "$DEPLOYMENT_NAME" --query properties.error -o json
+}
+# Set trap to catch any error
+trap onError ERR
 
+# ------------------------------------------------------------------------------
+# 1) Resolve and log deployment parameters
+# ------------------------------------------------------------------------------
 # Environment variables or defaults
 ENVIRONMENT="${ENVIRONMENT:-staging}"
 LOCATION_CODE="${LOCATION_CODE:-saf}"
-ENABLE_POLICY_CHECKS="${ENABLE_POLICY_CHECKS:-false}"
+ENABLE_POLICY_CHECKS="${ENABLE_POLICY_CHECKS:-true}"
 ENABLE_MONITORING="${ENABLE_MONITORING:-false}"
 ENABLE_COST_CHECKS="${ENABLE_COST_CHECKS:-false}"
 POLICY_ENFORCEMENT_MODE="${POLICY_ENFORCEMENT_MODE:-enforce}"
@@ -36,7 +50,7 @@ if ! command -v jq > /dev/null; then
   exit 1
 fi
 
-# Log key deployment parameters (after all variables are set)
+# Log key deployment parameters
 echo "===== Deployment Parameters ====="
 echo "ENVIRONMENT: $ENVIRONMENT"
 echo "LOCATION_CODE: $LOCATION_CODE"
@@ -50,16 +64,16 @@ echo "ENABLE_COST_CHECKS: $ENABLE_COST_CHECKS"
 echo "POLICY_ENFORCEMENT_MODE: $POLICY_ENFORCEMENT_MODE"
 echo "================================="
 
-# If the parameters file exists, parse override values
 if [ -f "$PARAMETERS_FILE" ]; then
   echo "Full Parameters File Content:"
   cat "$PARAMETERS_FILE"
   echo "---------------------------------"
-  deployKeyVaultVal=$(jq -r '.parameters.deployKeyVault.value' < "$PARAMETERS_FILE")
-  deployLogicAppVal=$(jq -r '.parameters.deployLogicApp.value' < "$PARAMETERS_FILE")
-  deployBudgetVal=$(jq -r '.parameters.deployBudget.value' < "$PARAMETERS_FILE")
-  keyVaultSkuVal=$(jq -r '.parameters.keyVaultSku.value' < "$PARAMETERS_FILE")
-  enableRbacAuthorizationVal=$(jq -r '.parameters.enableRbacAuthorization.value' < "$PARAMETERS_FILE")
+  # Parse individual parameters (forcing string conversion)
+  deployKeyVaultVal=$(jq -r '.parameters.deployKeyVault.value | tostring' < "$PARAMETERS_FILE")
+  deployLogicAppVal=$(jq -r '.parameters.deployLogicApp.value | tostring' < "$PARAMETERS_FILE")
+  deployBudgetVal=$(jq -r '.parameters.deployBudget.value | tostring' < "$PARAMETERS_FILE")
+  keyVaultSkuVal=$(jq -r '.parameters.keyVaultSku.value | tostring' < "$PARAMETERS_FILE")
+  enableRbacAuthorizationVal=$(jq -r '.parameters.enableRbacAuthorization.value | tostring' < "$PARAMETERS_FILE")
 else
   deployKeyVaultVal="N/A"
   deployLogicAppVal="N/A"
@@ -74,15 +88,9 @@ echo "Parsed Parameter - deployBudget: $deployBudgetVal"
 echo "Parsed Parameter - keyVaultSku: $keyVaultSkuVal"
 echo "Parsed Parameter - enableRbacAuthorization: $enableRbacAuthorizationVal"
 
-# Timestamp for naming
-TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-
-# Cleanup temporary files on exit
-trap 'rm -f temp_*_check.json' EXIT
-
-###
+# ------------------------------------------------------------------------------
 # 2) Define helper functions
-###
+# ------------------------------------------------------------------------------
 
 policy_precheck() {
   [ "$ENABLE_POLICY_CHECKS" = "true" ] || return 0
@@ -165,10 +173,9 @@ check_resource_group() {
   fi
 }
 
-###
-# 3) Main Deployment Flow
-###
-
+# ------------------------------------------------------------------------------
+# 3) Main deployment flow
+# ------------------------------------------------------------------------------
 main() {
   handle_emergency "$@"
 
@@ -183,21 +190,26 @@ main() {
   echo "📄 Using parameter file: $PARAMETERS_FILE"
   cat "$PARAMETERS_FILE" || { echo "❌ Could not read parameters file: $PARAMETERS_FILE"; exit 1; }
 
-  echo "🚀 Deploying resources..."
-  deployment_output=$(az deployment sub create \
+  # Log the overrides from the parameters file
+  echo "Override Values from Parameters File:"
+  echo "  deployKeyVault: $deployKeyVaultVal"
+  echo "  deployLogicApp: $deployLogicAppVal"
+  echo "  deployBudget: $deployBudgetVal"
+  echo "  keyVaultSku: $keyVaultSkuVal"
+  echo "  enableRbacAuthorization: $enableRbacAuthorizationVal"
+  echo "---------------------------------"
+
+  # Timestamp for naming
+  TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+
+  # Bicep Deployment
+  az deployment sub create \
     --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" \
     --location "$DEPLOY_REGION" \
     --template-file "$BICEP_FILE" \
     --parameters @"$PARAMETERS_FILE" \
     --parameters environment="$ENVIRONMENT" locCode="$LOCATION_CODE" \
-    --query properties.outputs 2>&1) || {
-      echo "❌ Deployment failed. Fetching detailed deployment error information..."
-      # Try to show error details from the deployment
-      az deployment sub show --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" --query properties.error -o json | jq .
-      exit 1
-    }
-  echo "Deployment Outputs:"
-  echo "$deployment_output" | jq .
+    --query properties.outputs
 
   # Post-Deployment validations
   echo "✅ Deployment completed. Running validations..."
