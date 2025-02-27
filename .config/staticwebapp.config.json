@@ -2,18 +2,15 @@
   "routes": [
     {
       "route": "/",
-      "serve": "/apps/web/src/pages/index.html",
-      "statusCode": 200
+      "rewrite": "/apps/web/src/pages/index.html"
     },
     {
       "route": "/design/*",
-      "serve": "/apps/design-system/src/*",
-      "statusCode": 200
+      "rewrite": "/apps/design-system/src/*"
     },
     {
       "route": "/docs/*",
-      "serve": "/docs/*",
-      "statusCode": 200
+      "rewrite": "/docs/*"
     }
   ],
   "navigationFallback": {
