@@ -1,0 +1,166 @@
+name: "Teams Notification"
+description: "Send a notification to Microsoft Teams with deployment information"
+inputs:
+  webhook_url:
+    description: "The Microsoft Teams webhook URL"
+    required: true
+  title:
+    description: "Title of the notification"
+    required: true
+  environment:
+    description: "Deployment environment (e.g. staging, prod)"
+    required: true
+  deployment_url:
+    description: "URL of the deployed site"
+    required: true
+  branch:
+    description: "Branch that was deployed"
+    required: true
+  location_code:
+    description: "Location code of the deployment"
+    required: true
+  resource_group:
+    description: "Resource group name"
+    required: true
+  color:
+    description: "Theme color for the card (hex code)"
+    required: false
+    default: "0076D7"
+  approval_url:
+    description: "URL for approval action (staging only)"
+    required: false
+    default: ""
+  rollback_url:
+    description: "URL for rollback action (prod only)"
+    required: false
+    default: ""
+runs:
+  using: "composite"
+  steps:
+    - name: Send Teams Notification for Staging
+      if: ${{ inputs.environment == 'staging' }}
+      shell: bash
+      run: |
+        echo "Sending notification to Teams for staging..."
+        curl -X POST -H "Content-Type: application/json" \
+          -d '{
+            "@type": "MessageCard",
+            "@context": "http://schema.org/extensions",
+            "summary": "Phoenix VC ${{ inputs.environment }} Deployment Notification",
+            "themeColor": "${{ inputs.color }}",
+            "title": "${{ inputs.title }}",
+            "sections": [
+              {
+                "activityTitle": "Deployment to ${{ inputs.environment }} Succeeded",
+                "activitySubtitle": "Branch: ${{ inputs.branch }}",
+                "facts": [
+                  { "name": "Environment", "value": "${{ inputs.environment }}" },
+                  { "name": "Location Code", "value": "${{ inputs.location_code }}" },
+                  { "name": "Resource Group", "value": "${{ inputs.resource_group }}" },
+                  { "name": "Deployment URL", "value": "${{ inputs.deployment_url }}" }
+                ],
+                "markdown": true
+              }
+            ],
+            "potentialAction": [
+              {
+                "@type": "OpenUri",
+                "name": "View ${{ inputs.environment }} Site",
+                "targets": [
+                  { "os": "default", "uri": "${{ inputs.deployment_url }}" }
+                ]
+              },
+              {
+                "@type": "OpenUri",
+                "name": "Approve for Production",
+                "targets": [
+                  { "os": "default", "uri": "${{ inputs.approval_url }}" }
+                ]
+              }
+            ],
+            "text": "The ${{ inputs.environment }} deployment has completed successfully. Click the button below to view the site or approve for production. 🎉"
+          }' \
+          "${{ inputs.webhook_url }}"
+
+    - name: Send Teams Notification for Production
+      if: ${{ inputs.environment == 'production' || inputs.environment == 'prod' }}
+      shell: bash
+      run: |
+        echo "Sending notification to Teams for production..."
+        curl -X POST -H "Content-Type: application/json" \
+          -d '{
+            "@type": "MessageCard",
+            "@context": "http://schema.org/extensions",
+            "summary": "Phoenix VC ${{ inputs.environment }} Deployment Notification",
+            "themeColor": "${{ inputs.color }}",
+            "title": "${{ inputs.title }}",
+            "sections": [
+              {
+                "activityTitle": "Deployment to ${{ inputs.environment }} Succeeded",
+                "activitySubtitle": "Branch: ${{ inputs.branch }}",
+                "facts": [
+                  { "name": "Environment", "value": "${{ inputs.environment }}" },
+                  { "name": "Location Code", "value": "${{ inputs.location_code }}" },
+                  { "name": "Resource Group", "value": "${{ inputs.resource_group }}" },
+                  { "name": "Deployment URL", "value": "${{ inputs.deployment_url }}" }
+                ],
+                "markdown": true
+              }
+            ],
+            "potentialAction": [
+              {
+                "@type": "OpenUri",
+                "name": "View ${{ inputs.environment }} Site",
+                "targets": [
+                  { "os": "default", "uri": "${{ inputs.deployment_url }}" }
+                ]
+              },
+              {
+                "@type": "OpenUri",
+                "name": "Rollback Deployment",
+                "targets": [
+                  { "os": "default", "uri": "${{ inputs.rollback_url }}" }
+                ]
+              }
+            ],
+            "text": "The ${{ inputs.environment }} deployment has completed successfully. Click the button below to view the site or rollback if needed. 🎉"
+          }' \
+          "${{ inputs.webhook_url }}"
+
+    - name: Send Teams Notification for Other Environments
+      if: ${{ inputs.environment != 'staging' && inputs.environment != 'production' && inputs.environment != 'prod' }}
+      shell: bash
+      run: |
+        echo "Sending notification to Teams for ${{ inputs.environment }}..."
+        curl -X POST -H "Content-Type: application/json" \
+          -d '{
+            "@type": "MessageCard",
+            "@context": "http://schema.org/extensions",
+            "summary": "Phoenix VC ${{ inputs.environment }} Deployment Notification",
+            "themeColor": "${{ inputs.color }}",
+            "title": "${{ inputs.title }}",
+            "sections": [
+              {
+                "activityTitle": "Deployment to ${{ inputs.environment }} Succeeded",
+                "activitySubtitle": "Branch: ${{ inputs.branch }}",
+                "facts": [
+                  { "name": "Environment", "value": "${{ inputs.environment }}" },
+                  { "name": "Location Code", "value": "${{ inputs.location_code }}" },
+                  { "name": "Resource Group", "value": "${{ inputs.resource_group }}" },
+                  { "name": "Deployment URL", "value": "${{ inputs.deployment_url }}" }
+                ],
+                "markdown": true
+              }
+            ],
+            "potentialAction": [
+              {
+                "@type": "OpenUri",
+                "name": "View ${{ inputs.environment }} Site",
+                "targets": [
+                  { "os": "default", "uri": "${{ inputs.deployment_url }}" }
+                ]
+              }
+            ],
+            "text": "The ${{ inputs.environment }} deployment has completed successfully. Click the button below to view the site. 🎉"
+          }' \
+          "${{ inputs.webhook_url }}"
