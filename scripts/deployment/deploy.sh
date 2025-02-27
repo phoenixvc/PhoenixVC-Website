@@ -1,6 +1,16 @@
 #!/bin/bash
 set -eo pipefail
 
+# Log key deployment parameters
+echo "===== Deployment Parameters ====="
+echo "ENVIRONMENT: $ENVIRONMENT"
+echo "LOCATION_CODE: $LOCATION_CODE"
+echo "DEPLOY_REGION: $DEPLOY_REGION (will be determined from LOCATION_CODE)"
+echo "RESOURCE_GROUP: ${ENVIRONMENT}-${LOCATION_CODE}-rg-phoenixvc-website"
+echo "BICEP_FILE: $BICEP_FILE"
+echo "PARAMETERS_FILE: $PARAMETERS_FILE"
+echo "================================="
+
 # Feature Configuration
 ENVIRONMENT="${ENVIRONMENT:-staging}"
 # Expected values: "euw" for West Europe, "saf" for South Africa
@@ -53,7 +63,7 @@ policy_precheck() {
   if [ "$violation_count" -gt 0 ]; then
     echo "❌ Pre-Deployment Policy Violations: $violation_count violation(s) found:" >&2
 
-    # Group violations by policyDefinitionId and list details for each violation
+    # Group violations by policyDefinitionId and print detailed info
     echo "$non_compliant_json" | jq -r '
       group_by(.policyDefinitionId)[] |
       "Policy Definition: " + (. [0].policyDefinitionName // "Unknown") +
@@ -66,10 +76,8 @@ policy_precheck() {
     '
 
     echo ""
-    echo "🔍 Detailed Policy Definitions:"
-    # For each unique policyDefinitionId, fetch and display policy details
+    echo "🔍 Fetching detailed policy definitions for each violation:"
     for policyId in $(echo "$non_compliant_json" | jq -r '.[].policyDefinitionId' | sort | uniq); do
-      # Extract the policy name (last segment of the policyDefinitionId)
       local policyName="${policyId##*/}"
       echo "Policy ID: $policyId"
       echo "Details:"
@@ -140,15 +148,16 @@ main() {
   # Check resource group status before deployment
   check_resource_group
 
-  # Bicep Deployment (Removed unsupported policyEnforcement parameter)
+  echo "📄 Using parameter file:"
+  cat "$PARAMETERS_FILE"
+
+  # Bicep Deployment
   az deployment sub create \
     --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" \
     --location "$DEPLOY_REGION" \
     --template-file "$BICEP_FILE" \
     --parameters @"$PARAMETERS_FILE" \
-    --parameters \
-      environment="$ENVIRONMENT" \
-      locCode="$LOCATION_CODE" \
+    --parameters environment="$ENVIRONMENT" locCode="$LOCATION_CODE" \
     --query properties.outputs
 
   # Post-Deployment
@@ -160,7 +169,6 @@ main() {
 
   setup_monitoring
 
-  # Cost Checks
   if [ "$ENABLE_COST_CHECKS" = "true" ]; then
     echo "💰 Cost Baseline Analysis:"
     az consumption budget list --query "[?name=='${RESOURCE_GROUP}-budget-website']" -o table
@@ -181,7 +189,6 @@ show_help() {
   echo "  --emergency-override         - Bypass policy checks (audit logs still enabled)"
 }
 
-# Execution
 if [[ "$*" == *"--help"* ]]; then
   show_help
   exit 0
