@@ -30,18 +30,69 @@ runs:
       with:
         name: ${{ inputs.artifact-name }}
         path: ${{ inputs.artifact-path }}
+        
+    - name: Fix staticwebapp.config.json
+      shell: bash
+      run: |
+        CONFIG_PATH="${{ inputs.artifact-path }}/.config/staticwebapp.config.json"
+        
+        if [ -f "$CONFIG_PATH" ]; then
+          echo "Updating $CONFIG_PATH to use 'rewrite' instead of 'serve'..."
+          sed -i 's/"serve":/"rewrite":/g' "$CONFIG_PATH"
+          sed -i 's/,"statusCode": 200//g' "$CONFIG_PATH"
+          echo "Configuration updated successfully."
+          cat "$CONFIG_PATH"
+          
+          # Copy to root if it doesn't exist there (as a fallback)
+          ROOT_CONFIG="${{ inputs.artifact-path }}/staticwebapp.config.json"
+          if [ ! -f "$ROOT_CONFIG" ]; then
+            echo "Copying config to root location as well..."
+            cp "$CONFIG_PATH" "$ROOT_CONFIG"
+          fi
+        else
+          echo "Warning: Config file not found at $CONFIG_PATH"
+        fi
 
+    - name: Install Azure CLI
+      shell: bash
+      run: |
+        curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+        
     - name: Install Azure Static Web Apps CLI
       shell: bash
       run: npm install -g @azure/static-web-apps-cli
 
-    - name: Deploy Site via SWA CLI
+    - name: Deploy using Azure CLI (Primary Method)
       shell: bash
       run: |
-        echo "Deploying to ${{ inputs.env }} using SWA CLI from artifact..."
-        swa deploy ${{ inputs.artifact-path }} \
-          --deployment-token ${{ env.AZURE_STATIC_WEB_APPS_API_TOKEN }} \
-          --env ${{ inputs.env }}
+        echo "Installing Azure CLI extension for Static Web Apps..."
+        az extension add --name staticwebapps --only-show-errors || true
+        
+        echo "Deploying to ${{ inputs.env }} environment using Azure CLI..."
+        az staticwebapp deployment create \
+          --name ${{ inputs.app-name }} \
+          --resource-group ${{ inputs.resource-group }} \
+          --source ${{ inputs.artifact-path }} \
+          --environment ${{ inputs.env }} \
+          --token ${{ env.AZURE_STATIC_WEB_APPS_API_TOKEN }} \
+          --verbose
+      env:
+        AZURE_STATIC_WEB_APPS_API_TOKEN: ${{ env.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+      continue-on-error: true
+
+    - name: Deploy Site via SWA CLI (Fallback Method)
+      shell: bash
+      run: |
+        # Check if previous step failed
+        if [ $? -ne 0 ]; then
+          echo "Azure CLI deployment failed, falling back to SWA CLI..."
+          echo "Deploying to ${{ inputs.env }} using SWA CLI from artifact..."
+          swa deploy ${{ inputs.artifact-path }} \
+            --deployment-token ${{ env.AZURE_STATIC_WEB_APPS_API_TOKEN }} \
+            --env ${{ inputs.env }}
+        else
+          echo "Azure CLI deployment was successful, skipping SWA CLI deployment."
+        fi
       env:
         AZURE_STATIC_WEB_APPS_API_TOKEN: ${{ env.AZURE_STATIC_WEB_APPS_API_TOKEN }}
         LOCATION_CODE: ${{ env.LOCATION_CODE }}
