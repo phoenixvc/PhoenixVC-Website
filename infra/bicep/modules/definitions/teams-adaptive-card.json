@@ -12,22 +12,10 @@
     {
       "type": "FactSet",
       "facts": [
-        {
-          "title": "Environment:",
-          "value": "{{environment}}"
-        },
-        {
-          "title": "Branch:",
-          "value": "{{branch}}"
-        },
-        {
-          "title": "Resource Group:",
-          "value": "{{resourceGroup}}"
-        },
-        {
-          "title": "Location Code:",
-          "value": "{{locationCode}}"
-        }
+        { "title": "Environment:", "value": "{{environment}}" },
+        { "title": "Branch:", "value": "{{branch}}" },
+        { "title": "Resource Group:", "value": "{{resourceGroup}}" },
+        { "title": "Location Code:", "value": "{{locationCode}}" }
       ]
     },
     {
