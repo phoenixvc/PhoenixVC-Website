@@ -350,13 +350,7 @@ jobs:
           fetch-depth: 0
           
       - name: Notify Staging
-        if: >
-          github.event.inputs.APPROVAL_STATE != 'true' &&
-          (
-            (needs.swa_deploy_staging.result == 'success')
-            or
-            (github.event.inputs.SEND_STAGING_FAILED == 'true')
-          )
+        if: ${{ github.event.inputs.APPROVAL_STATE != 'true' && (needs.swa_deploy_staging.result == 'success' || github.event.inputs.SEND_STAGING_FAILED == 'true') }}
         uses: ./.github/actions/teams-notification
         with:
           webhook_url: "https://prod-21.northeurope.logic.azure.com:443/workflows/9a94f520b85d4bdd99f015511d5ee3ea/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oiVbSb17Wfkzg3wvU3-b1JXUkOR6X7t_yhvkGg8CJ-Q"
