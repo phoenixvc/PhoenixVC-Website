@@ -229,7 +229,7 @@ main() {
 
   # Retrieve the HTTP trigger URL for the Logic App.
   # Note: This command requires that the logic app has a manual trigger configured.
-  logicAppUrl=$(az logic workflow list-callback-url --name "$logicAppName" --resource-group "$RESOURCE_GROUP" --query "value" -o tsv)
+  logicAppUrl=$(az logicapp workflow list-callback-url --name "$logicAppName" --resource-group "$RESOURCE_GROUP" --query "value" -o tsv)
   if [ -n "$logicAppUrl" ]; then
     echo "logicAppUrl=$logicAppUrl" >> "$GITHUB_OUTPUT"
   else
