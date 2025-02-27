@@ -11,6 +11,12 @@ ENABLE_MONITORING="${ENABLE_MONITORING:-false}"
 ENABLE_COST_CHECKS="${ENABLE_COST_CHECKS:-false}"
 POLICY_ENFORCEMENT_MODE="${POLICY_ENFORCEMENT_MODE:-enforce}"
 
+# Check that jq is installed
+if ! command -v jq > /dev/null; then
+  echo "jq is not installed. Please install jq to run this script."
+  exit 1
+fi
+
 # Determine deployment region based on LOCATION_CODE
 if [ "$LOCATION_CODE" = "euw" ]; then
   DEPLOY_REGION="westeurope"
@@ -33,34 +39,44 @@ trap 'rm -f temp_*_check.json' EXIT
 # Policy Functions
 policy_precheck() {
   [ "$ENABLE_POLICY_CHECKS" = "true" ] || return 0
-  
+
   echo "🔒 Running Pre-Deployment Policy Check..."
+
+  # Trigger a policy scan (non-blocking)
   az policy state trigger-scan --subscription "$(az account show --query id -o tsv)" --no-wait
-  
-  local non_compliant
-  non_compliant=$(az policy state list --all --query "[?complianceState == 'NonCompliant' && resourceGroup == '$RESOURCE_GROUP']" -o tsv)
-  
-  [ -z "$non_compliant" ] || { 
-    echo "❌ Pre-Deployment Policy Violations:" >&2
-    echo "$non_compliant" | awk -F'\t' '{print "- " $1 " (" $2 ")"}'
-    return 1
-  }
+
+  # Optionally wait a few seconds for the scan to complete
+  sleep 10
+
+  # Retrieve non-compliant policies for this resource group as JSON
+  local non_compliant_json
+  non_compliant_json=$(az policy state list --all --query "[?complianceState=='NonCompliant' && resourceGroup=='$RESOURCE_GROUP']" -o json)
+
+  local violation_count
+  violation_count=$(echo "$non_compliant_json" | jq 'length')
+
+  if [ "$violation_count" -gt 0 ]; then
+    echo "❌ Pre-Deployment Policy Violations: $violation_count violation(s) found:" >&2
+    echo "$non_compliant_json" | jq -r '.[] | "- " + (.policyAssignmentName // "Unknown") + ": " + (.policyDefinitionName // "Unknown")'
+    exit 1
+  else
+    echo "✅ No Pre-Deployment Policy Violations detected."
+  fi
 }
 
 # Monitoring Setup
-# Monitoring Setup
 setup_monitoring() {
   [ "$ENABLE_MONITORING" = "true" ] || return 0
-  
+
   echo "📈 Configuring Monitoring..."
-  
+
   if [ "$POLICY_ENFORCEMENT_MODE" = "enforce" ]; then
     az monitor activity-log alert create \
       --name "${RESOURCE_GROUP}-policy-violation" \
       --resource-group "$RESOURCE_GROUP" \
       --condition category='Policy' \
-      --action email="security@phoenixvc.za" \
-      --description "DNS policy violation alerts"
+      --action email="security@phoenixvc.com" \
+      --description "Policy violation alerts for Phoenix VC"
   else
     echo "Policy enforcement is not set to 'enforce'. Skipping monitoring configuration."
   fi
@@ -96,9 +112,9 @@ check_resource_group() {
 # Main Deployment Flow
 main() {
   handle_emergency "$@"
-  
+
   echo "🚀 Starting ${ENVIRONMENT} deployment (Features: Policy=${ENABLE_POLICY_CHECKS}, Monitoring=${ENABLE_MONITORING})"
-  
+
   # Pre-Flight Checks
   policy_precheck
 
@@ -115,22 +131,22 @@ main() {
       environment="$ENVIRONMENT" \
       locCode="$LOCATION_CODE" \
     --query properties.outputs
-  
+
   # Post-Deployment
   echo "✅ Deployment completed. Running validations..."
   if [ "$(az group exists --name "$RESOURCE_GROUP")" != "true" ]; then
     echo "❌ Resource Group missing!" >&2
     exit 1
   fi
-  
+
   setup_monitoring
-  
+
   # Cost Checks
   if [ "$ENABLE_COST_CHECKS" = "true" ]; then
     echo "💰 Cost Baseline Analysis:"
     az consumption budget list --query "[?name=='${RESOURCE_GROUP}-budget-website']" -o table
   fi
-  
+
   echo "🛡️ Deployment Health Check Complete"
 }
 
