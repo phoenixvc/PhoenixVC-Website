@@ -219,13 +219,21 @@ main() {
     --parameters environment="$ENVIRONMENT" locCode="$LOCATION_CODE" \
     --query properties.outputs
 
-  # Retrieve and log the final Logic App definition text output (if available).
-  finalLogicAppDefinitionTextOutput=$(az deployment sub show --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" --query "properties.outputs.finalLogicAppDefinitionTextOutput.value" -o tsv)
-  if [ -n "$finalLogicAppDefinitionTextOutput" ]; then
-    echo "✅ Final Logic App Definition:"
-    echo "$finalLogicAppDefinitionTextOutput"
+  # Retrieve the static site URL from the deployment outputs
+  staticSiteUrl=$(az deployment sub show --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" --query "properties.outputs.staticSiteUrl.value" -o tsv)
+  if [ -n "$staticSiteUrl" ]; then
+    echo "staticSiteUrl=$staticSiteUrl" >> "$GITHUB_OUTPUT"
   else
-    echo "⚠️ No final logic app definition output was found."
+    echo "staticSiteUrl=" >> "$GITHUB_OUTPUT"
+  fi
+
+  # Retrieve the HTTP trigger URL for the Logic App.
+  # Note: This command requires that the logic app has a manual trigger configured.
+  logicAppUrl=$(az logic workflow list-callback-url --name "$logicAppName" --resource-group "$RESOURCE_GROUP" --query "value" -o tsv)
+  if [ -n "$logicAppUrl" ]; then
+    echo "logicAppUrl=$logicAppUrl" >> "$GITHUB_OUTPUT"
+  else
+    echo "logicAppUrl=" >> "$GITHUB_OUTPUT"
   fi
 
   # Post-deployment validations.
