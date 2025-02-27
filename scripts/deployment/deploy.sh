@@ -52,12 +52,31 @@ policy_precheck() {
 
   if [ "$violation_count" -gt 0 ]; then
     echo "❌ Pre-Deployment Policy Violations: $violation_count violation(s) found:" >&2
+
+    # Group violations by policyDefinitionId and list details for each violation
     echo "$non_compliant_json" | jq -r '
       group_by(.policyDefinitionId)[] |
       "Policy Definition: " + (. [0].policyDefinitionName // "Unknown") +
       " (" + (. [0].policyDefinitionId // "N/A") + ") - Violations: " + (length | tostring) + "\n" +
-      (map("  - Resource: " + (.resourceId // "Unknown") + " [Assignment: " + (.policyAssignmentName // "Unknown") + "]") | join("\n"))
+      (map(
+         "  - Resource: " + (.resourceId // "Unknown") +
+         " | Assignment: " + (.policyAssignmentName // "Unknown") +
+         " | Assignment ID: " + (.policyAssignmentId // "N/A")
+       ) | join("\n"))
     '
+
+    echo ""
+    echo "🔍 Detailed Policy Definitions:"
+    # For each unique policyDefinitionId, fetch and display policy details
+    for policyId in $(echo "$non_compliant_json" | jq -r '.[].policyDefinitionId' | sort | uniq); do
+      # Extract the policy name (last segment of the policyDefinitionId)
+      local policyName="${policyId##*/}"
+      echo "Policy ID: $policyId"
+      echo "Details:"
+      az policy definition show --name "$policyName" --query "{displayName: displayName, description: description}" -o json | jq .
+      echo "------------------------"
+    done
+
     exit 1
   else
     echo "✅ No Pre-Deployment Policy Violations detected."
