@@ -335,12 +335,7 @@ jobs:
     # For staging, notify if success OR if failure and SEND_STAGING_FAILED is true.
     # For production, always notify regardless of outcome.
     needs: [swa_deploy_staging, swa_deploy_prod, trigger_dns_update, deploy_docs]
-    if: >
-      (
-        (github.event.inputs.APPROVAL_STATE != 'true' && (success() || github.event.inputs.SEND_STAGING_FAILED == 'true'))
-        ||
-        (github.event.inputs.APPROVAL_STATE == 'true')
-      )
+    if: always()
     steps:
       - name: Checkout Repository for Notification
         uses: actions/checkout@v4
