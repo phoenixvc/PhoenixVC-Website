@@ -1,0 +1,115 @@
+.sidebar {
+  width: 300px;
+  background-color: var(--color-bg-sidebar);
+  border-right: 1px solid var(--color-border);
+  padding: calc(var(--spacing-unit) * 2);
+  overflow-y: auto;
+  height: 100vh;
+}
+
+.config-section {
+  margin-bottom: calc(var(--spacing-unit) * 3);
+}
+
+.config-section h2 {
+  margin-bottom: var(--spacing-unit);
+  font-size: 1.2rem;
+  color: var(--color-text-primary);
+}
+
+.theme-selector {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-unit);
+}
+
+.theme-option {
+  padding: var(--spacing-unit);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color var(--animation-speed);
+}
+
+.theme-option.active {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-light);
+}
+
+.theme-option h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.theme-option p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.color-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-unit);
+}
+
+.color-option {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-unit);
+}
+
+.color-preview {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing-unit) * 0.5);
+  width: 100%;
+}
+
+.input-group label {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.input-group input,
+.input-group select {
+  padding: calc(var(--spacing-unit) * 0.5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg-input);
+  color: var(--color-text-primary);
+}
+
+.btn {
+  display: block;
+  width: 100%;
+  padding: calc(var(--spacing-unit) * 1.5);
+  margin-bottom: var(--spacing-unit);
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color var(--animation-speed);
+}
+
+.btn:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.btn-secondary {
+  background-color: var(--color-bg-button);
+  color: var(--color-text-primary);
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-bg-button-hover);
+}
