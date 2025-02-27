@@ -14,15 +14,15 @@ runs:
         TEMPLATE=$(cat "$(pwd)/.github/actions/teams-notification/teams-template-schema.json")
         # Replace placeholders (the template should use placeholders like {{title}}, etc.) with the input values
         PAYLOAD=$(echo "$TEMPLATE" | sed \
-          -e "s/{{title}}/${{ inputs.title }}/g" \
-          -e "s/{{environment}}/${{ inputs.environment }}/g" \
-          -e "s/{{deployment_url}}/${{ inputs.deployment_url }}/g" \
-          -e "s/{{branch}}/${{ inputs.branch }}/g" \
-          -e "s/{{location_code}}/${{ inputs.location_code }}/g" \
-          -e "s/{{resource_group}}/${{ inputs.resource_group }}/g" \
-          -e "s/{{color}}/${{ inputs.color }}/g" \
-          -e "s/{{approval_url}}/${{ inputs.approval_url }}/g" \
-          -e "s/{{rollback_url}}/${{ inputs.rollback_url }}/g")
+          -e "s|{{title}}|${{ inputs.title }}|g" \
+          -e "s|{{environment}}|${{ inputs.environment }}|g" \
+          -e "s|{{deployment_url}}|${{ inputs.deployment_url }}|g" \
+          -e "s|{{branch}}|${{ inputs.branch }}|g" \
+          -e "s|{{location_code}}|${{ inputs.location_code }}|g" \
+          -e "s|{{resource_group}}|${{ inputs.resource_group }}|g" \
+          -e "s|{{color}}|${{ inputs.color }}|g" \
+          -e "s|{{approval_url}}|${{ inputs.approval_url }}|g" \
+          -e "s|{{rollback_url}}|${{ inputs.rollback_url }}|g")
         # Output the JSON payload for debugging
         echo "Generated Payload:" 
         echo "$PAYLOAD"
