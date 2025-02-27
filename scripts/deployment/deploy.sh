@@ -2,13 +2,10 @@
 set -eo pipefail
 
 ###
-# 1) Resolve environment variables *and* override paths BEFORE logging
+# 1) Resolve and log deployment parameters
 ###
 
-#!/bin/bash
-set -eo pipefail
-
-# -- Resolve environment variables and set defaults --
+# Environment variables or defaults
 ENVIRONMENT="${ENVIRONMENT:-staging}"
 LOCATION_CODE="${LOCATION_CODE:-saf}"
 ENABLE_POLICY_CHECKS="${ENABLE_POLICY_CHECKS:-false}"
@@ -16,11 +13,11 @@ ENABLE_MONITORING="${ENABLE_MONITORING:-false}"
 ENABLE_COST_CHECKS="${ENABLE_COST_CHECKS:-false}"
 POLICY_ENFORCEMENT_MODE="${POLICY_ENFORCEMENT_MODE:-enforce}"
 
-# -- Override paths if provided; otherwise, use defaults --
+# Override paths if provided; otherwise, use defaults
 BICEP_FILE="${BICEP_FILE:-./infra/bicep/main.bicep}"
 PARAMETERS_FILE="${PARAMETERS_FILE:-./infra/bicep/parameters-${ENVIRONMENT}.json}"
 
-# -- Determine DEPLOY_REGION from LOCATION_CODE --
+# Determine DEPLOY_REGION from LOCATION_CODE
 if [ "$LOCATION_CODE" = "euw" ]; then
   DEPLOY_REGION="westeurope"
 elif [ "$LOCATION_CODE" = "saf" ]; then
@@ -30,16 +27,16 @@ else
   DEPLOY_REGION="westeurope"
 fi
 
-# -- Compute resource group name --
+# Compute resource group name
 RESOURCE_GROUP="${ENVIRONMENT}-${LOCATION_CODE}-rg-phoenixvc-website"
 
-# -- Check that jq is installed --
+# Check that jq is installed
 if ! command -v jq > /dev/null; then
   echo "jq is not installed. Please install jq to run this script."
   exit 1
 fi
 
-# -- Log key deployment parameters (after all variables are set) --
+# Log key deployment parameters (after all variables are set)
 echo "===== Deployment Parameters ====="
 echo "ENVIRONMENT: $ENVIRONMENT"
 echo "LOCATION_CODE: $LOCATION_CODE"
@@ -53,19 +50,16 @@ echo "ENABLE_COST_CHECKS: $ENABLE_COST_CHECKS"
 echo "POLICY_ENFORCEMENT_MODE: $POLICY_ENFORCEMENT_MODE"
 echo "================================="
 
-# -- Parse additional parameters from the parameters file, if it exists --
+# If the parameters file exists, parse override values
 if [ -f "$PARAMETERS_FILE" ]; then
   echo "Full Parameters File Content:"
   cat "$PARAMETERS_FILE"
   echo "---------------------------------"
-
-  # Note: Don't force booleans to strings. Read them directly.
   deployKeyVaultVal=$(jq -r '.parameters.deployKeyVault.value' < "$PARAMETERS_FILE")
   deployLogicAppVal=$(jq -r '.parameters.deployLogicApp.value' < "$PARAMETERS_FILE")
   deployBudgetVal=$(jq -r '.parameters.deployBudget.value' < "$PARAMETERS_FILE")
   keyVaultSkuVal=$(jq -r '.parameters.keyVaultSku.value' < "$PARAMETERS_FILE")
   enableRbacAuthorizationVal=$(jq -r '.parameters.enableRbacAuthorization.value' < "$PARAMETERS_FILE")
-
 else
   deployKeyVaultVal="N/A"
   deployLogicAppVal="N/A"
@@ -80,13 +74,15 @@ echo "Parsed Parameter - deployBudget: $deployBudgetVal"
 echo "Parsed Parameter - keyVaultSku: $keyVaultSkuVal"
 echo "Parsed Parameter - enableRbacAuthorization: $enableRbacAuthorizationVal"
 
-# -- Timestamp for naming --
+# Timestamp for naming
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 
-# -- Cleanup temporary files on exit --
+# Cleanup temporary files on exit
 trap 'rm -f temp_*_check.json' EXIT
 
-### Helper Functions ###
+###
+# 2) Define helper functions
+###
 
 policy_precheck() {
   [ "$ENABLE_POLICY_CHECKS" = "true" ] || return 0
@@ -103,7 +99,6 @@ policy_precheck() {
 
   if [ "$violation_count" -gt 0 ]; then
     echo "❌ Pre-Deployment Policy Violations: $violation_count violation(s) found:" >&2
-
     echo "$non_compliant_json" | jq -r '
       group_by(.policyDefinitionId)[] |
       "Policy Definition: " + (. [0].policyDefinitionName // "Unknown") +
@@ -114,7 +109,6 @@ policy_precheck() {
          " | Assignment ID: " + (.policyAssignmentId // "N/A")
        ) | join("\n"))
     '
-
     echo ""
     echo "🔍 Fetching detailed policy definitions for each violation:"
     for policyId in $(echo "$non_compliant_json" | jq -r '.[].policyDefinitionId' | sort | uniq); do
@@ -124,7 +118,6 @@ policy_precheck() {
       az policy definition show --name "$policyName" --query "{displayName: displayName, description: description}" -o json | jq .
       echo "------------------------"
     done
-
     exit 1
   else
     echo "✅ No Pre-Deployment Policy Violations detected."
@@ -172,7 +165,10 @@ check_resource_group() {
   fi
 }
 
-### Main Deployment Flow ###
+###
+# 3) Main Deployment Flow
+###
+
 main() {
   handle_emergency "$@"
 
@@ -187,14 +183,21 @@ main() {
   echo "📄 Using parameter file: $PARAMETERS_FILE"
   cat "$PARAMETERS_FILE" || { echo "❌ Could not read parameters file: $PARAMETERS_FILE"; exit 1; }
 
-  # Execute Bicep deployment (parameters file overrides defaults in the Bicep file)
-  az deployment sub create \
+  # Execute Bicep deployment
+  echo "🚀 Deploying resources..."
+  deployment_output=$(az deployment sub create \
     --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" \
     --location "$DEPLOY_REGION" \
     --template-file "$BICEP_FILE" \
     --parameters @"$PARAMETERS_FILE" \
     --parameters environment="$ENVIRONMENT" locCode="$LOCATION_CODE" \
-    --query properties.outputs
+    --query properties.outputs 2>&1) || {
+      echo "❌ Deployment failed. Fetching detailed operations..."
+      az deployment sub operation list --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" -o json | jq .
+      exit 1
+    }
+  echo "Deployment Outputs:"
+  echo "$deployment_output" | jq .
 
   # Post-Deployment validations
   echo "✅ Deployment completed. Running validations..."
