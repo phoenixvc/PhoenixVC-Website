@@ -183,7 +183,6 @@ main() {
   echo "📄 Using parameter file: $PARAMETERS_FILE"
   cat "$PARAMETERS_FILE" || { echo "❌ Could not read parameters file: $PARAMETERS_FILE"; exit 1; }
 
-  # Execute Bicep deployment
   echo "🚀 Deploying resources..."
   deployment_output=$(az deployment sub create \
     --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" \
@@ -192,8 +191,9 @@ main() {
     --parameters @"$PARAMETERS_FILE" \
     --parameters environment="$ENVIRONMENT" locCode="$LOCATION_CODE" \
     --query properties.outputs 2>&1) || {
-      echo "❌ Deployment failed. Fetching detailed operations..."
-      az deployment sub operation list --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" -o json | jq .
+      echo "❌ Deployment failed. Fetching detailed deployment error information..."
+      # Try to show error details from the deployment
+      az deployment sub show --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" --query properties.error -o json | jq .
       exit 1
     }
   echo "Deployment Outputs:"
