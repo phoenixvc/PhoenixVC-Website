@@ -50,16 +50,15 @@ echo "ENABLE_COST_CHECKS: $ENABLE_COST_CHECKS"
 echo "POLICY_ENFORCEMENT_MODE: $POLICY_ENFORCEMENT_MODE"
 echo "================================="
 
-# Parse additional parameter values from the parameters file (if it exists)
 if [ -f "$PARAMETERS_FILE" ]; then
   echo "Full Parameters File Content:"
   jq . "$PARAMETERS_FILE"
 
-  deployKeyVaultVal=$(jq -r '.parameters.deployKeyVault.value // "not-set"' "$PARAMETERS_FILE")
-  deployLogicAppVal=$(jq -r '.parameters.deployLogicApp.value // "not-set"' "$PARAMETERS_FILE")
-  deployBudgetVal=$(jq -r '.parameters.deployBudget.value // "not-set"' "$PARAMETERS_FILE")
-  keyVaultSkuVal=$(jq -r '.parameters.keyVaultSku.value // "not-set"' "$PARAMETERS_FILE")
-  enableRbacAuthorizationVal=$(jq -r '.parameters.enableRbacAuthorization.value // "not-set"' "$PARAMETERS_FILE")
+  deployKeyVaultVal=$(jq -r '.parameters["deployKeyVault"].value // "not-set"' "$PARAMETERS_FILE")
+  deployLogicAppVal=$(jq -r '.parameters["deployLogicApp"].value // "not-set"' "$PARAMETERS_FILE")
+  deployBudgetVal=$(jq -r '.parameters["deployBudget"].value // "not-set"' "$PARAMETERS_FILE")
+  keyVaultSkuVal=$(jq -r '.parameters["keyVaultSku"].value // "not-set"' "$PARAMETERS_FILE")
+  enableRbacAuthorizationVal=$(jq -r '.parameters["enableRbacAuthorization"].value // "not-set"' "$PARAMETERS_FILE")
 else
   deployKeyVaultVal="N/A"
   deployLogicAppVal="N/A"
