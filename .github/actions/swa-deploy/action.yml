@@ -66,13 +66,21 @@ runs:
         # Display the config for verification
         echo "Using configuration:"
         cat ${{ inputs.artifact-path }}/.config/staticwebapp.config.json
+        
+    - name: Get SWA Deployment Token
+      id: get_token
+      shell: bash
+      run: |
+        # Get deployment token using Azure CLI
+        TOKEN=$(az staticwebapp secrets list --name ${{ inputs.app-name }} --resource-group ${{ inputs.resource-group }} --query "properties.apiKey" -o tsv)
+        echo "::add-mask::$TOKEN"
+        echo "deployment_token=$TOKEN" >> $GITHUB_OUTPUT
 
-    # Deploy using the official Azure Static Web Apps GitHub Action
     - name: Deploy to Azure Static Web Apps
       id: deploy
       uses: Azure/static-web-apps-deploy@v1
       with:
-        azure_static_web_apps_api_token: ${{ inputs.deployment_token }}
+        azure_static_web_apps_api_token: ${{ steps.get_token.outputs.deployment_token }}
         repo_token: ${{ github.token }}
         action: "upload"
         app_location: ${{ inputs.artifact-path }}
