@@ -88,5 +88,6 @@ runs:
       echo "${{ steps.build_payload.outputs.payload }}" | jq .
       curl -X POST \
         -H "Content-Type: application/json" \
-        -d "$(echo '${{ steps.build_payload.outputs.payload }}' | jq -c .)" \
+        -d "$(echo "${{ steps.build_payload.outputs.payload }}" | jq -c .)" \
         "${{ inputs.logic_app_url }}"
+
