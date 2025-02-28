@@ -6,13 +6,14 @@
   "title": "{{title}}",
   "sections": [
     {
-      "activityTitle": "Deployment to {{environment}} Succeeded",
-      "activitySubtitle": "Branch: {{branch}}",
+      "activityTitle": "Deployment to {{environment}} Completed",
+      "activitySubtitle": "Deployed on branch: {{branch}}",
       "facts": [
         { "name": "Environment", "value": "{{environment}}" },
-        { "name": "Location Code", "value": "{{location_code}}" },
+        { "name": "Location", "value": "{{location_code}}" },
         { "name": "Resource Group", "value": "{{resource_group}}" },
-        { "name": "Deployment URL", "value": "{{deployment_url}}" }
+        { "name": "Site URL", "value": "{{deployment_url}}" }
+        { "name": "Webhook URL", "value": "{{webhook_url}}" }
       ],
       "markdown": true
     }
@@ -20,14 +21,14 @@
   "potentialAction": [
     {
       "type": "OpenUri",
-      "name": "View {{environment}} Site",
+      "name": "View Site",
       "targets": [
         { "os": "default", "uri": "{{deployment_url}}" }
       ]
     },
     {
       "type": "OpenUri",
-      "name": "Approve for Production",
+      "name": "Approve Production Deployment",
       "targets": [
         { "os": "default", "uri": "{{approval_url}}" }
       ]
@@ -40,5 +41,5 @@
       ]
     }
   ],
-  "text": "The {{environment}} deployment has completed successfully. Click a button below to take action."
+  "text": "The deployment to {{environment}} has completed successfully. Please review the details above and take any necessary actions."
 }
