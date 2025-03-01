@@ -2,13 +2,27 @@
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
   "contentVersion": "1.1.0.0",
   "parameters": {
-    "environment": { "value": "prod" },
-    "locCode": { "value": "euw" },
-    "keyVaultSku": { "value": "standard" },
-    "enableRbacAuthorization": { "value": true },
-    "deployBudget": { "value": false },
-    "deployKeyVault": { "value": false },
-    "deployLogicApp": { "value": true },
+    "environment": {
+      "value": "prod"
+    },
+    "locCode": {
+      "value": "euw"
+    },
+    "keyVaultSku": {
+      "value": "standard"
+    },
+    "enableRbacAuthorization": {
+      "value": true
+    },
+    "deployBudget": {
+      "value": false
+    },
+    "deployKeyVault": {
+      "value": false
+    },
+    "deployLogicApp": {
+      "value": true
+    },
     "githubToken": {
       "reference": {
         "keyVault": {

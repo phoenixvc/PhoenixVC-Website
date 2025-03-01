@@ -2,12 +2,26 @@
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
   "contentVersion": "1.1.0.0",
   "parameters": {
-    "environment": { "value": "staging" },
-    "locCode": { "value": "euw" },
-    "branch": { "value": "staging" },
-    "keyVaultSku": { "value": "standard" },
-    "deployBudget": { "value": false },
-    "deployKeyVault": { "value": false },
-    "deployLogicApp": { "value": true }
+      "environment": {
+          "value": "staging"
+      },
+      "locCode": {
+          "value": "euw"
+      },
+      "branch": {
+          "value": "staging"
+      },
+      "keyVaultSku": {
+          "value": "standard"
+      },
+      "deployBudget": {
+          "value": false
+      },
+      "deployKeyVault": {
+          "value": false
+      },
+      "deployLogicApp": {
+          "value": true
+      }
   }
 }

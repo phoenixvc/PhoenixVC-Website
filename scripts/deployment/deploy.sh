@@ -91,12 +91,13 @@ else
   enableRbacAuthorizationVal="N/A"
 fi
 
+echo "---------------------------------"
 echo "Override Values from Parameters File:"
-echo "  deployKeyVault: $deployKeyVaultVal"
-echo "  deployLogicApp: $deployLogicAppVal"
-echo "  deployBudget: $deployBudgetVal"
-echo "  keyVaultSku: $keyVaultSkuVal"
-echo "  enableRbacAuthorization: $enableRbacAuthorizationVal"
+echo "  deployKeyVault: false"
+echo "  deployLogicApp: true"
+echo "  deployBudget: false"
+echo "  keyVaultSku: standard"
+echo "  enableRbacAuthorization: null"
 echo "---------------------------------"
 
 # ------------------------------------------------------------------------------
@@ -301,15 +302,15 @@ main() {
 }
 
 show_help() {
-  echo -e "Usage: ENVIRONMENT=staging ./deploy.sh [--emergency-override]"
-  echo -e "\nFeature Flags (set as env vars):"
-  echo "  ENABLE_POLICY_CHECKS=false   - Disable policy compliance checks"
-  echo "  ENABLE_MONITORING=true       - Force enable monitoring"
-  echo "  ENABLE_COST_CHECKS=false     - Disable cost analysis"
-  echo "  POLICY_ENFORCEMENT_MODE=audit - Policy audit mode"
-  echo "  GITHUB_TOKEN                 - Required when deployLogicApp is true"
-  echo -e "\nEmergency Features:"
-  echo "  --emergency-override         - Bypass policy checks (audit logs still enabled)"
+    echo -e "Usage: ENVIRONMENT=staging ./deploy.sh [--emergency-override]"
+    echo -e "\nFeature Flags (set as env vars):"
+    echo "  ENABLE_POLICY_CHECKS=false   - Disable policy compliance checks"
+    echo "  ENABLE_MONITORING=true       - Force enable monitoring"
+    echo "  ENABLE_COST_CHECKS=false     - Disable cost analysis"
+    echo "  POLICY_ENFORCEMENT_MODE=audit - Policy audit mode"
+    echo "  GITHUB_TOKEN                 - Required when deployLogicApp is true"
+    echo -e "\nEmergency Features:"
+    echo "  --emergency-override         - Bypass policy checks (audit logs still enabled)"
 }
 
 if [[ "$*" == *"--help"* ]]; then
