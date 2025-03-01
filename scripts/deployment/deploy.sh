@@ -256,7 +256,7 @@ main() {
     echo "staticSiteUrl=" >> "$GITHUB_OUTPUT"
   fi
 
-  if [ "$deployLogicAppVal" = "true" ]; then
+ if [ "$deployLogicAppVal" = "true" ]; then
     # Get URLs for both Logic Apps
     teams_logic_app_name="${ENVIRONMENT}-${LOCATION_CODE}-la-phoenixvc"
     github_logic_app_name="${ENVIRONMENT}-${LOCATION_CODE}-la-github"
@@ -267,21 +267,22 @@ main() {
       --resource-group "$RESOURCE_GROUP" \
       --query "value" -o tsv 2>/dev/null)
 
-  if [ -n "$teamsLogicAppUrl" ]; then
-    echo "teamsLogicAppUrl=${teamsLogicAppUrl}" >> "$GITHUB_OUTPUT"
-  else
-    echo "teamsLogicAppUrl=" >> "$GITHUB_OUTPUT"
-  fi
+    if [ -n "$teamsLogicAppUrl" ]; then
+      echo "teamsLogicAppUrl=${teamsLogicAppUrl}" >> "$GITHUB_OUTPUT"
+    else
+      echo "teamsLogicAppUrl=" >> "$GITHUB_OUTPUT"
+    fi
 
-  githubLogicAppUrl=$(az logic workflow list-callback-url \
-    --name "$github_logic_app_name" \
-    --resource-group "$RESOURCE_GROUP" \
-    --query "value" -o tsv 2>/dev/null)
+    githubLogicAppUrl=$(az logic workflow list-callback-url \
+      --name "$github_logic_app_name" \
+      --resource-group "$RESOURCE_GROUP" \
+      --query "value" -o tsv 2>/dev/null)
 
-  if [ -n "$githubLogicAppUrl" ]; then
-    echo "githubLogicAppUrl=${githubLogicAppUrl}" >> "$GITHUB_OUTPUT"
-  else
-    echo "githubLogicAppUrl=" >> "$GITHUB_OUTPUT"
+    if [ -n "$githubLogicAppUrl" ]; then
+      echo "githubLogicAppUrl=${githubLogicAppUrl}" >> "$GITHUB_OUTPUT"
+    else
+      echo "githubLogicAppUrl=" >> "$GITHUB_OUTPUT"
+    fi
   fi
 
   # Post-deployment validations.
