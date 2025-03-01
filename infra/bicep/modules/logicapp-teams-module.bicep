@@ -10,7 +10,9 @@ param tags object = {}
 //
 // Inline definition for the Logic App (workflow)
 // This definition is fully hardcoded and does not use any placeholder replacement.
-// It defines a manual HTTP trigger and an action that posts an adaptive card to a Teams webhook.
+// It defines a manual HTTP trigger that now also accepts an encoded token, and an action
+// that posts an Adaptive Card to a Teams webhook. The Adaptive Card includes a hidden field
+// for the token (encodedToken).
 //
 var logicAppDefinitionText = '''
 {
@@ -33,7 +35,8 @@ var logicAppDefinitionText = '''
             "message": { "type": "string" },
             "deploymentUrl": { "type": "string" },
             "approvalUrl": { "type": "string" },
-            "rollbackUrl": { "type": "string" }
+            "rollbackUrl": { "type": "string" },
+            "encodedToken": { "type": "string" }
           },
           "required": [
             "teamsWebhookUrl",
@@ -42,7 +45,8 @@ var logicAppDefinitionText = '''
             "environment",
             "branch",
             "message",
-            "deploymentUrl"
+            "deploymentUrl",
+            "encodedToken"
           ]
         }
       }
@@ -71,23 +75,29 @@ var logicAppDefinitionText = '''
             {
               "type": "FactSet",
               "facts": [
-                { "title": "Environment:", "value": "staging" },
-                { "title": "Branch:", "value": "staging" },
-                { "title": "Resource Group:", "value": "staging-euw-rg-phoenixvc-website" },
-                { "title": "Location Code:", "value": "euw" }
+                { "title": "Environment:", "value": "{{environment}}" },
+                { "title": "Branch:", "value": "{{branch}}" },
+                { "title": "Resource Group:", "value": "{{resourceGroup}}" },
+                { "title": "Location Code:", "value": "{{locationCode}}" }
               ]
             },
             {
               "type": "TextBlock",
               "text": "Deployment has completed successfully.",
               "wrap": true
+            },
+            {
+              "type": "Input.Text",
+              "id": "encodedToken",
+              "value": "{{encodedToken}}",
+              "isVisible": false
             }
           ],
           "actions": [
             {
               "type": "Action.OpenUrl",
               "title": "View Site",
-              "url": "https://example.com"
+              "url": "{{deploymentUrl}}"
             }
           ]
         }

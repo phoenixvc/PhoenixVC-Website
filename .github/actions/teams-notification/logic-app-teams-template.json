@@ -8,6 +8,10 @@
   "deploymentUrl": "{{deploymentUrl}}",
   "approvalUrl": "{{approvalUrl}}",
   "rollbackUrl": "{{rollbackUrl}}",
+  "teamsLogicAppUrl": "{{teamsLogicAppUrl}}",
+  "githubLogicAppUrl": "{{githubLogicAppUrl}}",
+  "encodedToken": "{{encodedToken}}",
+  "encodedTeamsToken": "{{encodedTeamsToken}}",
   "adaptiveCard": {
     "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
     "type": "AdaptiveCard",

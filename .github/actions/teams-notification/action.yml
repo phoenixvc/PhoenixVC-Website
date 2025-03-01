@@ -1,5 +1,5 @@
 name: "Teams Notification"
-description: "Send a notification to Microsoft Teams with deployment information using a file-based JSON template."
+description: "Send a notification to Microsoft Teams with deployment information using a file-based JSON template, encoding GitHub and Teams tokens."
 
 inputs:
   logic_app_url:
@@ -8,11 +8,11 @@ inputs:
   template_path:
     description: "Path to the JSON template file relative to the repository root"
     required: false
-    default: ".github/actions/teams-notification/logic-app-template.json"
+    default: ".github/actions/teams-notification/logic-app-teams-template.json"
   webhook_url:
     description: "Microsoft Teams webhook URL"
     required: false
-    default: "https://phoenixvc568.webhook.office.com/webhookb2/17b0291f-b70b-4bdd-9266-f212ae03a2bd@7edf4423-ccb3-4275-bc80-64dae3ef0148/IncomingWebhook/3174ffcca3804d34ae923ba2e131f82e/a41dbcc0-67a6-4a23-bdec-b780dcebefa9/V2MOPWeKY7ywC8-iGptxHlSIZpwHVxw2FLAOAMU2N0hmM1"
+    default: "https://phoenixvc568.webhook.office.com/webhookb2/..."
   message:
     description: "Notification message"
     required: true
@@ -39,6 +39,18 @@ inputs:
     description: "URL for rollback action (prod only)"
     required: false
     default: ""
+  github_token:
+    description: "GitHub token to be encoded and passed along"
+    required: true
+  teams_token:
+    description: "Teams token to be encoded and passed along"
+    required: true
+  teams_logic_app_url:
+    description: "Teams Logic App URL"
+    required: true
+  github_logic_app_url:
+    description: "GitHub Logic App URL"
+    required: true
 
 runs:
   using: "composite"
@@ -48,21 +60,54 @@ runs:
       with:
         fetch-depth: 0
 
-    - name: Read Template
+    - name: Read and Substitute Template
       shell: bash
       id: build_payload
       run: |
+        # Encode tokens in base64
+        encodedGitHubToken=$(echo "${{ inputs.github_token }}" | base64)
+        encodedTeamsToken=$(echo "${{ inputs.teams_token }}" | base64)
+        echo "Encoded GitHub token: $encodedGitHubToken"
+        echo "Encoded Teams token: $encodedTeamsToken"
+
+        # Read the JSON template file
         TEMPLATE=$(cat "$(pwd)/${{ inputs.template_path }}")
         echo "Template contents:"
         echo "$TEMPLATE"
+
+        # Substitute placeholders in the template
+        PAYLOAD=$(echo "$TEMPLATE" | sed \
+          -e "s|{{teamsWebhookUrl}}|${{ inputs.webhook_url }}|g" \
+          -e "s|{{locationCode}}|${{ inputs.location_code }}|g" \
+          -e "s|{{resourceGroup}}|${{ inputs.resource_group }}|g" \
+          -e "s|{{environment}}|${{ inputs.environment }}|g" \
+          -e "s|{{branch}}|${{ inputs.branch }}|g" \
+          -e "s|{{message}}|${{ inputs.message }}|g" \
+          -e "s|{{deploymentUrl}}|${{ inputs.deployment_url }}|g" \
+          -e "s|{{approvalUrl}}|${{ inputs.approval_url }}|g" \
+          -e "s|{{rollbackUrl}}|${{ inputs.rollback_url }}|g" \
+          -e "s|{{encodedToken}}|$encodedGitHubToken|g" \
+          -e "s|{{encodedTeamsToken}}|$encodedTeamsToken|g" \
+          -e "s|{{teamsLogicAppUrl}}|${{ inputs.teams_logic_app_url }}|g" \
+          -e "s|{{githubLogicAppUrl}}|${{ inputs.github_logic_app_url }}|g")
+        echo "Generated Payload:"
+        echo "$PAYLOAD"
+
+        # Write the payload as a multi-line output
         echo "payload<<EOF" >> $GITHUB_OUTPUT
-        echo "$TEMPLATE" >> $GITHUB_OUTPUT
+        echo "$PAYLOAD" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
 
     - name: Invoke Logic App HTTP Trigger
       shell: bash
       run: |
         echo "Invoking Logic App via HTTP trigger..."
-        RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST -H "Content-Type: application/json" -d "$(echo "${{ steps.build_payload.outputs.payload }}" | jq -c .)" "${{ inputs.logic_app_url }}")
+        # Use jq in raw mode to read and convert the multi-line output to valid JSON
+        COMPACT_PAYLOAD=$(echo "${{ steps.build_payload.outputs.payload }}" | jq -R -s 'fromjson')
+        echo "Payload to be sent:"
+        echo "$COMPACT_PAYLOAD"
+        RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST -H "Content-Type: application/json" \
+          -d "$COMPACT_PAYLOAD" \
+          "${{ inputs.logic_app_url }}")
         echo "Response from Logic App:"
         echo "$RESPONSE"

@@ -38,8 +38,11 @@ param enableRbacAuthorization bool = false
 @description('Whether to deploy the Logic App')
 param deployLogicApp bool = false
 
-@description('Name of the Logic App')
+@description('Name of the Logic App (deployment notification)')
 param logicAppName string = '${environment}-${locCode}-la-phoenixvc'
+
+@description('Name of the GitHub workflow invoking Logic App')
+param logicAppGitHubName string = '${environment}-${locCode}-la-github'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Resource naming variables
@@ -119,13 +122,28 @@ module keyVaultModule './modules/keyvault-module.bicep' = if (deployKeyVault) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Logic App Module (Resource Group scope)
+// Logic App Module (Resource Group scope) - Deployment Notification Logic App
 // ─────────────────────────────────────────────────────────────────────────────
-module logicAppModule './modules/logicapp-module.bicep' = if (deployLogicApp) {
+module logicAppModule './modules/logicapp-teams-module.bicep' = if (deployLogicApp) {
   name: 'logicAppDeployment'
   scope: rg
   params: {
     logicAppName: logicAppName
+    location: location
+    tags: commonTags
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// New Logic App Module (Resource Group scope) - GitHub Workflow Invoker
+// This Logic App receives the Teams Adaptive Card response along with an encoded GitHub token,
+// then invokes a GitHub workflow dispatch endpoint.
+// ─────────────────────────────────────────────────────────────────────────────
+module logicAppGitHubModule './modules/logicapp-github-module.bicep' = if (deployLogicApp) {
+  name: 'logicAppGitHubDeployment'
+  scope: rg
+  params: {
+    logicAppName: logicAppGitHubName
     location: location
     tags: commonTags
   }
@@ -144,4 +162,7 @@ output budgetAmount string = deployBudget ? string(budget.outputs.budgetAmount) 
 // Optionally output logic app details if deployed
 output logicAppName string = deployLogicApp ? logicAppModule.outputs.logicAppName : 'Logic App not deployed'
 output logicAppId string = deployLogicApp ? logicAppModule.outputs.logicAppId : 'N/A'
-// output finalLogicAppDefinitionTextOutput string = logicAppModule.outputs.finalLogicAppDefinitionTextOutput
+
+// Output new GitHub-invoker logic app details if deployed
+output logicAppGitHubName string = deployLogicApp ? logicAppGitHubModule.outputs.logicAppName : 'Logic App GitHub Invoker not deployed'
+output logicAppGitHubId string = deployLogicApp ? logicAppGitHubModule.outputs.logicAppId : 'N/A'

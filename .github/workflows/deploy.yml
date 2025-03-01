@@ -153,7 +153,8 @@ jobs:
     if: ${{ github.event.inputs.APPROVAL_STATE != 'true' }}
     outputs:
       staticSiteUrl: ${{ steps.deploy.outputs.staticSiteUrl }}
-      logicAppUrl: ${{ steps.deploy.outputs.logicAppUrl }}
+      teamsLogicAppUrl: ${{ steps.deploy.outputs.teamsLogicAppUrl }}
+      githubLogicAppUrl: ${{ steps.deploy.outputs.githubLogicAppUrl }}
     steps:
       - name: Checkout Repository for Staging Resources
         uses: actions/checkout@v4
@@ -211,7 +212,8 @@ jobs:
     if: ${{ github.event.inputs.APPROVAL_STATE == 'true' }}
     outputs:
       staticSiteUrl: ${{ steps.deploy.outputs.staticSiteUrl }}
-      logicAppUrl: ${{ steps.deploy.outputs.logicAppUrl }}
+      teamsLogicAppUrl: ${{ steps.deploy.outputs.teamsLogicAppUrl }}
+      githubLogicAppUrl: ${{ steps.deploy.outputs.githubLogicAppUrl }}
     steps:
       - name: Checkout Repository for Production Resources
         uses: actions/checkout@v4
@@ -341,43 +343,52 @@ jobs:
     needs: [swa_deploy_staging, swa_deploy_prod, trigger_dns_update, deploy_docs]
     if: always()
     steps:
-    - name: Checkout Repository for Notification
-      uses: actions/checkout@v4
-      with:
-        repository: ${{ github.repository }}
-        token: ${{ secrets.GITHUB_TOKEN }}
-        fetch-depth: 0
+      - name: Checkout Repository for Notification
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
-    - name: Log Deployment Output Values
-      run: |
-        echo "Static Site URL: ${{ needs.deploy_resources_staging.outputs.staticSiteUrl }}"
-        echo "Logic App URL: ${{ needs.deploy_resources_staging.outputs.logicAppUrl }}"
+      - name: Log Deployment Output Values
+        run: |
+          echo "Static Site URL: ${{ needs.deploy_resources_staging.outputs.staticSiteUrl }}"
+          echo "Teams Logic App URL: ${{ needs.deploy_resources_staging.outputs.teamsLogicAppUrl }}"
+          echo "GitHub Logic App URL: ${{ needs.deploy_resources_staging.outputs.githubLogicAppUrl }}"
 
-    - name: Notify Staging via Teams
-      if: ${{ github.event.inputs.APPROVAL_STATE != 'true' && (needs.swa_deploy_staging.result == 'success' || github.event.inputs.SEND_STAGING_FAILED == 'true') }}
-      uses: ./.github/actions/teams-notification
-      with:
-        webhook_url: "https://phoenixvc568.webhook.office.com/webhookb2/17b0291f-b70b-4bdd-9266-f212ae03a2bd@7edf4423-ccb3-4275-bc80-64dae3ef0148/IncomingWebhook/3174ffcca3804d34ae923ba2e131f82e/a41dbcc0-67a6-4a23-bdec-b780dcebefa9/V2MOPWeKY7ywC8-iGptxHlSIZpwHVxw2FLAOAMU2N0hmM1"
-        title: "Staging Deployment Complete"
-        environment: "staging"
-        deployment_url: ${{ needs.deploy_resources_staging.outputs.staticSiteUrl }}
-        logic_app_url: ${{ needs.deploy_resources_staging.outputs.logicAppUrl }}
-        branch: ${{ github.ref }}
-        location_code: ${{ env.LOCATION_CODE }}
-        resource_group: staging-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
-        color: "0076D7"
-        approval_url: "https://github.com/${{ github.repository }}/actions/workflows/deploy.yml/dispatches?workflow=Phoenix+VC+Rollback+Pipeline&ref=${{ github.ref }}"
+      - name: Notify Staging via Teams
+        if: ${{ github.event.inputs.APPROVAL_STATE != 'true' && (needs.swa_deploy_staging.result == 'success' || github.event.inputs.SEND_STAGING_FAILED == 'true') }}
+        uses: ./.github/actions/teams-notification
+        with:
+          webhook_url: "https://phoenixvc568.webhook.office.com/webhookb2/17b0291f-b70b-4bdd-9266-f212ae03a2bd@7edf4423-ccb3-4275-bc80-64dae3ef0148/IncomingWebhook/3174ffcca3804d34ae923ba2e131f82e/a41dbcc0-67a6-4a23-bdec-b780dcebefa9/V2MOPWeKY7ywC8-iGptxHlSIZpwHVxw2FLAOAMU2N0hmM1"
+          title: "Staging Deployment Complete"
+          environment: "staging"
+          deployment_url: ${{ needs.deploy_resources_staging.outputs.staticSiteUrl }}
+          logic_app_url: ${{ needs.deploy_resources_staging.outputs.teamsLogicAppUrl }}
+          github_logic_app_url: ${{ needs.deploy_resources_staging.outputs.githubLogicAppUrl }}
+          branch: ${{ github.ref }}
+          location_code: ${{ env.LOCATION_CODE }}
+          resource_group: staging-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
+          color: "0076D7"
+          approval_url: "https://github.com/${{ github.repository }}/actions/workflows/deploy.yml/dispatches?workflow=Phoenix+VC+Rollback+Pipeline&ref=${{ github.ref }}"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          teams_token: ${{ secrets.TEAMS_TOKEN }}
 
-    - name: Notify Production
-      if: ${{ github.event.inputs.APPROVAL_STATE == 'true' }}
-      uses: ./.github/actions/teams-notification
-      with:
-        webhook_url: "https://prod-21.northeurope.logic.azure.com:443/workflows/9a94f520b85d4bdd99f015511d5ee3ea/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oiVbSb17Wfkzg3wvU3-b1JXUkOR6X7t_yhvkGg8CJ-Q"
-        title: "Production Deployment Complete"
-        environment: ${{ github.event.inputs.APPROVAL_STATE != 'true' && 'staging' || 'production' }}
-        deployment_url: ${{ github.event.inputs.APPROVAL_STATE != 'true' && needs.swa_deploy_staging.outputs.staging_url || needs.swa_deploy_prod.outputs.prod_url }}
-        branch: ${{ github.ref }}
-        location_code: ${{ env.LOCATION_CODE }}
-        resource_group: ${{ github.event.inputs.APPROVAL_STATE != 'true' && 'staging-' || 'prod-' }}${{ env.LOCATION_CODE }}-rg-phoenixvc-website
-        color: ${{ github.event.inputs.APPROVAL_STATE != 'true' && '0076D7' || '00A300' }}
-        rollback_url: "https://github.com/${{ github.repository }}/actions/workflows/rollback.yml/dispatches?workflow=Phoenix+VC+Rollback+Pipeline&ref=${{ github.ref }}"
+      - name: Notify Production
+        if: ${{ github.event.inputs.APPROVAL_STATE == 'true' }}
+        uses: ./.github/actions/teams-notification
+        with:
+          webhook_url: "https://prod-21.northeurope.logic.azure.com:443/workflows/9a94f520b85d4bdd99f015511d5ee3ea/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oiVbSb17Wfkzg3wvU3-b1JXUkOR6X7t_yhvkGg8CJ-Q"
+          title: "Production Deployment Complete"
+          environment: "production"
+          deployment_url: ${{ needs.deploy_resources_prod.outputs.staticSiteUrl }}
+          logic_app_url: ${{ needs.deploy_resources_prod.outputs.teamsLogicAppUrl }}
+          github_logic_app_url: ${{ needs.deploy_resources_prod.outputs.githubLogicAppUrl }}
+          branch: ${{ github.ref }}
+          location_code: ${{ env.LOCATION_CODE }}
+          resource_group: prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
+          color: "00A300"
+          rollback_url: "https://github.com/${{ github.repository }}/actions/workflows/rollback.yml/dispatches?workflow=Phoenix+VC+Rollback+Pipeline&ref=${{ github.ref }}"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          teams_token: ${{ secrets.TEAMS_TOKEN }}
+
