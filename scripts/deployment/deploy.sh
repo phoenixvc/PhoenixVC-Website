@@ -244,14 +244,14 @@ main() {
     echo "staticSiteUrl=" >> "$GITHUB_OUTPUT"
   fi
 
-  # Retrieve the HTTP trigger URL for the Logic App.
-  # Note: This command requires that the Logic App has a manual trigger configured.
-  logicAppUrl=$(az logic workflow list-callback-url --name "$logicAppName" --resource-group "$RESOURCE_GROUP" --query "value" -o tsv)
-  if [ -n "$logicAppUrl" ]; then
-    echo "logicAppUrl=$logicAppUrl" >> "$GITHUB_OUTPUT"
-  else
-    echo "logicAppUrl=" >> "$GITHUB_OUTPUT"
-  fi
+  # # Retrieve the HTTP trigger URL for the Logic App.
+  # # Note: This command requires that the Logic App has a manual trigger configured.
+  # logicAppUrl=$(az logic workflow list-callback-url --name "$logicAppName" --resource-group "$RESOURCE_GROUP" --query "value" -o tsv)
+  # if [ -n "$logicAppUrl" ]; then
+  #   echo "logicAppUrl=$logicAppUrl" >> "$GITHUB_OUTPUT"
+  # else
+  #   echo "logicAppUrl=" >> "$GITHUB_OUTPUT"
+  # fi
 
   # Post-deployment validations.
   echo "✅ Deployment completed. Running validations..."
