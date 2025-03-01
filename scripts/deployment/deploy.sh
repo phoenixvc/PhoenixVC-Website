@@ -2,7 +2,7 @@
 set -eo pipefail
 
 # ------------------------------------------------------------------------------
-# Error handler: On error, fetch and print detailed deployment operations and error info.
+# Error handler: On error, fetch and print detailed deployment operations and error info
 # ------------------------------------------------------------------------------
 onError() {
   echo "❌ Deployment failed. Fetching detailed deployment operations..."
