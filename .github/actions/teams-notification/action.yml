@@ -71,7 +71,6 @@ runs:
       shell: bash
       id: build_payload
       run: |
-        # Encode tokens in base64
         encodedGitHubToken=$(echo "${{ inputs.github_token }}" | base64)
         encodedTeamsToken=$(echo "${{ inputs.teams_token }}" | base64)
         echo "Encoded GitHub token: $encodedGitHubToken"
@@ -82,19 +81,31 @@ runs:
         echo "Template contents:"
         echo "$TEMPLATE"
 
+        # Validate required variables
+        webhook_url="${{ inputs.webhook_url }}"
+        location_code="${{ inputs.location_code }}"
+        resource_group="${{ inputs.resource_group }}"
+        environment="${{ inputs.environment }}"
+        branch="${{ inputs.branch }}"
+        message="${{ inputs.message }}"
+        title="${{ inputs.title }}"
+        deployment_url="${{ inputs.deployment_url }}"
+        teams_logic_app_url="${{ inputs.teams_logic_app_url }}"
+        github_logic_app_url="${{ inputs.github_logic_app_url }}"
+
         required_vars=(
-          "inputs.webhook_url"
-          "inputs.location_code"
-          "inputs.resource_group"
-          "inputs.environment"
-          "inputs.branch"
-          "inputs.message"
-          "inputs.title"
-          "inputs.deployment_url"
+          "webhook_url"
+          "location_code"
+          "resource_group"
+          "environment"
+          "branch"
+          "message"
+          "title"
+          "deployment_url"
           "encodedGitHubToken"
           "encodedTeamsToken"
-          "inputs.teams_logic_app_url"
-          "inputs.github_logic_app_url"
+          "teams_logic_app_url"
+          "github_logic_app_url"
         )
 
         for var in "${required_vars[@]}"; do
@@ -103,6 +114,7 @@ runs:
             exit 1
           fi
         done
+        
         # Substitute placeholders in the template
         PAYLOAD=$(echo "$TEMPLATE" | sed \
           -e "s|{{teamsWebhookUrl}}|${{ inputs.webhook_url }}|g" \
