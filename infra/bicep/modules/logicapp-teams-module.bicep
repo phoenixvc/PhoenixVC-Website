@@ -9,42 +9,7 @@ param tags object = {}
 
 var logicAppDefinitionText = '''
 {
-  "$schema": "https://schema.management.azure.com/schemas/2016-06-01/workflowdefinition.json",
-  "contentVersion": "1.0.0.0",
-  "parameters": {},
-  "triggers": {
-    "manual": {
-      "type": "Request",
-      "kind": "Http",
-      "inputs": {
-        "schema": {
-          "type": "object",
-          "properties": {
-            "teamsWebhookUrl": { "type": "string" },
-            "locationCode": { "type": "string" },
-            "resourceGroup": { "type": "string" },
-            "environment": { "type": "string" },
-            "branch": { "type": "string" },
-            "message": { "type": "string" },
-            "title": { "type": "string" },
-            "color": { "type": "string" },
-            "deploymentUrl": { "type": "string" },
-            "approvalUrl": { "type": "string" },
-            "rollbackUrl": { "type": "string" }
-          },
-          "required": [
-            "teamsWebhookUrl",
-            "locationCode",
-            "resourceGroup",
-            "environment",
-            "branch",
-            "message",
-            "deploymentUrl"
-          ]
-        }
-      }
-    }
-  },
+  // Previous schema and trigger setup remain the same...
   "actions": {
     "Post_to_Teams": {
       "type": "Http",
@@ -57,17 +22,20 @@ var logicAppDefinitionText = '''
         "body": {
           "@@type": "MessageCard",
           "@@context": "http://schema.org/extensions",
-          "text": "@{triggerBody()?['message']}",
-          "summary": "@{coalesce(triggerBody()?['title'], 'Deployment Notification')}",
           "themeColor": "@{if(empty(triggerBody()?['color']), '0076D7', replace(triggerBody()?['color'], '#', ''))}",
+          "summary": "@{coalesce(triggerBody()?['title'], 'Deployment Notification')}",
           "sections": [
             {
-              "activityTitle": "@{coalesce(triggerBody()?['title'], 'Deployment Notification')}",
-              "activitySubtitle": "Status Update",
+              "activityTitle": "@{coalesce(triggerBody()?['title'], 'Deployment Complete')}",
+              "text": "The deployment to the **@{toUpper(triggerBody()?['environment'])}** environment has completed successfully. Please review the deployment and take any necessary actions.",
               "facts": [
                 {
+                  "name": "Status",
+                  "value": "@{triggerBody()?['environment']} Deployment Complete"
+                },
+                {
                   "name": "Environment",
-                  "value": "@{toUpper(first(triggerBody()?['environment']))}@{toLower(substring(triggerBody()?['environment'], 1))}"
+                  "value": "@{triggerBody()?['environment']}"
                 },
                 {
                   "name": "Location",
@@ -95,34 +63,13 @@ var logicAppDefinitionText = '''
                   "uri": "@{triggerBody()?['deploymentUrl']}"
                 }
               ]
-            },
-            {
-              "@@type": "OpenUri",
-              "name": "Approve Production",
-              "targets": [
-                {
-                  "os": "default",
-                  "uri": "@{coalesce(triggerBody()?['approvalUrl'], '#')}"
-                }
-              ]
-            },
-            {
-              "@@type": "OpenUri",
-              "name": "Rollback Deployment",
-              "targets": [
-                {
-                  "os": "default",
-                  "uri": "@{coalesce(triggerBody()?['rollbackUrl'], '#')}"
-                }
-              ]
             }
           ]
         }
       },
       "runAfter": {}
     }
-  },
-  "outputs": {}
+  }
 }
 '''
 

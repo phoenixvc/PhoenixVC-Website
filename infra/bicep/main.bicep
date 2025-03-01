@@ -35,7 +35,7 @@ param enableRbacAuthorization bool = false
 // ─────────────────────────────────────────────────────────────────────────────
 // Logic App parameters
 // ─────────────────────────────────────────────────────────────────────────────
-@description('Whether to deploy the Logic App')
+@description('Whether to deploy the Logic Apps')
 param deployLogicApp bool = false
 
 @description('Name of the Logic App (deployment notification)')
@@ -43,6 +43,10 @@ param logicAppName string = '${environment}-${locCode}-la-phoenixvc'
 
 @description('Name of the GitHub workflow invoking Logic App')
 param logicAppGitHubName string = '${environment}-${locCode}-la-github'
+
+@description('GitHub Personal Access Token for workflow dispatch')
+@secure()
+param githubToken string = ''
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Resource naming variables
@@ -146,8 +150,10 @@ module logicAppGitHubModule './modules/logicapp-github-module.bicep' = if (deplo
     logicAppName: logicAppGitHubName
     location: location
     tags: commonTags
+    githubToken: githubToken // Pass the GitHub token to the module
   }
 }
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Outputs

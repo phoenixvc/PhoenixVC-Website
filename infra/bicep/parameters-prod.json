@@ -8,6 +8,14 @@
     "enableRbacAuthorization": { "value": true },
     "deployBudget": { "value": false },
     "deployKeyVault": { "value": false },
-    "deployLogicApp": { "value": true }
+    "deployLogicApp": { "value": true },
+    "githubToken": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/<subscription-id>/resourceGroups/<rg-name>/providers/Microsoft.KeyVault/vaults/<keyvault-name>"
+        },
+        "secretName": "githubToken"
+      }
+    }
   }
 }

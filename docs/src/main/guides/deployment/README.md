@@ -72,7 +72,15 @@ Below is an overview of the core deployment files. Each document focuses on a sp
 13. **[Logic Apps Deployment](./deployment-logicapps.md)**
     - Logic Apps configuration and deployment
     - Integration patterns and best practices
-    -
+
+14. **[Staging deployment components and sequencet](./staging-deployment-workflow.md)**
+    - Sequence diagram showing the components involved in a staging deployment
+    - Configuraration settings for each component
+
+15. **[Production deployment components and sequence](./production-deployment-workflow.md)**
+    - Sequence diagram showing the components involved in a production deployment
+    - Configuraration settings for each component
+
 ### ADRs {: #adrs}
 The `adrs` folder contains Architectural Decision Records:
 - **[ADR 001: Credential Rotation](./adrs/adr-001-credential-rotation.md)**
