@@ -128,7 +128,7 @@ runs:
           -e "s|{{title}}|${{ inputs.title }}|g" \
           -e "s|{{color}}|$color|g" \
           -e "s|{{deploymentUrl}}|${{ inputs.deployment_url }}|g" \
-          -e "s|{{approvalUrl}}|${{ inputs.approval_url }}|g" \
+          -e "s|{{approvalUrl}}|$(echo "${{ inputs.approval_url }}" | sed 's/[\/&]/\\&/g')|g" \
           -e "s|{{rollbackUrl}}|${{ inputs.rollback_url }}|g" \
           -e "s|{{encodedToken}}|$encodedGitHubToken|g" \
           -e "s|{{encodedTeamsToken}}|$encodedTeamsToken|g" \

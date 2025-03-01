@@ -431,7 +431,7 @@ jobs:
           location_code: ${{ env.LOCATION_CODE }}
           resource_group: staging-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
           color: "0076D7"
-          approval_url: "https://github.com/${{ github.repository }}/actions/workflows/deploy.yml/dispatches?workflow=Phoenix+VC+Rollback+Pipeline&ref=${{ github.ref }}&APPROVAL_STATE=true"
+          approval_url: "{{ needs.deploy_resources_staging.outputs.staticSiteUrl }}"
           github_token: ${{ secrets.GITHUB_TOKEN }}
           teams_token: ${{ secrets.TEAMS_TOKEN }}
 

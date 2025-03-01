@@ -120,7 +120,7 @@ var logicAppDefinitionText = '''
             {
               "type": "Action.OpenUrl",
               "title": "Approve Production Deployment",
-              "url": "@{triggerBody()?['approvalUrl']}"
+              "url": "@{uriComponent(triggerBody()?['approvalUrl'])}"
             },
             {
               "type": "Action.OpenUrl",
