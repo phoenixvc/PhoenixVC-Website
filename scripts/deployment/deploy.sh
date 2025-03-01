@@ -93,11 +93,11 @@ fi
 
 echo "---------------------------------"
 echo "Override Values from Parameters File:"
-echo "  deployKeyVault: false"
-echo "  deployLogicApp: true"
-echo "  deployBudget: false"
-echo "  keyVaultSku: standard"
-echo "  enableRbacAuthorization: null"
+echo "  deployKeyVault: $deployKeyVaultVal"
+echo "  deployLogicApp: $deployLogicAppVal"
+echo "  deployBudget: $deployBudgetVal"
+echo "  keyVaultSku: $keyVaultSkuVal"
+echo "  enableRbacAuthorization: $enableRbacAuthorizationVal"
 echo "---------------------------------"
 
 # ------------------------------------------------------------------------------
@@ -213,23 +213,13 @@ main() {
   TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 
   echo "🚀 Deploying resources..."
-  deployment_params=(
-    --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}"
-    --location "$DEPLOY_REGION"
-    --template-file "$BICEP_FILE"
-    --parameters @"$PARAMETERS_FILE"
-    --parameters environment="$ENVIRONMENT" locCode="$LOCATION_CODE"
-  )
-
-  if [ "$deployLogicAppVal" = "true" ]; then
-    if [ -z "$GITHUB_TOKEN" ]; then
-      echo "❌ GITHUB_TOKEN is required when deployLogicApp is true" >&2
-      exit 1
-    fi
-    deployment_params+=(--parameters githubToken="$GITHUB_TOKEN")
-  fi
-
-  az deployment sub create "${deployment_params[@]}" --query properties.outputs
+  az deployment sub create \
+    --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" \
+    --location "$DEPLOY_REGION" \
+    --template-file "$BICEP_FILE" \
+    --parameters @"$PARAMETERS_FILE" \
+    --parameters environment="$ENVIRONMENT" locCode="$LOCATION_CODE" \
+    --query properties.outputs
 
   # First try to get URL from deployment outputs (original behavior)
   staticSiteUrl=$(az deployment sub show --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" \
