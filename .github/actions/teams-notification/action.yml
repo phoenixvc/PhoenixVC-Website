@@ -117,13 +117,41 @@ runs:
         run_id="${{ inputs.run_id }}"
 
         # Construct approval URL
-        approval_url="${{ inputs.github_logic_app_url }}"
         if [ "$environment" = "staging" ]; then
-          # URL encode the parameters
-          encoded_changes=$(echo "$change_summary" | jq -sRr @uri)
-          full_approval_url="${approval_url}?token=${encodedGitHubToken}&changes=${encoded_changes}&deploymentId=${deployment_id}&artifactId=${artifact_id}&runId=${run_id}"
+          # First check if a specific approval_url was provided
+          if [ -n "${{ inputs.approval_url }}" ]; then
+            approval_url="${{ inputs.approval_url }}"
+          else
+            # Validate required parameters for constructing approval URL
+            if [ -z "${{ inputs.github_logic_app_url }}" ]; then
+              echo "Error: github_logic_app_url is required for staging environment"
+              exit 1
+            fi
+
+            if [ -z "$deployment_id" ] || [ -z "$artifact_id" ] || [ -z "$run_id" ]; then
+              echo "Error: deployment_id, artifact_id, and run_id are required for staging environment"
+              exit 1
+            }
+
+            # Base URL
+            approval_url="${{ inputs.github_logic_app_url }}"
+
+            # URL encode each parameter separately
+            encoded_token=$(echo "$encodedGitHubToken" | jq -sRr @uri)
+            encoded_changes=$(echo "$change_summary" | jq -sRr @uri)
+            encoded_deployment_id=$(echo "$deployment_id" | jq -sRr @uri)
+            encoded_artifact_id=$(echo "$artifact_id" | jq -sRr @uri)
+            encoded_run_id=$(echo "$run_id" | jq -sRr @uri)
+
+            # Construct URL with encoded parameters
+            approval_url="${approval_url}?token=${encoded_token}&changes=${encoded_changes}&deploymentId=${encoded_deployment_id}&artifactId=${encoded_artifact_id}&runId=${encoded_run_id}"
+          fi
+        elif [ "$environment" = "prod" ]; then
+          # For prod, use the rollback URL if provided
+          approval_url="${{ inputs.rollback_url }}"
         else
-          full_approval_url=""
+          # For other environments, empty approval URL
+          approval_url=""
         fi
 
         required_vars=(
@@ -138,7 +166,6 @@ runs:
           "encodedGitHubToken"
           "encodedTeamsToken"
           "teams_logic_app_url"
-          "approval_url"
         )
 
         for var in "${required_vars[@]}"; do
@@ -163,7 +190,7 @@ runs:
           -e "s|{{encodedToken}}|$encodedGitHubToken|g" \
           -e "s|{{encodedTeamsToken}}|$encodedTeamsToken|g" \
           -e "s|{{teamsLogicAppUrl}}|${{ inputs.teams_logic_app_url }}|g" \
-          -e "s|{{approvalUrl}}|${{ full_approval_url }}|g")
+          -e "s|{{approvalUrl}}|${{ approval_url }}|g")
         echo "Generated Payload:"
         echo "$PAYLOAD"
 
