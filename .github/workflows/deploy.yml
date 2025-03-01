@@ -86,12 +86,50 @@ jobs:
         fi
         echo "==========================="
 
+  check_relevant_changes:
+    runs-on: ubuntu-latest
+    needs: [log_debug_information]
+    outputs:
+      resources_changed: ${{ steps.check_changes.outputs.resources_changed }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          repository: JustAGhosT/PhoenixVC-Modernized
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Check for Relevant Changes
+        id: check_changes
+        run: |
+          # Get the list of changed files
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})
+          else
+            CHANGED_FILES=$(git diff --name-only HEAD^ HEAD)
+          fi
+
+          # Check if any relevant files changed (excluding .github/workflows/)
+          RESOURCES_CHANGED=false
+          while IFS= read -r file; do
+            if [[ ! "$file" =~ ^\.github/workflows/ ]]; then
+              RESOURCES_CHANGED=true
+              break
+            fi
+          done <<< "$CHANGED_FILES"
+
+          echo "resources_changed=${RESOURCES_CHANGED}" >> $GITHUB_OUTPUT
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
   # ───────────────────────────────────────────────
   # ✅ BUILD APPS WITH Vite
   # ───────────────────────────────────────────────
   build_apps:
     runs-on: ubuntu-latest
-    needs: [log_debug_information]
+    needs: [log_debug_information, check_relevant_changes]
+    if: >
+      (github.event_name == 'workflow_dispatch' || needs.check_relevant_changes.outputs.resources_changed == 'true')
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -149,8 +187,10 @@ jobs:
   # ───────────────────────────────────────────────
   deploy_resources_staging:
     runs-on: ubuntu-latest
-    needs: [log_debug_information]
-    if: ${{ github.event.inputs.APPROVAL_STATE != 'true' }}
+    needs: [log_debug_information, check_relevant_changes]
+    if: >
+      github.event.inputs.APPROVAL_STATE != 'true' &&
+      (github.event_name == 'workflow_dispatch' || needs.check_relevant_changes.outputs.resources_changed == 'true')
     outputs:
       staticSiteUrl: ${{ steps.deploy.outputs.staticSiteUrl }}
       teamsLogicAppUrl: ${{ steps.deploy.outputs.teamsLogicAppUrl }}
@@ -178,12 +218,15 @@ jobs:
   # ───────────────────────────────────────────────
   swa_deploy_staging:
     runs-on: ubuntu-latest
-    needs: [build_apps, deploy_resources_staging]
+    needs: [build_apps, deploy_resources_staging, check_relevant_changes]
     continue-on-error: true
     timeout-minutes: 15
     environment:
       name: staging
       url: ${{ steps.swa_deploy.outputs.deployment_url }}
+      if: >
+        github.event.inputs.APPROVAL_STATE != 'true' &&
+        (github.event_name == 'workflow_dispatch' || needs.check_relevant_changes.outputs.resources_changed == 'true')
     steps:
       - name: Checkout Repository for Staging Resources
         uses: actions/checkout@v4
@@ -208,8 +251,10 @@ jobs:
   # ───────────────────────────────────────────────
   deploy_resources_prod:
     runs-on: ubuntu-latest
-    needs: [log_debug_information]
-    if: ${{ github.event.inputs.APPROVAL_STATE == 'true' }}
+    needs: [log_debug_information, check_relevant_changes]
+    if: >
+      github.event.inputs.APPROVAL_STATE == 'true' &&
+      (github.event_name == 'workflow_dispatch' || needs.check_relevant_changes.outputs.resources_changed == 'true')
     outputs:
       staticSiteUrl: ${{ steps.deploy.outputs.staticSiteUrl }}
       teamsLogicAppUrl: ${{ steps.deploy.outputs.teamsLogicAppUrl }}
@@ -245,6 +290,10 @@ jobs:
     environment:
       name: production
       url: ${{ steps.swa_deploy.outputs.deployment_url }}
+    if: >
+      github.event.inputs.APPROVAL_STATE == 'true' &&
+      (github.event_name == 'workflow_dispatch' || needs.check_relevant_changes.outputs.resources_changed == 'true')
+
     steps:
       - name: Checkout Repository for Production SWA Deploy
         uses: actions/checkout@v4
@@ -340,7 +389,7 @@ jobs:
     runs-on: ubuntu-latest
     # For staging, notify if success OR if failure and SEND_STAGING_FAILED is true.
     # For production, always notify regardless of outcome.
-    needs: [swa_deploy_staging, swa_deploy_prod, trigger_dns_update, deploy_docs]
+    needs: [swa_deploy_staging, swa_deploy_prod, trigger_dns_update, deploy_docs, check_relevant_changes]
     if: always()
     steps:
       - name: Checkout Repository for Notification
@@ -352,12 +401,19 @@ jobs:
 
       - name: Log Deployment Output Values
         run: |
-          echo "Static Site URL: ${{ needs.deploy_resources_staging.outputs.staticSiteUrl }}"
-          echo "Teams Logic App URL: ${{ needs.deploy_resources_staging.outputs.teamsLogicAppUrl }}"
-          echo "GitHub Logic App URL: ${{ needs.deploy_resources_staging.outputs.githubLogicAppUrl }}"
+          if [[ "${{ needs.check_relevant_changes.outputs.resources_changed }}" == "false" && "${{ github.event.inputs.APPROVAL_STATE }}" != "true" ]]; then
+            echo "Staging deployment was skipped - no relevant changes detected"
+          else
+            echo "Static Site URL: ${{ needs.deploy_resources_staging.outputs.staticSiteUrl }}"
+            echo "Teams Logic App URL: ${{ needs.deploy_resources_staging.outputs.teamsLogicAppUrl }}"
+            echo "GitHub Logic App URL: ${{ needs.deploy_resources_staging.outputs.githubLogicAppUrl }}"
+          fi
 
       - name: Notify Staging via Teams
-        if: ${{ github.event.inputs.APPROVAL_STATE != 'true' && (needs.swa_deploy_staging.result == 'success' || github.event.inputs.SEND_STAGING_FAILED == 'true') }}
+        if: >
+          github.event.inputs.APPROVAL_STATE != 'true' &&
+          (needs.check_relevant_changes.outputs.resources_changed == 'true' || github.event_name == 'workflow_dispatch') &&
+          (needs.swa_deploy_staging.result == 'success' || github.event.inputs.SEND_STAGING_FAILED == 'true')
         uses: ./.github/actions/teams-notification
         with:
           webhook_url: "https://phoenixvc568.webhook.office.com/webhookb2/17b0291f-b70b-4bdd-9266-f212ae03a2bd@7edf4423-ccb3-4275-bc80-64dae3ef0148/IncomingWebhook/3174ffcca3804d34ae923ba2e131f82e/a41dbcc0-67a6-4a23-bdec-b780dcebefa9/V2MOPWeKY7ywC8-iGptxHlSIZpwHVxw2FLAOAMU2N0hmM1"
