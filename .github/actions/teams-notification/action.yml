@@ -54,7 +54,6 @@ runs:
         TEMPLATE=$(cat "$(pwd)/${{ inputs.template_path }}")
         echo "Template contents:"
         echo "$TEMPLATE"
-        # Set the payload output to the template's content without substitution
         echo "payload=$TEMPLATE" >> $GITHUB_OUTPUT
 
     - name: Debug: Show Logic App URL and Payload
@@ -68,9 +67,6 @@ runs:
       shell: bash
       run: |
         echo "Invoking Logic App via HTTP trigger..."
-        RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST \
-          -H "Content-Type: application/json" \
-          -d "$(echo "${{ steps.build_payload.outputs.payload }}" | jq -c .)" \
-          "${{ inputs.logic_app_url }}")
+        RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST -H "Content-Type: application/json" -d "$(echo "${{ steps.build_payload.outputs.payload }}" | jq -c .)" "${{ inputs.logic_app_url }}")
         echo "Response from Logic App:"
         echo "$RESPONSE"
