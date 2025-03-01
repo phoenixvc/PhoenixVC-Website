@@ -62,6 +62,7 @@ echo "ENABLE_POLICY_CHECKS: $ENABLE_POLICY_CHECKS"
 echo "ENABLE_MONITORING: $ENABLE_MONITORING"
 echo "ENABLE_COST_CHECKS: $ENABLE_COST_CHECKS"
 echo "POLICY_ENFORCEMENT_MODE: $POLICY_ENFORCEMENT_MODE"
+echo "GITHUB_TOKEN: $POLICY_ENFORCEMENT_MODE"
 echo "================================="
 
 # If the parameters file exists, parse override values.
