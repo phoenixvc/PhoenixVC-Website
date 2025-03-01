@@ -63,6 +63,7 @@ jobs:
         echo "Static Web App Name: [env]-${LOCATION_CODE}-swa-phoenixvc-website"
         echo "Log repository: ${{ github.repository }}"
         echo "Azure Subscription ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+        echo "Prod deployment token: ${{ secrets.PROD_DEPLOYMENT_TOKEN }}"
 
         if [[ -n "${{ secrets.GITHUB_TOKEN }}" ]]; then
           echo "✅ GITHUB_TOKEN is set."
@@ -78,6 +79,11 @@ jobs:
           echo "✅ AZURE_SUBSCRIPTION_ID is set."
         else
           echo "⚠️ AZURE_SUBSCRIPTION_ID is missing!"
+        fi
+        if [[ -n "${{ secrets.PROD_DEPLOYMENT_TOKEN }}" ]]; then
+          echo "✅ PROD_DEPLOYMENT_TOKEN is set."
+        else
+          echo "⚠️ PROD_DEPLOYMENT_TOKEN is missing!"
         fi
         if [[ "${{ github.event.inputs.APPROVAL_STATE }}" == "true" ]]; then
           echo "🚀 Deploying to Production - Manual approval was bypassed!"

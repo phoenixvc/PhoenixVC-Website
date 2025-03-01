@@ -45,8 +45,8 @@ param logicAppName string = '${environment}-${locCode}-la-phoenixvc'
 param logicAppGitHubName string = '${environment}-${locCode}-la-github'
 
 @description('GitHub Personal Access Token for workflow dispatch')
-@secure()
-param githubToken string = ''
+@minLength(1)
+param githubToken string
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Resource naming variables

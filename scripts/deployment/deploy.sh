@@ -5,7 +5,10 @@ set -eo pipefail
 # Error handler: On error, fetch and print detailed deployment operations and error info
 # ------------------------------------------------------------------------------
 onError() {
-  echo "❌ Deployment failed. Fetching detailed deployment operations..."
+  echo "❌ Deployment failed. Error code: $?" >&2
+  echo "Last command: $BASH_COMMAND" >&2
+
+  echo "Fetching detailed deployment operations..."
   DEPLOYMENT_NAME="PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}"
   echo "Deployment Operations:"
   az deployment sub operation list --name "$DEPLOYMENT_NAME" --query "[].{Operation:operationName, Status:provisioningState, Target:target}" -o table
@@ -62,7 +65,7 @@ echo "ENABLE_POLICY_CHECKS: $ENABLE_POLICY_CHECKS"
 echo "ENABLE_MONITORING: $ENABLE_MONITORING"
 echo "ENABLE_COST_CHECKS: $ENABLE_COST_CHECKS"
 echo "POLICY_ENFORCEMENT_MODE: $POLICY_ENFORCEMENT_MODE"
-echo "GITHUB_TOKEN: $POLICY_ENFORCEMENT_MODE"
+echo "GITHUB_TOKEN: $GITHUB_TOKEN"
 echo "================================="
 
 # If the parameters file exists, parse override values.
@@ -223,13 +226,21 @@ main() {
 
   if [ "$deployLogicAppVal" = "true" ]; then
     if [ -z "$GITHUB_TOKEN" ]; then
+      echo "Debug: deployLogicApp is true"
+      echo "Debug: GITHUB_TOKEN length: ${#GITHUB_TOKEN}"
       echo "❌ GITHUB_TOKEN is required when deployLogicApp is true" >&2
       exit 1
+    fi
+    if [[ ! $GITHUB_TOKEN =~ ^gh[ps]_[A-Za-z0-9_]{36,255}$ ]]; then
+        echo "⚠️ Warning: GITHUB_TOKEN format doesn't match expected pattern" >&2
     fi
     deployment_params+=(--parameters githubToken="$GITHUB_TOKEN")
   fi
 
-  az deployment sub create "${deployment_params[@]}" --query properties.outputs
+  if ! az deployment sub create "${deployment_params[@]}" --query properties.outputs; then
+      echo "❌ Deployment failed"
+      exit 1
+  fi
 
   # First try to get URL from deployment outputs (original behavior)
   staticSiteUrl=$(az deployment sub show --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" \

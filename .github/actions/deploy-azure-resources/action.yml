@@ -64,7 +64,7 @@ runs:
     - name: Run Resource Deployment Script
       shell: bash
       run: |
-        ./scripts/deployment/deploy.sh --env ${{ inputs.environment }}
+        bash -x ./scripts/deployment/deploy.sh --env ${{ inputs.environment }}
       env:
         ENVIRONMENT: ${{ inputs.environment }}
         RG_NAME: ${{ inputs.environment }}-${{ inputs.location_code }}-rg-phoenixvc-website

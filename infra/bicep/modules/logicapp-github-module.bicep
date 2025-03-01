@@ -18,7 +18,7 @@ param tags object = {}
 //      keyVault: { id: keyVaultId }
 //      secretName: 'githubToken'
 //    }
-@secure()
+@description('Tags for the Logic App')
 param githubToken string
 
 //
