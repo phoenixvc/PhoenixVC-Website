@@ -83,18 +83,18 @@ runs:
         echo "$TEMPLATE"
 
         required_vars=(
-          "webhook_url"
-          "location_code"
-          "resource_group"
-          "environment"
-          "branch"
-          "message"
-          "title"
-          "deployment_url"
-          "github_token"
-          "teams_token"
-          "teams_logic_app_url"
-          "github_logic_app_url"
+          "inputs.webhook_url"
+          "inputs.location_code"
+          "inputs.resource_group"
+          "inputs.environment"
+          "inputs.branch"
+          "inputs.message"
+          "inputs.title"
+          "inputs.deployment_url"
+          "encodedGitHubToken"
+          "encodedTeamsToken"
+          "inputs.teams_logic_app_url"
+          "inputs.github_logic_app_url"
         )
 
         for var in "${required_vars[@]}"; do
