@@ -55,8 +55,8 @@ var logicAppDefinitionText = '''
           "Content-Type": "application/json"
         },
         "body": {
-          "@type": "MessageCard",
-          "@context": "http://schema.org/extensions",
+          "@@type": "MessageCard",
+          "@@context": "http://schema.org/extensions",
           "text": "@{triggerBody()?['message']}",
           "summary": "@{coalesce(triggerBody()?['title'], 'Deployment Notification')}",
           "themeColor": "@{if(empty(triggerBody()?['color']), '0076D7', replace(triggerBody()?['color'], '#', ''))}",
@@ -87,7 +87,7 @@ var logicAppDefinitionText = '''
           ],
           "potentialAction": [
             {
-              "@type": "OpenUri",
+              "@@type": "OpenUri",
               "name": "View Deployment",
               "targets": [
                 {
@@ -97,7 +97,7 @@ var logicAppDefinitionText = '''
               ]
             },
             {
-              "@type": "OpenUri",
+              "@@type": "OpenUri",
               "name": "Approve Production",
               "targets": [
                 {
@@ -107,7 +107,7 @@ var logicAppDefinitionText = '''
               ]
             },
             {
-              "@type": "OpenUri",
+              "@@type": "OpenUri",
               "name": "Rollback Deployment",
               "targets": [
                 {
