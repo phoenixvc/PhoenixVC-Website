@@ -227,12 +227,13 @@ main() {
   check_resource_group
 
   local existing_url
+  # Fix the first existing URL check
   if az group exists --name "$RESOURCE_GROUP" | grep -q "true"; then
     existing_url=$(get_static_web_app_url "$RESOURCE_GROUP" "$ENVIRONMENT" "$LOCATION_CODE")
     if [ -n "$existing_url" ]; then
       echo "📡 Found existing Static Web App URL: $existing_url"
-      # Write to GITHUB_OUTPUT in the correct format
-      echo "staticSiteUrl=${existing_url}" >> "$GITHUB_OUTPUT"
+      # Add quotes here to match other paths
+      echo "staticSiteUrl=\"$existing_url\"" >> "$GITHUB_OUTPUT"  # ✅ Fixed
     fi
   fi
 
@@ -260,20 +261,20 @@ main() {
 
   if [ -n "$deployment_url" ]; then
     echo "📡 Got URL from deployment: $deployment_url"
-    # Use simple escaping for the URL
-    echo "staticSiteUrl=$deployment_url" >> "$GITHUB_OUTPUT"
+    # Escape the URL and wrap in quotes
+    echo "staticSiteUrl=\"$deployment_url\"" >> "$GITHUB_OUTPUT"
   elif [ -n "$existing_url" ]; then
     echo "📡 Using existing URL: $existing_url"
-    echo "staticSiteUrl=$existing_url" >> "$GITHUB_OUTPUT"
+    echo "staticSiteUrl=\"$existing_url\"" >> "$GITHUB_OUTPUT"
   else
     # Final attempt to get URL
     final_url=$(get_static_web_app_url "$RESOURCE_GROUP" "$ENVIRONMENT" "$LOCATION_CODE")
     if [ -n "$final_url" ]; then
       echo "📡 Retrieved URL after deployment: $final_url"
-      echo "staticSiteUrl=$final_url" >> "$GITHUB_OUTPUT"
+      echo "staticSiteUrl=\"$final_url\"" >> "$GITHUB_OUTPUT"
     else
       echo "⚠️ Could not determine Static Web App URL"
-      echo "staticSiteUrl=" >> "$GITHUB_OUTPUT"
+      echo "staticSiteUrl=\"\"" >> "$GITHUB_OUTPUT"
     fi
   fi
 
