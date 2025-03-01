@@ -45,9 +45,6 @@ inputs:
   teams_token:
     description: "Teams token to be encoded and passed along"
     required: true
-  teams_logic_app_url:
-    description: "Teams Logic App URL"
-    required: true
   github_logic_app_url:
     description: "GitHub Logic App URL"
     required: true
@@ -90,7 +87,7 @@ runs:
         message="${{ inputs.message }}"
         title="${{ inputs.title }}"
         deployment_url="${{ inputs.deployment_url }}"
-        teams_logic_app_url="${{ inputs.teams_logic_app_url }}"
+        teams_logic_app_url="${{ inputs.logic_app_url }}"
         github_logic_app_url="${{ inputs.github_logic_app_url }}"
 
         required_vars=(
@@ -114,7 +111,7 @@ runs:
             exit 1
           fi
         done
-        
+
         # Substitute placeholders in the template
         PAYLOAD=$(echo "$TEMPLATE" | sed \
           -e "s|{{teamsWebhookUrl}}|${{ inputs.webhook_url }}|g" \
