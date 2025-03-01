@@ -12,7 +12,7 @@
         { "name": "Environment", "value": "{{environment}}" },
         { "name": "Location", "value": "{{location_code}}" },
         { "name": "Resource Group", "value": "{{resource_group}}" },
-        { "name": "Site URL", "value": "{{deployment_url}}" }
+        { "name": "Site URL", "value": "{{deployment_url}}" },
         { "name": "Webhook URL", "value": "{{webhook_url}}" }
       ],
       "markdown": true
