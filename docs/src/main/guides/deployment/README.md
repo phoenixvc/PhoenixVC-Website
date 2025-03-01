@@ -60,8 +60,19 @@ Below is an overview of the core deployment files. Each document focuses on a sp
    - Guidelines for creating and managing DNS
 
 10. **[Why Static Web Apps](./swa-deployment.md)**
-   - More information on static web apps
 
+11. **[GitHub Workflows](./github-workflows.md)**
+    - Detailed documentation on CI/CD pipeline configuration
+    - Workflow structure and trigger conditions
+
+12. **[GitHub Actions](./github-actions.md)**
+    - Custom actions and reusable workflows
+    - Action configuration and usage guidelines
+
+13. **[Logic Apps Deployment](./deployment-logicapps.md)**
+    - Logic Apps configuration and deployment
+    - Integration patterns and best practices
+    -
 ### ADRs {: #adrs}
 The `adrs` folder contains Architectural Decision Records:
 - **[ADR 001: Credential Rotation](./adrs/adr-001-credential-rotation.md)**

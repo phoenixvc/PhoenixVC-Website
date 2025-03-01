@@ -5,7 +5,9 @@
     "environment": { "value": "staging" },
     "locCode": { "value": "euw" },
     "branch": { "value": "staging" },
+    "keyVaultSku": { "value": "standard" },
     "deployBudget": { "value": false },
-    "deployKeyVault": { "value": true }
+    "deployKeyVault": { "value": false },
+    "deployLogicApp": { "value": true }
   }
 }

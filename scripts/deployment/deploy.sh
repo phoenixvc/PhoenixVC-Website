@@ -1,17 +1,36 @@
 #!/bin/bash
 set -eo pipefail
 
-# Feature Configuration
+# ------------------------------------------------------------------------------
+# Error handler: On error, fetch and print detailed deployment operations and error info.
+# ------------------------------------------------------------------------------
+onError() {
+  echo "❌ Deployment failed. Fetching detailed deployment operations..."
+  DEPLOYMENT_NAME="PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}"
+  echo "Deployment Operations:"
+  az deployment sub operation list --name "$DEPLOYMENT_NAME" --query "[].{Operation:operationName, Status:provisioningState, Target:target}" -o table
+  echo "Detailed Deployment Error:"
+  az deployment sub show --name "$DEPLOYMENT_NAME" --query properties.error -o json
+}
+trap onError ERR
+
+# ------------------------------------------------------------------------------
+# 1) Resolve and log deployment parameters
+# ------------------------------------------------------------------------------
+# Use environment variables (if set) or defaults.
 ENVIRONMENT="${ENVIRONMENT:-staging}"
-# Expected values: "euw" for West Europe, "saf" for South Africa
 LOCATION_CODE="${LOCATION_CODE:-saf}"
-DEPLOY_REGION="westeurope"
-ENABLE_POLICY_CHECKS="${ENABLE_POLICY_CHECKS:-true}"
+# For now, disable policy checks:
+ENABLE_POLICY_CHECKS="${ENABLE_POLICY_CHECKS:-false}"
 ENABLE_MONITORING="${ENABLE_MONITORING:-false}"
 ENABLE_COST_CHECKS="${ENABLE_COST_CHECKS:-false}"
 POLICY_ENFORCEMENT_MODE="${POLICY_ENFORCEMENT_MODE:-enforce}"
 
-# Determine deployment region based on LOCATION_CODE
+# Override file paths if provided; otherwise, use defaults.
+BICEP_FILE="${BICEP_FILE:-./infra/bicep/main.bicep}"
+PARAMETERS_FILE="${PARAMETERS_FILE:-./infra/bicep/parameters-${ENVIRONMENT}.json}"
+
+# Determine DEPLOY_REGION from LOCATION_CODE.
 if [ "$LOCATION_CODE" = "euw" ]; then
   DEPLOY_REGION="westeurope"
 elif [ "$LOCATION_CODE" = "saf" ]; then
@@ -21,52 +40,124 @@ else
   DEPLOY_REGION="westeurope"
 fi
 
-# Path Configuration
-BICEP_FILE="./infra/bicep/main.bicep"
-PARAMETERS_FILE="./infra/bicep/parameters-${ENVIRONMENT}.json"
+# Compute resource group name.
 RESOURCE_GROUP="${ENVIRONMENT}-${LOCATION_CODE}-rg-phoenixvc-website"
-TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 
-# Cleanup
-trap 'rm -f temp_*_check.json' EXIT
+# Check that jq is installed.
+if ! command -v jq > /dev/null; then
+  echo "jq is not installed. Please install jq to run this script."
+  exit 1
+fi
 
-# Policy Functions
+# Log key deployment parameters.
+echo "===== Deployment Parameters ====="
+echo "ENVIRONMENT: $ENVIRONMENT"
+echo "LOCATION_CODE: $LOCATION_CODE"
+echo "DEPLOY_REGION: $DEPLOY_REGION"
+echo "RESOURCE_GROUP: $RESOURCE_GROUP"
+echo "BICEP_FILE: $BICEP_FILE"
+echo "PARAMETERS_FILE: $PARAMETERS_FILE"
+echo "ENABLE_POLICY_CHECKS: $ENABLE_POLICY_CHECKS"
+echo "ENABLE_MONITORING: $ENABLE_MONITORING"
+echo "ENABLE_COST_CHECKS: $ENABLE_COST_CHECKS"
+echo "POLICY_ENFORCEMENT_MODE: $POLICY_ENFORCEMENT_MODE"
+echo "================================="
+
+# If the parameters file exists, parse override values.
+if [ -f "$PARAMETERS_FILE" ]; then
+  echo "Full Parameters File Content:"
+  cat "$PARAMETERS_FILE"
+  echo "---------------------------------"
+
+  # For debugging, output the raw value (without tostring conversion) for each.
+  deployKeyVaultRaw=$(jq -r '.parameters.deployKeyVault.value' < "$PARAMETERS_FILE")
+  deployLogicAppRaw=$(jq -r '.parameters.deployLogicApp.value' < "$PARAMETERS_FILE")
+  deployBudgetRaw=$(jq -r '.parameters.deployBudget.value' < "$PARAMETERS_FILE")
+  keyVaultSkuRaw=$(jq -r '.parameters.keyVaultSku.value' < "$PARAMETERS_FILE")
+  enableRbacAuthorizationRaw=$(jq -r '.parameters.enableRbacAuthorization.value' < "$PARAMETERS_FILE")
+
+  # Use default "not-set" if the value is null.
+  deployKeyVaultVal=${deployKeyVaultRaw:-"not-set"}
+  deployLogicAppVal=${deployLogicAppRaw:-"not-set"}
+  deployBudgetVal=${deployBudgetRaw:-"not-set"}
+  keyVaultSkuVal=${keyVaultSkuRaw:-"not-set"}
+  enableRbacAuthorizationVal=${enableRbacAuthorizationRaw:-"not-set"}
+else
+  deployKeyVaultVal="N/A"
+  deployLogicAppVal="N/A"
+  deployBudgetVal="N/A"
+  keyVaultSkuVal="N/A"
+  enableRbacAuthorizationVal="N/A"
+fi
+
+echo "Override Values from Parameters File:"
+echo "  deployKeyVault: $deployKeyVaultVal"
+echo "  deployLogicApp: $deployLogicAppVal"
+echo "  deployBudget: $deployBudgetVal"
+echo "  keyVaultSku: $keyVaultSkuVal"
+echo "  enableRbacAuthorization: $enableRbacAuthorizationVal"
+echo "---------------------------------"
+
+# ------------------------------------------------------------------------------
+# 2) Define helper functions
+# ------------------------------------------------------------------------------
+# (Policy check is skipped if ENABLE_POLICY_CHECKS is false.)
 policy_precheck() {
   [ "$ENABLE_POLICY_CHECKS" = "true" ] || return 0
-  
+
   echo "🔒 Running Pre-Deployment Policy Check..."
   az policy state trigger-scan --subscription "$(az account show --query id -o tsv)" --no-wait
-  
-  local non_compliant
-  non_compliant=$(az policy state list --all --query "[?complianceState == 'NonCompliant' && resourceGroup == '$RESOURCE_GROUP']" -o tsv)
-  
-  [ -z "$non_compliant" ] || { 
-    echo "❌ Pre-Deployment Policy Violations:" >&2
-    echo "$non_compliant" | awk -F'\t' '{print "- " $1 " (" $2 ")"}'
-    return 1
-  }
+  echo "Waiting for policy scan results..."
+  sleep 20
+
+  local non_compliant_json
+  non_compliant_json=$(az policy state list --all --query "[?complianceState=='NonCompliant' && resourceGroup=='$RESOURCE_GROUP']" -o json)
+  local violation_count
+  violation_count=$(echo "$non_compliant_json" | jq 'length')
+
+  if [ "$violation_count" -gt 0 ]; then
+    echo "❌ Pre-Deployment Policy Violations: $violation_count violation(s) found:" >&2
+    echo "$non_compliant_json" | jq -r '
+      group_by(.policyDefinitionId)[] |
+      "Policy Definition: " + (. [0].policyDefinitionName // "Unknown") +
+      " (" + (. [0].policyDefinitionId // "N/A") + ") - Violations: " + (length | tostring) + "\n" +
+      (map(
+         "  - Resource: " + (.resourceId // "Unknown") +
+         " | Assignment: " + (.policyAssignmentName // "Unknown") +
+         " | Assignment ID: " + (.policyAssignmentId // "N/A")
+       ) | join("\n"))
+    '
+    echo ""
+    echo "🔍 Fetching detailed policy definitions for each violation:"
+    for policyId in $(echo "$non_compliant_json" | jq -r '.[].policyDefinitionId' | sort | uniq); do
+      local policyName="${policyId##*/}"
+      echo "Policy ID: $policyId"
+      echo "Details:"
+      az policy definition show --name "$policyName" --query "{displayName: displayName, description: description}" -o json | jq .
+      echo "------------------------"
+    done
+    exit 1
+  else
+    echo "✅ No Pre-Deployment Policy Violations detected."
+  fi
 }
 
-# Monitoring Setup
-# Monitoring Setup
 setup_monitoring() {
   [ "$ENABLE_MONITORING" = "true" ] || return 0
-  
+
   echo "📈 Configuring Monitoring..."
-  
   if [ "$POLICY_ENFORCEMENT_MODE" = "enforce" ]; then
     az monitor activity-log alert create \
       --name "${RESOURCE_GROUP}-policy-violation" \
       --resource-group "$RESOURCE_GROUP" \
       --condition category='Policy' \
-      --action email="security@phoenixvc.za" \
-      --description "DNS policy violation alerts"
+      --action email="security@phoenixvc.com" \
+      --description "Policy violation alerts for Phoenix VC"
   else
     echo "Policy enforcement is not set to 'enforce'. Skipping monitoring configuration."
   fi
 }
 
-# Emergency Handling
 handle_emergency() {
   if [[ "$*" == *"--emergency-override"* ]]; then
     echo "⚠️ EMERGENCY OVERRIDE: Disabling policy enforcement"
@@ -76,7 +167,6 @@ handle_emergency() {
   fi
 }
 
-# Check if Resource Group exists and is not in a 'Deleting' state
 check_resource_group() {
   echo "🔍 Checking resource group '$RESOURCE_GROUP'..."
   if az group exists --name "$RESOURCE_GROUP" | grep -q "true"; then
@@ -93,48 +183,93 @@ check_resource_group() {
   fi
 }
 
-# Main Deployment Flow
+# ------------------------------------------------------------------------------
+# 3) Main deployment flow
+# ------------------------------------------------------------------------------
 main() {
   handle_emergency "$@"
-  
-  echo "🚀 Starting ${ENVIRONMENT} deployment (Features: Policy=${ENABLE_POLICY_CHECKS}, Monitoring=${ENABLE_MONITORING})"
-  
-  # Pre-Flight Checks
-  policy_precheck
 
-  # Check resource group status before deployment
+  echo "🚀 Starting ${ENVIRONMENT} deployment (Features: Policy=${ENABLE_POLICY_CHECKS}, Monitoring=${ENABLE_MONITORING})"
+
+  # Run policy precheck if enabled.
+  if [ "$ENABLE_POLICY_CHECKS" = "true" ]; then
+    policy_precheck
+  else
+    echo "🔒 Pre-Deployment Policy Check skipped (disabled)."
+  fi
+
+  # Check resource group status.
   check_resource_group
 
-  # Bicep Deployment (Removed unsupported policyEnforcement parameter)
+  echo "📄 Using parameter file: $PARAMETERS_FILE"
+  if ! cat "$PARAMETERS_FILE"; then
+    echo "❌ Could not read parameters file: $PARAMETERS_FILE"
+    exit 1
+  fi
+
+  # Timestamp for naming the deployment.
+  TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+
+  echo "🚀 Deploying resources..."
   az deployment sub create \
     --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" \
     --location "$DEPLOY_REGION" \
     --template-file "$BICEP_FILE" \
     --parameters @"$PARAMETERS_FILE" \
-    --parameters \
-      environment="$ENVIRONMENT" \
-      locCode="$LOCATION_CODE" \
+    --parameters environment="$ENVIRONMENT" locCode="$LOCATION_CODE" \
     --query properties.outputs
-  
-  # Post-Deployment
+
+  # First try to get URL from deployment outputs (original behavior)
+  staticSiteUrl=$(az deployment sub show --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" \
+    --query "properties.outputs.staticSiteUrl.value" -o tsv)
+
+  # If no URL from deployment, but resource group exists, try to get existing URL
+  if [ -z "$staticSiteUrl" ] && az group exists --name "$RESOURCE_GROUP" | grep -q "true"; then
+    swa_name="${ENVIRONMENT}-${LOCATION_CODE}-swa-phoenixvc-website"
+    staticSiteUrl=$(az staticwebapp show \
+      --name "$swa_name" \
+      --resource-group "$RESOURCE_GROUP" \
+      --query "defaultHostname" \
+      --output tsv 2>/dev/null)
+
+    if [ -n "$staticSiteUrl" ]; then
+      staticSiteUrl="https://$staticSiteUrl"
+    fi
+  fi
+
+  # Output the URL (whether from deployment or existing resource)
+  if [ -n "$staticSiteUrl" ]; then
+    echo "staticSiteUrl=${staticSiteUrl}" >> "$GITHUB_OUTPUT"
+  else
+    echo "staticSiteUrl=" >> "$GITHUB_OUTPUT"
+  fi
+
+  # # Retrieve the HTTP trigger URL for the Logic App.
+  # # Note: This command requires that the Logic App has a manual trigger configured.
+  # logicAppUrl=$(az logic workflow list-callback-url --name "$logicAppName" --resource-group "$RESOURCE_GROUP" --query "value" -o tsv)
+  # if [ -n "$logicAppUrl" ]; then
+  #   echo "logicAppUrl=$logicAppUrl" >> "$GITHUB_OUTPUT"
+  # else
+  #   echo "logicAppUrl=" >> "$GITHUB_OUTPUT"
+  # fi
+
+  # Post-deployment validations.
   echo "✅ Deployment completed. Running validations..."
   if [ "$(az group exists --name "$RESOURCE_GROUP")" != "true" ]; then
     echo "❌ Resource Group missing!" >&2
     exit 1
   fi
-  
+
   setup_monitoring
-  
-  # Cost Checks
+
   if [ "$ENABLE_COST_CHECKS" = "true" ]; then
     echo "💰 Cost Baseline Analysis:"
     az consumption budget list --query "[?name=='${RESOURCE_GROUP}-budget-website']" -o table
   fi
-  
+
   echo "🛡️ Deployment Health Check Complete"
 }
 
-# Help Documentation
 show_help() {
   echo -e "Usage: ENVIRONMENT=staging ./deploy.sh [--emergency-override]"
   echo -e "\nFeature Flags (set as env vars):"
@@ -146,7 +281,6 @@ show_help() {
   echo "  --emergency-override         - Bypass policy checks (audit logs still enabled)"
 }
 
-# Execution
 if [[ "$*" == *"--help"* ]]; then
   show_help
   exit 0

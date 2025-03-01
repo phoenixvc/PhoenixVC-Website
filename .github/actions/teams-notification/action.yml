@@ -1,6 +1,20 @@
+name: "Teams Notification"
+description: "Send a notification to Microsoft Teams with deployment information using a file-based JSON template, encoding GitHub and Teams tokens."
+
 inputs:
-  title:
-    description: "Title of the notification"
+  logic_app_url:
+    description: "URL of the Logic App HTTP trigger endpoint"
+    required: true
+  template_path:
+    description: "Path to the JSON template file relative to the repository root"
+    required: false
+    default: ".github/actions/teams-notification/logic-app-teams-template.json"
+  webhook_url:
+    description: "Microsoft Teams webhook URL"
+    required: false
+    default: "https://phoenixvc568.webhook.office.com/webhookb2/..."
+  message:
+    description: "Notification message"
     required: true
   environment:
     description: "Deployment environment (e.g. staging, prod)"
@@ -17,10 +31,6 @@ inputs:
   resource_group:
     description: "Resource group name"
     required: true
-  color:
-    description: "Theme color for the card (hex code)"
-    required: false
-    default: "0076D7"
   approval_url:
     description: "URL for approval action (staging only)"
     required: false
@@ -29,15 +39,23 @@ inputs:
     description: "URL for rollback action (prod only)"
     required: false
     default: ""
-  template_path:
-    description: "Path to the Teams template JSON file relative to this action’s directory"
+  github_token:
+    description: "GitHub token to be encoded and passed along"
+    required: true
+  teams_token:
+    description: "Teams token to be encoded and passed along"
+    required: true
+  github_logic_app_url:
+    description: "GitHub Logic App URL"
+    required: true
+  title:
+    description: "Title for the notification"
+    required: true
+  color:
+    description: "Color for the notification card"
     required: false
-    default: "teams-template.json"
-  webhook_url:
-    description: "Path to the Teams template JSON file relative to this action’s directory"
-    required: false
-    default: ""
-    
+    default: "0076D7"
+
 runs:
   using: "composite"
   steps:
@@ -49,19 +67,95 @@ runs:
     - name: Read and Substitute Template
       shell: bash
       id: build_payload
-      run: >
-        # Read the JSON template file from the action's directory using the provided template_path input.
-        TEMPLATE=$(cat "$(pwd)/.github/actions/teams-notification/${{ inputs.template_path }}")
-        # Replace placeholders in the template with the input values.
-        PAYLOAD=$(echo "$TEMPLATE" | sed -e "s|{{title}}|${{ inputs.title }}|g" -e "s|{{environment}}|${{ inputs.environment }}|g" -e "s|{{deployment_url}}|${{ inputs.deployment_url }}|g" -e "s|{{branch}}|${{ inputs.branch }}|g" -e "s|{{location_code}}|${{ inputs.location_code }}|g" -e "s|{{resource_group}}|${{ inputs.resource_group }}|g" -e "s|{{color}}|${{ inputs.color }}|g" -e "s|{{approval_url}}|${{ inputs.approval_url }}|g" -e "s|{{rollback_url}}|${{ inputs.rollback_url }}|g")
-        echo "Generated Payload:" 
-        echo "$PAYLOAD"
-        # Using the new environment-file method instead of set-output:
-        echo "payload=$PAYLOAD" >> $GITHUB_OUTPUT
+      run: |
+        encodedGitHubToken=$(echo "${{ inputs.github_token }}" | base64)
+        encodedTeamsToken=$(echo "${{ inputs.teams_token }}" | base64)
+        echo "Encoded GitHub token: $encodedGitHubToken"
+        echo "Encoded Teams token: $encodedTeamsToken"
 
-    - name: Send Teams Notification
+        # Read the JSON template file
+        TEMPLATE=$(cat "$(pwd)/${{ inputs.template_path }}")
+        echo "Template contents:"
+        echo "$TEMPLATE"
+
+        color="${{ inputs.color }}"
+        if [ -z "$color" ]; then
+          color="0076D7"
+        fi
+
+        # Validate required variables
+        webhook_url="${{ inputs.webhook_url }}"
+        location_code="${{ inputs.location_code }}"
+        resource_group="${{ inputs.resource_group }}"
+        environment="${{ inputs.environment }}"
+        branch="${{ inputs.branch }}"
+        message="${{ inputs.message }}"
+        title="${{ inputs.title }}"
+        deployment_url="${{ inputs.deployment_url }}"
+        teams_logic_app_url="${{ inputs.logic_app_url }}"
+        github_logic_app_url="${{ inputs.github_logic_app_url }}"
+
+        required_vars=(
+          "webhook_url"
+          "location_code"
+          "resource_group"
+          "environment"
+          "branch"
+          "message"
+          "title"
+          "deployment_url"
+          "encodedGitHubToken"
+          "encodedTeamsToken"
+          "teams_logic_app_url"
+          "github_logic_app_url"
+        )
+
+        for var in "${required_vars[@]}"; do
+          if [ -z "${!var}" ]; then
+            echo "Error: Required variable $var is empty"
+            exit 1
+          fi
+        done
+
+        # Substitute placeholders in the template
+        PAYLOAD=$(echo "$TEMPLATE" | sed \
+          -e "s|{{teamsWebhookUrl}}|${{ inputs.webhook_url }}|g" \
+          -e "s|{{locationCode}}|${{ inputs.location_code }}|g" \
+          -e "s|{{resourceGroup}}|${{ inputs.resource_group }}|g" \
+          -e "s|{{environment}}|${{ inputs.environment }}|g" \
+          -e "s|{{branch}}|${{ inputs.branch }}|g" \
+          -e "s|{{message}}|${{ inputs.message }}|g" \
+          -e "s|{{title}}|${{ inputs.title }}|g" \
+          -e "s|{{color}}|$color|g" \
+          -e "s|{{deploymentUrl}}|${{ inputs.deployment_url }}|g" \
+          -e "s|{{approvalUrl}}|$(echo "${{ inputs.approval_url }}" | sed 's/[\/&]/\\&/g')|g" \
+          -e "s|{{rollbackUrl}}|${{ inputs.rollback_url }}|g" \
+          -e "s|{{encodedToken}}|$encodedGitHubToken|g" \
+          -e "s|{{encodedTeamsToken}}|$encodedTeamsToken|g" \
+          -e "s|{{teamsLogicAppUrl}}|${{ inputs.teams_logic_app_url }}|g" \
+          -e "s|{{githubLogicAppUrl}}|${{ inputs.github_logic_app_url }}|g")
+        echo "Generated Payload:"
+        echo "$PAYLOAD"
+
+        # Write the payload as a multi-line output
+        echo "payload<<EOF" >> $GITHUB_OUTPUT
+        echo "$PAYLOAD" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Invoke Logic App HTTP Trigger
       shell: bash
       run: |
-        echo "Sending notification to Teams using the following payload:"
-        cat <<< "${{ steps.build_payload.outputs.payload }}"
-        curl -X POST -H "Content-Type: application/json" -d "${{ steps.build_payload.outputs.payload }}" "${{ inputs.webhook_url }}"
+        echo "Invoking Logic App via HTTP trigger..."
+
+        # Use jq to parse and compact JSON safely
+        COMPACT_PAYLOAD=$(jq -c . <<< '${{ steps.build_payload.outputs.payload }}')
+
+        echo "Payload to be sent:"
+        echo "$COMPACT_PAYLOAD"
+
+        RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST -H "Content-Type: application/json" \
+          -d "$COMPACT_PAYLOAD" \
+          "${{ inputs.logic_app_url }}")
+
+        echo "Response from Logic App:"
+        echo "$RESPONSE"

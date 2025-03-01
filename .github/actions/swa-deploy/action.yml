@@ -47,6 +47,16 @@ runs:
       with:
         creds: ${{ inputs.azure_credentials }}
 
+    # Ensure Azure CLI Logic Extension is Installed
+    - name: Ensure Azure CLI Logic Extension is Installed
+      shell: bash
+      run: |
+        if ! az extension show --name logic &>/dev/null; then
+          az extension add --name logic --yes
+        else
+          echo "Azure CLI logic extension is already installed."
+        fi
+
     # Ensure the config file is properly placed
     - name: Prepare configuration
       shell: bash
@@ -54,7 +64,7 @@ runs:
         echo "Preparing configuration..."
         # Ensure the config directory exists in the artifact
         mkdir -p ${{ inputs.artifact-path }}/.config
-        
+
         # Copy the config file if it doesn't exist in the artifact
         if [ ! -f "${{ inputs.artifact-path }}/.config/staticwebapp.config.json" ]; then
           echo "Copying staticwebapp.config.json to artifact directory..."
@@ -62,11 +72,11 @@ runs:
         else
           echo "Config file already exists in artifact directory"
         fi
-        
+
         # Display the config for verification
         echo "Using configuration:"
         cat ${{ inputs.artifact-path }}/.config/staticwebapp.config.json
-        
+
     - name: Get SWA Deployment Token
       id: get_token
       shell: bash
@@ -90,7 +100,7 @@ runs:
         skip_app_build: true
       env:
         DEPLOYMENT_PROVIDER: "DevOps"
-      
+
     # Get the deployment URL for output
     - name: Get Deployment URL
       id: get_deployment_url

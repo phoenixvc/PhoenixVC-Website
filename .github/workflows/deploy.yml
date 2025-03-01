@@ -39,47 +39,97 @@ permissions:
   contents: read
   pages: write
   id-token: write
-  
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.inputs.APPROVAL_STATE == 'true' && 'prod' || 'staging' }}
   cancel-in-progress: false
-  
+
 jobs:
   log_debug_information:
     runs-on: ubuntu-latest
     steps:
-      - name: Show Workflow Inputs
+    - name: Show Workflow Inputs
+      run: |
+        echo "==========================="
+        echo "✅ Logging Deployment Variables"
+        echo "==========================="
+        echo "GitHub Event Name: ${{ github.event_name }}"
+        echo "Ref: ${{ github.ref }}"
+        echo "Base Ref: ${{ github.event.pull_request.base.ref || 'N/A' }}"
+        echo "Approval State: ${{ github.event.inputs.APPROVAL_STATE }}"
+        echo "Include DNS Update: ${{ github.event.inputs.INCLUDE_DNS_UPDATE }}"
+        echo "Location Code: ${LOCATION_CODE}"
+        echo "Resource Group Name: [env]-${LOCATION_CODE}-rg-phoenixvc-website"
+        echo "Static Web App Name: [env]-${LOCATION_CODE}-swa-phoenixvc-website"
+        echo "Log repository: ${{ github.repository }}"
+        echo "Azure Subscription ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+
+        if [[ -n "${{ secrets.GITHUB_TOKEN }}" ]]; then
+          echo "✅ GITHUB_TOKEN is set."
+        else
+          echo "⚠️  GITHUB_TOKEN is missing!"
+        fi
+        if [[ "${{ secrets.AZURE_CREDENTIALS }}" ]]; then
+          echo "✅ AZURE_CREDENTIALS is set."
+        else
+          echo "⚠️ AZURE_CREDENTIALS is missing!"
+        fi
+        if [[ -n "${{ secrets.AZURE_SUBSCRIPTION_ID }}" ]]; then
+          echo "✅ AZURE_SUBSCRIPTION_ID is set."
+        else
+          echo "⚠️ AZURE_SUBSCRIPTION_ID is missing!"
+        fi
+        if [[ "${{ github.event.inputs.APPROVAL_STATE }}" == "true" ]]; then
+          echo "🚀 Deploying to Production - Manual approval was bypassed!"
+        else
+          echo "🔎 Deploying to Production - Manual approval was completed!"
+        fi
+        echo "==========================="
+
+  check_relevant_changes:
+    runs-on: ubuntu-latest
+    needs: [log_debug_information]
+    outputs:
+      resources_changed: ${{ steps.check_changes.outputs.resources_changed }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          repository: JustAGhosT/PhoenixVC-Modernized
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Check for Relevant Changes
+        id: check_changes
         run: |
-          echo "==========================="
-          echo "✅ Logging Deployment Variables"
-          echo "==========================="
-          echo "GitHub Event Name: ${{ github.event_name }}"
-          echo "Ref: ${{ github.ref }}"
-          echo "Base Ref: ${{ github.event.pull_request.base.ref || 'N/A' }}"
-          echo "Approval State: ${{ github.event.inputs.APPROVAL_STATE }}"
-          echo "Include DNS Update: ${{ github.event.inputs.INCLUDE_DNS_UPDATE }}"
-          echo "Location Code: ${LOCATION_CODE}"
-          echo "Resource Group Name: prod-${LOCATION_CODE}-rg-phoenixvc-website"
-          echo "Static Web App Name: prod-${LOCATION_CODE}-swa-phoenixvc-website"
-          echo "Log repository: ${{ github.repository }}"
-          if [[ -n "${{ secrets.GITHUB_TOKEN }}" ]]; then
-            echo "✅ GITHUB_TOKEN is set."
+          # Get the list of changed files
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})
           else
-            echo "⚠️  GITHUB_TOKEN is missing!"
+            CHANGED_FILES=$(git diff --name-only HEAD^ HEAD)
           fi
-          if [[ "${{ github.event.inputs.APPROVAL_STATE }}" == "true" ]]; then
-            echo "🚀 Deploying to Production - Manual approval was bypassed!"
-          else
-            echo "🔎 Deploying to Production - Manual approval was completed!"
-          fi
-          echo "==========================="
+
+          # Check if any relevant files changed (excluding .github/workflows/)
+          RESOURCES_CHANGED=false
+          while IFS= read -r file; do
+            if [[ ! "$file" =~ ^\.github/workflows/ ]]; then
+              RESOURCES_CHANGED=true
+              break
+            fi
+          done <<< "$CHANGED_FILES"
+
+          echo "resources_changed=${RESOURCES_CHANGED}" >> $GITHUB_OUTPUT
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
 
   # ───────────────────────────────────────────────
   # ✅ BUILD APPS WITH Vite
   # ───────────────────────────────────────────────
   build_apps:
     runs-on: ubuntu-latest
-    needs: [log_debug_information]
+    needs: [log_debug_information, check_relevant_changes]
+    if: >
+      (github.event_name == 'workflow_dispatch' || needs.check_relevant_changes.outputs.resources_changed == 'true')
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -118,7 +168,7 @@ jobs:
           path: apps/design-system/dist
           retention-days: ${{ github.event.inputs.APPROVAL_STATE == 'true' && '30' || '5' }}
 
-          
+
   # ───────────────────────────────────────────────
   # ✅ SECURITY SCAN
   # ───────────────────────────────────────────────
@@ -128,17 +178,23 @@ jobs:
   #  steps:
   #    - name: Checkout code
   #      uses: actions/checkout@v4
-  #    
+  #
   #    - name: Run security scan
   #      uses: github/codeql-action/analyze@v2
-        
+
   # ───────────────────────────────────────────────
   # ✅ STAGING RESOURCE CREATION (Run deploy.sh)
   # ───────────────────────────────────────────────
   deploy_resources_staging:
     runs-on: ubuntu-latest
-    needs: [log_debug_information]
-    if: ${{ github.event.inputs.APPROVAL_STATE != 'true' }}
+    needs: [log_debug_information, check_relevant_changes]
+    if: >
+      github.event.inputs.APPROVAL_STATE != 'true' &&
+      (github.event_name == 'workflow_dispatch' || needs.check_relevant_changes.outputs.resources_changed == 'true')
+    outputs:
+      staticSiteUrl: ${{ steps.deploy_staging_resources.outputs.staticSiteUrl }}
+      teamsLogicAppUrl: ${{ steps.deploy_staging_resources.outputs.teamsLogicAppUrl }}
+      githubLogicAppUrl: ${{ steps.deploy_staging_resources.outputs.githubLogicAppUrl }}
     steps:
       - name: Checkout Repository for Staging Resources
         uses: actions/checkout@v4
@@ -146,36 +202,34 @@ jobs:
           repository: JustAGhosT/PhoenixVC-Modernized
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-  
-      - name: Use Composite Azure Deployment
-        uses: ./.github/actions/setup-azure-deployment
+
+      - name: Deploy Staging Resources
+        id: deploy_staging_resources
+        uses: ./.github/actions/deploy-azure-resources
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          environment: staging
           azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          location_code: ${{ env.LOCATION_CODE }}
           repository: JustAGhosT/PhoenixVC-Modernized
-          ref: ${{ github.ref }}
-  
-      - name: Run Staging Resource Deployment Script
-        run: ./scripts/deployment/deploy.sh --env staging
-        env:
-          ENVIRONMENT: staging
-          RG_NAME: staging-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
-          SWA_NAME: staging-${{ env.LOCATION_CODE }}-swa-phoenixvc-website
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   # ───────────────────────────────────────────────
   # ✅ STAGING SITE DEPLOYMENT VIA SWA CLI
   # ───────────────────────────────────────────────
   swa_deploy_staging:
     runs-on: ubuntu-latest
-    needs: [build_apps, deploy_resources_staging]
+    needs: [build_apps, deploy_resources_staging, check_relevant_changes]
     continue-on-error: true
     timeout-minutes: 15
-    outputs:
-      staging_url: ${{ steps.swa_deploy.outputs.deployment_url }}
     environment:
       name: staging
       url: ${{ steps.swa_deploy.outputs.deployment_url }}
+    outputs:
+        staging_url: ${{ steps.swa_deploy.outputs.deployment_url }}
+    if: >
+      github.event.inputs.APPROVAL_STATE != 'true' &&
+      (github.event_name == 'workflow_dispatch' || needs.check_relevant_changes.outputs.resources_changed == 'true')
     steps:
       - name: Checkout Repository for Staging Resources
         uses: actions/checkout@v4
@@ -183,7 +237,7 @@ jobs:
           repository: JustAGhosT/PhoenixVC-Modernized
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-          
+
       - name: Use SWA Deploy Action for Staging
         id: swa_deploy
         uses: ./.github/actions/swa-deploy
@@ -200,8 +254,14 @@ jobs:
   # ───────────────────────────────────────────────
   deploy_resources_prod:
     runs-on: ubuntu-latest
-    needs: [log_debug_information]
-    if: ${{ github.event.inputs.APPROVAL_STATE == 'true' }}
+    needs: [log_debug_information, check_relevant_changes]
+    if: >
+      github.event.inputs.APPROVAL_STATE == 'true' &&
+      (github.event_name == 'workflow_dispatch' || needs.check_relevant_changes.outputs.resources_changed == 'true')
+    outputs:
+      staticSiteUrl: ${{ steps.deploy_production_resources.outputs.staticSiteUrl }}
+      teamsLogicAppUrl: ${{ steps.deploy_production_resources.outputs.teamsLogicAppUrl }}
+      githubLogicAppUrl: ${{ steps.deploy_production_resources.outputs.githubLogicAppUrl }}
     steps:
       - name: Checkout Repository for Production Resources
         uses: actions/checkout@v4
@@ -210,22 +270,17 @@ jobs:
           ref: refs/heads/main
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-  
-      - name: Use Composite Azure Deployment
-        uses: ./.github/actions/setup-azure-deployment
+
+      - name: Deploy Production Resources
+        uses: ./.github/actions/deploy-azure-resources
+        id: deploy_production_resources
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          environment: prod
           azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          location_code: ${{ env.LOCATION_CODE }}
           repository: ${{ github.repository }}
-          ref: refs/heads/main
-  
-      - name: Run Production Resource Deployment Script
-        run: ./scripts/deployment/deploy.sh --env prod
-        env:
-          ENVIRONMENT: prod
-          RG_NAME: prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
-          SWA_NAME: prod-${{ env.LOCATION_CODE }}-swa-phoenixvc-website
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   # ───────────────────────────────────────────────
   # ✅ PRODUCTION SITE DEPLOYMENT VIA SWA CLI
@@ -239,6 +294,10 @@ jobs:
     environment:
       name: production
       url: ${{ steps.swa_deploy.outputs.deployment_url }}
+    if: >
+      github.event.inputs.APPROVAL_STATE == 'true' &&
+      (github.event_name == 'workflow_dispatch' || needs.check_relevant_changes.outputs.resources_changed == 'true')
+
     steps:
       - name: Checkout Repository for Production SWA Deploy
         uses: actions/checkout@v4
@@ -247,7 +306,7 @@ jobs:
           ref: refs/heads/main
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-  
+
       - name: Use SWA Deploy Action for Production
         id: swa_deploy
         uses: ./.github/actions/swa-deploy
@@ -278,7 +337,7 @@ jobs:
           done
           echo "❌ Deployment verification failed after $MAX_RETRIES attempts"
           exit 1
-      
+
   # ───────────────────────────────────────────────
   # ✅ TRIGGER DNS CONFIGURATION WORKFLOW
   # ───────────────────────────────────────────────
@@ -315,26 +374,26 @@ jobs:
         with:
           python-version: '3.x'
           cache: 'pip'
-          
+
       - name: Install MkDocs and Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install mkdocs mkdocs-material
-          
+
       - name: Build MkDocs Site
         run: mkdocs build -f docs/mkdocs.yml
-        
+
       - name: Deploy MkDocs Site
         run: mkdocs gh-deploy --force
 
  # ───────────────────────────────────────────────
-# NOTIFY DEPLOYMENT VIA TEAMS (Combined Notification)
-# ───────────────────────────────────────────────
+ # NOTIFY DEPLOYMENT VIA TEAMS (Combined Notification)
+ # ───────────────────────────────────────────────
   notify_deployment:
     runs-on: ubuntu-latest
     # For staging, notify if success OR if failure and SEND_STAGING_FAILED is true.
     # For production, always notify regardless of outcome.
-    needs: [swa_deploy_staging, swa_deploy_prod, trigger_dns_update, deploy_docs]
+    needs: [deploy_resources_staging, swa_deploy_staging, swa_deploy_prod, deploy_resources_prod, trigger_dns_update, deploy_docs, check_relevant_changes]
     if: always()
     steps:
       - name: Checkout Repository for Notification
@@ -343,31 +402,55 @@ jobs:
           repository: ${{ github.repository }}
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-          
-      - name: Notify Staging
-        if: ${{ github.event.inputs.APPROVAL_STATE != 'true' && (needs.swa_deploy_staging.result == 'success' || github.event.inputs.SEND_STAGING_FAILED == 'true') }}
+
+      - name: Log Deployment Output Values
+        run: |
+          if [[ "${{ needs.check_relevant_changes.outputs.resources_changed }}" == "false" && "${{ github.event.inputs.APPROVAL_STATE }}" != "true" ]]; then
+            echo "Staging deployment was skipped - no relevant changes detected"
+          else
+            echo "Static Site URL: ${{ needs.deploy_resources_staging.outputs.staticSiteUrl }}"
+            echo "Teams Logic App URL: ${{ needs.deploy_resources_staging.outputs.teamsLogicAppUrl }}"
+            echo "GitHub Logic App URL: ${{ needs.deploy_resources_staging.outputs.githubLogicAppUrl }}"
+          fi
+
+      - name: Notify Staging via Teams
+        if: >
+          github.event.inputs.APPROVAL_STATE != 'true' &&
+          (needs.check_relevant_changes.outputs.resources_changed == 'true' || github.event_name == 'workflow_dispatch') &&
+          (needs.swa_deploy_staging.result == 'success' || github.event.inputs.SEND_STAGING_FAILED == 'true')
         uses: ./.github/actions/teams-notification
         with:
-          webhook_url: "https://prod-21.northeurope.logic.azure.com:443/workflows/9a94f520b85d4bdd99f015511d5ee3ea/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oiVbSb17Wfkzg3wvU3-b1JXUkOR6X7t_yhvkGg8CJ-Q"
+          webhook_url: "https://phoenixvc568.webhook.office.com/webhookb2/17b0291f-b70b-4bdd-9266-f212ae03a2bd@7edf4423-ccb3-4275-bc80-64dae3ef0148/IncomingWebhook/3174ffcca3804d34ae923ba2e131f82e/a41dbcc0-67a6-4a23-bdec-b780dcebefa9/V2MOPWeKY7ywC8-iGptxHlSIZpwHVxw2FLAOAMU2N0hmM1"
           title: "Staging Deployment Complete"
+          message: "The deployment to the STAGING environment has completed successfully. Please review the deployment and take any necessary actions."
           environment: "staging"
-          deployment_url: "https://my-staging-site.azurestaticapps.net"
+          deployment_url: ${{ needs.swa_deploy_staging.outputs.staging_url }}
+          logic_app_url: ${{ needs.deploy_resources_staging.outputs.teamsLogicAppUrl }}
+          github_logic_app_url: ${{ needs.deploy_resources_staging.outputs.githubLogicAppUrl }}
           branch: ${{ github.ref }}
           location_code: ${{ env.LOCATION_CODE }}
-          resource_group: staging-${{ env.LOCATION_CODE }}-rg
+          resource_group: staging-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
           color: "0076D7"
-          approval_url: "https://github.com/${{ github.repository }}/actions/workflows/deploy.yml/dispatches?workflow=Phoenix+VC+Rollback+Pipeline&ref=${{ github.ref }}"
-           
+          approval_url: "{{ needs.deploy_resources_staging.outputs.staticSiteUrl }}"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          teams_token: ${{ secrets.TEAMS_TOKEN }}
+
       - name: Notify Production
         if: ${{ github.event.inputs.APPROVAL_STATE == 'true' }}
         uses: ./.github/actions/teams-notification
         with:
           webhook_url: "https://prod-21.northeurope.logic.azure.com:443/workflows/9a94f520b85d4bdd99f015511d5ee3ea/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oiVbSb17Wfkzg3wvU3-b1JXUkOR6X7t_yhvkGg8CJ-Q"
           title: "Production Deployment Complete"
-          environment: ${{ github.event.inputs.APPROVAL_STATE != 'true' && 'staging' || 'production' }}
-          deployment_url: ${{ github.event.inputs.APPROVAL_STATE != 'true' && needs.swa_deploy_staging.outputs.staging_url || needs.swa_deploy_prod.outputs.prod_url }}
+          message: "The deployment to the PRODUCTION environment has completed successfully. Please review the deployment and take any necessary actions."
+          environment: "production"
+          deployment_url: ${{ needs.deploy_resources_prod.outputs.staticSiteUrl }}
+          logic_app_url: ${{ needs.deploy_resources_prod.outputs.teamsLogicAppUrl }}
+          github_logic_app_url: ${{ needs.deploy_resources_prod.outputs.githubLogicAppUrl }}
           branch: ${{ github.ref }}
           location_code: ${{ env.LOCATION_CODE }}
-          resource_group: ${{ github.event.inputs.APPROVAL_STATE != 'true' && 'staging-' || 'prod-' }}${{ env.LOCATION_CODE }}-rg-phoenixvc-website
-          color: ${{ github.event.inputs.APPROVAL_STATE != 'true' && '0076D7' || '00A300' }}
+          resource_group: prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
+          color: "00A300"
           rollback_url: "https://github.com/${{ github.repository }}/actions/workflows/rollback.yml/dispatches?workflow=Phoenix+VC+Rollback+Pipeline&ref=${{ github.ref }}"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          teams_token: ${{ secrets.TEAMS_TOKEN }}
+

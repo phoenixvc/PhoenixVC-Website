@@ -1,0 +1,59 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2016-06-01/workflowdefinition.json",
+  "contentVersion": "1.0.0.0",
+  "parameters": {},
+  "triggers": {
+    "manual": {
+      "type": "Request",
+      "kind": "Http",
+      "inputs": {
+        "schema": {
+          "type": "object",
+          "properties": {
+            "teamsWebhookUrl": { "type": "string" },
+            "locationCode": { "type": "string" },
+            "resourceGroup": { "type": "string" },
+            "environment": { "type": "string" },
+            "branch": { "type": "string" },
+            "message": { "type": "string" },
+            "deploymentUrl": { "type": "string" },
+            "approvalUrl": { "type": "string" },
+            "rollbackUrl": { "type": "string" }
+          },
+          "required": [
+            "teamsWebhookUrl",
+            "locationCode",
+            "resourceGroup",
+            "environment",
+            "branch",
+            "message",
+            "deploymentUrl"
+          ]
+        }
+      }
+    }
+  },
+  "actions": {
+    "Compose_AdaptiveCard": {
+      "type": "Compose",
+      "inputs": "PLACEHOLDER_ADAPTIVE_CARD"
+    },
+    "Post_to_Teams": {
+      "type": "Http",
+      "inputs": {
+        "method": "POST",
+        "uri": "@{triggerBody()?['teamsWebhookUrl']}",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": "@{json(outputs('Compose_AdaptiveCard'))}"
+      },
+      "runAfter": {
+        "Compose_AdaptiveCard": [
+          "Succeeded"
+        ]
+      }
+    }
+  },
+  "outputs": {}
+}

@@ -1,0 +1,90 @@
+/* sidebar.module.css */
+
+/* Example: Using your design tokens as CSS variables.
+   You might generate these via Style Dictionary or your custom pipeline. */
+
+   :root {
+    /* For demonstration, these might already exist globally. */
+    --color-sidebar-bg: var(--color-brand-primary-500, #0066FF);
+    --color-sidebar-text: var(--color-mode-light-text, #FFFFFF);
+    --color-sidebar-hover: rgba(255, 255, 255, 0.1);
+  }
+
+  /*
+    If you have a "class-utilities" system that automatically generates
+    classes like `.bg-primary-500`, `.text-white`, etc., you can use those
+    classes directly in your JSX. For clarity, we’re using them as variables here.
+  */
+
+  .sidebarContainer {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: var(--color-sidebar-bg);
+    color: var(--color-sidebar-text);
+
+    /* Animation for open/close transition */
+    transition: width 0.3s ease;
+    overflow: hidden;
+  }
+
+  /* Collapsed vs. Expanded widths */
+  .open {
+    width: 240px; /* or any token-based width you prefer */
+  }
+  .closed {
+    width: 64px; /* smaller width for collapsed state */
+  }
+
+  /* Top toggle button area */
+  .toggleButtonWrapper {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0.5rem;
+  }
+
+  /* The toggle button itself */
+  .toggleButton {
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: var(--color-sidebar-text);
+    font-size: 1.25rem;
+    transition: transform 0.2s ease-in-out;
+  }
+
+  /* Example subtle hover/active states */
+  .toggleButton:hover {
+    transform: scale(1.1);
+  }
+
+  /* Navigation area */
+  .nav {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    margin-top: 1rem;
+  }
+
+  /* Link list styling */
+  .linkList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .linkItem {
+    margin-bottom: 0.5rem;
+  }
+
+  .link {
+    display: block;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    color: var(--color-sidebar-text);
+    transition: background-color 0.2s ease-in-out;
+  }
+
+  .link:hover {
+    background-color: var(--color-sidebar-hover);
+  }

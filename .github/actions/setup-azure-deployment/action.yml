@@ -2,9 +2,6 @@ name: "Setup Azure Deployment Environment"
 description: "Makes the deploy script executable, verifies Azure CLI, sets the subscription ID, and logs in to Azure."
 
 inputs:
-  azure_subscription_id:
-    description: "The Azure Subscription ID to use for the deployment."
-    required: true
   azure_credentials:
     description: "Azure credentials in JSON format."
     required: true
@@ -51,7 +48,7 @@ runs:
       shell: bash
 
     - name: Set up Azure Subscription ID
-      run: echo "AZURE_SUBSCRIPTION_ID=${{ inputs.azure_subscription_id }}" >> $GITHUB_ENV
+      run: echo "AZURE_SUBSCRIPTION_ID=${{ inputs.azure_credentials.subscriptionId }}" >> $GITHUB_ENV
       shell: bash
 
     - name: Azure Login

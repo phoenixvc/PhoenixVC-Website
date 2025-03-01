@@ -3,6 +3,7 @@ import { Hero } from "@/features/hero";
 import { InvestmentFocus } from "@/features/investment-focus";
 import { Contact } from "@/features/contact";
 import { BrowserRouter } from "react-router-dom";
+import { Sidebar } from "./features/sidebar";
 
 const App = () => {
   console.log("App rendered");
@@ -10,6 +11,7 @@ const App = () => {
   return (
     <BrowserRouter>
       <Layout>
+        <Sidebar/>
         <Hero />
         <InvestmentFocus />
         <Contact />
