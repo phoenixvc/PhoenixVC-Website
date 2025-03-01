@@ -201,7 +201,6 @@ get_static_web_app_url() {
     --output tsv 2>/dev/null)
 
   if [ -n "$url" ]; then
-    # Return in the same format as the deployment output
     echo "https://$url"
     return 0
   fi
@@ -261,19 +260,17 @@ main() {
 
   if [ -n "$deployment_url" ]; then
     echo "📡 Got URL from deployment: $deployment_url"
-    # Properly escape the URL for GitHub Actions output
-    echo "staticSiteUrl=${deployment_url}" >> "$GITHUB_OUTPUT"
+    # Use simple escaping for the URL
+    echo "staticSiteUrl=$deployment_url" >> "$GITHUB_OUTPUT"
   elif [ -n "$existing_url" ]; then
     echo "📡 Using existing URL: $existing_url"
-    # Properly escape the URL for GitHub Actions output
-    echo "staticSiteUrl=${existing_url}" >> "$GITHUB_OUTPUT"
+    echo "staticSiteUrl=$existing_url" >> "$GITHUB_OUTPUT"
   else
     # Final attempt to get URL
     final_url=$(get_static_web_app_url "$RESOURCE_GROUP" "$ENVIRONMENT" "$LOCATION_CODE")
     if [ -n "$final_url" ]; then
       echo "📡 Retrieved URL after deployment: $final_url"
-      # Properly escape the URL for GitHub Actions output
-      echo "staticSiteUrl=${final_url}" >> "$GITHUB_OUTPUT"
+      echo "staticSiteUrl=$final_url" >> "$GITHUB_OUTPUT"
     else
       echo "⚠️ Could not determine Static Web App URL"
       echo "staticSiteUrl=" >> "$GITHUB_OUTPUT"
