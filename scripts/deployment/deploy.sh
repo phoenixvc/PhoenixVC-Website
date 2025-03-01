@@ -257,19 +257,21 @@ main() {
   deployment_url=$(az deployment sub show --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" \
     --query "properties.outputs.staticSiteUrl.value" -o tsv)
 
-  # Retrieve the static site URL from the deployment outputs
   if [ -n "$deployment_url" ]; then
     echo "📡 Got URL from deployment: $deployment_url"
-    echo "staticSiteUrl=$deployment_url" >> "$GITHUB_OUTPUT"
+    # Properly escape the URL for GitHub Actions output
+    echo "staticSiteUrl=${deployment_url}" >> "$GITHUB_OUTPUT"
   elif [ -n "$existing_url" ]; then
     echo "📡 Using existing URL: $existing_url"
-    # Note: Already written to GITHUB_OUTPUT above
+    # Properly escape the URL for GitHub Actions output
+    echo "staticSiteUrl=${existing_url}" >> "$GITHUB_OUTPUT"
   else
     # Final attempt to get URL
     final_url=$(get_static_web_app_url "$RESOURCE_GROUP" "$ENVIRONMENT" "$LOCATION_CODE")
     if [ -n "$final_url" ]; then
       echo "📡 Retrieved URL after deployment: $final_url"
-      echo "staticSiteUrl=$final_url" >> "$GITHUB_OUTPUT"
+      # Properly escape the URL for GitHub Actions output
+      echo "staticSiteUrl=${final_url}" >> "$GITHUB_OUTPUT"
     else
       echo "⚠️ Could not determine Static Web App URL"
       echo "staticSiteUrl=" >> "$GITHUB_OUTPUT"
