@@ -183,6 +183,31 @@ check_resource_group() {
   fi
 }
 
+get_static_web_app_url() {
+  local rg_name="$1"
+  local env="$2"
+  local loc_code="$3"
+
+  local swa_name="${env}-${loc_code}-swa-phoenixvc-website"
+
+  echo "🔍 Looking up Static Web App URL for $swa_name..."
+
+  # Try to get the URL from the existing Static Web App
+  local url
+  url=$(az staticwebapp show \
+    --name "$swa_name" \
+    --resource-group "$rg_name" \
+    --query "defaultHostname" \
+    --output tsv 2>/dev/null)
+
+  if [ -n "$url" ]; then
+    echo "https://$url"
+    return 0
+  fi
+
+  return 1
+}
+
 # ------------------------------------------------------------------------------
 # 3) Main deployment flow
 # ------------------------------------------------------------------------------
@@ -200,6 +225,15 @@ main() {
 
   # Check resource group status.
   check_resource_group
+
+  local existing_url
+  if az group exists --name "$RESOURCE_GROUP" | grep -q "true"; then
+    existing_url=$(get_static_web_app_url "$RESOURCE_GROUP" "$ENVIRONMENT" "$LOCATION_CODE")
+    if [ -n "$existing_url" ]; then
+      echo "📡 Found existing Static Web App URL: $existing_url"
+      echo "staticSiteUrl=$existing_url" >> "$GITHUB_OUTPUT"
+    fi
+  fi
 
   echo "📄 Using parameter file: $PARAMETERS_FILE"
   if ! cat "$PARAMETERS_FILE"; then
@@ -219,12 +253,27 @@ main() {
     --parameters environment="$ENVIRONMENT" locCode="$LOCATION_CODE" \
     --query properties.outputs
 
+  local deployment_url
+  deployment_url=$(az deployment sub show --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" \
+    --query "properties.outputs.staticSiteUrl.value" -o tsv)
+
   # Retrieve the static site URL from the deployment outputs
-  staticSiteUrl=$(az deployment sub show --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" --query "properties.outputs.staticSiteUrl.value" -o tsv)
-  if [ -n "$staticSiteUrl" ]; then
-    echo "staticSiteUrl=$staticSiteUrl" >> "$GITHUB_OUTPUT"
+  if [ -n "$deployment_url" ]; then
+    echo "📡 Got URL from deployment: $deployment_url"
+    echo "staticSiteUrl=$deployment_url" >> "$GITHUB_OUTPUT"
+  elif [ -n "$existing_url" ]; then
+    echo "📡 Using existing URL: $existing_url"
+    # Note: Already written to GITHUB_OUTPUT above
   else
-    echo "staticSiteUrl=" >> "$GITHUB_OUTPUT"
+    # Final attempt to get URL
+    final_url=$(get_static_web_app_url "$RESOURCE_GROUP" "$ENVIRONMENT" "$LOCATION_CODE")
+    if [ -n "$final_url" ]; then
+      echo "📡 Retrieved URL after deployment: $final_url"
+      echo "staticSiteUrl=$final_url" >> "$GITHUB_OUTPUT"
+    else
+      echo "⚠️ Could not determine Static Web App URL"
+      echo "staticSiteUrl=" >> "$GITHUB_OUTPUT"
+    fi
   fi
 
   # # Retrieve the HTTP trigger URL for the Logic App.
