@@ -47,15 +47,15 @@ runs:
       with:
         fetch-depth: 0
 
-    - name: Read and Substitute Template
+    - name: Read Template
       shell: bash
       id: build_payload
       run: |
         TEMPLATE=$(cat "$(pwd)/${{ inputs.template_path }}")
-        PAYLOAD=$(echo "$TEMPLATE" | sed -e "s|{{teamsWebhookUrl}}|${{ inputs.webhook_url }}|g" -e "s|{{locationCode}}|${{ inputs.location_code }}|g" -e "s|{{resourceGroup}}|${{ inputs.resource_group }}|g" -e "s|{{environment}}|${{ inputs.environment }}|g" -e "s|{{branch}}|${{ inputs.branch }}|g" -e "s|{{message}}|${{ inputs.message }}|g" -e "s|{{deploymentUrl}}|${{ inputs.deployment_url }}|g" -e "s|{{approvalUrl}}|${{ inputs.approval_url }}|g" -e "s|{{rollbackUrl}}|${{ inputs.rollback_url }}|g")
-        echo "Generated Payload:"
-        echo "$PAYLOAD"
-        echo "payload=$PAYLOAD" >> $GITHUB_OUTPUT
+        echo "Template contents:"
+        echo "$TEMPLATE"
+        # Set the payload output to the template's content without substitution
+        echo "payload=$TEMPLATE" >> $GITHUB_OUTPUT
 
     - name: Debug: Show Logic App URL and Payload
       shell: bash
