@@ -70,6 +70,7 @@ runs:
         RG_NAME: ${{ inputs.environment }}-${{ inputs.location_code }}-rg-phoenixvc-website
         SWA_NAME: ${{ inputs.environment }}-${{ inputs.location_code }}-swa-phoenixvc-website
         AZURE_SUBSCRIPTION_ID: ${{ inputs.azure_subscription_id }}
+        GITHUB_TOKEN: ${{ inputs.token }}
 
     - name: Retrieve Teams Logic App Trigger URL
       id: retrieve_logic_url
