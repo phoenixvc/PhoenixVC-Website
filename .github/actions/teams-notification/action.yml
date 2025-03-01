@@ -1,7 +1,4 @@
 inputs:
-  webhook_url:
-    description: "The Microsoft Teams webhook URL"
-    required: true
   title:
     description: "Title of the notification"
     required: true
