@@ -57,7 +57,7 @@ var logicAppDefinitionText = '''
         "body": {
           "@@type": "MessageCard",
           "@@context": "http://schema.org/extensions",
-          "text": "@{triggerBody()?['message']}",
+          "text": "Deployment Notification",
           "summary": "@{coalesce(triggerBody()?['title'], 'Deployment Notification')}",
           "themeColor": "@{if(empty(triggerBody()?['color']), '0076D7', replace(triggerBody()?['color'], '#', ''))}",
           "sections": [
@@ -67,7 +67,7 @@ var logicAppDefinitionText = '''
               "facts": [
                 {
                   "name": "Status",
-                  "value": "@{triggerBody()?['environment']} Deployment Complete"
+                  "value": "Deployment Complete"
                 },
                 {
                   "name": "Environment",
@@ -106,9 +106,10 @@ var logicAppDefinitionText = '''
               "targets": [
                 {
                   "os": "default",
-                  "uri": "@{coalesce(triggerBody()?['approvalUrl'], '#')}"
+                  "uri": "@{coalesce(triggerBody()?['approvalUrl'], '')}"
                 }
-              ]
+              ],
+              "when": "@{not(empty(triggerBody()?['approvalUrl']))}"
             },
             {
               "@@type": "OpenUri",

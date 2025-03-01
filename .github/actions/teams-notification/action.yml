@@ -55,6 +55,22 @@ inputs:
     description: "Color for the notification card"
     required: false
     default: "0076D7"
+  change_summary:
+    description: "Summary of changes being deployed"
+    required: false
+    default: ""
+  deployment_id:
+    description: "Deployment ID"
+    required: false
+    default: ""
+  artifact_id:
+    description: "Artifact ID"
+    required: false
+    default: ""
+  run_id:
+    description: "Run ID"
+    required: false
+    default: ""
 
 runs:
   using: "composite"
@@ -93,7 +109,22 @@ runs:
         title="${{ inputs.title }}"
         deployment_url="${{ inputs.deployment_url }}"
         teams_logic_app_url="${{ inputs.logic_app_url }}"
-        github_logic_app_url="${{ inputs.github_logic_app_url }}"
+
+        # Get additional parameters
+        change_summary="${{ inputs.change_summary }}"
+        deployment_id="${{ inputs.deployment_id }}"
+        artifact_id="${{ inputs.artifact_id }}"
+        run_id="${{ inputs.run_id }}"
+
+        # Construct approval URL
+        approval_url="${{ inputs.github_logic_app_url }}"
+        if [ "$environment" = "staging" ]; then
+          # URL encode the parameters
+          encoded_changes=$(echo "$change_summary" | jq -sRr @uri)
+          full_approval_url="${approval_url}?token=${encodedGitHubToken}&changes=${encoded_changes}&deploymentId=${deployment_id}&artifactId=${artifact_id}&runId=${run_id}"
+        else
+          full_approval_url=""
+        fi
 
         required_vars=(
           "webhook_url"
@@ -107,7 +138,7 @@ runs:
           "encodedGitHubToken"
           "encodedTeamsToken"
           "teams_logic_app_url"
-          "github_logic_app_url"
+          "approval_url"
         )
 
         for var in "${required_vars[@]}"; do
@@ -128,12 +159,11 @@ runs:
           -e "s|{{title}}|${{ inputs.title }}|g" \
           -e "s|{{color}}|$color|g" \
           -e "s|{{deploymentUrl}}|${{ inputs.deployment_url }}|g" \
-          -e "s|{{approvalUrl}}|$(echo "${{ inputs.approval_url }}" | sed 's/[\/&]/\\&/g')|g" \
           -e "s|{{rollbackUrl}}|${{ inputs.rollback_url }}|g" \
           -e "s|{{encodedToken}}|$encodedGitHubToken|g" \
           -e "s|{{encodedTeamsToken}}|$encodedTeamsToken|g" \
           -e "s|{{teamsLogicAppUrl}}|${{ inputs.teams_logic_app_url }}|g" \
-          -e "s|{{githubLogicAppUrl}}|${{ inputs.github_logic_app_url }}|g")
+          -e "s|{{approvalUrl}}|${{ full_approval_url }}|g")
         echo "Generated Payload:"
         echo "$PAYLOAD"
 

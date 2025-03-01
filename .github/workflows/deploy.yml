@@ -97,6 +97,7 @@ jobs:
     needs: [log_debug_information]
     outputs:
       resources_changed: ${{ steps.check_changes.outputs.resources_changed }}
+      change_summary: ${{ steps.get_changes.outputs.summary }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -128,6 +129,20 @@ jobs:
           echo "Changed files:"
           echo "$CHANGED_FILES"
 
+      - name: Get Change Summary
+        id: get_changes
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            # For PR events, use PR title and body
+            SUMMARY="${{ github.event.pull_request.title }} - ${{ github.event.pull_request.body }}"
+          else
+            # For push events, use commit messages
+            SUMMARY=$(git log -1 --pretty=format:"%s%n%b")
+          fi
+          # Sanitize and truncate summary
+          SUMMARY=$(echo "$SUMMARY" | tr -d '\r\n' | cut -c1-500)
+          echo "summary=${SUMMARY}" >> $GITHUB_OUTPUT
+
   # ───────────────────────────────────────────────
   # ✅ BUILD APPS WITH Vite
   # ───────────────────────────────────────────────
@@ -136,6 +151,9 @@ jobs:
     needs: [log_debug_information, check_relevant_changes]
     if: >
       (github.event_name == 'workflow_dispatch' || needs.check_relevant_changes.outputs.resources_changed == 'true')
+    outputs:
+      web_artifact_id: ${{ steps.upload_web.outputs.artifact-id }}
+      design_system_artifact_id: ${{ steps.upload_design.outputs.artifact-id }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -161,6 +179,7 @@ jobs:
           app-name: 'design-system'
 
       - name: Upload Web App Artifact
+        id: upload_web
         uses: actions/upload-artifact@v4
         with:
           name: web-dist
@@ -168,6 +187,7 @@ jobs:
           retention-days: ${{ github.event.inputs.APPROVAL_STATE == 'true' && '30' || '5' }}
 
       - name: Upload Design System Artifact
+        id: upload_design
         uses: actions/upload-artifact@v4
         with:
           name: design-system-dist
@@ -253,6 +273,7 @@ jobs:
       url: ${{ steps.swa_deploy.outputs.deployment_url }}
     outputs:
         staging_url: ${{ steps.swa_deploy.outputs.deployment_url }}
+        deployment_id: ${{ steps.swa_deploy.outputs.deployment_id }}
     if: >
       github.event.inputs.APPROVAL_STATE != 'true' &&
       (github.event_name == 'workflow_dispatch' || needs.check_relevant_changes.outputs.resources_changed == 'true')
@@ -462,9 +483,9 @@ jobs:
           teams_token: ${{ secrets.TEAMS_TOKEN }}
           encoded_token: ${{ needs.deploy_resources_staging.outputs.encoded_token }}
           change_summary: ${{ needs.check_relevant_changes.outputs.change_summary }}
-          deployment_id: ${{ needs.deploy_resources_staging.outputs.deployment_id }}
-          artifact_id: ${{ needs.deploy_resources_staging.outputs.artifact_id }}
-          run_id: ${{ needs.deploy_resources_staging.outputs.run_id }}
+          deployment_id: ${{ needs.swa_deploy_staging.outputs.deployment_id }}
+          artifact_id: ${{ needs.build_apps.outputs.web_artifact_id }}
+          run_id: ${{ github.outputs.run_id }}
 
       - name: Notify Production
         if: ${{ github.event.inputs.APPROVAL_STATE == 'true' }}
