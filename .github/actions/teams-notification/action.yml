@@ -78,6 +78,11 @@ runs:
         echo "Template contents:"
         echo "$TEMPLATE"
 
+        color="${{ inputs.color }}"
+        if [ -z "$color" ]; then
+          color="0076D7"
+        fi
+
         # Validate required variables
         webhook_url="${{ inputs.webhook_url }}"
         location_code="${{ inputs.location_code }}"
@@ -121,7 +126,7 @@ runs:
           -e "s|{{branch}}|${{ inputs.branch }}|g" \
           -e "s|{{message}}|${{ inputs.message }}|g" \
           -e "s|{{title}}|${{ inputs.title }}|g" \
-          -e "s|{{color}}|${inputs.color:-0076D7}|g" \
+          -e "s|{{color}}|$color|g" \
           -e "s|{{deploymentUrl}}|${{ inputs.deployment_url }}|g" \
           -e "s|{{approvalUrl}}|${{ inputs.approval_url }}|g" \
           -e "s|{{rollbackUrl}}|${{ inputs.rollback_url }}|g" \
