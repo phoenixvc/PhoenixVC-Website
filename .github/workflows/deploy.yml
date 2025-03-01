@@ -224,9 +224,9 @@ jobs:
     environment:
       name: staging
       url: ${{ steps.swa_deploy.outputs.deployment_url }}
-      if: >
-        github.event.inputs.APPROVAL_STATE != 'true' &&
-        (github.event_name == 'workflow_dispatch' || needs.check_relevant_changes.outputs.resources_changed == 'true')
+    if: >
+      github.event.inputs.APPROVAL_STATE != 'true' &&
+      (github.event_name == 'workflow_dispatch' || needs.check_relevant_changes.outputs.resources_changed == 'true')
     steps:
       - name: Checkout Repository for Staging Resources
         uses: actions/checkout@v4
