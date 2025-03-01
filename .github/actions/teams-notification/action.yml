@@ -11,7 +11,8 @@ inputs:
     default: ".github/actions/teams-notification/logic-app-template.json"
   webhook_url:
     description: "Microsoft Teams webhook URL"
-    required: true
+    required: false
+    default: "https://phoenixvc568.webhook.office.com/webhookb2/17b0291f-b70b-4bdd-9266-f212ae03a2bd@7edf4423-ccb3-4275-bc80-64dae3ef0148/IncomingWebhook/3174ffcca3804d34ae923ba2e131f82e/a41dbcc0-67a6-4a23-bdec-b780dcebefa9/V2MOPWeKY7ywC8-iGptxHlSIZpwHVxw2FLAOAMU2N0hmM1"
   message:
     description: "Notification message"
     required: true
@@ -54,7 +55,9 @@ runs:
         TEMPLATE=$(cat "$(pwd)/${{ inputs.template_path }}")
         echo "Template contents:"
         echo "$TEMPLATE"
-        echo "payload=$TEMPLATE" >> $GITHUB_OUTPUT
+        echo "payload<<EOF" >> $GITHUB_OUTPUT
+        echo "$TEMPLATE" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
 
     - name: Invoke Logic App HTTP Trigger
       shell: bash
