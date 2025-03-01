@@ -193,7 +193,7 @@ jobs:
       (github.event_name == 'workflow_dispatch' || needs.check_relevant_changes.outputs.resources_changed == 'true')
     outputs:
       staticSiteUrl: ${{ steps.deploy.outputs.staticSiteUrl }}
-      teamsLogicAppUrl: ${{ steps.deploy.outputs.teamsLogicAppUrl }}
+      teamsLogicAppUrl: ${{ steps.deploy.outputs.logicAppUrl }}
       githubLogicAppUrl: ${{ steps.deploy.outputs.githubLogicAppUrl }}
     steps:
       - name: Checkout Repository for Staging Resources
@@ -259,7 +259,7 @@ jobs:
       (github.event_name == 'workflow_dispatch' || needs.check_relevant_changes.outputs.resources_changed == 'true')
     outputs:
       staticSiteUrl: ${{ steps.deploy.outputs.staticSiteUrl }}
-      teamsLogicAppUrl: ${{ steps.deploy.outputs.teamsLogicAppUrl }}
+      teamsLogicAppUrl: ${{ steps.deploy.outputs.logicAppUrl }}
       githubLogicAppUrl: ${{ steps.deploy.outputs.githubLogicAppUrl }}
     steps:
       - name: Checkout Repository for Production Resources
