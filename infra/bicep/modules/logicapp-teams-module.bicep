@@ -52,51 +52,6 @@ var logicAppDefinitionText = '''
     }
   },
   "actions": {
-    "Prepare_Card_Actions": {
-      "type": "Compose",
-      "inputs": {
-        "actions": [
-          {
-            "type": "Action.OpenUrl",
-            "title": "View Site",
-            "url": "@{triggerBody()?['deploymentUrl']}"
-          }
-        ]
-      },
-      "runAfter": {}
-    },
-    "Add_Approval_Action_If_Present": {
-      "type": "Compose",
-      "inputs": {
-        "actions": "@{if(not(empty(triggerBody()?['approvalUrl'])),
-          union(outputs('Prepare_Card_Actions')?['actions'], array(createObject(
-            'type', 'Action.OpenUrl',
-            'title', 'Approve Production Deployment',
-            'url', uriComponent(triggerBody()?['approvalUrl'])
-          ))),
-          outputs('Prepare_Card_Actions')?['actions']
-        )}"
-      },
-      "runAfter": {
-        "Prepare_Card_Actions": [ "Succeeded" ]
-      }
-    },
-    "Add_Rollback_Action_If_Present": {
-      "type": "Compose",
-      "inputs": {
-        "actions": "@{if(not(empty(triggerBody()?['rollbackUrl'])),
-          union(outputs('Add_Approval_Action_If_Present')?['actions'], array(createObject(
-            'type', 'Action.OpenUrl',
-            'title', 'Rollback Deployment',
-            'url', uriComponent(triggerBody()?['rollbackUrl'])
-          ))),
-          outputs('Add_Approval_Action_If_Present')?['actions']
-        )}"
-      },
-      "runAfter": {
-        "Add_Approval_Action_If_Present": [ "Succeeded" ]
-      }
-    },
     "Post_to_Teams": {
       "type": "Http",
       "inputs": {
@@ -148,12 +103,30 @@ var logicAppDefinitionText = '''
               ]
             }
           ],
-          "actions": "@{outputs('Add_Rollback_Action_If_Present')?['actions']}"
+          "actions": [
+            {
+              "type": "Action.OpenUrl",
+              "title": "View Site",
+              "url": "@{triggerBody()?['deploymentUrl']}"
+            },
+            {
+              "type": "Action.OpenUrl",
+              "title": "Approve Production Deployment",
+              "url": "@{if(empty(triggerBody()?['approvalUrl']), '#', uriComponent(triggerBody()?['approvalUrl']))}",
+              "style": "@{if(empty(triggerBody()?['approvalUrl']), 'default', 'positive')}",
+              "isEnabled": "@{not(empty(triggerBody()?['approvalUrl']))}"
+            },
+            {
+              "type": "Action.OpenUrl",
+              "title": "Rollback Deployment",
+              "url": "@{if(empty(triggerBody()?['rollbackUrl']), '#', uriComponent(triggerBody()?['rollbackUrl']))}",
+              "style": "@{if(empty(triggerBody()?['rollbackUrl']), 'default', 'destructive')}",
+              "isEnabled": "@{not(empty(triggerBody()?['rollbackUrl']))}"
+            }
+          ]
         }
       },
-      "runAfter": {
-        "Add_Rollback_Action_If_Present": [ "Succeeded" ]
-      }
+      "runAfter": {}
     }
   },
   "outputs": {}
