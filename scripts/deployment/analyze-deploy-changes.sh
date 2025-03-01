@@ -78,6 +78,7 @@ echo -e "\n${GREEN}8. Additional Security Checks${NC}"
 echo -e "${BLUE}Checking for hardcoded secrets:${NC}"
 git --no-pager diff main..."$CURRENT_BRANCH" | grep -i "key\|secret\|password\|token" || echo "No obvious secrets found"
 
+
 echo -e "\n${BLUE}Checking for common deployment issues:${NC}"
 grep -r "force-push\|--force\|az deployment\|az group deployment" .github/workflows/
 
