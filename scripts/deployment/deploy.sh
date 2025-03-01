@@ -201,6 +201,7 @@ get_static_web_app_url() {
     --output tsv 2>/dev/null)
 
   if [ -n "$url" ]; then
+    # Return in the same format as the deployment output
     echo "https://$url"
     return 0
   fi
@@ -231,7 +232,8 @@ main() {
     existing_url=$(get_static_web_app_url "$RESOURCE_GROUP" "$ENVIRONMENT" "$LOCATION_CODE")
     if [ -n "$existing_url" ]; then
       echo "📡 Found existing Static Web App URL: $existing_url"
-      echo "staticSiteUrl=$existing_url" >> "$GITHUB_OUTPUT"
+      # Write to GITHUB_OUTPUT in the correct format
+      echo "staticSiteUrl=${existing_url}" >> "$GITHUB_OUTPUT"
     fi
   fi
 
