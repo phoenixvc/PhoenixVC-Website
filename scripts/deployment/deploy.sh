@@ -183,31 +183,6 @@ check_resource_group() {
   fi
 }
 
-get_static_web_app_url() {
-  local rg_name="$1"
-  local env="$2"
-  local loc_code="$3"
-
-  local swa_name="${env}-${loc_code}-swa-phoenixvc-website"
-
-  echo "🔍 Looking up Static Web App URL for $swa_name..."
-
-  # Try to get the URL from the existing Static Web App
-  local url
-  url=$(az staticwebapp show \
-    --name "$swa_name" \
-    --resource-group "$rg_name" \
-    --query "defaultHostname" \
-    --output tsv 2>/dev/null)
-
-  if [ -n "$url" ]; then
-    echo "https://$url"
-    return 0
-  fi
-
-  return 1
-}
-
 # ------------------------------------------------------------------------------
 # 3) Main deployment flow
 # ------------------------------------------------------------------------------
@@ -225,17 +200,6 @@ main() {
 
   # Check resource group status.
   check_resource_group
-
-  local existing_url
-  # Fix the first existing URL check
-  if az group exists --name "$RESOURCE_GROUP" | grep -q "true"; then
-    existing_url=$(get_static_web_app_url "$RESOURCE_GROUP" "$ENVIRONMENT" "$LOCATION_CODE")
-    if [ -n "$existing_url" ]; then
-      echo "📡 Found existing Static Web App URL: $existing_url"
-      # Add quotes here to match other paths
-      echo "staticSiteUrl=\"$existing_url\"" >> "$GITHUB_OUTPUT"  # ✅ Fixed
-    fi
-  fi
 
   echo "📄 Using parameter file: $PARAMETERS_FILE"
   if ! cat "$PARAMETERS_FILE"; then
@@ -255,60 +219,39 @@ main() {
     --parameters environment="$ENVIRONMENT" locCode="$LOCATION_CODE" \
     --query properties.outputs
 
-  local deployment_url
-  deployment_url=$(az deployment sub show --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" \
+  # First try to get URL from deployment outputs (original behavior)
+  staticSiteUrl=$(az deployment sub show --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" \
     --query "properties.outputs.staticSiteUrl.value" -o tsv)
 
-  if [ -n "$deployment_url" ]; then
-    echo "📡 Got URL from deployment: $deployment_url"
-    # Escape the URL and wrap in quotes
-    echo "staticSiteUrl=\"$deployment_url\"" >> "$GITHUB_OUTPUT"
-  elif [ -n "$existing_url" ]; then
-    echo "📡 Using existing URL: $existing_url"
-    echo "staticSiteUrl=\"$existing_url\"" >> "$GITHUB_OUTPUT"
-  else
-    # Final attempt to get URL
-    final_url=$(get_static_web_app_url "$RESOURCE_GROUP" "$ENVIRONMENT" "$LOCATION_CODE")
-    if [ -n "$final_url" ]; then
-      echo "📡 Retrieved URL after deployment: $final_url"
-      echo "staticSiteUrl=\"$final_url\"" >> "$GITHUB_OUTPUT"
-    else
-      echo "⚠️ Could not determine Static Web App URL"
-      echo "staticSiteUrl=\"\"" >> "$GITHUB_OUTPUT"
+  # If no URL from deployment, but resource group exists, try to get existing URL
+  if [ -z "$staticSiteUrl" ] && az group exists --name "$RESOURCE_GROUP" | grep -q "true"; then
+    swa_name="${ENVIRONMENT}-${LOCATION_CODE}-swa-phoenixvc-website"
+    staticSiteUrl=$(az staticwebapp show \
+      --name "$swa_name" \
+      --resource-group "$RESOURCE_GROUP" \
+      --query "defaultHostname" \
+      --output tsv 2>/dev/null)
+
+    if [ -n "$staticSiteUrl" ]; then
+      staticSiteUrl="https://$staticSiteUrl"
     fi
   fi
 
-  # # Retrieve the HTTP trigger URL for the Logic App.
-  # # Note: This command requires that the Logic App has a manual trigger configured.
-  # logicAppUrl=$(az logic workflow list-callback-url --name "$logicAppName" --resource-group "$RESOURCE_GROUP" --query "value" -o tsv)
-  # if [ -n "$logicAppUrl" ]; then
-  #   echo "logicAppUrl=$logicAppUrl" >> "$GITHUB_OUTPUT"
-  # else
-  #   echo "logicAppUrl=" >> "$GITHUB_OUTPUT"
-  # fi
+  # Output the URL (whether from deployment or existing resource)
+  if [ -n "$staticSiteUrl" ]; then
+    echo "staticSiteUrl=${staticSiteUrl}" >> "$GITHUB_OUTPUT"
+  else
+    echo "staticSiteUrl=" >> "$GITHUB_OUTPUT"
+  fi
 
-  # # Define variables
-  # subscriptionId="<Your-Subscription-ID>"
-  # resourceGroupName="<Your-Resource-Group-Name>"
-  # logicAppName="<Your-Logic-App-Name>"
-  # workflowName="<Your-Workflow-Name>"
-  # triggerName="<Your-Trigger-Name>"
-
-  # # Construct the REST API URL
-  # url="https://management.azure.com/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.Web/sites/$logicAppName/hostruntime/runtime/webhooks/workflow/api/management/workflows/$workflowName/triggers/$triggerName/listCallbackUrl?api-version=2018-11-01"
-
-  # # Retrieve the callback URL using az rest
-  # response=$(az rest --method POST --uri "$url")
-
-  # # Extract the callback URL from the response
-  # logicAppUrl=$(echo $response | jq -r '.value')
-
-  # # Output the result
-  # if [ -n "$logicAppUrl" ]; then
-  #   echo "logicAppUrl=$logicAppUrl" >> "$GITHUB_OUTPUT"
-  # else
-  #   echo "logicAppUrl=" >> "$GITHUB_OUTPUT"
-  # fi
+  # Retrieve the HTTP trigger URL for the Logic App.
+  # Note: This command requires that the Logic App has a manual trigger configured.
+  logicAppUrl=$(az logic workflow list-callback-url --name "$logicAppName" --resource-group "$RESOURCE_GROUP" --query "value" -o tsv)
+  if [ -n "$logicAppUrl" ]; then
+    echo "logicAppUrl=$logicAppUrl" >> "$GITHUB_OUTPUT"
+  else
+    echo "logicAppUrl=" >> "$GITHUB_OUTPUT"
+  fi
 
   # Post-deployment validations.
   echo "✅ Deployment completed. Running validations..."
