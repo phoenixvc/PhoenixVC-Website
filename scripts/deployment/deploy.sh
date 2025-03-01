@@ -91,7 +91,6 @@ else
   enableRbacAuthorizationVal="N/A"
 fi
 
-echo "---------------------------------"
 echo "Override Values from Parameters File:"
 echo "  deployKeyVault: $deployKeyVaultVal"
 echo "  deployLogicApp: $deployLogicAppVal"
@@ -213,13 +212,23 @@ main() {
   TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 
   echo "🚀 Deploying resources..."
-  az deployment sub create \
-    --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" \
-    --location "$DEPLOY_REGION" \
-    --template-file "$BICEP_FILE" \
-    --parameters @"$PARAMETERS_FILE" \
-    --parameters environment="$ENVIRONMENT" locCode="$LOCATION_CODE" \
-    --query properties.outputs
+  deployment_params=(
+    --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}"
+    --location "$DEPLOY_REGION"
+    --template-file "$BICEP_FILE"
+    --parameters @"$PARAMETERS_FILE"
+    --parameters environment="$ENVIRONMENT" locCode="$LOCATION_CODE"
+  )
+
+  if [ "$deployLogicAppVal" = "true" ]; then
+    if [ -z "$GITHUB_TOKEN" ]; then
+      echo "❌ GITHUB_TOKEN is required when deployLogicApp is true" >&2
+      exit 1
+    fi
+    deployment_params+=(--parameters githubToken="$GITHUB_TOKEN")
+  fi
+
+  az deployment sub create "${deployment_params[@]}" --query properties.outputs
 
   # First try to get URL from deployment outputs (original behavior)
   staticSiteUrl=$(az deployment sub show --name "PhoenixVC-${ENVIRONMENT}-${TIMESTAMP}" \
@@ -257,22 +266,21 @@ main() {
       --resource-group "$RESOURCE_GROUP" \
       --query "value" -o tsv 2>/dev/null)
 
-    if [ -n "$teamsLogicAppUrl" ]; then
-      echo "teamsLogicAppUrl=${teamsLogicAppUrl}" >> "$GITHUB_OUTPUT"
-    else
-      echo "teamsLogicAppUrl=" >> "$GITHUB_OUTPUT"
-    fi
+  if [ -n "$teamsLogicAppUrl" ]; then
+    echo "teamsLogicAppUrl=${teamsLogicAppUrl}" >> "$GITHUB_OUTPUT"
+  else
+    echo "teamsLogicAppUrl=" >> "$GITHUB_OUTPUT"
+  fi
 
-    githubLogicAppUrl=$(az logic workflow list-callback-url \
-      --name "$github_logic_app_name" \
-      --resource-group "$RESOURCE_GROUP" \
-      --query "value" -o tsv 2>/dev/null)
+  githubLogicAppUrl=$(az logic workflow list-callback-url \
+    --name "$github_logic_app_name" \
+    --resource-group "$RESOURCE_GROUP" \
+    --query "value" -o tsv 2>/dev/null)
 
-    if [ -n "$githubLogicAppUrl" ]; then
-      echo "githubLogicAppUrl=${githubLogicAppUrl}" >> "$GITHUB_OUTPUT"
-    else
-      echo "githubLogicAppUrl=" >> "$GITHUB_OUTPUT"
-    fi
+  if [ -n "$githubLogicAppUrl" ]; then
+    echo "githubLogicAppUrl=${githubLogicAppUrl}" >> "$GITHUB_OUTPUT"
+  else
+    echo "githubLogicAppUrl=" >> "$GITHUB_OUTPUT"
   fi
 
   # Post-deployment validations.
@@ -293,15 +301,15 @@ main() {
 }
 
 show_help() {
-    echo -e "Usage: ENVIRONMENT=staging ./deploy.sh [--emergency-override]"
-    echo -e "\nFeature Flags (set as env vars):"
-    echo "  ENABLE_POLICY_CHECKS=false   - Disable policy compliance checks"
-    echo "  ENABLE_MONITORING=true       - Force enable monitoring"
-    echo "  ENABLE_COST_CHECKS=false     - Disable cost analysis"
-    echo "  POLICY_ENFORCEMENT_MODE=audit - Policy audit mode"
-    echo "  GITHUB_TOKEN                 - Required when deployLogicApp is true"
-    echo -e "\nEmergency Features:"
-    echo "  --emergency-override         - Bypass policy checks (audit logs still enabled)"
+  echo -e "Usage: ENVIRONMENT=staging ./deploy.sh [--emergency-override]"
+  echo -e "\nFeature Flags (set as env vars):"
+  echo "  ENABLE_POLICY_CHECKS=false   - Disable policy compliance checks"
+  echo "  ENABLE_MONITORING=true       - Force enable monitoring"
+  echo "  ENABLE_COST_CHECKS=false     - Disable cost analysis"
+  echo "  POLICY_ENFORCEMENT_MODE=audit - Policy audit mode"
+  echo "  GITHUB_TOKEN                 - Required when deployLogicApp is true"
+  echo -e "\nEmergency Features:"
+  echo "  --emergency-override         - Bypass policy checks (audit logs still enabled)"
 }
 
 if [[ "$*" == *"--help"* ]]; then
