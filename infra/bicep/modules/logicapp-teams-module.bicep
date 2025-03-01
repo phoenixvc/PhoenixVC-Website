@@ -33,10 +33,15 @@ var logicAppDefinitionText = '''
             "environment": { "type": "string" },
             "branch": { "type": "string" },
             "message": { "type": "string" },
+            "title": { "type": "string" },
+            "color": { "type": "string" },
             "deploymentUrl": { "type": "string" },
             "approvalUrl": { "type": "string" },
             "rollbackUrl": { "type": "string" },
-            "encodedToken": { "type": "string" }
+            "teamsLogicAppUrl": { "type": "string" },
+            "githubLogicAppUrl": { "type": "string" },
+            "encodedToken": { "type": "string" },
+            "encodedTeamsToken": { "type": "string" }
           },
           "required": [
             "teamsWebhookUrl",
@@ -46,7 +51,8 @@ var logicAppDefinitionText = '''
             "branch",
             "message",
             "deploymentUrl",
-            "encodedToken"
+            "encodedToken",
+            "encodedTeamsToken"
           ]
         }
       }
@@ -68,36 +74,58 @@ var logicAppDefinitionText = '''
           "body": [
             {
               "type": "TextBlock",
-              "text": "Deployment Notification",
+              "text": "@{triggerBody()?['title']}",
               "weight": "Bolder",
-              "size": "Large"
+              "size": "Large",
+              "color": "@{triggerBody()?['color']}"
+            },
+            {
+              "type": "TextBlock",
+              "text": "@{triggerBody()?['message']}",
+              "wrap": true
             },
             {
               "type": "FactSet",
               "facts": [
-                { "title": "Environment:", "value": "{{environment}}" },
-                { "title": "Branch:", "value": "{{branch}}" },
-                { "title": "Resource Group:", "value": "{{resourceGroup}}" },
-                { "title": "Location Code:", "value": "{{locationCode}}" }
+                {
+                  "title": "Environment",
+                  "value": "@{triggerBody()?['environment']}"
+                },
+                {
+                  "title": "Location",
+                  "value": "@{triggerBody()?['locationCode']}"
+                },
+                {
+                  "title": "Resource Group",
+                  "value": "@{triggerBody()?['resourceGroup']}"
+                },
+                {
+                  "title": "Site URL",
+                  "value": "@{triggerBody()?['deploymentUrl']}"
+                }
               ]
             },
             {
               "type": "TextBlock",
-              "text": "Deployment has completed successfully.",
+              "text": "@{concat('The deployment to ', triggerBody()?['environment'], ' has completed successfully. Please review the details above and take any necessary actions.')}",
               "wrap": true
-            },
-            {
-              "type": "Input.Text",
-              "id": "encodedToken",
-              "value": "{{encodedToken}}",
-              "isVisible": false
             }
           ],
           "actions": [
             {
               "type": "Action.OpenUrl",
               "title": "View Site",
-              "url": "{{deploymentUrl}}"
+              "url": "@{triggerBody()?['deploymentUrl']}"
+            },
+            {
+              "type": "Action.OpenUrl",
+              "title": "Approve Production Deployment",
+              "url": "@{triggerBody()?['approvalUrl']}"
+            },
+            {
+              "type": "Action.OpenUrl",
+              "title": "Rollback Deployment",
+              "url": "@{triggerBody()?['rollbackUrl']}"
             }
           ]
         }

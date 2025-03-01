@@ -418,15 +418,16 @@ jobs:
         with:
           webhook_url: "https://phoenixvc568.webhook.office.com/webhookb2/17b0291f-b70b-4bdd-9266-f212ae03a2bd@7edf4423-ccb3-4275-bc80-64dae3ef0148/IncomingWebhook/3174ffcca3804d34ae923ba2e131f82e/a41dbcc0-67a6-4a23-bdec-b780dcebefa9/V2MOPWeKY7ywC8-iGptxHlSIZpwHVxw2FLAOAMU2N0hmM1"
           title: "Staging Deployment Complete"
+          message: "The deployment to the STAGING environment has completed successfully. Please review the deployment and take any necessary actions."
           environment: "staging"
           deployment_url: ${{ needs.deploy_resources_staging.outputs.staticSiteUrl }}
-          logic_app_url: ${{ needs.deploy_resources_staging.outputs.teamsLogicAppUrl }}
+          teams_logic_app_url: ${{ needs.deploy_resources_staging.outputs.teamsLogicAppUrl }}
           github_logic_app_url: ${{ needs.deploy_resources_staging.outputs.githubLogicAppUrl }}
           branch: ${{ github.ref }}
           location_code: ${{ env.LOCATION_CODE }}
           resource_group: staging-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
           color: "0076D7"
-          approval_url: "https://github.com/${{ github.repository }}/actions/workflows/deploy.yml/dispatches?workflow=Phoenix+VC+Rollback+Pipeline&ref=${{ github.ref }}"
+          approval_url: "https://github.com/${{ github.repository }}/actions/workflows/deploy.yml/dispatches?workflow=Phoenix+VC+Rollback+Pipeline&ref=${{ github.ref }}&APPROVAL_STATE=true"
           github_token: ${{ secrets.GITHUB_TOKEN }}
           teams_token: ${{ secrets.TEAMS_TOKEN }}
 
@@ -436,6 +437,7 @@ jobs:
         with:
           webhook_url: "https://prod-21.northeurope.logic.azure.com:443/workflows/9a94f520b85d4bdd99f015511d5ee3ea/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oiVbSb17Wfkzg3wvU3-b1JXUkOR6X7t_yhvkGg8CJ-Q"
           title: "Production Deployment Complete"
+          message: "The deployment to the PRODUCTION environment has completed successfully. Please review the deployment and take any necessary actions."
           environment: "production"
           deployment_url: ${{ needs.deploy_resources_prod.outputs.staticSiteUrl }}
           logic_app_url: ${{ needs.deploy_resources_prod.outputs.teamsLogicAppUrl }}

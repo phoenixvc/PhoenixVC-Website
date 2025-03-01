@@ -5,6 +5,8 @@
   "environment": "{{environment}}",
   "branch": "{{branch}}",
   "message": "{{message}}",
+  "title": "{{title}}",
+  "color": "{{color}}",
   "deploymentUrl": "{{deploymentUrl}}",
   "approvalUrl": "{{approvalUrl}}",
   "rollbackUrl": "{{rollbackUrl}}",
