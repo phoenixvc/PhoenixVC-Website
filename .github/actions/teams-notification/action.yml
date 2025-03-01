@@ -65,49 +65,35 @@ runs:
       id: build_payload
       run: |
         # Encode tokens in base64
-        encodedGitHubToken=$(echo -n "${{ inputs.github_token }}" | base64)
-        encodedTeamsToken=$(echo -n "${{ inputs.teams_token }}" | base64)
-
+        encodedGitHubToken=$(echo "${{ inputs.github_token }}" | base64)
+        encodedTeamsToken=$(echo "${{ inputs.teams_token }}" | base64)
         echo "Encoded GitHub token: $encodedGitHubToken"
         echo "Encoded Teams token: $encodedTeamsToken"
 
         # Read the JSON template file
         TEMPLATE=$(cat "$(pwd)/${{ inputs.template_path }}")
+        echo "Template contents:"
+        echo "$TEMPLATE"
 
-        # Substitute placeholders safely using jq instead of sed
-        PAYLOAD=$(jq -n \
-          --arg webhookUrl "${{ inputs.webhook_url }}" \
-          --arg locationCode "${{ inputs.location_code }}" \
-          --arg resourceGroup "${{ inputs.resource_group }}" \
-          --arg environment "${{ inputs.environment }}" \
-          --arg branch "${{ inputs.branch }}" \
-          --arg message "${{ inputs.message }}" \
-          --arg deploymentUrl "${{ inputs.deployment_url }}" \
-          --arg approvalUrl "${{ inputs.approval_url }}" \
-          --arg rollbackUrl "${{ inputs.rollback_url }}" \
-          --arg teamsLogicAppUrl "${{ inputs.teams_logic_app_url }}" \
-          --arg githubLogicAppUrl "${{ inputs.github_logic_app_url }}" \
-          --arg encodedToken "$encodedGitHubToken" \
-          --arg encodedTeamsToken "$encodedTeamsToken" \
-          '$TEMPLATE |
-          gsub("{{teamsWebhookUrl}}"; $webhookUrl) |
-          gsub("{{locationCode}}"; $locationCode) |
-          gsub("{{resourceGroup}}"; $resourceGroup) |
-          gsub("{{environment}}"; $environment) |
-          gsub("{{branch}}"; $branch) |
-          gsub("{{message}}"; $message) |
-          gsub("{{deploymentUrl}}"; $deploymentUrl) |
-          gsub("{{approvalUrl}}"; $approvalUrl) |
-          gsub("{{rollbackUrl}}"; $rollbackUrl) |
-          gsub("{{encodedToken}}"; $encodedToken) |
-          gsub("{{encodedTeamsToken}}"; $encodedTeamsToken) |
-          gsub("{{teamsLogicAppUrl}}"; $teamsLogicAppUrl) |
-          gsub("{{githubLogicAppUrl}}"; $githubLogicAppUrl)')
-
+        # Substitute placeholders in the template
+        PAYLOAD=$(echo "$TEMPLATE" | sed \
+          -e "s|{{teamsWebhookUrl}}|${{ inputs.webhook_url }}|g" \
+          -e "s|{{locationCode}}|${{ inputs.location_code }}|g" \
+          -e "s|{{resourceGroup}}|${{ inputs.resource_group }}|g" \
+          -e "s|{{environment}}|${{ inputs.environment }}|g" \
+          -e "s|{{branch}}|${{ inputs.branch }}|g" \
+          -e "s|{{message}}|${{ inputs.message }}|g" \
+          -e "s|{{deploymentUrl}}|${{ inputs.deployment_url }}|g" \
+          -e "s|{{approvalUrl}}|${{ inputs.approval_url }}|g" \
+          -e "s|{{rollbackUrl}}|${{ inputs.rollback_url }}|g" \
+          -e "s|{{encodedToken}}|$encodedGitHubToken|g" \
+          -e "s|{{encodedTeamsToken}}|$encodedTeamsToken|g" \
+          -e "s|{{teamsLogicAppUrl}}|${{ inputs.teams_logic_app_url }}|g" \
+          -e "s|{{githubLogicAppUrl}}|${{ inputs.github_logic_app_url }}|g")
         echo "Generated Payload:"
         echo "$PAYLOAD"
 
-        # Write payload to output
+        # Write the payload as a multi-line output
         echo "payload<<EOF" >> $GITHUB_OUTPUT
         echo "$PAYLOAD" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
