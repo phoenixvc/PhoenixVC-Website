@@ -224,6 +224,8 @@ jobs:
     environment:
       name: staging
       url: ${{ steps.swa_deploy.outputs.deployment_url }}
+    outputs:
+        staging_url: ${{ steps.swa_deploy.outputs.deployment_url }}
     if: >
       github.event.inputs.APPROVAL_STATE != 'true' &&
       (github.event_name == 'workflow_dispatch' || needs.check_relevant_changes.outputs.resources_changed == 'true')
@@ -420,7 +422,7 @@ jobs:
           title: "Staging Deployment Complete"
           message: "The deployment to the STAGING environment has completed successfully. Please review the deployment and take any necessary actions."
           environment: "staging"
-          deployment_url: ${{ needs.deploy_resources_staging.outputs.staticSiteUrl }}
+          deployment_url: ${{ needs.swa_deploy_staging.outputs.staging_url }}
           teams_logic_app_url: ${{ needs.deploy_resources_staging.outputs.teamsLogicAppUrl }}
           github_logic_app_url: ${{ needs.deploy_resources_staging.outputs.githubLogicAppUrl }}
           branch: ${{ github.ref }}
