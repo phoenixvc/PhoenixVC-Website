@@ -1,45 +1,49 @@
 {
-  "type": "MessageCard",
-  "@context": "http://schema.org/extensions",
-  "summary": "Phoenix VC {{environment}} Deployment Notification",
-  "themeColor": "{{color}}",
-  "title": "{{title}}",
-  "sections": [
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "type": "AdaptiveCard",
+  "version": "1.2",
+  "body": [
     {
-      "activityTitle": "Deployment to {{environment}} Completed",
-      "activitySubtitle": "Deployed on branch: {{branch}}",
+      "type": "TextBlock",
+      "text": "Phoenix VC {{environment}} Deployment Notification",
+      "weight": "Bolder",
+      "size": "Large"
+    },
+    {
+      "type": "TextBlock",
+      "text": "Deployment to {{environment}} Completed",
+      "wrap": true
+    },
+    {
+      "type": "FactSet",
       "facts": [
-        { "name": "Environment", "value": "{{environment}}" },
-        { "name": "Location", "value": "{{location_code}}" },
-        { "name": "Resource Group", "value": "{{resource_group}}" },
-        { "name": "Site URL", "value": "{{deployment_url}}" },
-        { "name": "Webhook URL", "value": "{{webhook_url}}" }
-      ],
-      "markdown": true
-    }
-  ],
-  "potentialAction": [
-    {
-      "type": "OpenUri",
-      "name": "View Site",
-      "targets": [
-        { "os": "default", "uri": "{{deployment_url}}" }
+        { "title": "Environment", "value": "{{environment}}" },
+        { "title": "Location", "value": "{{location_code}}" },
+        { "title": "Resource Group", "value": "{{resource_group}}" },
+        { "title": "Site URL", "value": "{{deployment_url}}" }
       ]
     },
     {
-      "type": "OpenUri",
-      "name": "Approve Production Deployment",
-      "targets": [
-        { "os": "default", "uri": "{{approval_url}}" }
-      ]
-    },
-    {
-      "type": "OpenUri",
-      "name": "Rollback Deployment",
-      "targets": [
-        { "os": "default", "uri": "{{rollback_url}}" }
-      ]
+      "type": "TextBlock",
+      "text": "The deployment to {{environment}} has completed successfully. Please review the details above and take any necessary actions.",
+      "wrap": true
     }
   ],
-  "text": "The deployment to {{environment}} has completed successfully. Please review the details above and take any necessary actions."
+  "actions": [
+    {
+      "type": "Action.OpenUrl",
+      "title": "View Site",
+      "url": "{{deployment_url}}"
+    },
+    {
+      "type": "Action.OpenUrl",
+      "title": "Approve Production Deployment",
+      "url": "{{approval_url}}"
+    },
+    {
+      "type": "Action.OpenUrl",
+      "title": "Rollback Deployment",
+      "url": "{{rollback_url}}"
+    }
+  ]
 }

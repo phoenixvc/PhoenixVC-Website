@@ -6,53 +6,100 @@
     "schema": {
       "type": "object",
       "properties": {
-        "type": {
+        "teamsWebhookUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "locationCode": {
           "type": "string"
         },
-        "attachments": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "contentType": {
-                "type": "string"
-              },
-              "content": {
+        "resourceGroup": {
+          "type": "string"
+        },
+        "environment": {
+          "type": "string"
+        },
+        "branch": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "deploymentUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "approvalUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "rollbackUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "adaptiveCard": {
+          "type": "object",
+          "properties": {
+            "$schema": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            },
+            "body": {
+              "type": "array",
+              "items": {
                 "type": "object",
                 "properties": {
-                  "$schema": {
-                    "type": "string"
-                  },
-                  "type": {
-                    "type": "string"
-                  },
-                  "version": {
-                    "type": "string"
-                  },
-                  "body": {
+                  "type": { "type": "string" },
+                  "text": { "type": "string" },
+                  "weight": { "type": "string" },
+                  "size": { "type": "string" },
+                  "facts": {
                     "type": "array",
                     "items": {
                       "type": "object",
                       "properties": {
-                        "type": {
-                          "type": "string"
-                        }
+                        "title": { "type": "string" },
+                        "value": { "type": "string" }
                       },
-                      "required": [
-                        "type"
-                      ]
+                      "required": ["title", "value"]
                     }
-                  }
-                }
+                  },
+                  "wrap": { "type": "boolean" }
+                },
+                "required": ["type"]
               }
             },
-            "required": [
-              "contentType",
-              "content"
-            ]
-          }
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": { "type": "string" },
+                  "title": { "type": "string" },
+                  "url": { "type": "string", "format": "uri" }
+                },
+                "required": ["type", "title", "url"]
+              }
+            }
+          },
+          "required": ["$schema", "type", "version", "body", "actions"]
         }
-      }
+      },
+      "required": [
+        "teamsWebhookUrl",
+        "locationCode",
+        "resourceGroup",
+        "environment",
+        "branch",
+        "message",
+        "deploymentUrl",
+        "adaptiveCard"
+      ]
     }
   },
   "metadata": {

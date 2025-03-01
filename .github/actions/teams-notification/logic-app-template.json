@@ -1,0 +1,60 @@
+{
+  "teamsWebhookUrl": "{{teamsWebhookUrl}}",
+  "locationCode": "{{locationCode}}",
+  "resourceGroup": "{{resourceGroup}}",
+  "environment": "{{environment}}",
+  "branch": "{{branch}}",
+  "message": "{{message}}",
+  "deploymentUrl": "{{deploymentUrl}}",
+  "approvalUrl": "{{approvalUrl}}",
+  "rollbackUrl": "{{rollbackUrl}}",
+  "adaptiveCard": {
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "type": "AdaptiveCard",
+    "version": "1.2",
+    "body": [
+      {
+        "type": "TextBlock",
+        "text": "Phoenix VC {{environment}} Deployment Notification",
+        "weight": "Bolder",
+        "size": "Large"
+      },
+      {
+        "type": "TextBlock",
+        "text": "Deployment to {{environment}} Completed",
+        "wrap": true
+      },
+      {
+        "type": "FactSet",
+        "facts": [
+          { "title": "Environment", "value": "{{environment}}" },
+          { "title": "Location", "value": "{{locationCode}}" },
+          { "title": "Resource Group", "value": "{{resourceGroup}}" },
+          { "title": "Site URL", "value": "{{deploymentUrl}}" }
+        ]
+      },
+      {
+        "type": "TextBlock",
+        "text": "The deployment to {{environment}} has completed successfully. Please review the details above and take any necessary actions.",
+        "wrap": true
+      }
+    ],
+    "actions": [
+      {
+        "type": "Action.OpenUrl",
+        "title": "View Site",
+        "url": "{{deploymentUrl}}"
+      },
+      {
+        "type": "Action.OpenUrl",
+        "title": "Approve Production Deployment",
+        "url": "{{approvalUrl}}"
+      },
+      {
+        "type": "Action.OpenUrl",
+        "title": "Rollback Deployment",
+        "url": "{{rollbackUrl}}"
+      }
+    ]
+  }
+}
