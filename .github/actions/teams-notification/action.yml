@@ -56,13 +56,6 @@ runs:
         echo "$TEMPLATE"
         echo "payload=$TEMPLATE" >> $GITHUB_OUTPUT
 
-    - name: Debug: Show Logic App URL and Payload
-      shell: bash
-      run: |
-        echo "Logic App URL: ${{ inputs.logic_app_url }}"
-        echo "Payload to be sent:"
-        echo "${{ steps.build_payload.outputs.payload }}" | jq .
-
     - name: Invoke Logic App HTTP Trigger
       shell: bash
       run: |
