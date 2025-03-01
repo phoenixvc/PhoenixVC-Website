@@ -44,6 +44,10 @@ param logicAppName string = '${environment}-${locCode}-la-phoenixvc'
 @description('Name of the GitHub workflow invoking Logic App')
 param logicAppGitHubName string = '${environment}-${locCode}-la-github'
 
+@description('GitHub Personal Access Token for workflow dispatch')
+@secure()
+param githubToken string = ''
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Resource naming variables
 // ─────────────────────────────────────────────────────────────────────────────
@@ -146,6 +150,7 @@ module logicAppGitHubModule './modules/logicapp-github-module.bicep' = if (deplo
     logicAppName: logicAppGitHubName
     location: location
     tags: commonTags
+    githubToken: githubToken
   }
 }
 

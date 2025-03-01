@@ -10,8 +10,8 @@ const App = () => {
 
   return (
     <BrowserRouter>
+      <Sidebar/>
       <Layout>
-        <Sidebar/>
         <Hero />
         <InvestmentFocus />
         <Contact />

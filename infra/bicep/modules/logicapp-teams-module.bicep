@@ -63,11 +63,15 @@ var logicAppDefinitionText = '''
           "sections": [
             {
               "activityTitle": "@{coalesce(triggerBody()?['title'], 'Deployment Notification')}",
-              "activitySubtitle": "Status Update",
+              "activitySubtitle": "The PhoenixVC Website deployment to the **@{toUpper(triggerBody()?['environment'])}** environment has completed successfully. Please review the deployment and take any necessary actions.",
               "facts": [
                 {
+                  "name": "Status",
+                  "value": "@{triggerBody()?['environment']} Deployment Complete"
+                },
+                {
                   "name": "Environment",
-                  "value": "@{toUpper(first(triggerBody()?['environment']))}@{toLower(substring(triggerBody()?['environment'], 1))}"
+                  "value": "@{triggerBody()?['environment']}"
                 },
                 {
                   "name": "Location",

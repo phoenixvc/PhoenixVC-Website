@@ -195,6 +195,11 @@ jobs:
       staticSiteUrl: ${{ steps.deploy_staging_resources.outputs.staticSiteUrl }}
       teamsLogicAppUrl: ${{ steps.deploy_staging_resources.outputs.teamsLogicAppUrl }}
       githubLogicAppUrl: ${{ steps.deploy_staging_resources.outputs.githubLogicAppUrl }}
+      encoded_token: ${{ steps.encode_token.outputs.encoded_token }}
+      deployment_id: ${{ steps.get_deployment_info.outputs.deployment_id }}
+      artifact_id: ${{ steps.get_deployment_info.outputs.artifact_id }}
+      run_id: ${{ github.run_id }}
+
     steps:
       - name: Checkout Repository for Staging Resources
         uses: actions/checkout@v4
@@ -213,6 +218,21 @@ jobs:
           location_code: ${{ env.LOCATION_CODE }}
           repository: JustAGhosT/PhoenixVC-Modernized
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get Deployment Information
+        id: get_deployment_info
+        run: |
+          DEPLOYMENT_ID="${{ github.run_id }}_${{ github.sha }}"
+          # Generate a unique artifact ID based on timestamp and hash
+          ARTIFACT_ID="phoenixvc_$(date +%Y%m%d)_${{ github.sha }}_${{ github.run_number }}"
+          echo "deployment_id=${DEPLOYMENT_ID}" >> $GITHUB_OUTPUT
+          echo "artifact_id=${ARTIFACT_ID}" >> $GITHUB_OUTPUT
+
+      - name: Encode GitHub Token
+        id: encode_token
+        run: |
+          ENCODED_TOKEN=$(echo -n "${{ secrets.GITHUB_TOKEN }}" | base64)
+          echo "encoded_token=${ENCODED_TOKEN}" >> $GITHUB_OUTPUT
 
   # ───────────────────────────────────────────────
   # ✅ STAGING SITE DEPLOYMENT VIA SWA CLI
@@ -431,9 +451,14 @@ jobs:
           location_code: ${{ env.LOCATION_CODE }}
           resource_group: staging-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
           color: "0076D7"
-          approval_url: "{{ needs.deploy_resources_staging.outputs.staticSiteUrl }}"
+          approval_url: ${{ needs.deploy_resources_staging.outputs.staticSiteUrl }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           teams_token: ${{ secrets.TEAMS_TOKEN }}
+          encoded_token: ${{ needs.deploy_resources_staging.outputs.encoded_token }}
+          change_summary: ${{ needs.check_relevant_changes.outputs.change_summary }}
+          deployment_id: ${{ needs.deploy_resources_staging.outputs.deployment_id }}
+          artifact_id: ${{ needs.deploy_resources_staging.outputs.artifact_id }}
+          run_id: ${{ needs.deploy_resources_staging.outputs.run_id }}
 
       - name: Notify Production
         if: ${{ github.event.inputs.APPROVAL_STATE == 'true' }}
