@@ -52,16 +52,7 @@ runs:
       id: build_payload
       run: >
         TEMPLATE=$(cat "$(pwd)/${{ inputs.template_path }}")
-        PAYLOAD=$(echo "$TEMPLATE" | sed \
-          -e "s|{{teamsWebhookUrl}}|${{ inputs.webhook_url }}|g" \
-          -e "s|{{locationCode}}|${{ inputs.location_code }}|g" \
-          -e "s|{{resourceGroup}}|${{ inputs.resource_group }}|g" \
-          -e "s|{{environment}}|${{ inputs.environment }}|g" \
-          -e "s|{{branch}}|${{ inputs.branch }}|g" \
-          -e "s|{{message}}|${{ inputs.message }}|g" \
-          -e "s|{{deploymentUrl}}|${{ inputs.deployment_url }}|g" \
-          -e "s|{{approvalUrl}}|${{ inputs.approval_url }}|g" \
-          -e "s|{{rollbackUrl}}|${{ inputs.rollback_url }}|g")
+        PAYLOAD=$(echo "$TEMPLATE" | sed -e "s|{{teamsWebhookUrl}}|${{ inputs.webhook_url }}|g" -e "s|{{locationCode}}|${{ inputs.location_code }}|g" -e "s|{{resourceGroup}}|${{ inputs.resource_group }}|g" -e "s|{{environment}}|${{ inputs.environment }}|g" -e "s|{{branch}}|${{ inputs.branch }}|g" -e "s|{{message}}|${{ inputs.message }}|g" -e "s|{{deploymentUrl}}|${{ inputs.deployment_url }}|g" -e "s|{{approvalUrl}}|${{ inputs.approval_url }}|g" -e "s|{{rollbackUrl}}|${{ inputs.rollback_url }}|g")
         echo "Generated Payload:"
         echo "$PAYLOAD"
         echo "payload=$PAYLOAD" >> $GITHUB_OUTPUT
