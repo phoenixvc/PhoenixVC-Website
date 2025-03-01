@@ -22,14 +22,6 @@
     },
     "deployLogicApp": {
       "value": true
-    },
-    "githubToken": {
-      "reference": {
-        "keyVault": {
-          "id": "/subscriptions/<subscription-id>/resourceGroups/<rg-name>/providers/Microsoft.KeyVault/vaults/<keyvault-name>"
-        },
-        "secretName": "githubToken"
-      }
     }
   }
 }
