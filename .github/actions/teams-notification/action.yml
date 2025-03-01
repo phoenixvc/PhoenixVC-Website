@@ -39,11 +39,15 @@ inputs:
     description: "URL for rollback action (prod only)"
     required: false
     default: ""
-  webhook_url:
+  template_path:
     description: "Webhook URL for Teams notifications"
     required: false
+    default: "teams-template.json"
+  webhook_url:
+    description: "Path to the Teams template JSON file relative to this action’s directory"
+    required: false
     default: ""
-
+    
 runs:
   using: "composite"
   steps:
@@ -55,27 +59,15 @@ runs:
     - name: Read and Substitute Template
       shell: bash
       id: build_payload
-      run: |
-        echo "Reading JSON template from: $(pwd)/${{ inputs.template_path }}"
-        TEMPLATE=$(cat "$(pwd)/${{ inputs.template_path }}")
-        # Replace placeholders using sed with '|' as delimiter to avoid conflicts with URL characters
-        PAYLOAD=$(echo "$TEMPLATE" | sed \
-          -e "s|{{title}}|${{ inputs.title }}|g" \
-          -e "s|{{environment}}|${{ inputs.environment }}|g" \
-          -e "s|{{deployment_url}}|${{ inputs.deployment_url }}|g" \
-          -e "s|{{branch}}|${{ inputs.branch }}|g" \
-          -e "s|{{location_code}}|${{ inputs.location_code }}|g" \
-          -e "s|{{resource_group}}|${{ inputs.resource_group }}|g" \
-          -e "s|{{color}}|${{ inputs.color }}|g" \
-          -e "s|{{approval_url}}|${{ inputs.approval_url }}|g" \
-          -e "s|{{rollback_url}}|${{ inputs.rollback_url }}|g")
-          -e "s|{{webhook_url}}|${{ inputs.webhook_url }}|g")
-        echo "Generated Payload:"
-        echo "$PAYLOAD" | jq .
-        # Write the payload to GITHUB_OUTPUT for later use
-        echo "payload<<EOF" >> $GITHUB_OUTPUT
-        echo "$PAYLOAD" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
+      run: >
+        # Read the JSON template file from the action's directory using the provided template_path input.
+        TEMPLATE=$(cat "$(pwd)/.github/actions/teams-notification/${{ inputs.template_path }}")
+        # Replace placeholders in the template with the input values.
+        PAYLOAD=$(echo "$TEMPLATE" | sed -e "s|{{title}}|${{ inputs.title }}|g" -e "s|{{environment}}|${{ inputs.environment }}|g" -e "s|{{deployment_url}}|${{ inputs.deployment_url }}|g" -e "s|{{branch}}|${{ inputs.branch }}|g" -e "s|{{location_code}}|${{ inputs.location_code }}|g" -e "s|{{resource_group}}|${{ inputs.resource_group }}|g" -e "s|{{color}}|${{ inputs.color }}|g" -e "s|{{approval_url}}|${{ inputs.approval_url }}|g" -e "s|{{rollback_url}}|${{ inputs.rollback_url }}|g")
+        echo "Generated Payload:" 
+        echo "$PAYLOAD"
+        # Using the new environment-file method instead of set-output:
+        echo "payload=$PAYLOAD" >> $GITHUB_OUTPUT
 
     - name: Debug: Show Logic App URL and Payload
       shell: bash
@@ -83,6 +75,7 @@ runs:
         echo "Logic App URL: ${{ inputs.logic_app_url }}"
         echo "Payload to be sent:"
         echo "${{ steps.build_payload.outputs.payload }}" | jq .
+
 
     - name: Invoke Logic App HTTP Trigger
       shell: bash
