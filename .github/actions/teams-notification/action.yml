@@ -89,6 +89,7 @@ runs:
         encodedTeamsToken=$(echo "${{ inputs.teams_token }}" | base64)
         echo "Encoded GitHub token: $encodedGitHubToken"
         echo "Encoded Teams token: $encodedTeamsToken"
+        echo "Approval url: $${{ inputs.github_logic_app_url }}"
 
         # Read the JSON template file
         TEMPLATE=$(cat "$(pwd)/${{ inputs.template_path }}")
