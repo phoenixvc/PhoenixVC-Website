@@ -118,7 +118,7 @@ runs:
 
         # Construct approval URL
         if [ -n "${{ inputs.github_logic_app_url }}" ]; then
-          base_url=$(echo "${{ inputs.github_logic_app_url }}" | sed 's/{{approvalUrl}}//g')
+          base_url=$(echo "${{ inputs.github_logic_app_url }}" | sed 's/\{\{approvalUrl\}\}//g')
           approval_url="$base_url"
 
           # Ensure required parameters are available
