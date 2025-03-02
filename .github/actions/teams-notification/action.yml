@@ -109,7 +109,6 @@ runs:
         message="${{ inputs.message }}"
         title="${{ inputs.title }}"
         deployment_url="${{ inputs.deployment_url }}"
-        teams_logic_app_url="${{ inputs.logic_app_url }}"
 
         # Get additional parameters
         change_summary="${{ inputs.change_summary }}"
@@ -118,36 +117,27 @@ runs:
         run_id="${{ inputs.run_id }}"
 
         # Construct approval URL
-        approval_url=""
-        if [ "$environment" = "staging" ]; then
-          if [ -n "${{ inputs.approval_url }}" ]; then
-            approval_url="${{ inputs.approval_url }}"
-          else
-            if [ -z "${{ inputs.github_logic_app_url }}" ]; then
-              echo "Error: github_logic_app_url is required for staging environment"
-              exit 1
-            fi
-            if [ -z "$deployment_id" ] || [ -z "$artifact_id" ] || [ -z "$run_id" ]; then
-              echo "Error: deployment_id, artifact_id, and run_id are required for staging environment"
-              exit 1
-            fi
+        if [ -n "${{ inputs.github_logic_app_url }}" ]; then
+          approval_url="${{ inputs.github_logic_app_url }}"
 
-            # Base URL
-            approval_url="${{ inputs.github_logic_app_url }}"
-
-            # URL encode each parameter separately
-            encoded_token=$(echo "$encodedGitHubToken" | jq -sRr @uri)
-            encoded_changes=$(echo "$change_summary" | jq -sRr @uri)
-            encoded_deployment_id=$(echo "$deployment_id" | jq -sRr @uri)
-            encoded_artifact_id=$(echo "$artifact_id" | jq -sRr @uri)
-            encoded_run_id=$(echo "$run_id" | jq -sRr @uri)
-
-            # Construct URL with encoded parameters
-            approval_url="${approval_url}?token=${encoded_token}&changes=${encoded_changes}&deploymentId=${encoded_deployment_id}&artifactId=${encoded_artifact_id}&runId=${encoded_run_id}"
+          # Ensure required parameters are available
+          if [ -z "$deployment_id" ] || [ -z "$artifact_id" ] || [ -z "$run_id" ]; then
+            echo "Error: deployment_id, artifact_id, and run_id are required for staging environment"
+            exit 1
           fi
+
+          # URL encode each parameter separately
+          encoded_token=$(echo "$encodedGitHubToken" | jq -sRr @uri)
+          encoded_changes=$(echo "$change_summary" | jq -sRr @uri)
+          encoded_deployment_id=$(echo "$deployment_id" | jq -sRr @uri)
+          encoded_artifact_id=$(echo "$artifact_id" | jq -sRr @uri)
+          encoded_run_id=$(echo "$run_id" | jq -sRr @uri)
+
+          # Construct the approval URL
+          approval_url="${approval_url}?token=${encoded_token}&changes=${encoded_changes}&deploymentId=${encoded_deployment_id}&artifactId=${encoded_artifact_id}&runId=${encoded_run_id}"
         else
-          # For other environments, empty approval URL
-          approval_url=""
+          echo "Error: github_logic_app_url is required for approval URL"
+          exit 1
         fi
 
         required_vars=(

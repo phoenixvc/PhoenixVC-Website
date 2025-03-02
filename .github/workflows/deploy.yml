@@ -511,7 +511,7 @@ jobs:
           location_code: ${{ env.LOCATION_CODE }}
           resource_group: staging-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
           color: "0076D7"
-          approval_url: ${{ needs.deploy_resources_staging.outputs.staticSiteUrl }}
+          approval_url: ${{ needs.deploy_resources_staging.outputs.githubLogicAppUrl }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           teams_token: ${{ secrets.TEAMS_TOKEN }}
           encoded_token: ${{ needs.deploy_resources_staging.outputs.encoded_token }}
