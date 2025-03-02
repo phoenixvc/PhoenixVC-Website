@@ -118,7 +118,8 @@ runs:
 
         # Construct approval URL
         if [ -n "${{ inputs.github_logic_app_url }}" ]; then
-          approval_url="${{ inputs.github_logic_app_url }}"
+          base_url=$(echo "${{ inputs.github_logic_app_url }}" | sed 's/{{approvalUrl}}//g')
+          approval_url="$base_url"
 
           # Ensure required parameters are available
           if [ -z "$deployment_id" ] || [ -z "$artifact_id" ] || [ -z "$run_id" ]; then
@@ -133,7 +134,6 @@ runs:
           encoded_artifact_id=$(echo "$artifact_id" | jq -sRr @uri)
           encoded_run_id=$(echo "$run_id" | jq -sRr @uri)
 
-          # Construct the approval URL
           approval_url="${approval_url}?token=${encoded_token}&changes=${encoded_changes}&deploymentId=${encoded_deployment_id}&artifactId=${encoded_artifact_id}&runId=${encoded_run_id}"
         else
           echo "Error: github_logic_app_url is required for approval URL"
