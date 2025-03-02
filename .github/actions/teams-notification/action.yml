@@ -119,7 +119,7 @@ runs:
 
         # Construct approval URL
         if [ -n "${{ inputs.github_logic_app_url }}" ]; then
-          # Get the base URL and remove all occurrences of {{approvalUrl}} using bash substitution
+          # Remove all occurrences of the placeholder tokens using bash string replacement
           base_url="${{ inputs.github_logic_app_url }}"
           base_url="${base_url//\{\{approvalUrl\}\}/}"
 
@@ -143,14 +143,17 @@ runs:
           encoded_artifact_id=$(echo "$artifact_id" | jq -sRr @uri)
           encoded_run_id=$(echo "$run_id" | jq -sRr @uri)
 
-          # Append our parameters using the correct connector
+          # Build the final approval URL
           approval_url="${base_url}${connector}token=${encoded_token}&changes=${encoded_changes}&deploymentId=${encoded_deployment_id}&artifactId=${encoded_artifact_id}&runId=${encoded_run_id}"
+
+          # Escape ampersands for sed replacement so they are treated as literal characters
+          escaped_approval_url=$(printf '%s' "$approval_url" | sed 's/&/\\&/g')
         else
           echo "Error: github_logic_app_url is required for approval URL"
           exit 1
         fi
 
-        # Substitute placeholders in the template
+        # Substitute placeholders in the template using sed
         PAYLOAD=$(echo "$TEMPLATE" | sed \
           -e "s|{{teamsWebhookUrl}}|${{ inputs.webhook_url }}|g" \
           -e "s|{{locationCode}}|${{ inputs.location_code }}|g" \
@@ -164,7 +167,7 @@ runs:
           -e "s|{{rollbackUrl}}|${{ inputs.rollback_url }}|g" \
           -e "s|{{encodedToken}}|$encodedGitHubToken|g" \
           -e "s|{{encodedTeamsToken}}|$encodedTeamsToken|g" \
-          -e "s|{{approvalUrl}}|${approval_url}|g"
+          -e "s|{{approvalUrl}}|${escaped_approval_url}|g"
         )
         echo "Generated Payload:"
         echo "$PAYLOAD"
