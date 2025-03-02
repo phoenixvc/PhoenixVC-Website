@@ -117,6 +117,7 @@ runs:
         run_id="${{ inputs.run_id }}"
 
         # Construct approval URL
+        approval_url = ""
         if [ "$environment" = "staging" ]; then
           # First check if a specific approval_url was provided
           if [ -n "${{ inputs.approval_url }}" ]; then
