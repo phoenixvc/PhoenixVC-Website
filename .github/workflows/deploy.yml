@@ -518,7 +518,7 @@ jobs:
           change_summary: ${{ needs.check_relevant_changes.outputs.change_summary }}
           deployment_id: ${{ needs.swa_deploy_staging.outputs.deployment_id }}
           artifact_id: ${{ needs.build_apps.outputs.web_artifact_id }}
-          run_id: ${{ github.outputs.run_id }}
+          run_id: ${{ github.run_id }}
 
       - name: Notify Production
         if: ${{ github.event.inputs.APPROVAL_STATE == 'true' }}
