@@ -118,8 +118,9 @@ runs:
 
         # Construct approval URL
         if [ -n "${{ inputs.github_logic_app_url }}" ]; then
-          # Remove all instances of the placeholder tokens
-          base_url=$(echo "${{ inputs.github_logic_app_url }}" | sed 's|{{approvalUrl}}||g')
+          # Get the base URL and remove all occurrences of {{approvalUrl}} using bash substitution
+          base_url="${{ inputs.github_logic_app_url }}"
+          base_url="${base_url//\{\{approvalUrl\}\}/}"
 
           # Determine the connector: if the base URL already has a '?', use '&', else use '?'
           if [[ "$base_url" == *"?"* ]]; then
@@ -147,26 +148,6 @@ runs:
           echo "Error: github_logic_app_url is required for approval URL"
           exit 1
         fi
-
-        required_vars=(
-          "webhook_url"
-          "location_code"
-          "resource_group"
-          "environment"
-          "branch"
-          "message"
-          "title"
-          "deployment_url"
-          "encodedGitHubToken"
-          "encodedTeamsToken"
-        )
-
-        for var in "${required_vars[@]}"; do
-          if [ -z "${!var}" ]; then
-            echo "Error: Required variable $var is empty"
-            exit 1
-          fi
-        done
 
         # Substitute placeholders in the template
         PAYLOAD=$(echo "$TEMPLATE" | sed \
