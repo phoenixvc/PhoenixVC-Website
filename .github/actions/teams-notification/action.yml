@@ -117,22 +117,19 @@ runs:
         run_id="${{ inputs.run_id }}"
 
         # Construct approval URL
-        approval_url = ""
+        approval_url=""
         if [ "$environment" = "staging" ]; then
-          # First check if a specific approval_url was provided
           if [ -n "${{ inputs.approval_url }}" ]; then
             approval_url="${{ inputs.approval_url }}"
           else
-            # Validate required parameters for constructing approval URL
             if [ -z "${{ inputs.github_logic_app_url }}" ]; then
               echo "Error: github_logic_app_url is required for staging environment"
               exit 1
             fi
-
             if [ -z "$deployment_id" ] || [ -z "$artifact_id" ] || [ -z "$run_id" ]; then
               echo "Error: deployment_id, artifact_id, and run_id are required for staging environment"
               exit 1
-            }
+            fi
 
             # Base URL
             approval_url="${{ inputs.github_logic_app_url }}"
@@ -147,9 +144,6 @@ runs:
             # Construct URL with encoded parameters
             approval_url="${approval_url}?token=${encoded_token}&changes=${encoded_changes}&deploymentId=${encoded_deployment_id}&artifactId=${encoded_artifact_id}&runId=${encoded_run_id}"
           fi
-        elif [ "$environment" = "prod" ]; then
-          # For prod, use the rollback URL if provided
-          approval_url="${{ inputs.rollback_url }}"
         else
           # For other environments, empty approval URL
           approval_url=""
@@ -191,7 +185,8 @@ runs:
           -e "s|{{encodedToken}}|$encodedGitHubToken|g" \
           -e "s|{{encodedTeamsToken}}|$encodedTeamsToken|g" \
           -e "s|{{teamsLogicAppUrl}}|${{ inputs.teams_logic_app_url }}|g" \
-          -e "s|{{approvalUrl}}|$approval_url|g"
+          -e "s|{{approvalUrl}}|${approval_url}|g"
+        )
         echo "Generated Payload:"
         echo "$PAYLOAD"
 

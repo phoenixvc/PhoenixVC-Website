@@ -35,11 +35,7 @@
           { "title": "Environment", "value": "{{environment}}" },
           { "title": "Location", "value": "{{locationCode}}" },
           { "title": "Resource Group", "value": "{{resourceGroup}}" },
-          { "title": "Site URL", "value": "{{deploymentUrl}}" },
-          { "title": "Changes", "value": "${changeSummary}" },
-          { "title": "Deployment ID", "value": "${deploymentId}" },
-          { "title": "Artifact ID", "value": "${artifactId}" }
-
+          { "title": "Site URL", "value": "{{deploymentUrl}}" }
         ]
       },
       {
@@ -57,7 +53,7 @@
       {
         "type": "Action.OpenUrl",
         "title": "Approve Production Deployment",
-        "url": "${{approvalUrl}}"
+        "url": "{{approvalUrl}}"
       },
       {
         "type": "Action.OpenUrl",
