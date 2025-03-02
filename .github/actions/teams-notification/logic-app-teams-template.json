@@ -11,7 +11,6 @@
   "approvalUrl": "{{approvalUrl}}",
   "rollbackUrl": "{{rollbackUrl}}",
   "teamsLogicAppUrl": "{{teamsLogicAppUrl}}",
-  "githubLogicAppUrl": "{{githubLogicAppUrl}}",
   "encodedToken": "{{encodedToken}}",
   "encodedTeamsToken": "{{encodedTeamsToken}}",
   "adaptiveCard": {
@@ -58,7 +57,7 @@
       {
         "type": "Action.OpenUrl",
         "title": "Approve Production Deployment",
-        "url": "${approvalUrl}?token=${encodedToken}&changes=${changeSummary}&deploymentId=${deploymentId}&artifactId=${artifactId}&runId=${runId}"
+        "url": "${{approvalUrl}}"
       },
       {
         "type": "Action.OpenUrl",
