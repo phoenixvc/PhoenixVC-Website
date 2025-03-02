@@ -46,7 +46,7 @@ inputs:
     description: "Teams token to be encoded and passed along"
     required: true
   github_logic_app_url:
-    description: "GitHub Logic App URL"
+    description: "GitHub Logic App URL (used to build the approvalUrl)"
     required: true
   title:
     description: "Title for the notification"
@@ -60,22 +60,21 @@ inputs:
     required: false
     default: ""
   deployment_id:
-    description: "Deployment ID"
+    description: "Deployment ID (required for approvalUrl)"
     required: false
     default: ""
   artifact_id:
-    description: "Artifact ID"
+    description: "Artifact ID (required for approvalUrl)"
     required: false
     default: ""
   run_id:
-    description: "Run ID"
+    description: "Run ID (required for approvalUrl)"
     required: false
     default: ""
 
 runs:
   using: "composite"
   steps:
-
     - name: Checkout Repository for Template
       uses: actions/checkout@v4
       with:
@@ -85,73 +84,87 @@ runs:
       shell: bash
       id: build_payload
       run: |
-        # Hardcoded payload (adjust values if needed)
-        PAYLOAD='{
-          "teamsWebhookUrl": "https://test.com",
-          "locationCode": "euw",
-          "resourceGroup": "staging-euw-rg-phoenixvc-website",
-          "environment": "staging",
-          "branch": "refs/pull/25/merge",
-          "message": "The deployment to the STAGING environment has completed successfully. Please review the deployment and take any necessary actions.",
-          "title": "Staging Deployment Complete",
-          "color": "0076D7",
-          "deploymentUrl": "https://jolly-pebble-05d585a03.6.azurestaticapps.net",
-          "approvalUrl": "https://test.com",
-          "rollbackUrl": "",
-          "encodedToken": "Z2hzX1FEOHlQRUt0bGN5TE44WkV0Y1ZqM0dhcEZUclFQYTN0ZXRtRwo=",
-          "encodedTeamsToken": "Cg==",
-          "adaptiveCard": {
-            "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-            "type": "AdaptiveCard",
-            "version": "1.2",
-            "body": [
-              {
-                "type": "TextBlock",
-                "text": "Phoenix VC staging Deployment Notification",
-                "weight": "Bolder",
-                "size": "Large"
-              },
-              {
-                "type": "TextBlock",
-                "text": "Deployment to staging Completed",
-                "wrap": true
-              },
-              {
-                "type": "FactSet",
-                "facts": [
-                  { "title": "Environment", "value": "staging" },
-                  { "title": "Location", "value": "euw" },
-                  { "title": "Resource Group", "value": "staging-euw-rg-phoenixvc-website" },
-                  { "title": "Site URL", "value": "https://jolly-pebble-05d585a03.6.azurestaticapps.net" }
-                ]
-              },
-              {
-                "type": "TextBlock",
-                "text": "The deployment to staging has completed successfully. Please review the details above and take any necessary actions.",
-                "wrap": true
-              }
-            ],
-            "actions": [
-              {
-                "type": "Action.OpenUrl",
-                "title": "View Site",
-                "url": "https://jolly-pebble-05d585a03.6.azurestaticapps.net"
-              },
-              {
-                "type": "Action.OpenUrl",
-                "title": "Approve Production Deployment",
-                "url": "https://test.com"
-              },
-              {
-                "type": "Action.OpenUrl",
-                "title": "Rollback Deployment",
-                "url": "https://test.com"
-              }
-            ]
-          }
-        }'
+        # Read the JSON template file
+        TEMPLATE=$(cat "$(pwd)/${{ inputs.template_path }}")
+        echo "Template contents:"
+        echo "$TEMPLATE"
+
+        # Use input values and set default for color if empty
+        color="${{ inputs.color }}"
+        if [ -z "$color" ]; then
+          color="0076D7"
+        fi
+
+        webhook_url="${{ inputs.webhook_url }}"
+        location_code="${{ inputs.location_code }}"
+        resource_group="${{ inputs.resource_group }}"
+        environment="${{ inputs.environment }}"
+        branch="${{ inputs.branch }}"
+        message="${{ inputs.message }}"
+        title="${{ inputs.title }}"
+        deployment_url="${{ inputs.deployment_url }}"
+        change_summary="${{ inputs.change_summary }}"
+        deployment_id="${{ inputs.deployment_id }}"
+        artifact_id="${{ inputs.artifact_id }}"
+        run_id="${{ inputs.run_id }}"
+
+        # Encode tokens
+        encodedGitHubToken=$(echo "${{ inputs.github_token }}" | base64)
+        encodedTeamsToken=$(echo "${{ inputs.teams_token }}" | base64)
+
+        # Construct approval URL using github_logic_app_url input
+        if [ -n "${{ inputs.github_logic_app_url }}" ]; then
+          base_url="${{ inputs.github_logic_app_url }}"
+          # Remove any placeholder tokens if present
+          base_url="${base_url//\{\{approvalUrl\}\}/}"
+          # Determine if a '?' is already in base_url to choose proper connector
+          if [[ "$base_url" == *"?"* ]]; then
+            connector="&"
+          else
+            connector="?"
+          fi
+          # Ensure required parameters for approval URL are provided
+          if [ -z "$deployment_id" ] || [ -z "$artifact_id" ] || [ -z "$run_id" ]; then
+            echo "Error: deployment_id, artifact_id, and run_id are required for constructing approval URL"
+            exit 1
+          fi
+          # URL encode each parameter
+          encoded_token=$(echo "$encodedGitHubToken" | jq -sRr @uri)
+          encoded_changes=$(echo "$change_summary" | jq -sRr @uri)
+          encoded_deployment_id=$(echo "$deployment_id" | jq -sRr @uri)
+          encoded_artifact_id=$(echo "$artifact_id" | jq -sRr @uri)
+          encoded_run_id=$(echo "$run_id" | jq -sRr @uri)
+
+          approval_url="${base_url}${connector}token=${encoded_token}&changes=${encoded_changes}&deploymentId=${encoded_deployment_id}&artifactId=${encoded_artifact_id}&runId=${encoded_run_id}"
+          # Escape ampersands for sed substitution
+          escaped_approval_url=$(printf '%s' "$approval_url" | sed 's/&/\\&/g')
+        else
+          echo "Error: github_logic_app_url is required for approval URL"
+          exit 1
+        fi
+
+        echo "Computed approval URL: $approval_url"
+
+        # Substitute placeholders in the template using sed
+        PAYLOAD=$(echo "$TEMPLATE" | sed \
+          -e "s|{{teamsWebhookUrl}}|${webhook_url}|g" \
+          -e "s|{{locationCode}}|${location_code}|g" \
+          -e "s|{{resourceGroup}}|${resource_group}|g" \
+          -e "s|{{environment}}|${environment}|g" \
+          -e "s|{{branch}}|${branch}|g" \
+          -e "s|{{message}}|${message}|g" \
+          -e "s|{{title}}|${title}|g" \
+          -e "s|{{color}}|$color|g" \
+          -e "s|{{deploymentUrl}}|${deployment_url}|g" \
+          -e "s|{{rollbackUrl}}|${{ inputs.rollback_url }}|g" \
+          -e "s|{{encodedToken}}|${encodedGitHubToken}|g" \
+          -e "s|{{encodedTeamsToken}}|${encodedTeamsToken}|g" \
+          -e "s|{{approvalUrl}}|${escaped_approval_url}|g"
+        )
         echo "Generated Payload:"
         echo "$PAYLOAD"
+
+        # Write the payload to output for later steps
         echo "payload<<EOF" >> $GITHUB_OUTPUT
         echo "$PAYLOAD" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
@@ -160,18 +173,13 @@ runs:
       shell: bash
       run: |
         echo "Invoking Logic App via HTTP trigger..."
-
-        # Use jq to parse and compact JSON safely
         COMPACT_PAYLOAD=$(jq -c . <<< '${{ steps.build_payload.outputs.payload }}')
-
         echo "Payload to be sent:"
         echo "$COMPACT_PAYLOAD"
-        echo "Log app url:"
+        echo "Logic App URL:"
         echo "${{ inputs.logic_app_url }}"
-
         RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST -H "Content-Type: application/json" \
           -d "$COMPACT_PAYLOAD" \
           "${{ inputs.logic_app_url }}")
-
         echo "Response from Logic App:"
         echo "$RESPONSE"
