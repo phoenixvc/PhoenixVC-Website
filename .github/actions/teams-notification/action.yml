@@ -151,7 +151,6 @@ runs:
           "deployment_url"
           "encodedGitHubToken"
           "encodedTeamsToken"
-          "teams_logic_app_url"
         )
 
         for var in "${required_vars[@]}"; do
