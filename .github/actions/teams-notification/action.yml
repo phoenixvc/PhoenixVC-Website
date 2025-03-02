@@ -191,7 +191,7 @@ runs:
           -e "s|{{encodedToken}}|$encodedGitHubToken|g" \
           -e "s|{{encodedTeamsToken}}|$encodedTeamsToken|g" \
           -e "s|{{teamsLogicAppUrl}}|${{ inputs.teams_logic_app_url }}|g" \
-          -e "s|{{approvalUrl}}|${{ approval_url }}|g")
+          -e "s|{{approvalUrl}}|$approval_url|g"
         echo "Generated Payload:"
         echo "$PAYLOAD"
 
