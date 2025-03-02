@@ -27,7 +27,7 @@ outputs:
     value: ${{ steps.deploy.outputs.staticSiteUrl }}
   teamsLogicAppUrl:
     description: "URL of the deployed Teams Logic App"
-    value: ${{ steps.retrieve_logic_url.outputs.logicAppUrl }}
+    value: ${{ steps.retrieve_logic_url.outputs.teamsLogicAppUrl }}
   githubLogicAppUrl:
     description: "URL of the deployed GitHub Logic App"
     value: ${{ steps.retrieve_github_logic_url.outputs.githubLogicAppUrl }}
