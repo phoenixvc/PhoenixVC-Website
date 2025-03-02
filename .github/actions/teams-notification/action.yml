@@ -85,94 +85,73 @@ runs:
       shell: bash
       id: build_payload
       run: |
-        encodedGitHubToken=$(echo "${{ inputs.github_token }}" | base64)
-        encodedTeamsToken=$(echo "${{ inputs.teams_token }}" | base64)
-        echo "Encoded GitHub token: $encodedGitHubToken"
-        echo "Encoded Teams token: $encodedTeamsToken"
-        echo "Approval url: $${{ inputs.github_logic_app_url }}"
-
-        # Read the JSON template file
-        TEMPLATE=$(cat "$(pwd)/${{ inputs.template_path }}")
-        echo "Template contents:"
-        echo "$TEMPLATE"
-
-        color="${{ inputs.color }}"
-        if [ -z "$color" ]; then
-          color="0076D7"
-        fi
-
-        # Validate required variables
-        webhook_url="${{ inputs.webhook_url }}"
-        location_code="${{ inputs.location_code }}"
-        resource_group="${{ inputs.resource_group }}"
-        environment="${{ inputs.environment }}"
-        branch="${{ inputs.branch }}"
-        message="${{ inputs.message }}"
-        title="${{ inputs.title }}"
-        deployment_url="${{ inputs.deployment_url }}"
-
-        # Get additional parameters
-        change_summary="${{ inputs.change_summary }}"
-        deployment_id="${{ inputs.deployment_id }}"
-        artifact_id="${{ inputs.artifact_id }}"
-        run_id="${{ inputs.run_id }}"
-
-        # Construct approval URL
-        if [ -n "${{ inputs.github_logic_app_url }}" ]; then
-          # Remove all occurrences of the placeholder tokens using bash string replacement
-          base_url="${{ inputs.github_logic_app_url }}"
-          base_url="${base_url//\{\{approvalUrl\}\}/}"
-
-          # Determine the connector: if the base URL already has a '?', use '&', else use '?'
-          if [[ "$base_url" == *"?"* ]]; then
-            connector="&"
-          else
-            connector="?"
-          fi
-
-          # Ensure required parameters are available
-          if [ -z "$deployment_id" ] || [ -z "$artifact_id" ] || [ -z "$run_id" ]; then
-            echo "Error: deployment_id, artifact_id, and run_id are required for staging environment"
-            exit 1
-          fi
-
-          # URL encode each parameter separately
-          encoded_token=$(echo "$encodedGitHubToken" | jq -sRr @uri)
-          encoded_changes=$(echo "$change_summary" | jq -sRr @uri)
-          encoded_deployment_id=$(echo "$deployment_id" | jq -sRr @uri)
-          encoded_artifact_id=$(echo "$artifact_id" | jq -sRr @uri)
-          encoded_run_id=$(echo "$run_id" | jq -sRr @uri)
-
-          # Build the final approval URL
-          approval_url="${base_url}${connector}token=${encoded_token}&changes=${encoded_changes}&deploymentId=${encoded_deployment_id}&artifactId=${encoded_artifact_id}&runId=${encoded_run_id}"
-
-          # Escape ampersands for sed replacement so they are treated as literal characters
-          escaped_approval_url=$(printf '%s' "$approval_url" | sed 's/&/\\&/g')
-        else
-          echo "Error: github_logic_app_url is required for approval URL"
-          exit 1
-        fi
-
-        # Substitute placeholders in the template using sed
-        PAYLOAD=$(echo "$TEMPLATE" | sed \
-          -e "s|{{teamsWebhookUrl}}|${{ inputs.webhook_url }}|g" \
-          -e "s|{{locationCode}}|${{ inputs.location_code }}|g" \
-          -e "s|{{resourceGroup}}|${{ inputs.resource_group }}|g" \
-          -e "s|{{environment}}|${{ inputs.environment }}|g" \
-          -e "s|{{branch}}|${{ inputs.branch }}|g" \
-          -e "s|{{message}}|${{ inputs.message }}|g" \
-          -e "s|{{title}}|${{ inputs.title }}|g" \
-          -e "s|{{color}}|$color|g" \
-          -e "s|{{deploymentUrl}}|${{ inputs.deployment_url }}|g" \
-          -e "s|{{rollbackUrl}}|${{ inputs.rollback_url }}|g" \
-          -e "s|{{encodedToken}}|$encodedGitHubToken|g" \
-          -e "s|{{encodedTeamsToken}}|$encodedTeamsToken|g" \
-          -e "s|{{approvalUrl}}|${escaped_approval_url}|g"
-        )
+        # Hardcoded payload (adjust values if needed)
+        PAYLOAD='{
+          "teamsWebhookUrl": "https://phoenixvc568.webhook.office.com/webhookb2/17b0291f-b70b-4bdd-9266-f212ae03a2bd@7edf4423-ccb3-4275-bc80-64dae3ef0148/IncomingWebhook/3174ffcca3804d34ae923ba2e131f82e/a41dbcc0-67a6-4a23-bdec-b780dcebefa9/V2MOPWeKY7ywC8-iGptxHlSIZpwHVxw2FLAOAMU2N0hmM1",
+          "locationCode": "euw",
+          "resourceGroup": "staging-euw-rg-phoenixvc-website",
+          "environment": "staging",
+          "branch": "refs/pull/25/merge",
+          "message": "The deployment to the STAGING environment has completed successfully. Please review the deployment and take any necessary actions.",
+          "title": "Staging Deployment Complete",
+          "color": "0076D7",
+          "deploymentUrl": "https://jolly-pebble-05d585a03.6.azurestaticapps.net",
+          "approvalUrl": "https://prod-93.westeurope.logic.azure.com:443/workflows/807465debd7f4ce4a172b3bc56e5402f/triggers/manual/paths/invoke?api-version=2019-05-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=m645Lh0U8Ek1M9yBuugO-8dqQA5u-XVa8ZHOHjnwqB8",
+          "rollbackUrl": "",
+          "encodedToken": "Z2hzX1FEOHlQRUt0bGN5TE44WkV0Y1ZqM0dhcEZUclFQYTN0ZXRtRwo=",
+          "encodedTeamsToken": "Cg==",
+          "adaptiveCard": {
+            "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+            "type": "AdaptiveCard",
+            "version": "1.2",
+            "body": [
+              {
+                "type": "TextBlock",
+                "text": "Phoenix VC staging Deployment Notification",
+                "weight": "Bolder",
+                "size": "Large"
+              },
+              {
+                "type": "TextBlock",
+                "text": "Deployment to staging Completed",
+                "wrap": true
+              },
+              {
+                "type": "FactSet",
+                "facts": [
+                  { "title": "Environment", "value": "staging" },
+                  { "title": "Location", "value": "euw" },
+                  { "title": "Resource Group", "value": "staging-euw-rg-phoenixvc-website" },
+                  { "title": "Site URL", "value": "https://jolly-pebble-05d585a03.6.azurestaticapps.net" }
+                ]
+              },
+              {
+                "type": "TextBlock",
+                "text": "The deployment to staging has completed successfully. Please review the details above and take any necessary actions.",
+                "wrap": true
+              }
+            ],
+            "actions": [
+              {
+                "type": "Action.OpenUrl",
+                "title": "View Site",
+                "url": "https://jolly-pebble-05d585a03.6.azurestaticapps.net"
+              },
+              {
+                "type": "Action.OpenUrl",
+                "title": "Approve Production Deployment",
+                "url": "https://prod-93.westeurope.logic.azure.com:443/workflows/807465debd7f4ce4a172b3bc56e5402f/triggers/manual/paths/invoke?api-version=2019-05-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=m645Lh0U8Ek1M9yBuugO-8dqQA5u-XVa8ZHOHjnwqB8"
+              },
+              {
+                "type": "Action.OpenUrl",
+                "title": "Rollback Deployment",
+                "url": ""
+              }
+            ]
+          }
+        }'
         echo "Generated Payload:"
         echo "$PAYLOAD"
-
-        # Write the payload as a multi-line output
         echo "payload<<EOF" >> $GITHUB_OUTPUT
         echo "$PAYLOAD" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
