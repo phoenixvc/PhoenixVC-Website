@@ -87,7 +87,7 @@ runs:
       run: |
         # Hardcoded payload (adjust values if needed)
         PAYLOAD='{
-          "teamsWebhookUrl": "https://phoenixvc568.webhook.office.com/webhookb2/17b0291f-b70b-4bdd-9266-f212ae03a2bd@7edf4423-ccb3-4275-bc80-64dae3ef0148/IncomingWebhook/3174ffcca3804d34ae923ba2e131f82e/a41dbcc0-67a6-4a23-bdec-b780dcebefa9/V2MOPWeKY7ywC8-iGptxHlSIZpwHVxw2FLAOAMU2N0hmM1",
+          "teamsWebhookUrl": "https://test.com",
           "locationCode": "euw",
           "resourceGroup": "staging-euw-rg-phoenixvc-website",
           "environment": "staging",
@@ -96,7 +96,7 @@ runs:
           "title": "Staging Deployment Complete",
           "color": "0076D7",
           "deploymentUrl": "https://jolly-pebble-05d585a03.6.azurestaticapps.net",
-          "approvalUrl": "https://prod-93.westeurope.logic.azure.com:443/workflows/807465debd7f4ce4a172b3bc56e5402f/triggers/manual/paths/invoke?api-version=2019-05-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=m645Lh0U8Ek1M9yBuugO-8dqQA5u-XVa8ZHOHjnwqB8",
+          "approvalUrl": "https://test.com",
           "rollbackUrl": "",
           "encodedToken": "Z2hzX1FEOHlQRUt0bGN5TE44WkV0Y1ZqM0dhcEZUclFQYTN0ZXRtRwo=",
           "encodedTeamsToken": "Cg==",
@@ -140,12 +140,12 @@ runs:
               {
                 "type": "Action.OpenUrl",
                 "title": "Approve Production Deployment",
-                "url": "https://prod-93.westeurope.logic.azure.com:443/workflows/807465debd7f4ce4a172b3bc56e5402f/triggers/manual/paths/invoke?api-version=2019-05-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=m645Lh0U8Ek1M9yBuugO-8dqQA5u-XVa8ZHOHjnwqB8"
+                "url": "https://test.com"
               },
               {
                 "type": "Action.OpenUrl",
                 "title": "Rollback Deployment",
-                "url": ""
+                "url": "https://test.com"
               }
             ]
           }
