@@ -10,8 +10,6 @@
   "deploymentUrl": "{{deploymentUrl}}",
   "approvalUrl": "{{approvalUrl}}",
   "rollbackUrl": "{{rollbackUrl}}",
-  "teamsLogicAppUrl": "{{teamsLogicAppUrl}}",
-  "githubLogicAppUrl": "{{githubLogicAppUrl}}",
   "encodedToken": "{{encodedToken}}",
   "encodedTeamsToken": "{{encodedTeamsToken}}",
   "adaptiveCard": {

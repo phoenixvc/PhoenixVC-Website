@@ -27,6 +27,9 @@ outputs:
   deployment_url:
     description: "The URL of the deployed application"
     value: ${{ steps.get_deployment_url.outputs.url }}
+  deployment_id:
+    description: "Unique identifier for this deployment"
+    value: ${{ steps.generate_deployment_id.outputs.id }}
 runs:
   using: "composite"
   steps:
@@ -86,6 +89,15 @@ runs:
         echo "::add-mask::$TOKEN"
         echo "deployment_token=$TOKEN" >> $GITHUB_OUTPUT
 
+    - name: Generate Deployment ID
+      id: generate_deployment_id
+      shell: bash
+      run: |
+        TIMESTAMP=$(date +%Y%m%d%H%M%S)
+        DEPLOYMENT_ID="${{ github.run_id }}-${{ inputs.env }}-${TIMESTAMP}"
+        echo "id=${DEPLOYMENT_ID}" >> $GITHUB_OUTPUT
+        echo "Generated deployment ID: ${DEPLOYMENT_ID}"
+
     - name: Deploy to Azure Static Web Apps
       id: deploy
       uses: Azure/static-web-apps-deploy@v1
@@ -100,6 +112,7 @@ runs:
         skip_app_build: true
       env:
         DEPLOYMENT_PROVIDER: "DevOps"
+        DEPLOYMENT_ID: ${{ steps.generate_deployment_id.outputs.id }}
 
     # Get the deployment URL for output
     - name: Get Deployment URL
