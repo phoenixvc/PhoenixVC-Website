@@ -310,7 +310,7 @@ jobs:
         id: swa_deploy
         uses: ./.github/actions/swa-deploy
         with:
-          artifact-name: web-dist-${{ steps.set_timestamp.outputs.timestamp }}
+          artifact-name: ${{ needs.build_apps.outputs.web_artifact_id }}
           app-name: staging-${{ env.LOCATION_CODE }}-swa-phoenixvc-website
           resource-group: staging-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
           env: staging
