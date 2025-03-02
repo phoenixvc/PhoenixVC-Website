@@ -234,7 +234,7 @@ jobs:
   # ───────────────────────────────────────────────
   deploy_resources_staging:
     runs-on: ubuntu-latest
-    needs: [log_debug_information, check_relevant_changes]
+    needs: [log_debug_information, check_relevant_changes, build_apps]
     if: >
       github.event.inputs.APPROVAL_STATE != 'true' &&
       (github.event_name == 'workflow_dispatch' || needs.check_relevant_changes.outputs.resources_changed == 'true')
@@ -310,7 +310,7 @@ jobs:
         id: swa_deploy
         uses: ./.github/actions/swa-deploy
         with:
-          artifact-name: web-dist
+          artifact-name: ${{ needs.build_apps.outputs.web_artifact_id }}
           app-name: staging-${{ env.LOCATION_CODE }}-swa-phoenixvc-website
           resource-group: staging-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
           env: staging
@@ -461,7 +461,7 @@ jobs:
     runs-on: ubuntu-latest
     # For staging, notify if success OR if failure and SEND_STAGING_FAILED is true.
     # For production, always notify regardless of outcome.
-    needs: [deploy_resources_staging, swa_deploy_staging, swa_deploy_prod, deploy_resources_prod, trigger_dns_update, deploy_docs, check_relevant_changes]
+    needs: [build_Apps, deploy_resources_staging, swa_deploy_staging, swa_deploy_prod, deploy_resources_prod, trigger_dns_update, deploy_docs, check_relevant_changes]
     if: always()
     steps:
       - name: Log Required Variables
