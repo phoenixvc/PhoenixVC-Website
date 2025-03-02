@@ -443,6 +443,18 @@ jobs:
     needs: [deploy_resources_staging, swa_deploy_staging, swa_deploy_prod, deploy_resources_prod, trigger_dns_update, deploy_docs, check_relevant_changes]
     if: always()
     steps:
+      - name: Log Required Variables
+        run: |
+          echo "Logging required variables for Teams Notification..."
+          echo "Deployment ID: ${{ needs.swa_deploy_staging.outputs.deployment_id }}"
+          echo "Artifact ID: ${{ needs.build_apps.outputs.web_artifact_id }}"
+          echo "Run ID: ${{ github.run_id }}"
+
+          if [[ -z "${{ needs.swa_deploy_staging.outputs.deployment_id }}" || -z "${{ needs.build_apps.outputs.web_artifact_id }}" || -z "${{ github.run_id }}" ]]; then
+            echo "❌ Missing required values for approval URL!"
+            exit 1
+          fi
+          
       - name: Checkout Repository for Notification
         uses: actions/checkout@v4
         with:
