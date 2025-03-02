@@ -154,6 +154,7 @@ jobs:
     outputs:
       web_artifact_id: ${{ steps.upload_web.outputs.artifact-id }}
       design_system_artifact_id: ${{ steps.upload_design.outputs.artifact-id }}
+      build_timestamp: ${{ steps.set_timestamp.outputs.timestamp }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -167,46 +168,66 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Set Build Timestamp
+        id: set_timestamp
+        run: echo "timestamp=$(date +'%Y%m%d_%H%M%S')" >> $GITHUB_OUTPUT
 
       - name: Build Web App
         uses: ./.github/actions/build-vite
         with:
           app-name: 'web'
+          environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
 
       - name: Build Design System
         uses: ./.github/actions/build-vite
         with:
           app-name: 'design-system'
+          environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
 
       - name: Upload Web App Artifact
         id: upload_web
         uses: actions/upload-artifact@v4
         with:
-          name: web-dist
+          name: web-dist-${{ steps.set_timestamp.outputs.timestamp }}
           path: apps/web/dist
           retention-days: ${{ github.event.inputs.APPROVAL_STATE == 'true' && '30' || '5' }}
+          if-no-files-found: error
 
       - name: Upload Design System Artifact
         id: upload_design
         uses: actions/upload-artifact@v4
         with:
-          name: design-system-dist
+          name: design-system-dist-${{ steps.set_timestamp.outputs.timestamp }}
           path: apps/design-system/dist
           retention-days: ${{ github.event.inputs.APPROVAL_STATE == 'true' && '30' || '5' }}
+          if-no-files-found: error
 
 
   # ───────────────────────────────────────────────
   # ✅ SECURITY SCAN
   # ───────────────────────────────────────────────
-  #security_scan:
-  #  runs-on: ubuntu-latest
-  #  needs: [build_apps]
-  #  steps:
-  #    - name: Checkout code
-  #      uses: actions/checkout@v4
-  #
-  #    - name: Run security scan
-  #      uses: github/codeql-action/analyze@v2
+  # security_scan:
+  #   runs-on: ubuntu-latest
+  #   needs: [build_apps]
+  #   if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+
+  #     - name: Initialize CodeQL
+  #       uses: github/codeql-action/init@v2
+  #       with:
+  #         languages: javascript, typescript
+
+  #     - name: Run CodeQL Analysis
+  #       uses: github/codeql-action/analyze@v2
+  #       with:
+  #         category: "/language:javascript"
 
   # ───────────────────────────────────────────────
   # ✅ STAGING RESOURCE CREATION (Run deploy.sh)
@@ -223,7 +244,7 @@ jobs:
       githubLogicAppUrl: ${{ steps.deploy_staging_resources.outputs.githubLogicAppUrl }}
       encoded_token: ${{ steps.encode_token.outputs.encoded_token }}
       deployment_id: ${{ steps.get_deployment_info.outputs.deployment_id }}
-      artifact_id: ${{ steps.get_deployment_info.outputs.artifact_id }}
+      artifact_id: ${{ steps.build_apps.outputs.web_artifact_id }}
       run_id: ${{ github.run_id }}
 
     steps:
@@ -454,7 +475,7 @@ jobs:
             echo "❌ Missing required values for approval URL!"
             exit 1
           fi
-          
+
       - name: Checkout Repository for Notification
         uses: actions/checkout@v4
         with:
