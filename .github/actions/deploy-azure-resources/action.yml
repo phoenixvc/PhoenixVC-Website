@@ -88,10 +88,10 @@ runs:
         response=$(az rest --method POST --uri "$url" --query "value" -o tsv)
         if [[ -n "$response" ]]; then
           echo "✅ Retrieved Teams Logic App URL: $response"
-          echo "logicAppUrl=$response" >> "$GITHUB_OUTPUT"
+          echo "teamsLogicAppUrl=$response" >> "$GITHUB_OUTPUT"
         else
           echo "⚠️ Teams Logic App URL could not be retrieved"
-          echo "logicAppUrl=" >> "$GITHUB_OUTPUT"
+          echo "teamsLogicAppUrl=" >> "$GITHUB_OUTPUT"
         fi
 
     - name: Retrieve GitHub Logic App Trigger URL
