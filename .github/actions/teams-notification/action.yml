@@ -1,14 +1,91 @@
-name: "Teams Notification (Hardcoded Test)"
-description: "Hardcoded test to post directly to a Logic App endpoint."
+name: "Teams Notification"
+description: "Send a notification to Microsoft Teams with deployment information using a file-based JSON template, encoding GitHub and Teams tokens."
+
+inputs:
+  logic_app_url:
+    description: "URL of the Logic App HTTP trigger endpoint"
+    required: true
+  template_path:
+    description: "Path to the JSON template file relative to the repository root"
+    required: false
+    default: ".github/actions/teams-notification/logic-app-teams-template.json"
+  webhook_url:
+    description: "Microsoft Teams webhook URL"
+    required: false
+    default: "https://phoenixvc568.webhook.office.com/webhookb2/..."
+  message:
+    description: "Notification message"
+    required: true
+  environment:
+    description: "Deployment environment (e.g. staging, prod)"
+    required: true
+  deployment_url:
+    description: "URL of the deployed site"
+    required: true
+  branch:
+    description: "Branch that was deployed"
+    required: true
+  location_code:
+    description: "Location code of the deployment"
+    required: true
+  resource_group:
+    description: "Resource group name"
+    required: true
+  approval_url:
+    description: "URL for approval action (staging only)"
+    required: false
+    default: ""
+  rollback_url:
+    description: "URL for rollback action (prod only)"
+    required: false
+    default: ""
+  github_token:
+    description: "GitHub token to be encoded and passed along"
+    required: true
+  teams_token:
+    description: "Teams token to be encoded and passed along"
+    required: true
+  github_logic_app_url:
+    description: "GitHub Logic App URL"
+    required: true
+  title:
+    description: "Title for the notification"
+    required: true
+  color:
+    description: "Color for the notification card"
+    required: false
+    default: "0076D7"
+  change_summary:
+    description: "Summary of changes being deployed"
+    required: false
+    default: ""
+  deployment_id:
+    description: "Deployment ID"
+    required: false
+    default: ""
+  artifact_id:
+    description: "Artifact ID"
+    required: false
+    default: ""
+  run_id:
+    description: "Run ID"
+    required: false
+    default: ""
 
 runs:
   using: "composite"
   steps:
-    - name: Hardcoded Payload for Testing
+
+    - name: Checkout Repository for Template
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Read and Substitute Template
       shell: bash
       id: build_payload
       run: |
-        # Hardcoded payload – adjust values as needed
+        # Hardcoded payload (adjust values if needed)
         PAYLOAD='{
           "teamsWebhookUrl": "https://test.com",
           "locationCode": "euw",
@@ -79,19 +156,22 @@ runs:
         echo "$PAYLOAD" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
 
-    - name: Invoke Hardcoded Logic App Endpoint
+    - name: Invoke Logic App HTTP Trigger
       shell: bash
       run: |
         echo "Invoking Logic App via HTTP trigger..."
-        # Compact the payload using jq
+
+        # Use jq to parse and compact JSON safely
         COMPACT_PAYLOAD=$(jq -c . <<< '${{ steps.build_payload.outputs.payload }}')
+
         echo "Payload to be sent:"
         echo "$COMPACT_PAYLOAD"
-        # Use a hardcoded, known-good Logic App endpoint URL
-        LOGIC_APP_URL="https://prod-93.westeurope.logic.azure.com:443/workflows/807465debd7f4ce4a172b3bc56e5402f/triggers/manual/paths/invoke?api-version=2019-05-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=m645Lh0U8Ek1M9yBuugO-8dqQA5u-XVa8ZHOHjnwqB8"
-        echo "Using Logic App URL: $LOGIC_APP_URL"
+        echo "Log app url:"
+        echo "${{ inputs.logic_app_url }}"
+
         RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST -H "Content-Type: application/json" \
           -d "$COMPACT_PAYLOAD" \
-          "$LOGIC_APP_URL")
+          "${{ inputs.logic_app_url }}")
+
         echo "Response from Logic App:"
         echo "$RESPONSE"
