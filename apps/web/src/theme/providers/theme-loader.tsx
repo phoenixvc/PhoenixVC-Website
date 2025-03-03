@@ -1,7 +1,9 @@
-import { SemanticColors, ThemeColors, ThemeColorScheme, ThemeMode, ThemeSchemeInitial } from "@/theme/types";
-import { isValidColorScheme, validateInitialTheme, validateProcessedTheme } from "./validation";
+import { SemanticColors, ThemeColors, ThemeName, ThemeMode, ThemeSchemeInitial } from "@/theme/types";
+import { isValidThemeName } from "./theme-validation";
 import { THEME_CONSTANTS } from "../constants";
 import { transformTheme } from "./theme-transformer";
+import { ProcessedThemeValidation, SemanticColorValidation } from "./validation";
+import { validateInitialTheme } from "./validation/theme-initial-validation";
 
 export interface ThemeLoaderConfig {
   source: "static" | "api";
@@ -22,7 +24,7 @@ type ThemeCacheEntry = {
   timestamp: number;
 };
 
-const themeCache = new Map<ThemeColorScheme, ThemeCacheEntry>();
+const themeCache = new Map<ThemeName, ThemeCacheEntry>();
 
 export function processTheme(
   themeData: ThemeSchemeInitial & { semantic?: SemanticColors },
@@ -55,7 +57,10 @@ export function processTheme(
   const transformed = transformTheme(rawTheme, mode, rawTheme.semantic);
 
   // 5) Validate the final, fully processed theme
-  validateProcessedTheme(transformed);
+  ProcessedThemeValidation.validateProcessedTheme(transformed.schemes);
+  if (transformed.semantic) {
+    SemanticColorValidation.validateSemanticColors(transformed.semantic);
+  }
 
   console.log("[processTheme] Final transformed theme:", transformed);
   console.groupEnd();
@@ -64,12 +69,12 @@ export function processTheme(
 }
 
 // Helper to get effective color scheme with fallback to default
-function getEffectiveColorScheme(colorScheme?: ThemeColorScheme): ThemeColorScheme {
+function getEffectiveColorScheme(colorScheme?: ThemeName): ThemeName {
   if (!colorScheme) {
     return THEME_CONSTANTS.DEFAULTS.COLOR_SCHEME;
   }
 
-  if (!isValidColorScheme(colorScheme)) {
+  if (!isValidThemeName(colorScheme)) {
     console.warn(
       `Color scheme "${colorScheme}" not found in available schemes. ` +
       `Falling back to default: "${THEME_CONSTANTS.DEFAULTS.COLOR_SCHEME}"`
@@ -81,7 +86,7 @@ function getEffectiveColorScheme(colorScheme?: ThemeColorScheme): ThemeColorSche
 }
 
 export const loadTheme = async (
-  colorScheme?: ThemeColorScheme,
+  colorScheme?: ThemeName,
   config: Partial<ThemeLoaderConfig> = {}
 ): Promise<ThemeColors> => {
   console.groupCollapsed(`[loadTheme] colorScheme: "${colorScheme || "undefined"}"`);
@@ -163,7 +168,7 @@ export const loadTheme = async (
 };
 
 const loadThemeFromSource = async (
-  colorScheme: ThemeColorScheme,
+  colorScheme: ThemeName,
   config: ThemeLoaderConfig
 ): Promise<ThemeSchemeInitial & { semantic?: SemanticColors }> => {
   let rawTheme: ThemeSchemeInitial & { semantic?: SemanticColors };
@@ -187,7 +192,7 @@ const loadThemeFromSource = async (
 };
 
 const loadStaticTheme = async (
-  colorScheme: ThemeColorScheme,
+  colorScheme: ThemeName,
   themePath: string
 ): Promise<ThemeSchemeInitial & { semantic?: SemanticColors }> => {
   try {
@@ -216,7 +221,7 @@ const loadStaticTheme = async (
 };
 
 const loadApiTheme = async (
-  colorScheme: ThemeColorScheme,
+  colorScheme: ThemeName,
   apiBaseUrl: string
 ): Promise<ThemeSchemeInitial & { semantic?: SemanticColors }> => {
   try {
@@ -275,7 +280,7 @@ const isThemeSchemeInitial = (theme: unknown): theme is ThemeSchemeInitial & { s
 
 // Cache management utilities
 export const preloadTheme = async (
-  colorScheme: ThemeColorScheme,
+  colorScheme: ThemeName,
   config?: Partial<ThemeLoaderConfig>
 ): Promise<void> => {
   try {
@@ -289,14 +294,14 @@ export const clearThemeCache = (): void => {
   themeCache.clear();
 };
 
-export const isThemeCached = (colorScheme: ThemeColorScheme): boolean => {
+export const isThemeCached = (colorScheme: ThemeName): boolean => {
   const cached = themeCache.get(colorScheme);
   return Boolean(cached && Date.now() - cached.timestamp < DEFAULT_CONFIG.cacheDuration);
 };
 
 export const getCacheStatus = (): {
   size: number;
-  schemes: ThemeColorScheme[];
+  schemes: ThemeName[];
 } => {
   return {
     size: themeCache.size,
