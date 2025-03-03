@@ -5,7 +5,7 @@ import { SemanticColors, ThemeSchemeInitial } from "./colors";
 /**
  * Core Theme Identity
  */
-export type ThemeColorScheme = "classic" | "forest" | "ocean" | "phoenix" | "lavender" | "cloud";
+export type ThemeName = "classic" | "forest" | "ocean" | "phoenix" | "lavender" | "cloud";
 export type ThemeMode = "light" | "dark";
 
 /**
@@ -43,7 +43,7 @@ export namespace Layout {
  * Groups core theme types for convenience.
  */
 export namespace Theme {
-  export type ColorScheme = ThemeColorScheme;
+  export type ColorScheme = ThemeName;
   export type Mode = ThemeMode;
   export type LayoutDirection = Layout.Direction;
   export type LayoutCSSUnit = Layout.CSSUnit;
@@ -56,7 +56,7 @@ export namespace Theme {
 export interface ThemeConstantsType {
   PREFIX: string;
   DEFAULTS: {
-    COLOR_SCHEME: ThemeColorScheme;
+    COLOR_SCHEME: ThemeName;
     MODE: ThemeMode;
     TRANSITION: {
       DURATION: number;
@@ -64,9 +64,9 @@ export interface ThemeConstantsType {
       PROPERTIES: string[];
     };
   };
-  COLOR_SCHEMES: readonly ThemeColorScheme[];
+  COLOR_SCHEMES: readonly ThemeName[];
   COLORS: {
-    schemes: Partial<Record<ThemeColorScheme, ThemeSchemeInitial>>;
+    schemes: Partial<Record<ThemeName, ThemeSchemeInitial>>;
     semantic: SemanticColors;
   };
   MODES: readonly ThemeMode[];

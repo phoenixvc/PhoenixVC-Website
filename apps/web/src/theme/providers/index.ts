@@ -3,5 +3,5 @@
 export * from "./theme-loader";
 export * from "./theme-provider";
 export * from "./theme-transformer";
-export * from "./validation";
+export * from "./theme-validation";
 export * from "./theme-variables";

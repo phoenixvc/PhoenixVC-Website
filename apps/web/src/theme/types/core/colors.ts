@@ -41,7 +41,7 @@ export interface InitialBaseColors {
 /**
  * Base Color Structures - Processed (after shade generation)
  */
-export interface ProcessedBaseColors {
+export type ProcessedBaseColors = {
   primary: ColorShades;
   secondary: ColorShades;
   accent: ColorShades;
@@ -49,7 +49,7 @@ export interface ProcessedBaseColors {
   neutral?: ColorShades;
   gray?: ColorShades;
   surface?: ColorShades;
-}
+};
 
 /**
  * Mode-specific Color Structures
@@ -65,6 +65,9 @@ export interface OptionalModeColors {
   surface?: ColorDefinition;
   overlay?: ColorDefinition;
   hover?: ColorDefinition;
+  active?: ColorDefinition;
+  focus?: ColorDefinition;
+  disabled?: ColorDefinition;
 }
 
 export interface ModeColors extends RequiredModeColors, OptionalModeColors {}
