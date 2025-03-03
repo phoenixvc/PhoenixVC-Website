@@ -1,5 +1,5 @@
 // features/layout/types/index.ts
-import { ThemeColorScheme, ThemeConfig } from "@/theme";
+import { ThemeName, ThemeConfig } from "@/theme";
 import { ReactNode } from "react";
 
 export interface NavigationItem {
@@ -14,24 +14,24 @@ export interface LayoutProps {
 }
 
 export interface HeaderProps {
-  colorScheme?: ThemeColorScheme;
+  colorScheme?: ThemeName;
 }
 
 export interface FooterProps {
-  colorScheme?: ThemeColorScheme;
+  colorScheme?: ThemeName;
 }
 
 export interface MobileMenuProps {
   isOpen: boolean;
   onClose: () => void;
-  colorScheme?: ThemeColorScheme;
+  colorScheme?: ThemeName;
 }
 
 export interface NavigationProps {
   items?: readonly NavigationItem[];
   onItemClick?: () => void;
   className?: string;
-  colorScheme?: ThemeColorScheme;
+  colorScheme?: ThemeName;
   variant?: "header" | "simple";
   activeSection?: string;
 }

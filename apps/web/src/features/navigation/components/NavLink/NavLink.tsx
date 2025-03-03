@@ -44,7 +44,7 @@ export const NavLink = ({
   variant = "header",
   isMobile = false,
 }: ExtendedNavLinkProps) => {
-  const { colorSchemeClasses } = useTheme();
+  const { theme: colorSchemeClasses } = useTheme();
 
   const baseStyles = "transition-colors duration-200 relative px-4 py-2";
 

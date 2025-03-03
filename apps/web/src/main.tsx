@@ -8,7 +8,7 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider
       config={{
-        defaultScheme: "classic",
+        defaultThemeName: "classic",
         defaultMode: "dark",
         useSystem: true,
         storage: {

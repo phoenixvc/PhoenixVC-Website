@@ -8,7 +8,7 @@ interface LogoProps {
 export const Logo: React.FC<LogoProps> = ({ className }) => {
   // We extract the colorSchemeClasses from our theme context,
   // which includes our text color for the current theme.
-  const { colorSchemeClasses } = useTheme();
+  const { theme: colorSchemeClasses } = useTheme();
 
   return (
     <a

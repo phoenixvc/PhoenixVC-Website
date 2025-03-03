@@ -11,19 +11,19 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
-import { ThemeColorScheme, useTheme } from "@/theme"; // Now using the updated useTheme hook
+import { ThemeName, useTheme } from "@/theme"; // Now using the updated useTheme hook
 
 const ThemeToggle = () => {
   const {
-    mode,
+    themeMode: mode,
     useSystemMode,
-    colorScheme,
+    themeName: colorScheme,
     setMode,
     setColorScheme,
     setUseSystemMode,
   } = useTheme();
 
-  const colorSchemes: { label: string; value: ThemeColorScheme }[] = [
+  const colorSchemes: { label: string; value: ThemeName }[] = [
     { label: "Classic", value: "classic" },
     { label: "Forest", value: "forest" },
     { label: "Ocean", value: "ocean" },

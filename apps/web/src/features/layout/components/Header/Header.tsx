@@ -10,7 +10,7 @@ import { useSmoothScroll } from "@/hooks//index.ts";
 import ThemeToggle from "../ThemeToggle/ThemeToggle";
 
 export const Header: React.FC = () => {
-  const { colorScheme, mode } = useTheme();
+  const { themeName: colorScheme, themeMode: mode } = useTheme();
   const themeClass = `theme-${colorScheme}-${mode}`;
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
