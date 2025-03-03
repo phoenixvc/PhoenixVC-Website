@@ -15,7 +15,7 @@ export interface TypographyScale {
   letterSpacing: string;
   fontWeight: number;
   fontFamily?: string;
-  textTransform?: string;
+  textTransform?: React.CSSProperties["textTransform"];
   scale?: string;
 }
 

@@ -1,10 +1,10 @@
 // src/theme/utils/theme-variables.ts
-import { SemanticColors, ThemeColors, ThemeColorScheme, ThemeMode, ThemeVariables } from "../types";
+import { SemanticColors, ThemeColors, ThemeName, ThemeMode, ThemeVariables } from "../types";
 
 export const generateThemeVariables = (
   colors: ThemeColors,
   mode: ThemeMode,
-  schemeName?: ThemeColorScheme
+  schemeName?: ThemeName
 ): ThemeVariables => {
   try {
     // Determine which scheme to use:
@@ -15,7 +15,7 @@ export const generateThemeVariables = (
         throw new Error(`Invalid color scheme: ${schemeName}`);
       }
     } else {
-      const keys = Object.keys(colors.schemes) as ThemeColorScheme[];
+      const keys = Object.keys(colors.schemes) as ThemeName[];
       if (keys.length === 0) {
         throw new Error("No color schemes available");
       }
@@ -113,7 +113,7 @@ export const generateThemeVariables = (
 export function generateSchemeSemantics(
   colors: ThemeColors,
   _mode: ThemeMode,
-  schemeName?: ThemeColorScheme
+  schemeName?: ThemeName
 ): SemanticColors {
   try {
   console.groupCollapsed("generateSchemeSemantics");

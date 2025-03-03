@@ -146,18 +146,51 @@ export function transformTheme(
     if (scheme.base) {
       console.group("Processing base colors");
 
+      // Access the original theme's base colors directly
+      const originalBase = theme.base;
+
+      // Create a new base object with the correct structure
+      const processedBase: ProcessedBaseColors = {} as ProcessedBaseColors;
+
+      // // Process each base color (primary, secondary, accent)
+      // if (originalBase.primary) {
+      //   processedBase.primary = createColorShades(
+      //     originalBase.primary.hex,
+      //     mode,
+      //     mode === "dark" ? darkModeOptions : lightModeOptions
+      //   );
+      // }
+
+      // if (originalBase.secondary) {
+      //   processedBase.secondary = createColorShades(
+      //     originalBase.secondary.hex,
+      //     mode,
+      //     mode === "dark" ? darkModeOptions : lightModeOptions
+      //   );
+      // }
+
+      // if (originalBase.accent) {
+      //   processedBase.accent = createColorShades(
+      //     originalBase.accent.hex,
+      //     mode,
+      //     mode === "dark" ? darkModeOptions : lightModeOptions
+      //   );
+      // }
+
+      // // Replace the base with our processed version
+      // scheme.base = processedBase;
       // For each base color (primary, secondary, accent, etc.)
-      Object.entries(scheme.base).forEach(([colorKey, baseValue]) => {
+      Object.entries(originalBase).forEach(([colorKey, colorDef]) => {
         console.group(`Processing base color: ${colorKey}`);
 
-        const baseHex = baseValue.hex;
+        const baseHex = colorDef.hex;
 
         // Generate a palette of 10 steps from the base hex
         const paletteArray = ColorUtils.createPalette(baseHex, 10);
         console.log("Generated palette array:", paletteArray);
 
         const shadeLevels: ShadeLevel[] = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
-        const colorShades: Partial<ColorShades> = {};
+        const colorShades: ColorShades = {} as ColorShades;
 
         paletteArray.forEach((colorDef, index) => {
           const shade = shadeLevels[index];
@@ -174,7 +207,9 @@ export function transformTheme(
           };
         });
 
-        scheme.base[colorKey as keyof ProcessedBaseColors] = colorShades as ColorShades;
+        // Merge the transformed shades back into the base color
+        processedBase[colorKey as keyof ProcessedBaseColors] = colorShades;
+
         console.groupEnd();
       });
 
@@ -182,6 +217,7 @@ export function transformTheme(
     } else {
       console.warn("No base colors found in scheme.");
     }
+
 
     /****************************************************
      * PROCESS MODE-SPECIFIC COLORS FOR BOTH 'LIGHT' AND 'DARK'
