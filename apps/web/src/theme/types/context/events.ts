@@ -1,7 +1,7 @@
 // src/types/theme/context/events.ts
 
 import { ThemeError, ThemeEventType } from "../core";
-import { ThemeColorScheme, ThemeMode } from "../core/base";
+import { ThemeName, ThemeMode } from "../core/base";
 import { ThemeState, ThemeConfig } from "../core/config";
 import { BaseThemeEventPayload, ThemeErrorEventPayload } from "./error";
 
@@ -27,8 +27,8 @@ export interface ThemeModeChangeEventPayload extends BaseThemeEventPayload {
  * Theme scheme change event payload
  */
 export interface ThemeSchemeChangeEventPayload extends BaseThemeEventPayload {
-    previousScheme: ThemeColorScheme;
-    currentScheme: ThemeColorScheme;
+    previousScheme: ThemeName;
+    currentScheme: ThemeName;
     isSystemScheme: boolean;
 }
 
@@ -37,7 +37,7 @@ export interface ThemeSchemeChangeEventPayload extends BaseThemeEventPayload {
  */
 export interface ThemeSystemChangeEventPayload extends BaseThemeEventPayload {
     systemMode: ThemeMode;
-    systemColorScheme: ThemeColorScheme;
+    systemColorScheme: ThemeName;
     appliedChanges: boolean;
 }
 
@@ -121,7 +121,7 @@ export interface ThemeEventManager extends ThemeEventEmitter {
     /**
      * Handle theme error
      */
-    handleError: (error: ThemeError) => void;
+    handleError: (error: typeof ThemeError) => void;
 
     /**
      * Get last event of specific type
@@ -151,14 +151,14 @@ export interface CreateThemeEventManagerOptions {
     /**
      * Error handler
      */
-    onError?: (error: ThemeError) => void;
+    onError?: (error: typeof ThemeError) => void;
 }
 
 /**
  * Create theme event manager
  */
 export const createThemeEventManager = (
-   // options_?: CreateThemeEventManagerOptions
+    // options_?: CreateThemeEventManagerOptions
 ): ThemeEventManager => {
     // Implementation would go here
     return {} as ThemeEventManager;
