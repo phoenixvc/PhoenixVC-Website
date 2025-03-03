@@ -82,6 +82,8 @@ export default [
       'react/jsx-uses-vars': 'error',
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
+      'no-dupe-class-members': 'off',
+      '@typescript-eslint/no-dupe-class-members': ['error'],
 
       "semi": ["error", "always"],
       "quotes": ["error", "double"]
