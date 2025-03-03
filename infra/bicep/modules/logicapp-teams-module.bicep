@@ -57,17 +57,21 @@ var logicAppDefinitionText = '''
         "body": {
           "@@type": "MessageCard",
           "@@context": "http://schema.org/extensions",
-          "text": "@{triggerBody()?['message']}",
+          "text": "Deployment Notification",
           "summary": "@{coalesce(triggerBody()?['title'], 'Deployment Notification')}",
           "themeColor": "@{if(empty(triggerBody()?['color']), '0076D7', replace(triggerBody()?['color'], '#', ''))}",
           "sections": [
             {
               "activityTitle": "@{coalesce(triggerBody()?['title'], 'Deployment Notification')}",
-              "activitySubtitle": "Status Update",
+              "activitySubtitle": "The PhoenixVC Website deployment to the **@{toUpper(triggerBody()?['environment'])}** environment has completed successfully. Please review the deployment and take any necessary actions.",
               "facts": [
                 {
+                  "name": "Status",
+                  "value": "Deployment Complete"
+                },
+                {
                   "name": "Environment",
-                  "value": "@{toUpper(first(triggerBody()?['environment']))}@{toLower(substring(triggerBody()?['environment'], 1))}"
+                  "value": "@{triggerBody()?['environment']}"
                 },
                 {
                   "name": "Location",
@@ -102,9 +106,10 @@ var logicAppDefinitionText = '''
               "targets": [
                 {
                   "os": "default",
-                  "uri": "@{coalesce(triggerBody()?['approvalUrl'], '#')}"
+                  "uri": "@{coalesce(triggerBody()?['approvalUrl'], '')}"
                 }
-              ]
+              ],
+              "when": "@{not(empty(triggerBody()?['approvalUrl']))}"
             },
             {
               "@@type": "OpenUri",
