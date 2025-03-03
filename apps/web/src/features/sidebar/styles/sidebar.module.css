@@ -1,0 +1,109 @@
+/* sidebar.module.css */
+
+/* Base Sidebar Styles */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    transition: all var(--sidebar-transition-normal);
+  }
+
+  .sidebar--default {
+    background-color: var(--sidebar-container-background, #ffffff); /* Token-based fallback */
+    border-right: var(--sidebar-container-border, 1px solid #e0e0e0);
+    width: var(--sidebar-width-default, 240px);
+  }
+
+  .sidebar--compact {
+    width: var(--sidebar-width-compact, 64px);
+  }
+
+  /* Sidebar Items */
+  .sidebar__item {
+    padding: var(--sidebar-item-padding, 0.5rem);
+    color: var(--sidebar-item-color, #333333);
+    transition: background-color var(--sidebar-transition-fast, 150ms ease-in-out);
+  }
+
+  .sidebar__item--active {
+    background-color: var(--sidebar-item-active-background, #007bff);
+    color: var(--sidebar-item-active-color, #ffffff);
+  }
+
+  .sidebar__item:hover:not(.sidebar__item--active) {
+    background-color: var(--sidebar-item-hover-background, #0056b3);
+  }
+
+  .sidebar__item--disabled {
+    opacity: var(--sidebar-item-disabled-opacity, 0.5);
+    pointer-events: none;
+  }
+
+  /* Sidebar Container */
+  .sidebarContainer {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: var(--sidebar-container-background, #ffffff);
+    color: var(--sidebar-container-text, #333333);
+    transition: width 0.3s ease;
+    overflow: hidden;
+  }
+
+  .sidebarContainer.open {
+    width: var(--sidebar-width-default, 240px);
+  }
+
+  .sidebarContainer.closed {
+    width: var(--sidebar-width-compact, 64px);
+  }
+
+  /* Toggle Button */
+  .toggleButtonWrapper {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0.5rem;
+  }
+
+  .toggleButton {
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: var(--sidebar-toggle-button-color, #333333);
+    font-size: 1.25rem;
+    transition: transform 0.2s ease-in-out;
+  }
+
+  .toggleButton:hover {
+    transform: scale(1.1);
+  }
+
+  /* Navigation Area */
+  .nav {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    margin-top: 1rem;
+  }
+
+  /* Link List */
+  .linkList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .linkItem {
+    margin-bottom: 0.5rem;
+  }
+
+  .link {
+    display: block;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    color: var(--sidebar-link-color, #333333);
+    transition: background-color 0.2s ease-in-out;
+  }
+
+  .link:hover {
+    background-color: var(--sidebar-link-hover-background, rgba(255, 255, 255, 0.1));
+  }
