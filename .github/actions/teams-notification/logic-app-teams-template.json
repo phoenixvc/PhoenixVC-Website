@@ -12,6 +12,10 @@
   "rollbackUrl": "{{rollbackUrl}}",
   "encodedToken": "{{encodedToken}}",
   "encodedTeamsToken": "{{encodedTeamsToken}}",
+  "version": "{{version}}",
+  "author": "{{author}}",
+  "repository": "{{repository}}",
+  "pr_description": "{{pr_description}}",
   "adaptiveCard": {
     "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
     "type": "AdaptiveCard",
@@ -34,7 +38,11 @@
           { "title": "Environment", "value": "{{environment}}" },
           { "title": "Location", "value": "{{locationCode}}" },
           { "title": "Resource Group", "value": "{{resourceGroup}}" },
-          { "title": "Site URL", "value": "{{deploymentUrl}}" }
+          { "title": "Site URL", "value": "{{deploymentUrl}}" },
+          { "title": "Version", "value": "{{version}}" },
+          { "title": "Author", "value": "{{author}}" },
+          { "title": "Repository", "value": "{{repository}}" },
+          { "title": "PR Description", "value": "{{pr_description}}" }
         ]
       },
       {

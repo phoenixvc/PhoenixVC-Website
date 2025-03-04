@@ -30,7 +30,11 @@ var logicAppDefinitionText = '''
             "color": { "type": "string" },
             "deploymentUrl": { "type": "string" },
             "approvalUrl": { "type": "string" },
-            "rollbackUrl": { "type": "string" }
+            "rollbackUrl": { "type": "string" },
+            "version": { "type": "string" },
+            "author": { "type": "string" },
+            "repository": { "type": "string" },
+            "pr_description": { "type": "string" }
           },
           "required": [
             "teamsWebhookUrl",
@@ -84,6 +88,22 @@ var logicAppDefinitionText = '''
                 {
                   "name": "Branch",
                   "value": "@{triggerBody()?['branch']}"
+                },
+                {
+                  "name": "Version",
+                  "value": "@{triggerBody()?['version']}"
+                },
+                {
+                  "name": "Author",
+                  "value": "@{triggerBody()?['author']}"
+                },
+                {
+                  "name": "Repository",
+                  "value": "@{triggerBody()?['repository']}"
+                },
+                {
+                  "name": "PR Description",
+                  "value": "@{triggerBody()?['pr_description']}"
                 }
               ],
               "markdown": true

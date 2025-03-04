@@ -301,7 +301,8 @@ export type ComponentVariantType =
   | MenuVariant
   | BadgeVariant
   | ProgressVariant
-  | TooltipVariant;
+  | TooltipVariant
+  | SidebarVariant;
 
 // Component Collection Interface
 export interface ComponentVariants {
@@ -365,12 +366,37 @@ export interface ComponentVariants {
       default: ProgressVariant;
       [key: string]: ProgressVariant;
     };
+    sidebar?: {
+      default: SidebarVariant;
+      [key: string]: SidebarVariant;
+    };
     tooltip?: {
       default: TooltipVariant;
       [key: string]: TooltipVariant;
     };
 
     [key: string]: { [variantKey: string]: ComponentVariantType } | undefined;
+  }
+
+  export interface SidebarVariant {
+    container: ComponentState;
+    group: {
+      container: ComponentState;
+      title: ComponentState;
+      style?: Record<string, string | number>;
+    };
+    item: {
+      default: InteractiveState;
+      active: ComponentState;
+      style?: Record<string, string | number>;
+    };
+    divider?: ColorDefinition;
+    icon?: {
+      default: ColorDefinition;
+      active: ColorDefinition;
+      style?: Record<string, string | number>;
+    };
+    style?: Record<string, string | number>;
   }
 
 /**
@@ -391,4 +417,12 @@ export const isTabVariant = (variant: ComponentVariantType): variant is TabVaria
 
 export const isInputVariant = (variant: ComponentVariantType): variant is InputVariant => {
   return "readonly" in variant && "error" in variant && "success" in variant;
+};
+
+export const isSidebarVariant = (variant: ComponentVariantType): variant is SidebarVariant => {
+  return "container" in variant &&
+         "group" in variant &&
+         "item" in variant &&
+         typeof variant.group === "object" &&
+         "title" in variant.group;
 };

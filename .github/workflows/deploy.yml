@@ -133,15 +133,17 @@ jobs:
         id: get_changes
         run: |
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            # For PR events, use PR title and body
-            SUMMARY="${{ github.event.pull_request.title }} - ${{ github.event.pull_request.body }}"
-          else
-            # For push events, use commit messages
-            SUMMARY=$(git log -1 --pretty=format:"%s%n%b")
-          fi
-          # Sanitize and truncate summary
-          SUMMARY=$(echo "$SUMMARY" | tr -d '\r\n' | cut -c1-500)
-          echo "summary=${SUMMARY}" >> $GITHUB_OUTPUT
+              # For PR events, capture the title and body while replacing newlines with spaces
+              TITLE=$(echo "${{ github.event.pull_request.title }}" | tr '\n' ' ')
+              BODY=$(echo "${{ github.event.pull_request.body }}" | tr '\n' ' ')
+              SUMMARY="${TITLE} - ${BODY}"
+            else
+              # For push events, use commit messages
+              SUMMARY=$(git log -1 --pretty=format:"%s%n%b")
+            fi
+            # Sanitize and truncate summary (remove any remaining carriage returns/newlines)
+            SUMMARY=$(echo "$SUMMARY" | tr -d '\r\n' | cut -c1-500)
+            echo "summary=${SUMMARY}" >> $GITHUB_OUTPUT
 
   # ───────────────────────────────────────────────
   # ✅ BUILD APPS WITH Vite
@@ -155,6 +157,9 @@ jobs:
       web_artifact_id: ${{ steps.upload_web.outputs.artifact-id }}
       design_system_artifact_id: ${{ steps.upload_design.outputs.artifact-id }}
       build_timestamp: ${{ steps.set_timestamp.outputs.timestamp }}
+      web_app_version: ${{ steps.build_web.outputs.version }}
+      web_app_author: ${{ steps.build_web.outputs.author }}
+      web_app_repository: ${{ format('https://github.com/{0}', github.repository) }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -519,6 +524,10 @@ jobs:
           deployment_id: ${{ needs.swa_deploy_staging.outputs.deployment_id }}
           artifact_id: ${{ needs.build_apps.outputs.web_artifact_id }}
           run_id: ${{ github.run_id }}
+          version: ${{ needs.build_apps.outputs.web_app_version }}
+          author: ${{ needs.build_apps.outputs.web_app_author }}
+          repository: ${{ needs.build_apps.outputs.web_app_repository }}
+          pr_description: ${{ github.event.pull_request.body || 'N/A' }}
 
       - name: Notify Production
         if: ${{ github.event.inputs.APPROVAL_STATE == 'true' }}
