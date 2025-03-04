@@ -133,15 +133,17 @@ jobs:
         id: get_changes
         run: |
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            # For PR events, use PR title and body
-            SUMMARY="${{ github.event.pull_request.title }} - ${{ github.event.pull_request.body }}"
-          else
-            # For push events, use commit messages
-            SUMMARY=$(git log -1 --pretty=format:"%s%n%b")
-          fi
-          # Sanitize and truncate summary
-          SUMMARY=$(echo "$SUMMARY" | tr -d '\r\n' | cut -c1-500)
-          echo "summary=${SUMMARY}" >> $GITHUB_OUTPUT
+              # For PR events, capture the title and body while replacing newlines with spaces
+              TITLE=$(echo "${{ github.event.pull_request.title }}" | tr '\n' ' ')
+              BODY=$(echo "${{ github.event.pull_request.body }}" | tr '\n' ' ')
+              SUMMARY="${TITLE} - ${BODY}"
+            else
+              # For push events, use commit messages
+              SUMMARY=$(git log -1 --pretty=format:"%s%n%b")
+            fi
+            # Sanitize and truncate summary (remove any remaining carriage returns/newlines)
+            SUMMARY=$(echo "$SUMMARY" | tr -d '\r\n' | cut -c1-500)
+            echo "summary=${SUMMARY}" >> $GITHUB_OUTPUT
 
   # ───────────────────────────────────────────────
   # ✅ BUILD APPS WITH Vite
