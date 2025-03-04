@@ -390,10 +390,10 @@ export interface ComponentVariants {
       active: ComponentState;
       style?: Record<string, string | number>;
     };
-    divider?: ColorDefinition;
+    divider?: Partial<ColorDefinition>;
     icon?: {
-      default: ColorDefinition;
-      active: ColorDefinition;
+      default: Partial<ColorDefinition>;
+      active: Partial<ColorDefinition>;
       style?: Record<string, string | number>;
     };
     style?: Record<string, string | number>;

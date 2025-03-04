@@ -6,6 +6,8 @@ export interface ColorDefinition {
   rgb: string;
   hsl: string;
   alpha?: number;
+  cssVariable?: string;  // Added to track CSS variables
+  isPlaceholder?: boolean; // Added to track problematic conversions
 }
 
 export interface HSLColor {
@@ -13,6 +15,13 @@ export interface HSLColor {
   s: number;
   l: number;
 }
+
+export interface RGBColor {
+  r: number;
+  g: number;
+  b: number;
+}
+
 
 export interface ColorAdjustments {
   hue?: number;

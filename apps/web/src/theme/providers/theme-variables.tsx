@@ -7,6 +7,11 @@ export const generateThemeVariables = (
   schemeName?: ThemeName
 ): ThemeVariables => {
   try {
+    console.group("[ThemeProvider] Generating theme variables");
+    console.log("Input colors:", colors);
+    console.log("Mode:", mode);
+    console.log("Scheme name:", schemeName);
+
     // Determine which scheme to use:
     let scheme: ThemeColors["schemes"][keyof ThemeColors["schemes"]];
     if (schemeName) {
@@ -21,21 +26,44 @@ export const generateThemeVariables = (
       }
       scheme = colors.schemes[keys[0]];
     }
+    console.log("Selected scheme:", scheme);
 
     // Get mode-specific colors (light or dark)
     const modeColors = scheme[mode as "light" | "dark"];
     if (!modeColors) {
       throw new Error(`Invalid mode: ${mode}`);
     }
+    console.log("Mode colors:", modeColors);
+
+    // Check if base exists
+    if (!scheme.base) {
+      console.error("Missing scheme.base in color scheme");
+      throw new Error("Missing scheme.base in color scheme");
+    }
+    console.log("Scheme base:", scheme.base);
+
+    // Check primary and secondary
+    if (!scheme.base.primary) {
+      console.error("Missing scheme.base.primary in color scheme");
+      throw new Error("Missing scheme.base.primary in color scheme");
+    }
+
+    if (!scheme.base.secondary) {
+      console.error("Missing scheme.base.secondary in color scheme");
+      throw new Error("Missing scheme.base.secondary in color scheme");
+    }
 
     // Build computed colors using HSL values
+    // Use the direct color values instead of looking for [500]
     const computedColors = {
-      primary: scheme.base.primary[500].hsl,
-      secondary: scheme.base.secondary[500].hsl,
+      primary: scheme.base.primary.hsl || scheme.base.primary.hex,
+      secondary: scheme.base.secondary.hsl || scheme.base.secondary.hex,
       background: modeColors.background.hsl,
       text: modeColors.text.hsl,
       border: modeColors.border.hsl,
     };
+
+    console.log("Computed colors:", computedColors);
 
     // Build the ThemeVariables object.
     const themeVariables: ThemeVariables = {
@@ -94,12 +122,81 @@ export const generateThemeVariables = (
       },
     };
 
+    console.log("Generated theme variables:", themeVariables);
+    console.groupEnd();
     return themeVariables;
   } catch (error) {
     console.error("[ThemeProvider] Failed to generate theme variables:", error);
-    throw error;
+    console.groupEnd();
+
+    // Create fallback theme variables to prevent cascading errors
+    const fallbackThemeVariables: ThemeVariables = {
+      prefix: "--theme",
+      mappings: colors,
+      computed: {
+        colors: {
+          primary: "hsl(210, 100%, 50%)",
+          secondary: "hsl(270, 60%, 50%)",
+          background: mode === "light" ? "hsl(0, 0%, 100%)" : "hsl(0, 0%, 10%)",
+          text: mode === "light" ? "hsl(0, 0%, 10%)" : "hsl(0, 0%, 90%)",
+          border: mode === "light" ? "hsl(0, 0%, 80%)" : "hsl(0, 0%, 30%)",
+        },
+        spacing: {
+          xs: "0.25rem",
+          sm: "0.5rem",
+          md: "1rem",
+          lg: "1.5rem",
+          xl: "2rem",
+        },
+        typography: {
+          body: {
+            fontSize: "16px",
+            lineHeight: "24px",
+            fontWeight: 400,
+            letterSpacing: "normal",
+          },
+          heading: {
+            fontSize: "32px",
+            lineHeight: "40px",
+            fontWeight: 700,
+            letterSpacing: "normal",
+          },
+        },
+        breakpoints: {
+          sm: "640px",
+          md: "768px",
+          lg: "1024px",
+          xl: "1280px",
+          "2xl": "1536px",
+        },
+        animation: {
+          fadeIn: {
+            duration: "300ms",
+            easing: "ease-in",
+          },
+          fadeOut: {
+            duration: "300ms",
+            easing: "ease-out",
+          },
+        },
+        shadows: {
+          small: "0 1px 3px rgba(0,0,0,0.12)",
+          medium: "0 4px 6px rgba(0,0,0,0.1)",
+          large: "0 10px 15px rgba(0,0,0,0.1)",
+        },
+        zIndex: {
+          dropdown: 1000,
+          modal: 1100,
+          tooltip: 1200,
+        },
+      },
+    };
+
+    console.log("[ThemeProvider] Using fallback theme variables:", fallbackThemeVariables);
+    return fallbackThemeVariables;
   }
 };
+
 
 /**
  * Generate a map of the scheme's semantic colors in your desired format (e.g. HSL).

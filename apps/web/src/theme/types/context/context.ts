@@ -8,6 +8,7 @@ import { ExtendedThemeState, ThemeContextState } from "./state";
 import { TypographyScale } from "@/theme/mappings";
 import { Theme } from "@/theme/core/theme";
 import { ThemeLoaderConfig } from "@/theme";
+import { ComponentThemeRegistry } from "@/theme/registry/component-theme-registry";
 
 /**
  * Additional provider configuration options specific to the context.
@@ -51,6 +52,7 @@ export interface ThemeProviderProps {
   storageKey?: string;
   /** Optional class name for the provider wrapper */
   className?: string;
+  initialRegistry : Partial<ComponentThemeRegistry>;
 }
 
 /**
