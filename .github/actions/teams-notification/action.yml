@@ -71,6 +71,23 @@ inputs:
     description: "Run ID (required for approvalUrl)"
     required: false
     default: ""
+  # New metadata inputs
+  version:
+    description: "Package version from package.json"
+    required: false
+    default: ""
+  author:
+    description: "Package author from package.json"
+    required: false
+    default: ""
+  repository:
+    description: "Package repository from package.json"
+    required: false
+    default: ""
+  pr_description:
+    description: "Pull Request description if available"
+    required: false
+    default: ""
 
 runs:
   using: "composite"
@@ -107,6 +124,12 @@ runs:
         deployment_id="${{ inputs.deployment_id }}"
         artifact_id="${{ inputs.artifact_id }}"
         run_id="${{ inputs.run_id }}"
+
+        # New metadata variables
+        version="${{ inputs.version }}"
+        author="${{ inputs.author }}"
+        repository="${{ inputs.repository }}"
+        pr_description="${{ inputs.pr_description }}"
 
         # Encode tokens
         encodedGitHubToken=$(echo "${{ inputs.github_token }}" | base64)
@@ -159,7 +182,11 @@ runs:
           -e "s|{{rollbackUrl}}|${{ inputs.rollback_url }}|g" \
           -e "s|{{encodedToken}}|${encodedGitHubToken}|g" \
           -e "s|{{encodedTeamsToken}}|${encodedTeamsToken}|g" \
-          -e "s|{{approvalUrl}}|${escaped_approval_url}|g"
+          -e "s|{{approvalUrl}}|${escaped_approval_url}|g" \
+          -e "s|{{version}}|${version}|g" \
+          -e "s|{{author}}|${author}|g" \
+          -e "s|{{repository}}|${repository}|g" \
+          -e "s|{{pr_description}}|${pr_description}|g" \
         )
         echo "Generated Payload:"
         echo "$PAYLOAD"
