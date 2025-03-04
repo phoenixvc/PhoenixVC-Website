@@ -16,6 +16,7 @@ outputs:
   author:
     description: 'The package author'
 
+
 runs:
   using: "composite"
   steps:
