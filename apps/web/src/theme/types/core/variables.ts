@@ -1,6 +1,6 @@
 // src/theme/types/core/variables.ts
 
-import { ThemeColorScheme, ThemeMode } from "./base";
+import { ThemeName, ThemeMode } from "./base";
 import { ThemeColors } from "./colors";
 
 /**
@@ -24,7 +24,7 @@ export interface CSSVariableOptions {
 export interface CssVariableConfig {
   prefix: string;
   suffix?: string;
-  scheme: ThemeColorScheme;
+  scheme: ThemeName;
   scope?: string;
   mode?: ThemeMode;
 }
@@ -42,7 +42,7 @@ export interface CssVariable {
   name: string;
   value: string;
   scope?: string;
-  scheme?: ThemeColorScheme;
+  scheme?: ThemeName;
   mode?: ThemeMode;
 }
 

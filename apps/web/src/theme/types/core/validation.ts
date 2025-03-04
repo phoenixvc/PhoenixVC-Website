@@ -1,6 +1,6 @@
 // /theme/types/core/validation.ts
 
-import { ThemeError } from "./enums";
+import { ThemeError, ThemeErrorKey } from "./enums";
 
 export interface ValidationRule<T> {
     validate: (value: T) => boolean;
@@ -17,10 +17,10 @@ export type ValidationResult = {
   );
 
 export interface ValidationError {
-    code: ThemeError;
+    code: ThemeErrorKey;
     message: string;
     path: string;
-    details?: unknown;
+    details?: Record<string, unknown>;
   }
 
 export type ValidationErrorDetails = {

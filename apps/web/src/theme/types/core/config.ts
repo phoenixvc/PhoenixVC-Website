@@ -1,11 +1,12 @@
 // /theme/types/core/config.ts
 
-import type { Layout, ThemeColorScheme, ThemeMode } from "./base";
+import type { Layout, ThemeName, ThemeMode } from "./base";
 import type { ThemeStorage, ThemeTransition } from "./storage";
 
 // Core Configuration Interfaces
 export interface ThemeConfig {
-    colorScheme?: ThemeColorScheme;
+    name: string;
+    themeName?: ThemeName;
     mode?: ThemeMode;
     useSystem: boolean;
     direction?: Layout.Direction | undefined;
@@ -17,7 +18,7 @@ export interface ThemeState extends Required<ThemeConfig> {
     systemMode: ThemeMode;
     initialized: boolean;
     previous?: {
-        colorScheme: ThemeColorScheme;
+        themeName: ThemeName;
         mode: ThemeMode;
     };
     timestamp: number;
@@ -25,7 +26,7 @@ export interface ThemeState extends Required<ThemeConfig> {
 
 // Initialization Options
 export interface ThemeInitOptions {
-    defaultScheme?: ThemeColorScheme;
+    defaultThemeName?: ThemeName;
     defaultMode?: ThemeMode;
     useSystem?: boolean;
     storage?: Partial<ThemeStorage>;
@@ -33,15 +34,15 @@ export interface ThemeInitOptions {
     debug?: boolean;
     onThemeChange?: (theme: ThemeState) => void;
     disableTransitionsOnLoad?: boolean;
-    forceColorScheme?: ThemeColorScheme;
+    forceSpecificTheme?: ThemeName;
 }
 
 // Event Handling
 export interface ThemeChangeEvent {
     previousMode?: ThemeMode;
     currentMode: ThemeMode;
-    previousColorScheme?: ThemeColorScheme;
-    currentColorScheme: ThemeColorScheme;
+    previousThemeName?: ThemeName;
+    currentThemeName: ThemeName;
     source: "user" | "system" | "storage" | "default";
 }
 
@@ -76,7 +77,7 @@ export interface ThemeStorageConfig extends ThemeStorage {
 
 // Export all types
 export type {
-    ThemeColorScheme as ColorScheme,
+    ThemeName as ColorScheme,
     ThemeMode as Mode,
     ThemeStorage,
     ThemeTransition
@@ -89,7 +90,7 @@ export interface ThemeConfigValidator {
 }
 
 export interface ThemeBuilder {
-    withColorScheme: (scheme: ThemeColorScheme) => ThemeBuilder;
+    withTheme: (themeName: ThemeName) => ThemeBuilder;
     withMode: (mode: ThemeMode) => ThemeBuilder;
     withPlugins: (plugins: ThemePlugin[]) => ThemeBuilder;
     build: () => ThemeConfig;

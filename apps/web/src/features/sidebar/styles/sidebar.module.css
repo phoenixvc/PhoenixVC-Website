@@ -1,0 +1,148 @@
+/* sidebar.module.css */
+
+/* Base Sidebar Styles */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  transition: all var(--sidebar-transition-normal, 0.3s ease);
+}
+
+.sidebar--default {
+  background-color: var(--theme-sidebar-background, #ffffff);
+  border-right: var(--theme-sidebar-border, 1px solid #e0e0e0);
+  width: var(--theme-sidebar-width, 240px);
+}
+
+.sidebar--compact {
+  width: var(--sidebar-width-compact, 64px);
+}
+
+/* Sidebar Items */
+.sidebar__item {
+  padding: var(--sidebar-item-padding, 0.5rem);
+  color: var(--sidebar-item-color, #333333);
+  transition: background-color var(--sidebar-transition-fast, 150ms ease-in-out);
+}
+
+.sidebar__item--active {
+  background-color: var(--sidebar-item-active-background, #007bff);
+  color: var(--sidebar-item-active-color, #ffffff);
+}
+
+.sidebar__item:hover:not(.sidebar__item--active) {
+  background-color: var(--sidebar-item-hover-background, #0056b3);
+}
+
+.sidebar__item--disabled {
+  opacity: var(--sidebar-item-disabled-opacity, 0.5);
+  pointer-events: none;
+}
+
+/* Sidebar Container */
+.sidebarContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: var(--theme-sidebar-background, #ffffff);
+  color: var(--theme-sidebar-text, #333333);
+  transition: transform 0.3s ease, width 0.3s ease;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 50;
+  box-shadow: var(--theme-sidebar-shadow, 0px 4px 6px rgba(0, 0, 0, 0.1));
+  width: var(--theme-sidebar-width, 240px);
+}
+
+.sidebarContainer.open {
+  transform: translateX(0);
+}
+
+.sidebarContainer.closed {
+  transform: translateX(-90%); /* Show 10% of the sidebar instead of hiding completely */
+}
+
+.sidebarContainer.closed:hover {
+  transform: translateX(-80%); /* Show more on hover */
+}
+
+.open {
+  transform: translateX(0) !important;
+}
+
+.closed:hover {
+  transform: translateX(-70%) !important;
+}
+
+.mobile.closed {
+  transform: translateX(-100%) !important;
+}
+
+.mobile.closed:hover {
+  transform: translateX(-90%) !important;
+}
+
+/* Toggle Button */
+.toggleButtonWrapper {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.5rem;
+}
+
+.toggleButton {
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: var(--sidebar-toggle-button-color, #333333);
+  font-size: 1.25rem;
+  transition: transform 0.2s ease-in-out;
+}
+
+.toggleButton:hover {
+  transform: scale(1.1);
+}
+
+/* Navigation Area */
+.nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-top: 1rem;
+}
+
+/* Link List */
+.linkList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.linkItem {
+  margin-bottom: 0.5rem;
+}
+
+.link {
+  display: block;
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+  color: var(--sidebar-link-color, #333333);
+  transition: background-color 0.2s ease-in-out;
+}
+
+.link:hover {
+  background-color: var(--sidebar-link-hover-background, rgba(255, 255, 255, 0.1));
+}
+
+/* Add main content margin to accommodate sidebar */
+:global(.main-content) {
+  margin-left: 0; /* Don't add margin by default */
+  transition: margin-left 0.3s ease;
+}
+
+/* Only add margin when sidebar is open AND we're not on mobile */
+@media (min-width: 768px) {
+  :global(.sidebar-open) .main-content {
+    margin-left: var(--theme-sidebar-width, 240px);
+  }
+}

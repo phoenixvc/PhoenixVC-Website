@@ -1,6 +1,6 @@
 // src/theme/constants/themes/variants.ts
 
-import { ProcessedBaseColors, ColorDefinition, ThemeColorScheme, RequiredModeColors } from "@/theme/types";
+import { ProcessedBaseColors, ColorDefinition, ThemeName, RequiredModeColors } from "@/theme/types";
 
 /**
  * A helper function to create a simple palette where every shade is identical.
@@ -33,7 +33,7 @@ const createShades = (baseHex: string): ProcessedBaseColors["primary"] => {
  * Static theme variants.
  * Each scheme defines processed base colors for primary, secondary, and accent.
  */
-export const COLOR_SCHEMES: Record<ThemeColorScheme, ProcessedBaseColors> = {
+export const COLOR_SCHEMES: Record<ThemeName, ProcessedBaseColors> = {
   phoenix: {
     primary: createShades("#ff6b00"),
     secondary: createShades("#705c55"),

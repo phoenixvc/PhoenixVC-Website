@@ -252,7 +252,7 @@ export class ComponentMapping {
                 tertiary: this.generateTertiaryButton(),
                 danger: this.generateDangerButton()
             },
-            input: this.generateDefaultInput()
+            //TODO: input: this.generateDefaultInput()
         };
     }
 }

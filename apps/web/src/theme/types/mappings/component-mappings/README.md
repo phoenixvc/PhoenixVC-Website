@@ -336,3 +336,127 @@ This centralized import simplifies access and ensures consistency when applying 
 The **component-mappings** subfolder is organized to provide clear, detailed mappings for various UI component families. These mappings bridge the gap between core design tokens and component-specific styles, ensuring a consistent and extensible theme system.
 
 By following the examples and guidelines provided, you can extend and customize the mappings to suit the evolving needs of your application.
+
+Adding a New Component Type to the Base Library
+If you wanted to add a new component type to your existing base library, here's the step-by-step process you would follow:
+
+1. Define the Component Variant Interface
+First, you would create a new interface that defines the structure of your component's variants. This should follow the same pattern as your existing components.
+
+For example, if you wanted to add an "Accordion" component:
+
+Copy
+// Define the Accordion variant interface
+export interface AccordionVariant {
+  container: ComponentState;
+  header: InteractiveState;
+  content: ComponentState;
+  icon: {
+    default: ColorDefinition;
+    expanded: ColorDefinition;
+  };
+  expanded: {
+    header: ComponentState;
+    content: ComponentState;
+  };
+}
+2. Add to ComponentVariantType Union
+You would add your new variant type to the ComponentVariantType union to ensure type safety:
+
+Copy
+type ComponentVariantType =
+  | ButtonVariant
+  | InputVariant
+  // ... other existing variants
+  | AccordionVariant; // Add your new variant here
+3. Add to ComponentVariants Interface
+Next, you would add your new component to the ComponentVariants interface:
+
+Copy
+export interface ComponentVariants {
+  // Existing components
+  button: {
+    primary: ButtonVariant;
+    // ... other button variants
+  };
+  // ... other components
+
+  // Add your new component (with optional marker if appropriate)
+  accordion?: {
+    default: AccordionVariant;
+    [key: string]: AccordionVariant;
+  };
+
+  // Index signature remains unchanged
+  [key: string]: { [variantKey: string]: ComponentVariantType } | undefined;
+}
+4. Implement Default Variants
+When implementing the theme, you would create default variants for your new component:
+
+Copy
+// In your theme implementation file
+const theme: Theme = {
+  // ... other theme properties
+
+  components: {
+    // ... existing components
+
+    // Add your new component
+    accordion: {
+      default: {
+        container: {
+          background: colors.neutral[50],
+          foreground: colors.neutral[900],
+          border: colors.neutral[200]
+        },
+        header: {
+          background: colors.neutral[100],
+          foreground: colors.neutral[900],
+          border: colors.neutral[200],
+          hover: {
+            background: colors.neutral[200],
+            foreground: colors.neutral[900]
+          },
+          active: {
+            background: colors.neutral[300],
+            foreground: colors.neutral[900]
+          }
+        },
+        content: {
+          background: colors.neutral[50],
+          foreground: colors.neutral[800],
+          border: colors.neutral[200]
+        },
+        icon: {
+          default: colors.neutral[500],
+          expanded: colors.primary[500]
+        },
+        expanded: {
+          header: {
+            background: colors.neutral[100],
+            foreground: colors.neutral[900],
+            border: colors.neutral[300]
+          },
+          content: {
+            background: colors.neutral[50],
+            foreground: colors.neutral[800],
+            border: colors.neutral[200]
+          }
+        }
+      },
+      // You could add additional variants like "compact" or "bordered"
+      compact: {
+        // ... variant-specific styling
+      }
+    }
+  }
+};
+5. Create Component Usage Utilities (Optional)
+You might want to create utility functions or hooks to easily access your new component's variants:
+
+Copy
+// In a utilities file
+export function useAccordionVariant(variant: string = 'default'): AccordionVariant {
+  const theme = useTheme();
+  return theme.components.accordion?.[variant] || theme.components.accordion?.default;
+}

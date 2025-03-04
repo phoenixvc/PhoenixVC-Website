@@ -9,7 +9,7 @@ import type { DeepPartial } from "./utils";
 export const createTheme = (config?: Partial<ThemeConfig>): ThemeConfig => {
   return {
     mode: config?.mode ?? "light",
-    colorScheme: config?.colorScheme ?? "classic",
+    themeName: config?.themeName ?? "classic",
     useSystem: config?.useSystem ?? true,
     direction: config?.direction,
     version: config?.version,

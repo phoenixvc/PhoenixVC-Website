@@ -1,18 +1,10 @@
-import { NavigationItemProps } from "../../types";
 import { useTheme } from "@/theme";
-import { twMerge } from "tailwind-merge";
-import { LucideIcon } from "lucide-react"; // Changed from IconType
+import { cn } from "@/lib/utils"; // Assuming you have a utility function like this
+import { LucideIcon } from "lucide-react";
 import React from "react";
+import { ExtendedNavLinkProps } from "../../types";
 
 type IconProp = LucideIcon | React.ReactNode | string | undefined;
-
-interface ExtendedNavLinkProps extends Omit<NavigationItemProps, "icon"> {
-  isMobile?: boolean;
-  variant?: "header" | "simple";
-  isActive?: boolean;
-  onClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
-  icon?: IconProp;
-}
 
 // Type for aria-current
 type AriaCurrent = "page" | "step" | "location" | "date" | "time" | "true" | "false" | boolean | undefined;
@@ -43,34 +35,53 @@ export const NavLink = ({
   isActive = false,
   variant = "header",
   isMobile = false,
+  className,
+  style,
 }: ExtendedNavLinkProps) => {
-  const { colorSchemeClasses } = useTheme();
+  const themeContext = useTheme();
+  const { themeName } = themeContext;
 
-  const baseStyles = "transition-colors duration-200 relative px-4 py-2";
+  // Get component styles from the theme system
+  const navLinkStyle = themeContext.getComponentStyle?.("navLink", variant) || {};
+  const activeStyle = isActive
+    ? themeContext.getComponentStyle?.("navLink", "${variant}-active") || {}
+    : {};
 
-  const variantStyles = {
-    header: twMerge(
-      isActive
-        ? `${colorSchemeClasses.activeBg} ${colorSchemeClasses.activeText}`
-        : `${colorSchemeClasses.hoverBg} ${colorSchemeClasses.text}`,
-      isMobile && "w-full text-left"
-    ),
-    simple: colorSchemeClasses.text,
+  // Get specific CSS variables if needed
+  const transitionDuration = themeContext.getCssVariable?.("theme-transition-duration") || "200ms";
+
+  // Combine passed style with theme style
+  const combinedStyle = {
+    ...navLinkStyle,
+    ...activeStyle,
+    ...style,
+    transitionDuration,
   };
+
+  // Base classes that don't depend on theme
+  const baseClasses = "relative px-4 py-2 transition-colors";
+
+  // Mobile-specific classes
+  const mobileClasses = isMobile ? "w-full text-left" : "";
+
+  // Generate theme-specific class
+  const themeClass = "theme-${themeName}-navLink-${variant}${isActive ? '-active' : ''}";
 
   const linkProps: React.AnchorHTMLAttributes<HTMLAnchorElement> = {
     href: path,
     onClick,
-    className: twMerge(
-      baseStyles,
-      variantStyles[variant],
-      isMobile && "w-full text-left"
+    className: cn(
+      baseClasses,
+      mobileClasses,
+      themeClass,
+      className
     ),
+    style: combinedStyle,
     "aria-current": (isActive ? "page" : undefined) as AriaCurrent,
     ...(isExternal && {
       target: "_blank",
       rel: "noopener noreferrer",
-      "aria-label": `${label} (opens in new tab)`,
+      "aria-label": "${label} (opens in new tab)",
     }),
   };
 
@@ -84,7 +95,14 @@ export const NavLink = ({
       {label}
       {isActive && variant === "header" && (
         <span
-          className="absolute -bottom-1 left-1/2 w-2 h-2 bg-current rounded-full transform -translate-x-1/2"
+          className={cn(
+            "absolute -bottom-1 left-1/2 w-2 h-2 rounded-full transform -translate-x-1/2",
+            "theme-${themeName}-navLink-indicator"
+          )}
+          style={{
+            backgroundColor: "currentColor",
+            ...themeContext.getComponentStyle?.("navLinkIndicator", "default") || {}
+          }}
           aria-hidden="true"
         />
       )}

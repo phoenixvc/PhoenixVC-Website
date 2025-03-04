@@ -1,3 +1,5 @@
+// src/components/ThemeToggle/ThemeToggle.tsx
+import React, { useCallback, useRef, useEffect } from "react";
 import { Moon, Sun, Palette, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,32 +13,63 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
-import { ThemeColorScheme, useTheme } from "@/theme"; // Now using the updated useTheme hook
+import { ThemeName } from "@/theme";
+import { useTheme } from "@/theme/hooks";
 
-const ThemeToggle = () => {
+// Define color schemes outside the component to avoid recreation
+const COLOR_SCHEMES: { label: string; value: ThemeName }[] = [
+  { label: "Classic", value: "classic" },
+  { label: "Forest", value: "forest" },
+  { label: "Ocean", value: "ocean" },
+  { label: "Phoenix", value: "phoenix" },
+  { label: "Lavender", value: "lavender" },
+  { label: "Cloud", value: "cloud" },
+];
+
+const ThemeToggle: React.FC = () => {
+  // Use refs to store the current theme state to avoid re-renders
+  const themeRef = useRef<{
+    mode: "light" | "dark";
+    useSystemMode: boolean;
+    colorScheme: ThemeName;
+  }>({ mode: "light", useSystemMode: false, colorScheme: "classic" });
+
+  // Get theme functions from context
   const {
-    mode,
+    themeMode,
     useSystemMode,
-    colorScheme,
+    themeName,
     setMode,
-    setColorScheme,
+    setThemeClasses,
     setUseSystemMode,
   } = useTheme();
 
-  const colorSchemes: { label: string; value: ThemeColorScheme }[] = [
-    { label: "Classic", value: "classic" },
-    { label: "Forest", value: "forest" },
-    { label: "Ocean", value: "ocean" },
-    { label: "Phoenix", value: "phoenix" },
-    { label: "Lavender", value: "lavender" },
-    { label: "Cloud", value: "cloud" },
-  ];
+  // Update the ref when theme state changes
+  useEffect(() => {
+    themeRef.current = {
+      mode: themeMode,
+      useSystemMode,
+      colorScheme: themeName,
+    };
+  }, [themeMode, useSystemMode, themeName]);
+
+  // Memoize handlers to prevent recreation on each render
+  const handleSetMode = useCallback((newMode: "light" | "dark") => {
+    setMode(newMode);
+  }, [setMode]);
+
+  const handleSetThemeClasses = useCallback((themeName: ThemeName) => {
+    setThemeClasses(themeName);
+  }, [setThemeClasses]);
+
+  const handleSetUseSystemMode = useCallback((value: boolean) => {
+    setUseSystemMode(value);
+  }, [setUseSystemMode]);
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="h-10 w-10">
-          {/* Sun/Moon Icons */}
           <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
           <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
           <span className="sr-only">Toggle theme</span>
@@ -44,46 +77,41 @@ const ThemeToggle = () => {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end">
-        {/* Light Mode */}
-        <DropdownMenuItem onClick={() => setMode("light")}>
+        <DropdownMenuItem onClick={() => handleSetMode("light")}>
           <Sun className="mr-2 h-4 w-4" />
           Light
-          {mode === "light" && <Check className="ml-auto h-4 w-4 text-primary" />}
+          {themeMode === "light" && <Check className="ml-auto h-4 w-4 text-primary" />}
         </DropdownMenuItem>
 
-        {/* Dark Mode */}
-        <DropdownMenuItem onClick={() => setMode("dark")}>
+        <DropdownMenuItem onClick={() => handleSetMode("dark")}>
           <Moon className="mr-2 h-4 w-4" />
           Dark
-          {mode === "dark" && <Check className="ml-auto h-4 w-4 text-primary" />}
+          {themeMode === "dark" && <Check className="ml-auto h-4 w-4 text-primary" />}
         </DropdownMenuItem>
 
-        {/* Toggle System Mode */}
         <DropdownMenuCheckboxItem
           checked={useSystemMode}
-          onCheckedChange={setUseSystemMode}
+          onCheckedChange={handleSetUseSystemMode}
         >
           Use system
         </DropdownMenuCheckboxItem>
 
         <DropdownMenuSeparator />
 
-        {/* Color Scheme Selection */}
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
             <Palette className="mr-2 h-4 w-4" />
             Color Scheme
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
-            {colorSchemes.map((scheme) => (
+            {COLOR_SCHEMES.map((scheme) => (
               <DropdownMenuItem
                 key={scheme.value}
-                onClick={() => setColorScheme(scheme.value)}
+                onClick={() => handleSetThemeClasses(scheme.value)}
                 className="flex items-center"
               >
-                {/* "Radio Button" Indicator */}
                 <div className="relative w-4 h-4 rounded-full mr-2 border border-muted">
-                  {colorScheme === scheme.value && (
+                  {themeName === scheme.value && (
                     <div
                       className="absolute inset-0 rounded-full"
                       style={{ backgroundColor: "hsl(var(--color-primary))" }}
@@ -100,4 +128,4 @@ const ThemeToggle = () => {
   );
 };
 
-export default ThemeToggle;
+export default React.memo(ThemeToggle);

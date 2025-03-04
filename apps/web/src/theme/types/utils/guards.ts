@@ -1,5 +1,5 @@
 // src/types/theme/guards.ts
-import type { ThemeColorScheme, ThemeMode } from "../core/base";
+import type { ThemeName, ThemeMode } from "../core/base";
 import type { ThemeConfig, ThemeState } from "../core/config";
 
 /**
@@ -13,7 +13,7 @@ export const isThemeMode = (value: unknown): value is ThemeMode => {
 /**
  * Type guard to check if a value is a valid Color Scheme
  */
-export const isColorScheme = (value: unknown): value is ThemeColorScheme => {
+export const isColorScheme = (value: unknown): value is ThemeName => {
     if (typeof value !== "string") return false;
     return ["classic", "forest", "ocean", "phoenix", "lavender", "cloud"].includes(value);
 };
@@ -29,7 +29,7 @@ export const isThemeConfig = (value: unknown): value is ThemeConfig => {
         "mode" in config &&
         isThemeMode(config.mode) &&
         "colorScheme" in config &&
-        isColorScheme(config.colorScheme) &&
+        isColorScheme(config.themeName) &&
         "useSystem" in config &&
         typeof config.useSystem === "boolean"
     );
@@ -51,7 +51,7 @@ export const isThemeState = (value: unknown): value is ThemeState => {
         typeof state.timestamp === "number" &&
         (!state.previous || (
             isThemeMode(state.previous.mode) &&
-            isColorScheme(state.previous.colorScheme)
+            isColorScheme(state.previous.themeName)
         ))
     );
 };
@@ -65,7 +65,7 @@ export const assertThemeMode = (value: unknown): asserts value is ThemeMode => {
     }
 };
 
-export const assertColorScheme = (value: unknown): asserts value is ThemeColorScheme => {
+export const assertColorScheme = (value: unknown): asserts value is ThemeName => {
     if (!isColorScheme(value)) {
         throw new Error(`Invalid color scheme: ${String(value)}`);
     }

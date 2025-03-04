@@ -1,11 +1,11 @@
 // /theme/types/core/classes.ts
 
-import { ThemeColorScheme, ThemeMode } from "./base";
+import { ThemeName, ThemeMode } from "./base";
 import { ThemeClassSuffix } from "./enums";
 
 export interface ThemeClassParts {
     prefix: string;
-    scheme?: ThemeColorScheme;
+    scheme?: ThemeName;
     mode?: ThemeMode;
     suffix: ThemeClassSuffix;
 }
@@ -30,7 +30,7 @@ export interface ThemeClassUtils {
     ) => string;
 
     parseThemeClass: (className: string) => {
-        scheme?: ThemeColorScheme;
+        scheme?: ThemeName;
         mode?: ThemeMode;
         suffix?: ThemeClassSuffix;
     };
@@ -47,7 +47,7 @@ export interface ThemeClassOptions {
     /**
      * Color scheme
      */
-    colorScheme?: ThemeColorScheme;
+    colorScheme?: ThemeName;
 
     /**
      * Theme mode
@@ -63,19 +63,4 @@ export interface ThemeClassOptions {
      * Disable transitions
      */
     disableTransitions?: boolean;
-}
-
-// src/types/theme/theme-scheme.types.ts
-
-export interface ColorSchemeClasses {
-    primary: string;
-    secondary: string;
-    text: string;
-    activeText: string;
-    background: string;
-    hoverBg: string;
-    activeBg: string;
-    mobileMenu: string;
-    bgMobileMenu: string;
-    border: string;
 }

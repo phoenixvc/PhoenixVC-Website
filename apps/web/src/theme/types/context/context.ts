@@ -1,10 +1,13 @@
 // theme/types/context/context.ts
 
-import { ReactNode } from "react";
+import { ReactNode, createContext } from "react";
 import { ThemeChangeEvent, ThemeConfig, ThemeErrorFallback, ThemeErrorHandler, ThemeInitOptions } from "../core/config";
-import { ThemeColorScheme, ThemeMode } from "../core/base";
-import { ColorSchemeClasses, CssVariableConfig, ThemeClassSuffix } from "../core";
+import { ThemeName, ThemeMode } from "../core/base";
+import { CssVariableConfig, ThemeClassSuffix } from "../core";
 import { ExtendedThemeState, ThemeContextState } from "./state";
+import { TypographyScale } from "@/theme/mappings";
+import { Theme } from "@/theme/core/theme";
+import { ThemeLoaderConfig } from "@/theme";
 
 /**
  * Additional provider configuration options specific to the context.
@@ -28,19 +31,18 @@ export interface ThemeProviderExtraConfig {
  * Theme provider configuration options.
  * Combines core configuration with context-specific options.
  */
-export interface ThemeProviderConfig extends Partial<ThemeConfig>, ThemeProviderExtraConfig {}
+export interface ThemeProviderConfig extends Partial<ThemeConfig>, ThemeProviderExtraConfig { }
 
 /**
  * Theme provider props interface.
  * Uses the consolidated configuration and extends core types where applicable.
  */
-
 export interface ThemeProviderProps {
   children: ReactNode;
   /** Configuration to initialize theme state */
   config?: ThemeInitOptions;
   defaultMode?: ThemeMode;
-  defaultColorScheme?: ThemeColorScheme;
+  defaultTheme?: ThemeName;
   onThemeChange?: (event: ThemeChangeEvent) => void;
   onError?: ThemeErrorHandler;
   errorFallback?: ThemeErrorFallback;
@@ -64,31 +66,48 @@ export interface ThemeContextActions {
 /**
  * Core theme context type.
  * Defines functions for manipulating the theme.
- * Consider moving pure helper functions to a utilities module if they do not directly update context state.
  */
 export interface ThemeContextType {
-  colorScheme: ThemeColorScheme;
-  mode: ThemeMode;
+  themeName: ThemeName;
+  themeMode: ThemeMode;
   systemMode: ThemeMode;
   useSystemMode: boolean;
-  colorSchemeClasses: ColorSchemeClasses;
-  getColorSchemeClasses: (scheme: ThemeColorScheme) => ColorSchemeClasses;
-  getSpecificClass: (suffix: ThemeClassSuffix) => string;
-  replaceColorSchemeClasses: (currentClasses: string, newScheme: ThemeColorScheme) => string;
-  setColorScheme: (scheme: ThemeColorScheme) => void;
+  getThemeClassNames: (scheme: ThemeName) => Record<string, string>;
+  getSpecificClass: (suffix: ThemeClassSuffix) => string | unknown;
+  replaceThemeClasses: (currentClasses: string, newScheme: ThemeName) => string;
+  setThemeClasses: (scheme: ThemeName) => void;
   setMode: (mode: ThemeMode) => void;
   toggleMode: () => void;
   setUseSystemMode: (useSystem: boolean) => void;
   getCssVariable: (name: string, config?: Partial<CssVariableConfig>) => string;
-  getAllThemeClasses: () => Record<ThemeColorScheme, ColorSchemeClasses>;
-  isColorSchemeClass: (className: string) => boolean;
+  getAllThemeClasses: () => Record<ThemeName, Record<string,string>>;
+  isThemeClass: (className: string) => boolean;
+
+  // Theme loading status
+  isThemeLoading: () => boolean;
+
+  // Theme cache utilities
+  isThemeCached: (scheme: ThemeName) => boolean;
+  preloadTheme: (scheme: ThemeName, config?: Partial<ThemeLoaderConfig>) => Promise<void>;
+  clearThemeCache: () => void;
+  getCacheStatus: () => { size: number; schemes: ThemeName[] };
 
   // Optional methods:
   getComputedThemeStyles?: () => CSSStyleDeclaration;
-  isColorSchemeSupported?: (scheme: ThemeColorScheme) => boolean;
+  isThemeSupported?: (scheme: ThemeName) => boolean;
   getThemeState?: () => ExtendedThemeState;
-  resetTheme?: () => void;
+  resetTheme?: () => Promise<void>;
   subscribeToThemeChanges?: (callback: (state: ExtendedThemeState) => void) => () => void;
+  toggleUseSystem?: () => void; // Added from ThemeContext
+
+  // Add typography support
+  typography?: {
+    getScale: (element: string) => TypographyScale | undefined;
+    getComponentTypography: (component: string, variant?: string, mode?: string) => TypographyScale | undefined;
+  };
+
+  // Add component style support
+  getComponentStyle?: (component: string, variant?: string, state?: string, mode?: string) => React.CSSProperties;
 }
 
 /**
@@ -99,14 +118,5 @@ export interface ThemeContextValue extends ThemeContextType, ThemeContextActions
   state: ThemeContextState;
 }
 
-/**
- * Theme context interface provided to components.
- */
-export interface ThemeContext {
-  state: ExtendedThemeState;
-  setColorScheme: (scheme: ThemeColorScheme) => void;
-  setMode: (mode: ThemeMode) => void;
-  toggleMode: () => void;
-  toggleUseSystem: () => void;
-  reset: () => void;
-}
+// Create the context with the comprehensive type
+export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);

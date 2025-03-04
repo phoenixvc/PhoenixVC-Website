@@ -38,3 +38,20 @@ export interface DisabledStyles extends BaseStyles {
   color?: string;
   pointerEvents?: string;
 }
+
+export interface ColorProperty {
+  hex: string;
+}
+
+export interface OpacityProperty {
+  value: number;
+}
+
+export interface ThemePropertyStyles {
+  background?: ColorProperty;
+  foreground?: ColorProperty;
+  border?: ColorProperty;
+  shadow?: ColorProperty;
+  opacity?: OpacityProperty;
+  [key: string]: unknown;
+}
