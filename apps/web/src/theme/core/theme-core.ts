@@ -3,14 +3,15 @@
 import { ColorMapping, TypographyScale } from "../mappings";
 import { ColorDefinition, ThemeName, ThemeMode, ThemeState } from "../types";
 import { ComponentRegistryManager } from "../registry/component-registry-manager";
-import { ComponentManager } from "./component-manager";
-import { ThemeStateManager } from "./theme-state-manager";
-import { ThemeStyleManager } from "./theme-style-manager";
-import { TypographyManager } from "./typography-manager";
+import { ComponentManager } from "../managers/component-manager";
+import { ThemeStateManager } from "../managers/theme-state-manager";
+import { ThemeStyleManager } from "../managers/theme-style-manager";
+import { TypographyManager } from "../managers/typography-manager";
 import { ComponentVariantType } from "../types/mappings/component-variants";
 import { Theme } from "../core/theme";
 import { ThemeLoaderConfig } from "../providers/theme-loader";
 import { ComponentThemeRegistry } from "../registry/component-theme-registry";
+import { ThemeTransformationManager } from "../managers/theme-transformation-manager";
 
 export class ThemeCore {
   private static instance: ThemeCore;
@@ -20,6 +21,7 @@ export class ThemeCore {
   private typographyManager: TypographyManager;
   private componentManager: ComponentManager;
   private componentRegistryManager: ComponentRegistryManager;
+  private transformationManager: ThemeTransformationManager;
 
   private constructor() {
     // Initialize managers
@@ -36,6 +38,14 @@ export class ThemeCore {
       colorMapping,
       this.typographyManager
     );
+
+    // Create transformation manager
+    this.transformationManager = new ThemeTransformationManager({
+      defaultMode: "light",
+      shadeCount: 9,
+      shadeIntensity: 0.1,
+      contrastThreshold: 0.5
+    });
 
     // Create state manager
     this.stateManager = ThemeStateManager.getInstance();
