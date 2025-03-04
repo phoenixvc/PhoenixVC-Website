@@ -96,7 +96,7 @@ export interface ThemeContextType {
   getComputedThemeStyles?: () => CSSStyleDeclaration;
   isThemeSupported?: (scheme: ThemeName) => boolean;
   getThemeState?: () => ExtendedThemeState;
-  resetTheme?: () => void;
+  resetTheme?: () => Promise<void>;
   subscribeToThemeChanges?: (callback: (state: ExtendedThemeState) => void) => () => void;
   toggleUseSystem?: () => void; // Added from ThemeContext
 

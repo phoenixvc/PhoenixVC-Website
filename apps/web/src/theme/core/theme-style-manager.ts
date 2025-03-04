@@ -4,7 +4,7 @@ import React from "react";
 import { ColorMapping } from "../mappings";
 import { ColorDefinition, ThemeName, ThemeMode } from "../types";
 import { ThemeComponentManager } from "./component-theme-manager";
-import { ComponentRegistryManager } from "./component-registry-manager";
+import { ComponentRegistryManager } from "../registry/component-registry-manager";
 import { TypographyManager } from "./typography-manager";
 import { Theme } from "./theme";
 
@@ -88,10 +88,11 @@ export class ThemeStyleManager {
     state: string = "default",
     mode: ThemeMode = "light"
   ): React.CSSProperties {
-    const componentVariant = this.componentRegistry.getVariant(component, variant);
+    // Try to get the component variant with fallback
+    const componentVariant = this.componentRegistry.getVariantWithFallback(component, variant);
 
     if (!componentVariant) {
-      console.warn(`Component variant not found: ${component}.${variant}`);
+      console.warn(`Component not found: ${component}`);
       return {};
     }
 

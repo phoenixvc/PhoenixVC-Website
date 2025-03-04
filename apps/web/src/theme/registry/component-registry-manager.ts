@@ -1,12 +1,27 @@
 // theme/registry/component-registry-manager.ts
-import { ComponentThemeRegistry, createComponentRegistry } from "./component-theme-registry";
 import { ComponentVariants, ComponentVariantType } from "../types/mappings/component-variants";
-import { Theme } from "./theme";
+import { VariantResolver, VariantResolverConfig } from "./variant-resolver";
+import { VariantResolutionStrategy } from "./variant-resolution/variant-resolution-strategy";
+import { ComponentThemeRegistry, createComponentRegistry } from "../core/component-theme-registry";
+import { Theme } from "../core/theme";
+
+export interface ComponentRegistryManagerConfig {
+  variantResolver?: VariantResolver;
+  variantResolverConfig?: VariantResolverConfig;
+}
 
 export class ComponentRegistryManager {
   private registry: Map<string, Map<string, ComponentVariantType>> = new Map();
+  private variantResolver: VariantResolver;
 
-  constructor(initialRegistry?: Partial<ComponentThemeRegistry>) {
+  constructor(
+    initialRegistry?: Partial<ComponentThemeRegistry>,
+    config?: ComponentRegistryManagerConfig
+  ) {
+    // Initialize variant resolver
+    this.variantResolver = config?.variantResolver ||
+      new VariantResolver(config?.variantResolverConfig);
+
     // Initialize with default registry if provided
     const baseRegistry = createComponentRegistry(initialRegistry);
     this.initializeFromObject(baseRegistry);
@@ -29,7 +44,7 @@ export class ComponentRegistryManager {
   }
 
   /**
-   * Register a theme's component variants
+   * Register a theme"s component variants
    */
   registerTheme(theme: Theme | { components: ComponentVariants }): void {
     // Extract components from the theme
@@ -41,7 +56,7 @@ export class ComponentRegistryManager {
     Object.entries(components).forEach(([componentName, variants]) => {
       if (!variants) return;
 
-      // Create component entry if it doesn't exist
+      // Create component entry if it doesn"t exist
       if (!this.registry.has(componentName)) {
         this.registry.set(componentName, new Map());
       }
@@ -104,7 +119,7 @@ export class ComponentRegistryManager {
     variant: string,
     value: T
   ): void {
-    // Create component entry if it doesn't exist
+    // Create component entry if it doesn"t exist
     if (!this.registry.has(component)) {
       this.registry.set(component, new Map());
     }
@@ -215,5 +230,39 @@ export class ComponentRegistryManager {
     if (!componentMap) return [];
 
     return Array.from(componentMap.keys());
+  }
+
+  /**
+   * Gets a component variant with fallback support for dynamic variants
+   * @param component The component type to get variants for
+   * @param variant The variant name or dynamic pattern (e.g. "${variant}-active")
+   * @param actualVariant Optional actual variant to use when resolving dynamic patterns
+   * @returns The resolved component variant or undefined if not found
+   */
+  getVariantWithFallback<T extends keyof ComponentThemeRegistry>(
+    component: T,
+    variant: string = "default",
+    actualVariant?: string
+  ): ComponentVariantType | undefined {
+    const componentVariants = this.getComponentVariants(component);
+    if (!componentVariants) {
+      console.warn(`Component not found: ${component}`);
+      return undefined;
+    }
+
+    try {
+      return this.variantResolver.resolveVariant(componentVariants, variant, actualVariant);
+    } catch (error) {
+      console.warn(`Error resolving variant ${component}.${variant}: ${error}`);
+      return componentVariants.default as ComponentVariantType;
+    }
+  }
+
+  /**
+   * Register a custom variant resolution strategy
+   * @param strategy The strategy to register
+   */
+  registerVariantResolutionStrategy(strategy: VariantResolutionStrategy): void {
+    this.variantResolver.registerStrategy(strategy);
   }
 }

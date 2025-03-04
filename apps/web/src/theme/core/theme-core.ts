@@ -2,7 +2,7 @@
 
 import { ColorMapping, TypographyScale } from "../mappings";
 import { ColorDefinition, ThemeName, ThemeMode, ThemeState } from "../types";
-import { ComponentRegistryManager } from "./component-registry-manager";
+import { ComponentRegistryManager } from "../registry/component-registry-manager";
 import { ThemeComponentManager } from "./component-theme-manager";
 import { ThemeStateManager } from "./theme-state-manager";
 import { ThemeStyleManager } from "./theme-style-manager";

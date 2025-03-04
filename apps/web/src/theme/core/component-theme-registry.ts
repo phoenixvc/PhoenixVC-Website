@@ -24,22 +24,14 @@ export interface ComponentThemeRegistry extends ComponentVariants {
 export function createComponentRegistry(
   initialComponents?: Partial<ComponentThemeRegistry>
 ): ComponentThemeRegistry {
-  // Since we don't want to define defaults here, we'll cast the initialComponents
-  // This assumes that the logic that generates components will ensure all required variants exist
-  const registry = initialComponents as ComponentThemeRegistry;
+  // Create an empty base registry
+  const baseRegistry: ComponentThemeRegistry = {} as ComponentThemeRegistry;
 
-  // If initialComponents is undefined, we need to provide an empty structure
-  // that satisfies the TypeScript requirements
-  if (!initialComponents) {
-    return {
-      button: {
-        primary: {} as ButtonVariant,
-        secondary: {} as ButtonVariant,
-        tertiary: {} as ButtonVariant,
-        danger: {} as ButtonVariant
-      }
-    } as ComponentThemeRegistry;
+  // If initialComponents is provided, use it directly
+  if (initialComponents) {
+    // Simply return the initialComponents cast as ComponentThemeRegistry
+    return initialComponents as ComponentThemeRegistry;
   }
 
-  return registry;
+  return baseRegistry;
 }

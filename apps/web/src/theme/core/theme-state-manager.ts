@@ -39,7 +39,15 @@ export class ThemeStateManager {
   private mediaQuery: MediaQueryList | null = null;
 
   private constructor(config: ThemeConfig = { name: "default", useSystem: true }) {
-    // Store the config with defaults for optional properties
+    // Initialize all properties first to avoid undefined errors
+    this.listeners = new Set();
+    this._initialized = false;
+    this._isLoadingTheme = false;
+    this._loadingThemePromise = null;
+    this._loadingError = null;
+    this.mediaQuery = null;
+
+    // Then configure and initialize the state
     this.config = {
       ...config,
       themeName: config.themeName || "classic",
@@ -50,6 +58,7 @@ export class ThemeStateManager {
 
     this.initializeState();
 
+    // Finally, set up browser-specific functionality
     if (typeof window !== "undefined") {
       this.initializeSystemListener();
       this._initialized = true;
@@ -60,8 +69,6 @@ export class ThemeStateManager {
         this._loadingError = error instanceof Error ? error : new Error("Failed to load initial theme");
       });
     }
-
-    this.listeners = new Set();
   }
 
   // Expose the initialized flag via a getter
@@ -185,7 +192,7 @@ export class ThemeStateManager {
         console.error(`[ThemeStateManager] Failed to load theme "${colorScheme}":`, error);
         this._loadingError = error instanceof Error ? error : new Error(`Failed to load theme "${colorScheme}"`);
 
-        // If this isn't the default theme, try to fall back
+        // If this isn"t the default theme, try to fall back
         if (colorScheme !== THEME_CONSTANTS.DEFAULTS.COLOR_SCHEME) {
           console.warn(`[ThemeStateManager] Falling back to default theme: ${THEME_CONSTANTS.DEFAULTS.COLOR_SCHEME}`);
 
@@ -341,7 +348,13 @@ export class ThemeStateManager {
 
   private notify(): void {
     try {
-      this.listeners.forEach((listener) => listener());
+      if (this.listeners) {
+        this.listeners.forEach((listener) => {
+          if (typeof listener === "function") {
+            listener();
+          }
+        });
+      }
     } catch (error) {
       console.error("[ThemeStateManager] Error notifying listeners:", error);
     }

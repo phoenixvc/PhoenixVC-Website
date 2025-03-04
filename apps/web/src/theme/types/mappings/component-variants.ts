@@ -6,16 +6,16 @@
  *
  * @example
  * const primaryButton: ButtonVariant = {
- *   background: { hex: '#007BFF', rgb: '0,123,255', hsl: '210,100%,50%' },
- *   foreground: { hex: '#FFFFFF', rgb: '255,255,255', hsl: '0,0%,100%' },
- *   border: { hex: '#0056b3', rgb: '0,86,179', hsl: '210,100%,35%' },
+ *   background: { hex: "#007BFF", rgb: "0,123,255", hsl: "210,100%,50%" },
+ *   foreground: { hex: "#FFFFFF", rgb: "255,255,255", hsl: "0,0%,100%" },
+ *   border: { hex: "#0056b3", rgb: "0,86,179", hsl: "210,100%,35%" },
  *   hover: {
- *     background: { hex: '#0056b3', rgb: '0,86,179', hsl: '210,100%,35%' },
- *     foreground: { hex: '#FFFFFF', rgb: '255,255,255', hsl: '0,0%,100%' }
+ *     background: { hex: "#0056b3", rgb: "0,86,179", hsl: "210,100%,35%" },
+ *     foreground: { hex: "#FFFFFF", rgb: "255,255,255", hsl: "0,0%,100%" }
  *   },
  *   active: {
- *     background: { hex: '#003f7f', rgb: '0,63,127', hsl: '210,100%,25%' },
- *     foreground: { hex: '#FFFFFF', rgb: '255,255,255', hsl: '0,0%,100%' }
+ *     background: { hex: "#003f7f", rgb: "0,63,127", hsl: "210,100%,25%" },
+ *     foreground: { hex: "#FFFFFF", rgb: "255,255,255", hsl: "0,0%,100%" }
  *   }
  * };
  */
@@ -24,7 +24,19 @@ import { ColorDefinition } from "../core/colors";
 import { ComponentState, InteractiveState } from "./state-mappings";
 
 // Base Color and Component Interfaces
+/**
+ * Base interface for all component variants
+ */
+export interface BaseVariant {
+  style?: Record<string, string | number>;
+}
 
+/**
+ * Interface for variants with interactive states
+ */
+export interface InteractiveVariant extends BaseVariant {
+  interactive?: InteractiveState;
+}
 
 // Button Variants
 export interface ButtonVariant extends InteractiveState {
@@ -44,15 +56,36 @@ export interface InputValidationState extends ComponentState {
     style?: Record<string, string | number>;
 }
 
-export interface InputVariant extends InteractiveState {
-    readonly: ComponentState;
-    error: InputValidationState;
-    success: InputValidationState;
-    prefix: InputAddonState;
-    suffix: InputAddonState;
-    placeholder: ColorDefinition;
-    label: ColorDefinition;
+export interface InputVariant extends InteractiveVariant {
+  readonly: ComponentState;
+  error: {
+    background: ColorDefinition;
+    foreground: ColorDefinition;
+    border: ColorDefinition;
+    message: ColorDefinition;
     style?: Record<string, string | number>;
+  };
+  success: {
+    background: ColorDefinition;
+    foreground: ColorDefinition;
+    border: ColorDefinition;
+    message: ColorDefinition;
+    style?: Record<string, string | number>;
+  };
+  prefix: {
+    background: ColorDefinition;
+    foreground: ColorDefinition;
+    border?: ColorDefinition;
+    style?: Record<string, string | number>;
+  };
+  suffix: {
+    background: ColorDefinition;
+    foreground: ColorDefinition;
+    border?: ColorDefinition;
+    style?: Record<string, string | number>;
+  };
+  placeholder: ColorDefinition;
+  label: ColorDefinition;
 }
 
 // Select Specific States
@@ -121,7 +154,7 @@ export interface ToastVariant extends ComponentState {
 }
 
 // Tab Variant
-export interface TabVariant extends InteractiveState {
+export interface TabVariant extends InteractiveVariant {
     selected: ComponentState;
     style?: Record<string, string | number>;
 }
@@ -171,7 +204,7 @@ export interface TooltipVariant {
 }
 
 // Navigation Variant
-export interface NavigationVariant {
+export interface NavigationVariant extends InteractiveVariant {
     container: ComponentState;
     item: {
       default: InteractiveState;
@@ -340,3 +373,22 @@ export interface ComponentVariants {
     [key: string]: { [variantKey: string]: ComponentVariantType } | undefined;
   }
 
+/**
+ * Type guard functions to check variant types
+ */
+export const isInteractiveVariant = (variant: ComponentVariantType): variant is InteractiveVariant & ComponentVariantType => {
+  return "interactive" in variant && variant.interactive !== undefined;
+};
+
+export const isNavigationVariant = (variant: ComponentVariantType): variant is NavigationVariant => {
+  return "item" in variant && variant.item !== undefined &&
+         "default" in variant.item && variant.item.active !== undefined;
+};
+
+export const isTabVariant = (variant: ComponentVariantType): variant is TabVariant => {
+  return "selected" in variant && variant.selected !== undefined;
+};
+
+export const isInputVariant = (variant: ComponentVariantType): variant is InputVariant => {
+  return "readonly" in variant && "error" in variant && "success" in variant;
+};
