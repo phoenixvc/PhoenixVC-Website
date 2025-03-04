@@ -7,6 +7,7 @@ import {
   ThemeContextType,
   ThemeProviderProps,
   CssVariableConfig,
+  ThemeContext,
 } from "@/theme/types";
 import { ThemeConfigValidation } from "./validation";
 import {
@@ -21,7 +22,6 @@ import { ExtendedThemeState } from "../types/context/state";
 import { TypographyScale } from "../mappings";
 import { themeCore } from "../core/theme-core";
 import { useSystemModeContext } from "@/SystemModeContext";
-import ThemeContext from "../context/ThemeContext";
 import {
   getThemeClassNames,
   getSpecificClass,
@@ -29,6 +29,7 @@ import {
   replaceThemeClasses,
   getAllThemeClasses
 } from "./ThemeProviderUtils";
+import { registerDefaultComponents } from "../utils/register-default-components";
 
 const defaultState: ThemeState = {
   name: "Default Theme",
@@ -54,6 +55,10 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({ children, config = {
   // Get systemMode from context instead of using useSystemMode hook
   const { systemMode, useSystemMode, setUseSystemMode: setUseSystemModeContext } = useSystemModeContext();
   const { applyCssVariables, getCssVariable } = useCssVariables();
+
+  useEffect(() => {
+    registerDefaultComponents();
+  }, []);
 
   // Effect to sync system mode with theme state
   useEffect(() => {

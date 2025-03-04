@@ -2,7 +2,7 @@
 
 import { TypographyPreset, TypographyScale } from "../mappings";
 import { ThemeMode } from "../types/core/base";
-import { TypographyRegistry } from "./typography-registry";
+import { TypographyRegistry } from "../registry/typography-registry";
 
 export class TypographyManager {
   //TODO: private mapping: TypographyMapping;

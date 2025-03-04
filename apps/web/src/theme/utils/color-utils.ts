@@ -1,4 +1,3 @@
-// src/theme/utils/color-utils.ts
 import {
   ColorDefinition,
   ColorAdjustments,
@@ -9,6 +8,7 @@ import {
   ColorShades,
   ThemeMode,
   ShadeLevel,
+  RGBColor,
 } from "../types";
 
 /**
@@ -177,7 +177,7 @@ export const ColorUtils = {
    */
   hslToRGB: (_hsl: string): string => {
     console.warn("[DEPRECATED] hslToRGB => use hslToRgb");
-    return ColorUtils.hslToRgb(_hsl);
+    return ColorUtils.hslToRgb(_hsl) as string;
   },
 
   /**
@@ -216,7 +216,7 @@ export const ColorUtils = {
   },
 
   /**
-   * Adjust a color's HSL by given offsets (hue, saturation, lightness, alpha).
+   * Adjust a color"s HSL by given offsets (hue, saturation, lightness, alpha).
    */
   adjustColor(color: ColorDefinition, adjustments: ColorAdjustments): ColorDefinition {
     try {
@@ -229,8 +229,8 @@ export const ColorUtils = {
       };
       const newHSLString = ColorUtils.toHSL(newHSL, adjustments.alpha);
       return {
-        hex: ColorUtils.hslToHex(newHSLString),
-        rgb: ColorUtils.hslToRgb(newHSLString),
+        hex: ColorUtils.hslToHex(newHSL), // Using the new overload
+        rgb: ColorUtils.hslToRgb(newHSLString) as string,
         hsl: newHSLString,
         alpha: adjustments.alpha ?? color.alpha,
       };
@@ -283,14 +283,14 @@ export const ColorUtils = {
         const hslObj: HSLColor = { h: baseHsl.h, s: baseHsl.s, l: lightness };
         const hslString = ColorUtils.toHSL(hslObj);
         return {
-          hex: ColorUtils.hslToHex(hslString),
-          rgb: ColorUtils.hslToRgb(hslString),
+          hex: ColorUtils.hslToHex(hslObj), // Using the new overload
+          rgb: ColorUtils.hslToRgb(hslString) as string,
           hsl: hslString,
         };
-      });
+      },);
     } catch (error) {
       throw new ColorError(
-        `Failed to create palette from '${baseHex}': ${error instanceof Error ? error.message : String(error)}`
+        `Failed to create palette from "${baseHex}": ${error instanceof Error ? error.message : String(error)}`
       );
     }
   },
@@ -331,10 +331,31 @@ export const ColorUtils = {
   },
 
   /**
-   * Convert a hex color to an RGB string.
+   * Convert a hex color string or object to RGB.
+   * @param hex - Hex color as string or object with hex property
+   * @param format - Output format, either "string" or "object"
+   * @returns RGB color as string or object based on format parameter
    */
-  hexToRgb(hex: string): string {
-    const { r, g, b } = ColorUtils._getRgbComponentsFromHex(hex);
+  hexToRgb(
+    hex: string | { hex: string },
+    format: "string" | "object" = "string"
+  ): string | { r: number, g: number, b: number } {
+    let hexValue: string;
+
+    if (typeof hex === "string") {
+      hexValue = hex;
+    } else {
+      // It's an object with a hex property
+      hexValue = hex.hex;
+    }
+
+    const rgbComponents = ColorUtils._getRgbComponentsFromHex(hexValue);
+
+    if (format === "object") {
+      return rgbComponents;
+    }
+
+    const { r, g, b } = rgbComponents;
     return `rgb(${r}, ${g}, ${b})`;
   },
 
@@ -347,68 +368,126 @@ export const ColorUtils = {
   },
 
   /**
-   * Convert an HSL string to an RGB string.
+   * Convert an HSL string or HSLColor object to RGB.
+   * @param hsl - HSL color as string or object
+   * @param format - Output format, either "string" or "object"
+   * @returns RGB color as string or object based on format parameter
    */
-  hslToRgb(hsl: string): string {
-    const { h, s, l } = ColorUtils.parseHSL(hsl);
-    const { r, g, b } = ColorUtils._hslToRgb(h, s, l);
+  hslToRgb(
+    hsl: string | HSLColor,
+    format: "string" | "object" = "string"
+  ): string | RGBColor {
+    let h: number, s: number, l: number;
+
+    if (typeof hsl === "string") {
+      const parsed = ColorUtils.parseHSL(hsl);
+      h = parsed.h;
+      s = parsed.s;
+      l = parsed.l;
+    } else {
+      // It's an HSLColor object
+      h = hsl.h;
+      s = hsl.s;
+      l = hsl.l;
+    }
+
+    const rgbComponents = ColorUtils._hslToRgb(h, s, l);
+
+    if (format === "object") {
+      return rgbComponents; // Returns { r, g, b } object
+    }
+
+    const { r, g, b } = rgbComponents;
     return `rgb(${r}, ${g}, ${b})`;
   },
 
   /**
-   * Convert an HSL string to a hex color.
+   * Convert an HSL string or HSLColor object to a hex color.
+   * Overloaded to accept either an HSL string or an HSLColor object.
    */
-  hslToHex(hsl: string): string {
-    const { h, s, l } = ColorUtils.parseHSL(hsl);
-    const { r, g, b } = ColorUtils._hslToRgb(h, s, l);
-    return ColorUtils._rgbToHex(r, g, b);
-  },
-
-  /**
-   * Convert an RGB string to hex format (e.g., "#rrggbb").
-   */
-  rgbToHex(rgb: string): string {
-    const match = rgb.match(/\d+/g);
-    if (!match) throw new ColorError(`Invalid RGB color: ${rgb}`);
-    const [r, g, b] = match.map(Number);
-    return ColorUtils._rgbToHex(r, g, b);
-  },
-
-  /**
-   * Convert an RGB string to an HSL string.
-   */
-  rgbToHsl(rgb: string): string {
-    const match = rgb.match(/\d+/g);
-    if (!match) throw new ColorError(`Invalid RGB color: ${rgb}`);
-    const [ri, gi, bi] = match.map((n) => parseInt(n, 10) / 255);
-    const max = Math.max(ri, gi, bi);
-    const min = Math.min(ri, gi, bi);
-    let h = 0;
-    let s = 0;
-    const l = (max + min) / 2;
-
-    if (max !== min) {
-      const d = max - min;
-      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-      switch (max) {
-        case ri:
-          h = (gi - bi) / d + (gi < bi ? 6 : 0);
-          break;
-        case gi:
-          h = (bi - ri) / d + 2;
-          break;
-        case bi:
-          h = (ri - gi) / d + 4;
-          break;
-      }
-      h /= 6;
+  hslToHex(hsl: string | HSLColor): string {
+    if (typeof hsl === "string") {
+      const { h, s, l } = ColorUtils.parseHSL(hsl);
+      const { r, g, b } = ColorUtils._hslToRgb(h, s, l);
+      return ColorUtils._rgbToHex(r, g, b);
+    } else {
+      // It"s an HSLColor object
+      const { h, s, l } = hsl;
+      const { r, g, b } = ColorUtils._hslToRgb(h, s, l);
+      return ColorUtils._rgbToHex(r, g, b);
     }
-
-    const hDeg = Math.round(h * 360);
-    const sPct = Math.round(s * 100);
-    const lPct = Math.round(l * 100);
-    return `hsl(${hDeg}, ${sPct}%, ${lPct}%)`;
   },
+
+/**
+ * Convert an RGB string or RGBColor object to hex format (e.g., "#rrggbb").
+ */
+rgbToHex(rgb: string | RGBColor): string {
+  let r: number, g: number, b: number;
+
+  if (typeof rgb === "string") {
+    const match = rgb.match(/\d+/g);
+    if (!match) throw new ColorError(`Invalid RGB color: ${rgb}`);
+    [r, g, b] = match.map(Number);
+  } else {
+    // It"s an RGBColor object
+    r = rgb.r;
+    g = rgb.g;
+    b = rgb.b;
+  }
+
+  return ColorUtils._rgbToHex(r, g, b);
+},
+
+/**
+ * Convert an RGB string or RGBColor object to an HSL string.
+ */
+rgbToHsl(rgb: string | RGBColor): string {
+  let ri: number, gi: number, bi: number;
+
+  if (typeof rgb === "string") {
+    const match = rgb.match(/\d+/g);
+    if (!match) throw new ColorError(`Invalid RGB color: ${rgb}`);
+    [ri, gi, bi] = match.map(n => parseInt(n, 10));
+  } else {
+    // It"s an RGBColor object
+    ri = rgb.r;
+    gi = rgb.g;
+    bi = rgb.b;
+  }
+
+  // Normalize to [0..1]
+  ri /= 255;
+  gi /= 255;
+  bi /= 255;
+
+  const max = Math.max(ri, gi, bi);
+  const min = Math.min(ri, gi, bi);
+  let h = 0;
+  let s = 0;
+  const l = (max + min) / 2;
+
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case ri:
+        h = (gi - bi) / d + (gi < bi ? 6 : 0);
+        break;
+      case gi:
+        h = (bi - ri) / d + 2;
+        break;
+      case bi:
+        h = (ri - gi) / d + 4;
+        break;
+    }
+    h /= 6;
+  }
+
+  const hDeg = Math.round(h * 360);
+  const sPct = Math.round(s * 100);
+  const lPct = Math.round(l * 100);
+  return `hsl(${hDeg}, ${sPct}%, ${lPct}%)`;
+},
 
   /**
    * Normalize a color string to a 6-digit hex (e.g., "#rrggbb").
@@ -442,6 +521,14 @@ export const ColorUtils = {
     }
   },
 
+  ensureRgbString(rgb: string | { r: number; g: number; b: number }): string {
+    if (typeof rgb === "string") {
+      return rgb;
+    }
+    const { r, g, b } = rgb;
+    return `rgb(${r}, ${g}, ${b})`;
+  },
+
   /**
    * Ensure a partial ColorDefinition has hex/rgb/hsl.
    */
@@ -456,23 +543,54 @@ export const ColorUtils = {
       throw new ColorError("Color definition must have at least hex, rgb, or hsl");
     }
 
-    // Priority: hex > rgb > hsl
-    if (result.hex) {
-      if (!result.rgb) result.rgb = ColorUtils.hexToRgb(result.hex);
-      if (!result.hsl) result.hsl = ColorUtils.rgbToHsl(result.rgb);
-    } else if (result.rgb) {
-      if (!result.hex) result.hex = ColorUtils.rgbToHex(result.rgb);
-      if (!result.hsl) result.hsl = ColorUtils.rgbToHsl(result.rgb);
-    } else if (result.hsl) {
-      // Derive from HSL
-      const rgb = ColorUtils.hslToRgb(result.hsl);
-      result.rgb = rgb;
-      result.hex = ColorUtils.rgbToHex(rgb);
+    try {
+      // Priority: hex > rgb > hsl
+      if (result.hex) {
+        if (!result.rgb) {
+          result.rgb = ColorUtils.hexToRgb(result.hex) as string;
+        }
+        if (!result.hsl && result.rgb) {
+          result.hsl = ColorUtils.rgbToHsl(result.rgb);
+        }
+      } else if (result.rgb) {
+        if (!result.hex) {
+          result.hex = ColorUtils.rgbToHex(result.rgb);
+        }
+        if (!result.hsl) {
+          result.hsl = ColorUtils.rgbToHsl(result.rgb);
+        }
+      } else if (result.hsl) {
+        // Derive from HSL
+        const rgb = ColorUtils.hslToRgb(result.hsl);
+        if (!rgb) {
+          throw new ColorError("Failed to convert HSL to RGB");
+        }
+        result.rgb = rgb as string;
+        result.hex = ColorUtils.rgbToHex(rgb);
+      }
+
+      if (color.alpha !== undefined) {
+        result.alpha = color.alpha;
+      }
+    } catch (error: unknown) {
+      let errorMessage: string;
+
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === "string") {
+        errorMessage = error;
+      } else {
+        errorMessage = String(error);
+      }
+
+      throw new ColorError(`Failed to ensure color definition: ${errorMessage}`);
     }
 
-    if (color.alpha !== undefined) {
-      result.alpha = color.alpha;
+    // Final validation
+    if (!ColorUtils.isCompleteColorDefinition(result)) {
+      throw new ColorError("Failed to generate complete color definition");
     }
+
     return result as ColorDefinition;
   },
 

@@ -1,8 +1,7 @@
 // theme/hooks/useTheme.ts
 import { useContext } from "react";
 import { TypographyScale } from "../mappings";
-import ThemeContext from "../context/ThemeContext";
-import { ThemeContextType } from "../types";
+import { ThemeContext, ThemeContextType } from "../types";
 
 export function useTheme() {
   const theme = useContext(ThemeContext);

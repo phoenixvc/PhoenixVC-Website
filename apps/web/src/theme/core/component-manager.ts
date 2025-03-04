@@ -1,7 +1,7 @@
 // theme/managers/component-manager.ts
 import { ThemeName } from "../types/core/base";
 import { BaseStyles, CardVariant, ComponentState, InteractiveState, ThemePropertyStyles } from "../types";
-import { ComponentThemeRegistry } from "./component-theme-registry";
+import { ComponentThemeRegistry } from "../registry/component-theme-registry";
 
 export class ComponentManager {
   private registry: ComponentThemeRegistry;

@@ -30,7 +30,7 @@ export function createComponentRegistry(
   // If initialComponents is provided, use it directly
   if (initialComponents) {
     // Simply return the initialComponents cast as ComponentThemeRegistry
-    return initialComponents as ComponentThemeRegistry;
+    return { ...baseRegistry, ...initialComponents };
   }
 
   return baseRegistry;

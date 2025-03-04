@@ -10,7 +10,7 @@ import { TypographyManager } from "./typography-manager";
 import { ComponentVariantType } from "../types/mappings/component-variants";
 import { Theme } from "../core/theme";
 import { ThemeLoaderConfig } from "../providers/theme-loader";
-import { ComponentThemeRegistry } from "./component-theme-registry";
+import { ComponentThemeRegistry } from "../registry/component-theme-registry";
 
 export class ThemeCore {
   private static instance: ThemeCore;
@@ -165,6 +165,11 @@ export class ThemeCore {
   // ComponentRegistryManager methods
   getComponentRegistry(): ComponentThemeRegistry {
     return this.componentRegistryManager.getRegistry();
+  }
+
+  // ComponentRegistryManager methods
+  getStyleManager(): ThemeStyleManager {
+    return this.styleManager;
   }
 
   registerTheme(theme: Theme): void {
