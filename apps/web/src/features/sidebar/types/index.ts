@@ -39,14 +39,6 @@ export interface SidebarLink {
   skin?: ComponentSkin; // The final appearance of the sidebar link
 }
 
-// Props for a group of sidebar items
-export interface SidebarGroupProps {
-  title: string; // Title of the group
-  items: Array<SidebarItem>; // Array of item labels
-  skin?: ComponentSkin; // The final appearance of the sidebar group
-  mode?: "light" | "dark"
-}
-
 // Props for the sidebar container
 export interface SidebarContainerProps {
   skin?: ComponentSkin; // The final appearance of the sidebar container
@@ -60,6 +52,24 @@ export interface SidebarItemProps {
   onClick?: () => void; // Optional click handler
   icon?: React.ReactNode; // Optional icon for the item
 
+}
+
+export interface GroupItem {
+  label: string;
+  icon?: React.ReactNode;
+  onClick?: () => void;
+  type: string;
+  style?: React.CSSProperties;
+  className?: string;
+}
+
+export interface SidebarGroupProps {
+  title: string;
+  items: (string | GroupItem)[];
+  style?: React.CSSProperties;
+  className?: string;
+  mode?: string;
+  variant?: string;
 }
 
 /**

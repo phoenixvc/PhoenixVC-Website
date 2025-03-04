@@ -1,30 +1,49 @@
 import React from "react";
+import { useTheme } from "@/theme";
+import { cn } from "@/lib/utils";
 import SidebarItem from "./SidebarItem";
 import { SidebarGroupProps } from "../types";
 
-const SidebarGroup: React.FC<SidebarGroupProps> = ({ title, items, skin }) => {
-  // Inline styles derived from the skin (with fallback values)
-  const inlineStyles: React.CSSProperties = {
-    color: skin?.colors.surface.foreground || "#000", // Fallback to black if skin is undefined
+const SidebarGroup: React.FC<SidebarGroupProps> = ({
+  title,
+  items,
+  style = {},
+  className = "",
+  mode = "light",
+  variant = "default"
+}) => {
+  const themeContext = useTheme();
+  const { themeName } = themeContext;
+
+  // Get component style directly from the theme system
+  const groupStyle = themeContext.getComponentStyle?.("sidebarGroup", variant) || {};
+  const titleStyle = themeContext.getComponentStyle?.("sidebarGroupTitle", variant) || {};
+
+  // Combine passed style with theme style
+  const combinedStyle = {
+    ...groupStyle,
+    ...style
   };
 
   return (
     <div
-      // Uncomment and adjust styles if needed
-      // className={`${styles.sidebarGroup} ${
-      //   mode === "dark" ? styles.darkMode : styles.lightMode
-      // }`}
+      className={cn(
+        "sidebar-group",
+        "theme-${themeName}-sidebarGroup-${variant}",
+        mode === "dark" ? "dark-mode" : "light-mode",
+        className
+      )}
+      style={combinedStyle}
     >
-      <h3 style={inlineStyles}>{title}</h3>
+      <h3 style={titleStyle}>{title}</h3>
       <ul>
         {items.map((item, index) => {
           if (typeof item === "string") {
             return (
               <li
                 key={index}
-                style={{
-                  color: skin?.colors.surface.foreground || "#000", // Fallback to black
-                }}
+                className={"theme-${themeName}-sidebarGroupItem-${variant}"}
+                style={themeContext.getComponentStyle?.("sidebarGroupItem", variant) || {}}
               >
                 {item}
               </li>
@@ -35,7 +54,11 @@ const SidebarGroup: React.FC<SidebarGroupProps> = ({ title, items, skin }) => {
             <SidebarItem
               key={index}
               label={item.label}
-              skin={skin} // Pass `skin`, even if undefined
+              style={item.style}
+              className={cn(
+                "theme-${themeName}-sidebarItem-${variant}",
+                item.className
+              )}
               onClick={item.onClick}
               icon={item.icon}
             />
