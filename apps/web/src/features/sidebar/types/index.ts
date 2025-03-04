@@ -1,74 +1,75 @@
+// types.ts
+import { ReactNode } from "react";
 
-import { ComponentStateConfig, ComputedColorSet, ComputedComponentSet, ComputedSemanticSet, InteractiveStates } from "@/theme/types/mappings/base-mappings";
-
-// Main SidebarProps interface
-export interface SidebarProps {
-  isOpen: boolean; // Determines if the sidebar is open
-  onClose: () => void; // Function to close the sidebar
-  children?: React.ReactNode; // Optional custom children (e.g., custom content)
-  items: Array<SidebarItem | SidebarGroup | SidebarLink>; // Items can be either individual links or groups or items
-  skin?: ComponentSkin; // The final appearance of the sidebar, using ComponentSkin
-}
-
-// Sidebar item type for individual links
-export interface SidebarItem {
-  type: "item" | "group" | "link";
+// Base interface for all sidebar items
+interface SidebarItemBase {
   label: string;
-  icon?: React.ReactNode;
-  onClick?: () => void;
-  href?: string;
-  children?: SidebarItem[];
-  skin?: ComponentSkin;
-}
-
-// Sidebar group type for grouped links
-export interface SidebarGroup {
-  type: "group"; // Specifies this is a group
-  label: string; // Label for the group
-  icon?: React.ReactNode; // Optional icon for the group
-  children: Array<SidebarItem>; // Array of child items within the group
-  skin?: ComponentSkin; // The final appearance of the sidebar group
-}
-
-// Sidebar link type for external links
-export interface SidebarLink {
-  type: "link"; // Specifies this is a link
-  label: string; // Label for the link
-  href: string; // URL for the link
-  icon?: React.ReactNode; // Optional icon for the link
-  skin?: ComponentSkin; // The final appearance of the sidebar link
-}
-
-// Props for the sidebar container
-export interface SidebarContainerProps {
-  skin?: ComponentSkin; // The final appearance of the sidebar container
-  children: React.ReactNode; // Content inside the container
-}
-
-// Props for individual sidebar items
-export interface SidebarItemProps {
-  label: string; // Label for the item
-  skin?: ComponentSkin; // The final appearance of the sidebar item
-  onClick?: () => void; // Optional click handler
-  icon?: React.ReactNode; // Optional icon for the item
-
-}
-
-export interface GroupItem {
-  label: string;
-  icon?: React.ReactNode;
-  onClick?: () => void;
-  type: string;
+  icon?: ReactNode;
   style?: React.CSSProperties;
   className?: string;
 }
 
+// Link item
+export interface SidebarItemLink extends SidebarItemBase {
+  type: "link";
+  href: string;
+  target?: string;
+}
+
+// Button item
+export interface SidebarItemButton extends SidebarItemBase {
+  type: "button" | "item";
+  onClick?: () => void;
+}
+
+// Group item
+export interface SidebarItemGroup extends SidebarItemBase {
+  type: "group";
+  children?: SidebarItemType[];
+}
+
+// Union type for all sidebar items
+export type SidebarItem = SidebarItemLink | SidebarItemButton | SidebarItemGroup;
+
+// SidebarItemType can be a string or one of the sidebar item types
+export type SidebarItemType = string | SidebarItem;
+
+// Props for the Sidebar component
+export interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+  items?: SidebarItemType[];
+  style?: React.CSSProperties;
+  className?: string;
+  variant?: string;
+}
+
+// Props for the SidebarContainer component
+export interface SidebarContainerProps {
+  children: ReactNode;
+  style?: React.CSSProperties;
+  className?: string;
+  variant?: string;
+  isOpen?: boolean;
+  onClick?: () => void;
+}
+
+// Props for the SidebarGroup component
 export interface SidebarGroupProps {
   title: string;
-  items: (string | GroupItem)[];
+  items: SidebarItemType[];
   style?: React.CSSProperties;
   className?: string;
   mode?: string;
+  variant?: string;
+}
+
+export interface SidebarItemProps {
+  label: string;
+  onClick?: () => void;
+  icon?: React.ReactNode;
+  style?: React.CSSProperties;
+  className?: string;
   variant?: string;
 }
 
@@ -76,27 +77,13 @@ export interface SidebarGroupProps {
  * Component skin configuration, representing the final appearance.
  */
 
-export interface ComponentSkin {
-  colors: {
-    surface: SurfaceColors;
-  };
-  states: {
-    interactive: InteractiveStates;
-    component: ComponentStateConfig;
-  };
-  computed: ComputedSets;
-}
-
-export interface ComputedSets {
-  colorSet: ComputedColorSet;
-  semanticSet: ComputedSemanticSet;
-  componentSet: ComputedComponentSet;
-}
-
-export interface SurfaceColors {
-  background: string;
-  foreground: string;
-  border: string;
-  elevation?: string;
-  overlay?: string;
-}
+// export interface ComponentSkin {
+//   colors: {
+//     surface: SurfaceColors;
+//   };
+//   states: {
+//     interactive: InteractiveStates;
+//     component: ComponentStateConfig;
+//   };
+//   computed: ComputedSets;
+// }

@@ -1,28 +1,24 @@
+// SidebarItem.tsx
 import React from "react";
 import { useTheme } from "@/theme";
 import { cn } from "@/lib/utils";
-
-interface SidebarItemProps {
-  label: string;
-  onClick?: () => void;
-  icon?: React.ReactNode;
-  style?: React.CSSProperties;
-  className?: string;
-  variant?: string;
-}
+import { SidebarItemProps } from "../types";
 
 const SidebarItem: React.FC<SidebarItemProps> = ({
   label,
-  onClick,
   icon,
   style = {},
   className = "",
+  onClick,  // Accept onClick prop
   variant = "default"
 }) => {
-  const themeContext = useTheme();
-  const { themeName } = themeContext;
+  const themeContext = useTheme() || {
+    themeName: "default",
+    getComponentStyle: () => ({})
+  };
+  const { themeName = "default" } = themeContext;
 
-  // Get component style directly from the theme system
+  // Get component style from theme
   const itemStyle = themeContext.getComponentStyle?.("sidebarItem", variant) || {};
 
   // Combine passed style with theme style
@@ -33,16 +29,16 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
 
   return (
     <div
+      onClick={onClick}  // Use onClick prop
       className={cn(
-        "sidebar-item",
+        "flex items-center p-2 rounded cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800",
         `theme-${themeName}-sidebarItem-${variant}`,
         className
       )}
-      onClick={onClick}
       style={combinedStyle}
     >
-      {icon && <span className="sidebar-item-icon">{icon}</span>}
-      <span className="sidebar-item-label">{label}</span>
+      {icon && <span className="mr-2">{icon}</span>}
+      {label}
     </div>
   );
 };

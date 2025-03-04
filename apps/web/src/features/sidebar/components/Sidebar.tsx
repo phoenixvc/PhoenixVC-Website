@@ -1,123 +1,136 @@
-import React from "react";
+// Sidebar.tsx
+import React, { useState } from "react";
 import { useTheme } from "@/theme";
-import { SidebarProps, SidebarItem } from "../types";
+import { SidebarProps, SidebarItemType } from "../types";
 import SidebarContainer from "./SidebarContainer";
 import SidebarGroup from "./SidebarGroup";
-import SidebarItemComponent from "./SidebarItem";
+import SidebarItem from "./SidebarItem";
 import { SIDEBAR_LINKS } from "../constants/sidebar.constants";
 
 const Sidebar: React.FC<SidebarProps> = ({
-  isOpen = false,
+  isOpen: propIsOpen = false,
   onClose = () => {},
   items = SIDEBAR_LINKS,
+  style = {},
+  className = "",
+  variant = "default"
 }) => {
-  // Access the theme context using the useTheme hook
+  // Local state to track sidebar open state
+  const [isOpen, setIsOpen] = useState(propIsOpen);
+
+  // Use the prop value when it changes
+  React.useEffect(() => {
+    setIsOpen(propIsOpen);
+  }, [propIsOpen]);
+
   const themeContext = useTheme();
-  const { themeName, themeMode } = themeContext;
+  const { themeName = "default", themeMode = "light" } = themeContext || {};
 
-  // Get component styles directly from the theme system
-  const sidebarStyle = themeContext.getComponentStyle?.("sidebar", "default") || {};
-  const sidebarItemStyle = themeContext.getComponentStyle?.("sidebarItem", "default") || {};
-  const sidebarGroupStyle = themeContext.getComponentStyle?.("sidebarGroup", "default") || {};
-  const sidebarLinkStyle = themeContext.getComponentStyle?.("sidebarLink", "default") || {};
+  // Handler for toggling sidebar
+  const handleToggleSidebar = () => {
+    const newIsOpen = !isOpen;
+    setIsOpen(newIsOpen);
+    if (!newIsOpen) {
+      onClose();
+    }
+  };
 
-  // Get CSS variables for specific elements if needed
-  const sidebarBg = themeContext.getCssVariable?.("theme-sidebar-default-bg");
-  const sidebarFg = themeContext.getCssVariable?.("theme-sidebar-default-fg");
-  const sidebarBorder = themeContext.getCssVariable?.("theme-sidebar-default-border");
+  // Handler for closing sidebar
+  const handleClose = () => {
+    setIsOpen(false);
+    onClose();
+  };
 
-  // Handle case where theme system isn"t fully initialized
-  if (!themeName) {
-    console.warn("Theme system not fully initialized");
-  }
+  // Helper function to render sidebar items safely
+  const renderSidebarItem = (item: SidebarItemType, index: number) => {
+    // Handle string items
+    if (typeof item === "string") {
+      return <div key={index}>{item}</div>;
+    }
+
+    // For object items, handle based on type
+    if (typeof item === "object" && item !== null) {
+      // Handle group items
+      if ("type" in item && item.type === "group") {
+        return (
+          <SidebarGroup
+            key={index}
+            title={item.label}
+            items={item.children || []}
+            style={item.style}
+            className={item.className}
+            mode={themeMode}
+            variant={variant}
+          />
+        );
+      }
+
+      // Handle link items
+      if ("type" in item && item.type === "link") {
+        return (
+          <div key={index} className="mb-2">
+            <a
+              href={item.href}
+              className={`flex items-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${item.className || ""}`}
+              style={item.style}
+            >
+              {item.icon && <span className="mr-2">{item.icon}</span>}
+              {item.label}
+            </a>
+          </div>
+        );
+      }
+
+      // Handle button/item items - use SidebarItem component
+      if ("type" in item && (item.type === "item" || item.type === "button")) {
+        return (
+          <div key={index} className="mb-2">
+            <SidebarItem
+              label={item.label}
+              icon={item.icon}
+              onClick={item.onClick}
+              style={item.style}
+              className={item.className}
+              variant={variant}
+            />
+          </div>
+        );
+      }
+    }
+
+    // Fallback for any other type
+    console.warn(`Unknown sidebar item type at index ${index}:`, item);
+    return null;
+  };
 
   return (
     <SidebarContainer
-      style={sidebarStyle}
-      className={"theme-${themeName}-sidebar-default"}
+      style={style}
+      className={className}
+      isOpen={isOpen}
+      variant={variant}
+      onClick={!isOpen ? handleToggleSidebar : undefined}
     >
-      {isOpen && (
-        <>
+      <div className="p-4 flex justify-between items-center border-b border-gray-200 dark:border-gray-700">
+        <h2 className="text-lg font-semibold">Menu</h2>
+        {isOpen && (
           <button
-            onClick={onClose}
+            onClick={handleClose}
             aria-label="Close Sidebar"
-            style={themeContext.getComponentStyle?.("button", "secondary")}
-            className={"theme-${themeName}-button-secondary"}
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
           >
-            Close
+            ✕
           </button>
+        )}
+      </div>
 
-          {items.map((item, index) => {
-            switch (item.type) {
-              case "group":
-                return (
-                  <SidebarGroup
-                    key={index}
-                    title={item.label}
-                    items={
-                      item.children?.map((child) => ({
-                        label: child.label,
-                        icon: child.icon,
-                        onClick: child.onClick,
-                        type: "item",
-                        // Pass styles instead of skin
-                        style: sidebarItemStyle,
-                        className: "theme-${themeName}-sidebarItem-default"
-                      })) || []
-                    }
-                    // Pass styles instead of skin
-                    style={sidebarGroupStyle}
-                    className={"theme-${themeName}-sidebarGroup-default"}
-                    mode={themeMode}
-                  />
-                );
-
-              case "item":
-                return (
-                  <SidebarItemComponent
-                    key={index}
-                    label={item.label}
-                    // Pass styles instead of skin
-                    style={sidebarItemStyle}
-                    className={"theme-${themeName}-sidebarItem-default"}
-                    onClick={item.onClick}
-                    icon={item.icon}
-                  />
-                );
-
-              case "link":
-                return (
-                  <a
-                    key={index}
-                    href={item.href}
-                    className={"sidebar-link theme-${themeName}-sidebarLink-default"}
-                    style={{
-                      ...sidebarLinkStyle,
-                      // Use CSS variables directly
-                      backgroundColor: "var(--theme-sidebarLink-default-bg)",
-                      color: "var(--theme-sidebarLink-default-fg)",
-                      borderColor: "var(--theme-sidebarLink-default-border)"
-                    }}
-                  >
-                    {item.icon && (
-                      <span className="icon">{item.icon}</span>
-                    )}
-                    {item.label}
-                  </a>
-                );
-
-              default:
-                return assertUnreachable(item);
-            }
-          })}
-        </>
+      {isOpen && (
+        <div className="p-4 overflow-y-auto">
+          {items.map((item, index) => renderSidebarItem(item, index))}
+        </div>
       )}
     </SidebarContainer>
   );
 };
-
-export function assertUnreachable(value: never): never {
-  throw new Error("Unhandled case: ${JSON.stringify(value)}");
-}
 
 export default Sidebar;
