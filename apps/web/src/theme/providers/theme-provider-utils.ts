@@ -1,0 +1,36 @@
+import { ThemeName, ThemeMode, ThemeClassSuffix } from "@/theme/types";
+import { Theme } from "../core/theme";
+import { themeCore } from "../core/theme-core";
+
+export const getThemeClassNames = (scheme: ThemeName): Record<string, string> => {
+  return themeCore.getThemeClasses(scheme);
+};
+
+export const getSpecificClass = (themeName: ThemeName, suffix: ThemeClassSuffix): string | unknown => {
+  const classes = getThemeClassNames(themeName);
+  return classes[suffix] || classes.base;
+};
+
+export const isThemeClass = (className: string): boolean => {
+  // TODO: Implement more robust check using themeCore
+  const allThemes = Object.keys(themeCore.getAllComponentVariants()) as ThemeName[];
+  return allThemes.some(themeName => {
+    const classes = themeCore.getThemeClasses(themeName);
+    return Object.values(classes).includes(className);
+  });
+};
+
+export const replaceThemeClasses = (currentClasses: string, newScheme: ThemeName, currentMode: ThemeMode): string => {
+  const classArray = currentClasses.split(" ");
+  const filteredClasses = classArray.filter(cls => !isThemeClass(cls));
+  const newClasses = getThemeClassNames(newScheme);
+  return [...filteredClasses, newClasses.base, newClasses[currentMode as keyof Theme]].join(" ");
+};
+
+export const getAllThemeClasses = (): Record<ThemeName, Record<string, string>> => {
+  const allThemes = Object.keys(themeCore.getAllComponentVariants()) as ThemeName[];
+  return allThemes.reduce((acc, themeName) => {
+    acc[themeName] = themeCore.getThemeClasses(themeName);
+    return acc;
+  }, {} as Record<ThemeName, Record<string, string>>);
+};

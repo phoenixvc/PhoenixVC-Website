@@ -1,4 +1,3 @@
-// Create a separate SystemModeContext.tsx file
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { ThemeMode } from "@/theme/types";
 
@@ -12,7 +11,10 @@ const SystemModeContext = createContext<SystemModeContextType | undefined>(undef
 
 export const SystemModeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [systemMode, setSystemMode] = useState<ThemeMode>(() => {
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    if (typeof window !== "undefined") {
+      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+    return "light"; // Default for SSR
   });
   const [useSystemMode, setUseSystemMode] = useState(true);
 
@@ -21,9 +23,20 @@ export const SystemModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   }, []);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    mediaQuery.addEventListener("change", handleSystemModeChange);
-    return () => mediaQuery.removeEventListener("change", handleSystemModeChange);
+    if (typeof window !== "undefined") {
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+      // Modern API
+      if (mediaQuery.addEventListener) {
+        mediaQuery.addEventListener("change", handleSystemModeChange);
+        return () => mediaQuery.removeEventListener("change", handleSystemModeChange);
+      }
+      // Legacy API for older browsers
+      else if (mediaQuery.addListener) {
+        mediaQuery.addListener(handleSystemModeChange);
+        return () => mediaQuery.removeListener(handleSystemModeChange);
+      }
+    }
   }, [handleSystemModeChange]);
 
   return (
