@@ -1,3 +1,4 @@
+// features/sidebar/components/SidebarGroup.tsx
 import React from "react";
 import { useTheme } from "@/theme";
 import { cn } from "@/lib/utils";
@@ -19,13 +20,14 @@ const SidebarGroup: React.FC<SidebarGroupProps> = ({
   const { themeName = "default" } = themeContext;
 
   // Get component style directly from the theme system
-  const groupStyle = themeContext.getComponentStyle?.("sidebarGroup", variant) || {};
-  const titleStyle = themeContext.getComponentStyle?.("sidebarGroupTitle", variant) || {};
-  const linkStyle = themeContext.getComponentStyle?.("sidebarLink", variant) || {};
+  const groupStyle = themeContext.getComponentStyle?.("sidebar.group.container", variant) || {};
+  const titleStyle = themeContext.getComponentStyle?.("sidebar.group.title", variant) || {};
+  const groupCustomStyle = themeContext.getComponentStyle?.("sidebar.group.style", variant) || {};
 
   // Combine passed style with theme style
   const combinedStyle = {
     ...groupStyle,
+    ...groupCustomStyle,
     ...style
   };
 
@@ -39,12 +41,17 @@ const SidebarGroup: React.FC<SidebarGroupProps> = ({
       )}
       style={combinedStyle}
     >
-      <h3
-        className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2 px-2"
-        style={titleStyle}
-      >
-        {title}
-      </h3>
+      {title && (
+        <h3
+          className={cn(
+            "text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2 px-2",
+            `theme-${themeName}-sidebarGroupTitle-${variant}`
+          )}
+          style={titleStyle}
+        >
+          {title}
+        </h3>
+      )}
       <div className="space-y-1">
         {items.map((item, index) => {
           if (typeof item === "string") {
@@ -52,7 +59,7 @@ const SidebarGroup: React.FC<SidebarGroupProps> = ({
               <li
                 key={index}
                 className={`theme-${themeName}-sidebarGroupItem-${variant}`}
-                style={themeContext.getComponentStyle?.("sidebarGroupItem", variant) || {}}
+                style={themeContext.getComponentStyle?.("sidebar.item.default", variant) || {}}
               >
                 {item}
               </li>
@@ -74,7 +81,7 @@ const SidebarGroup: React.FC<SidebarGroupProps> = ({
                   sidebarItem.className
                 )}
                 style={{
-                  ...linkStyle,
+                  ...themeContext.getComponentStyle?.("sidebar.item.default", variant),
                   ...sidebarItem.style
                 }}
               >
@@ -85,18 +92,16 @@ const SidebarGroup: React.FC<SidebarGroupProps> = ({
           }
 
           // Default to SidebarItem for "item" type or unspecified
-          // Only pass onClick if it exists
           return (
             <SidebarItem
               key={index}
               label={sidebarItem.label}
               style={sidebarItem.style}
-              className={cn(
-                `theme-${themeName}-sidebarItem-${variant}`,
-                sidebarItem.className
-              )}
+              className={sidebarItem.className}
               icon={sidebarItem.icon}
-              {...("onClick" in sidebarItem ? { onClick: sidebarItem.onClick } : {})}
+              active={sidebarItem.active}
+              variant={variant}
+              onClick={sidebarItem.onClick}
             />
           );
         })}

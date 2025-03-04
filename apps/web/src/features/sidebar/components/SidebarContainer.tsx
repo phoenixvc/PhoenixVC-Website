@@ -1,4 +1,4 @@
-// SidebarContainer.tsx
+// features/sidebar/components/SidebarContainer.tsx
 import React from "react";
 import { useTheme } from "@/theme";
 import { cn } from "@/lib/utils";
@@ -16,8 +16,11 @@ const SidebarContainer: React.FC<ExtendedSidebarContainerProps> = ({
   isOpen = false,
   onClick
 }) => {
-  const themeContext = useTheme();
-  const { themeName = "default" } = themeContext || { themeName: "default" };
+  const themeContext = useTheme() || {
+    themeName: "default",
+    getComponentStyle: () => ({})
+  };
+  const { themeName = "default" } = themeContext;
 
   // Add responsive state
   const [isMobile, setIsMobile] = React.useState(false);
@@ -47,13 +50,15 @@ const SidebarContainer: React.FC<ExtendedSidebarContainerProps> = ({
     borderRight: "var(--theme-sidebar-border, 1px solid #e5e7eb)"
   };
 
-  // Get component style directly from the theme system or use default
-  const themeStyle = themeContext?.getComponentStyle?.("sidebar", variant) || {};
+  // Get component style from theme using the consistent path structure
+  const containerStyle = themeContext.getComponentStyle?.("sidebar.container", variant) || {};
+  const sidebarStyle = themeContext.getComponentStyle?.("sidebar.style", variant) || {};
 
   // Combine styles with priority: theme style > default variant style > passed style
-  const containerStyle: React.CSSProperties = {
+  const combinedStyle: React.CSSProperties = {
     ...defaultVariantStyle,
-    ...themeStyle,
+    ...containerStyle,
+    ...sidebarStyle,
     position: "fixed",
     top: 0,
     left: 0,
@@ -68,7 +73,7 @@ const SidebarContainer: React.FC<ExtendedSidebarContainerProps> = ({
 
   // For mobile, fully hide when closed
   if (isMobile && !isOpen) {
-    containerStyle.transform = "translateX(-100%)";
+    combinedStyle.transform = "translateX(-100%)";
   }
 
   // Define CSS classes for open/closed states
@@ -83,7 +88,7 @@ const SidebarContainer: React.FC<ExtendedSidebarContainerProps> = ({
   return (
     <aside
       className={sidebarClasses}
-      style={containerStyle}
+      style={combinedStyle}
       onClick={onClick}
       aria-expanded={isOpen}
     >

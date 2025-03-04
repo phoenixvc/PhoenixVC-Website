@@ -7,6 +7,8 @@ interface SidebarItemBase {
   icon?: ReactNode;
   style?: React.CSSProperties;
   className?: string;
+  active: boolean;
+  onClick?: () => void;
 }
 
 // Link item
@@ -24,8 +26,14 @@ export interface SidebarItemButton extends SidebarItemBase {
 
 // Group item
 export interface SidebarItemGroup extends SidebarItemBase {
+  title: string;
   type: "group";
   children?: SidebarItemType[];
+}
+
+export interface SidebarGroup {
+  title?: string;
+  items: (SidebarItem | string)[];
 }
 
 // Union type for all sidebar items
@@ -36,12 +44,14 @@ export type SidebarItemType = string | SidebarItem;
 
 // Props for the Sidebar component
 export interface SidebarProps {
-  isOpen?: boolean;
-  onClose?: () => void;
-  items?: SidebarItemType[];
+  groups?: SidebarGroup[];
   style?: React.CSSProperties;
   className?: string;
+  mode?: "light" | "dark";
   variant?: string;
+  collapsed?: boolean;
+  onClose?: () => void;
+  isOpen?: boolean;
 }
 
 // Props for the SidebarContainer component
@@ -56,12 +66,14 @@ export interface SidebarContainerProps {
 
 // Props for the SidebarGroup component
 export interface SidebarGroupProps {
-  title: string;
+  title?: string;
   items: SidebarItemType[];
   style?: React.CSSProperties;
   className?: string;
   mode?: string;
   variant?: string;
+  active?: boolean;
+  onClick?: () => void;
 }
 
 export interface SidebarItemProps {
@@ -71,6 +83,7 @@ export interface SidebarItemProps {
   style?: React.CSSProperties;
   className?: string;
   variant?: string;
+  active: boolean;
 }
 
 /**
