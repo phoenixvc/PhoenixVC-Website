@@ -124,12 +124,9 @@ runs:
         deployment_id="${{ inputs.deployment_id }}"
         artifact_id="${{ inputs.artifact_id }}"
         run_id="${{ inputs.run_id }}"
-
-        # New metadata variables
         version="${{ inputs.version }}"
         author="${{ inputs.author }}"
         repository="${{ inputs.repository }}"
-        pr_description="${{ inputs.pr_description }}"
 
         # Encode tokens
         encodedGitHubToken=$(echo "${{ inputs.github_token }}" | base64)
@@ -185,8 +182,7 @@ runs:
           -e "s|{{approvalUrl}}|${escaped_approval_url}|g" \
           -e "s|{{version}}|${version}|g" \
           -e "s|{{author}}|${author}|g" \
-          -e "s|{{repository}}|${repository}|g" \
-          -e "s|{{pr_description}}|${pr_description}|g" \
+          -e "s|{{repository}}|${repository}|g"
         )
         echo "Generated Payload:"
         echo "$PAYLOAD"
