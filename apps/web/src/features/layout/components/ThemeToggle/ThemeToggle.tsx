@@ -13,7 +13,8 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
-import { ThemeName, useTheme } from "@/theme";
+import { ThemeName } from "@/theme";
+import { useTheme } from "@/theme/hooks";
 
 // Define color schemes outside the component to avoid recreation
 const COLOR_SCHEMES: { label: string; value: ThemeName }[] = [

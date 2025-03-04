@@ -4,12 +4,16 @@ import { Menu, X } from "lucide-react";
 import Logo from "@/components/ui/Logo";
 import { Navigation, MobileMenu, NAVIGATION_ITEMS } from "@/features/navigation";
 import { headerVariants } from "../../animations";
-import { useTheme } from "@/theme";
 import styles from "./header.module.css";
-import { useSmoothScroll } from "@/hooks//index.ts";
+import { useSmoothScroll } from "@/hooks/index.ts";
 import ThemeToggle from "../ThemeToggle/ThemeToggle";
+import { useTheme } from "@/theme/hooks/useTheme";
 
-export const Header: React.FC = () => {
+interface HeaderProps {
+  onMenuClick?: () => void;
+}
+
+export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const { themeName: colorScheme, themeMode: mode } = useTheme();
   const themeClass = `theme-${colorScheme}-${mode}`;
 
@@ -26,6 +30,13 @@ export const Header: React.FC = () => {
   }, []);
 
   useSmoothScroll();
+
+  const handleMenuClick = () => {
+    setIsMenuOpen(prev => !prev);
+    if (onMenuClick) {
+      onMenuClick(); // This should toggle the sidebar
+    }
+  };
 
   return (
     <motion.header
@@ -63,7 +74,7 @@ export const Header: React.FC = () => {
           <ThemeToggle />
           <button
             className={`${styles.menuButton} md:hidden`}
-            onClick={() => setIsMenuOpen((prev) => !prev)}
+            onClick={handleMenuClick}
             aria-label={isMenuOpen ? "Close menu" : "Open menu"}
           >
             <motion.div whileTap={{ scale: 0.95 }}>

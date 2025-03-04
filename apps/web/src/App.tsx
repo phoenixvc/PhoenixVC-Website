@@ -12,11 +12,6 @@ const App = () => {
   return (
     <BrowserRouter>
       <Layout>
-        <Sidebar
-          isOpen={false}
-          onClose={() => {}}
-          items={[]}
-        />
         <Hero />
         <InvestmentFocus />
         <Contact />
