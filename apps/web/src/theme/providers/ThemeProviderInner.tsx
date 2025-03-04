@@ -9,7 +9,7 @@ import {
   CssVariableConfig,
   ThemeContext,
 } from "@/theme/types";
-import { ThemeConfigValidation } from "./validation";
+import { ThemeConfigValidation } from "../validation";
 import {
   generateSchemeSemantics,
   generateThemeVariables,

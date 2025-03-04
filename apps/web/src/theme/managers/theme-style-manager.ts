@@ -6,7 +6,7 @@ import { ColorDefinition, ThemeName, ThemeMode } from "../types";
 import { ComponentManager } from "./component-manager";
 import { ComponentRegistryManager } from "../registry/component-registry-manager";
 import { TypographyManager } from "./typography-manager";
-import { Theme } from "./theme";
+import { Theme } from "../core/theme";
 import { ComponentVariantType } from "../types/mappings/component-variants";
 import { ComponentState, InteractiveState } from "../types/mappings/state-mappings";
 import ColorUtils from "../utils/color-utils";
