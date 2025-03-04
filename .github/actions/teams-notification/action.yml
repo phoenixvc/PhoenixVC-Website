@@ -105,13 +105,13 @@ runs:
         TEMPLATE=$(cat "$(pwd)/${{ inputs.template_path }}")
         echo "Template contents:"
         echo "$TEMPLATE"
-
+    
         # Use input values and set default for color if empty
         color="${{ inputs.color }}"
         if [ -z "$color" ]; then
           color="0076D7"
         fi
-
+    
         webhook_url="${{ inputs.webhook_url }}"
         location_code="${{ inputs.location_code }}"
         resource_group="${{ inputs.resource_group }}"
@@ -124,18 +124,18 @@ runs:
         deployment_id="${{ inputs.deployment_id }}"
         artifact_id="${{ inputs.artifact_id }}"
         run_id="${{ inputs.run_id }}"
-
+    
         # New metadata variables
         version="${{ inputs.version }}"
         author="${{ inputs.author }}"
         repository="${{ inputs.repository }}"
         pr_description="${{ inputs.pr_description }}"
-
+    
         # Helper function to escape special characters and newlines for sed substitution
         escape() {
           printf '%s' "$1" | sed -e 's/[\/&]/\\&/g' -e ':a;N;$!ba;s/\n/ /g'
         }
-
+    
         # Escape all variables that may contain special characters or newlines
         escaped_webhook_url=$(escape "$webhook_url")
         escaped_location_code=$(escape "$location_code")
@@ -151,11 +151,11 @@ runs:
         escaped_repository=$(escape "$repository")
         escaped_pr_description=$(escape "$pr_description")
         rollback_url="${{ inputs.rollback_url }}"
-
+    
         # Encode tokens
         encodedGitHubToken=$(echo "${{ inputs.github_token }}" | base64)
         encodedTeamsToken=$(echo "${{ inputs.teams_token }}" | base64)
-
+    
         # Construct approval URL using github_logic_app_url input
         if [ -n "${{ inputs.github_logic_app_url }}" ]; then
           base_url="${{ inputs.github_logic_app_url }}"
@@ -178,7 +178,7 @@ runs:
           encoded_deployment_id=$(echo "$deployment_id" | jq -sRr @uri)
           encoded_artifact_id=$(echo "$artifact_id" | jq -sRr @uri)
           encoded_run_id=$(echo "$run_id" | jq -sRr @uri)
-
+    
           approval_url="${base_url}${connector}token=${encoded_token}&changes=${encoded_changes}&deploymentId=${encoded_deployment_id}&artifactId=${encoded_artifact_id}&runId=${encoded_run_id}"
           # Escape ampersands for sed substitution
           escaped_approval_url=$(printf '%s' "$approval_url" | sed 's/&/\\&/g')
@@ -186,9 +186,9 @@ runs:
           echo "Error: github_logic_app_url is required for approval URL"
           exit 1
         fi
-
+    
         echo "Computed approval URL: $approval_url"
-
+    
         # Substitute placeholders in the template using sed and the escaped variables
         PAYLOAD=$(echo "$TEMPLATE" | sed \
           -e "s|{{teamsWebhookUrl}}|${escaped_webhook_url}|g" \
@@ -207,15 +207,17 @@ runs:
           -e "s|{{version}}|${escaped_version}|g" \
           -e "s|{{author}}|${escaped_author}|g" \
           -e "s|{{repository}}|${escaped_repository}|g" \
-          -e "s|{{pr_description}}|${escaped_pr_description}|g" \
+          -e "s|{{pr_description}}|${escaped_pr_description}|g"
         )
         echo "Generated Payload:"
         echo "$PAYLOAD"
-
+    
         # Write the payload to output for later steps
-        echo "payload<<EOF" >> $GITHUB_OUTPUT
-        echo "$PAYLOAD" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
+        {
+          echo "payload<<EOF"
+          echo "$PAYLOAD"
+          echo "EOF"
+        } >> $GITHUB_OUTPUT
 
     - name: Invoke Logic App HTTP Trigger
       shell: bash
