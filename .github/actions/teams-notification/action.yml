@@ -189,7 +189,8 @@ runs:
     
         echo "Computed approval URL: $approval_url"
     
-        # Substitute placeholders in the template using sed and the escaped variables
+        # Substitute placeholders in the template using sed and the escaped variables.
+        # Note: The last line of the sed command does NOT end with a backslash.
         PAYLOAD=$(echo "$TEMPLATE" | sed \
           -e "s|{{teamsWebhookUrl}}|${escaped_webhook_url}|g" \
           -e "s|{{locationCode}}|${escaped_location_code}|g" \
