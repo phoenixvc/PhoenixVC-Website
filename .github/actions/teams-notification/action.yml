@@ -105,13 +105,13 @@ runs:
         TEMPLATE=$(cat "$(pwd)/${{ inputs.template_path }}")
         echo "Template contents:"
         echo "$TEMPLATE"
-    
+
         # Use input values and set default for color if empty
         color="${{ inputs.color }}"
         if [ -z "$color" ]; then
           color="0076D7"
         fi
-    
+
         webhook_url="${{ inputs.webhook_url }}"
         location_code="${{ inputs.location_code }}"
         resource_group="${{ inputs.resource_group }}"
@@ -124,84 +124,77 @@ runs:
         deployment_id="${{ inputs.deployment_id }}"
         artifact_id="${{ inputs.artifact_id }}"
         run_id="${{ inputs.run_id }}"
-    
+
         # New metadata variables
         version="${{ inputs.version }}"
         author="${{ inputs.author }}"
         repository="${{ inputs.repository }}"
         pr_description="${{ inputs.pr_description }}"
-    
-        # Helper function to escape special characters and newlines for sed substitution
-        escape() {
-          # Replace / and & with escaped versions and convert newlines to spaces.
-          printf '%s' "$1" | sed -e 's/[\/&]/\\&/g' -e ':a;N;$!ba;s/\n/ /g'
-        }
-    
-        # Escape variables that may contain special characters or newlines
-        escaped_webhook_url=$(escape "$webhook_url")
-        escaped_location_code=$(escape "$location_code")
-        escaped_resource_group=$(escape "$resource_group")
-        escaped_environment=$(escape "$environment")
-        escaped_branch=$(escape "$branch")
-        escaped_message=$(escape "$message")
-        escaped_title=$(escape "$title")
-        escaped_deployment_url=$(escape "$deployment_url")
-        escaped_change_summary=$(escape "$change_summary")
-        escaped_version=$(escape "$version")
-        escaped_author=$(escape "$author")
-        escaped_repository=$(escape "$repository")
-        escaped_pr_description=$(escape "$pr_description")
-        rollback_url="${{ inputs.rollback_url }}"
-    
+
         # Encode tokens
         encodedGitHubToken=$(echo "${{ inputs.github_token }}" | base64)
         encodedTeamsToken=$(echo "${{ inputs.teams_token }}" | base64)
-    
+
         # Construct approval URL using github_logic_app_url input
         if [ -n "${{ inputs.github_logic_app_url }}" ]; then
           base_url="${{ inputs.github_logic_app_url }}"
-          # Remove placeholder tokens if present
+          # Remove any placeholder tokens if present
           base_url="${base_url//\{\{approvalUrl\}\}/}"
-          # Choose proper connector based on the presence of '?'
+          # Determine if a '?' is already in base_url to choose proper connector
           if [[ "$base_url" == *"?"* ]]; then
             connector="&"
           else
             connector="?"
           fi
-          # Ensure required parameters are provided
+          # Ensure required parameters for approval URL are provided
           if [ -z "$deployment_id" ] || [ -z "$artifact_id" ] || [ -z "$run_id" ]; then
             echo "Error: deployment_id, artifact_id, and run_id are required for constructing approval URL"
             exit 1
           fi
+          # URL encode each parameter
           encoded_token=$(echo "$encodedGitHubToken" | jq -sRr @uri)
           encoded_changes=$(echo "$change_summary" | jq -sRr @uri)
           encoded_deployment_id=$(echo "$deployment_id" | jq -sRr @uri)
           encoded_artifact_id=$(echo "$artifact_id" | jq -sRr @uri)
           encoded_run_id=$(echo "$run_id" | jq -sRr @uri)
+
           approval_url="${base_url}${connector}token=${encoded_token}&changes=${encoded_changes}&deploymentId=${encoded_deployment_id}&artifactId=${encoded_artifact_id}&runId=${encoded_run_id}"
-          # Escape ampersands for sed
+          # Escape ampersands for sed substitution
           escaped_approval_url=$(printf '%s' "$approval_url" | sed 's/&/\\&/g')
         else
           echo "Error: github_logic_app_url is required for approval URL"
           exit 1
         fi
-    
+
         echo "Computed approval URL: $approval_url"
-    
-        # Use a single sed command with semicolon-separated substitutions
-        PAYLOAD=$(sed -e "s|{{teamsWebhookUrl}}|${escaped_webhook_url}|g; s|{{locationCode}}|${escaped_location_code}|g; s|{{resourceGroup}}|${escaped_resource_group}|g; s|{{environment}}|${escaped_environment}|g; s|{{branch}}|${escaped_branch}|g; s|{{message}}|${escaped_message}|g; s|{{title}}|${escaped_title}|g; s|{{color}}|$color|g; s|{{deploymentUrl}}|${escaped_deployment_url}|g; s|{{rollbackUrl}}|${rollback_url}|g; s|{{encodedToken}}|${encodedGitHubToken}|g; s|{{encodedTeamsToken}}|${encodedTeamsToken}|g; s|{{approvalUrl}}|${escaped_approval_url}|g; s|{{version}}|${escaped_version}|g; s|{{author}}|${escaped_author}|g; s|{{repository}}|${escaped_repository}|g; s|{{pr_description}}|${escaped_pr_description}|g" <<< "$TEMPLATE")
-        
-        # Collapse the JSON payload to a single line using jq -c
-        COMPACT_PAYLOAD=$(echo "$PAYLOAD" | jq -c .)
+
+        # Substitute placeholders in the template using sed
+        PAYLOAD=$(echo "$TEMPLATE" | sed \
+          -e "s|{{teamsWebhookUrl}}|${webhook_url}|g" \
+          -e "s|{{locationCode}}|${location_code}|g" \
+          -e "s|{{resourceGroup}}|${resource_group}|g" \
+          -e "s|{{environment}}|${environment}|g" \
+          -e "s|{{branch}}|${branch}|g" \
+          -e "s|{{message}}|${message}|g" \
+          -e "s|{{title}}|${title}|g" \
+          -e "s|{{color}}|$color|g" \
+          -e "s|{{deploymentUrl}}|${deployment_url}|g" \
+          -e "s|{{rollbackUrl}}|${{ inputs.rollback_url }}|g" \
+          -e "s|{{encodedToken}}|${encodedGitHubToken}|g" \
+          -e "s|{{encodedTeamsToken}}|${encodedTeamsToken}|g" \
+          -e "s|{{approvalUrl}}|${escaped_approval_url}|g" \
+          -e "s|{{version}}|${version}|g" \
+          -e "s|{{author}}|${author}|g" \
+          -e "s|{{repository}}|${repository}|g" \
+          -e "s|{{pr_description}}|${pr_description}|g" \
+        )
         echo "Generated Payload:"
-        echo "$COMPACT_PAYLOAD"
-        
-        # Write the compact payload to output for later steps
-        {
-          echo "payload<<EOF"
-          echo "$COMPACT_PAYLOAD"
-          echo "EOF"
-        } >> $GITHUB_OUTPUT
+        echo "$PAYLOAD"
+
+        # Write the payload to output for later steps
+        echo "payload<<EOF" >> $GITHUB_OUTPUT
+        echo "$PAYLOAD" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
 
     - name: Invoke Logic App HTTP Trigger
       shell: bash
