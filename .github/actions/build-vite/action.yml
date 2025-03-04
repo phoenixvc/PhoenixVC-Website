@@ -15,8 +15,6 @@ outputs:
     description: 'The package version'
   author:
     description: 'The package author'
-  repository:
-    description: 'The package repository URL'
 
 runs:
   using: "composite"
@@ -47,13 +45,11 @@ runs:
       run: |
         version=$(node -p "require('./package.json').version")
         author=$(node -p "require('./package.json').author")
-        repository=$(node -p "require('./package.json').repository.url || require('./package.json').repository")
         echo "Package Version: $version"
         echo "Package Author: $author"
         echo "Package Repository: $repository"
         echo "version=$version" >> $GITHUB_OUTPUT
         echo "author=$author" >> $GITHUB_OUTPUT
-        echo "repository=$repository" >> $GITHUB_OUTPUT
 
     - name: Build
       shell: bash

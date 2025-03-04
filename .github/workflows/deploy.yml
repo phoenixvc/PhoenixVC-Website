@@ -157,7 +157,7 @@ jobs:
       build_timestamp: ${{ steps.set_timestamp.outputs.timestamp }}
       web_app_version: ${{ steps.build_web.outputs.version }}
       web_app_author: ${{ steps.build_web.outputs.author }}
-      web_app_repository: ${{ steps.build_web.outputs.repository }}
+      web_app_repository: "https://github.com/${{ github.repository }}"
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
