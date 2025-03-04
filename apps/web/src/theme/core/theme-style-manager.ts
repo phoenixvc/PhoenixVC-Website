@@ -3,20 +3,20 @@
 import React from "react";
 import { ColorMapping } from "../mappings";
 import { ColorDefinition, ThemeName, ThemeMode } from "../types";
-import { ThemeComponentManager } from "./component-theme-manager";
+import { ComponentManager } from "./component-manager";
 import { ComponentRegistryManager } from "../registry/component-registry-manager";
 import { TypographyManager } from "./typography-manager";
 import { Theme } from "./theme";
 
 export class ThemeStyleManager {
-  private componentManager: ThemeComponentManager;
+  private componentManager: ComponentManager;
   private componentRegistry: ComponentRegistryManager;
   private colorMapping: ColorMapping;
   private typographyManager: TypographyManager;
   private themes: Map<string, Theme> = new Map();
 
   constructor(
-    componentManager: ThemeComponentManager,
+    componentManager: ComponentManager,
     componentRegistry: ComponentRegistryManager,
     colorMapping: ColorMapping,
     typographyManager: TypographyManager

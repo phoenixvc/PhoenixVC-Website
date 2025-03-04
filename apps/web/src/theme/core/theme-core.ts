@@ -3,7 +3,7 @@
 import { ColorMapping, TypographyScale } from "../mappings";
 import { ColorDefinition, ThemeName, ThemeMode, ThemeState } from "../types";
 import { ComponentRegistryManager } from "../registry/component-registry-manager";
-import { ThemeComponentManager } from "./component-theme-manager";
+import { ComponentManager } from "./component-manager";
 import { ThemeStateManager } from "./theme-state-manager";
 import { ThemeStyleManager } from "./theme-style-manager";
 import { TypographyManager } from "./typography-manager";
@@ -18,14 +18,14 @@ export class ThemeCore {
   private stateManager: ThemeStateManager;
   private styleManager: ThemeStyleManager;
   private typographyManager: TypographyManager;
-  private componentManager: ThemeComponentManager;
+  private componentManager: ComponentManager;
   private componentRegistryManager: ComponentRegistryManager;
 
   private constructor() {
     // Initialize managers
     this.componentRegistryManager = new ComponentRegistryManager();
     const componentRegistry = this.componentRegistryManager.getRegistry();
-    this.componentManager = new ThemeComponentManager(componentRegistry);
+    this.componentManager = new ComponentManager(componentRegistry);
     const colorMapping = new ColorMapping();
     this.typographyManager = new TypographyManager();
 

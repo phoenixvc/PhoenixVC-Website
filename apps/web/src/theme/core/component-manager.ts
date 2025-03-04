@@ -3,7 +3,7 @@ import { ThemeName } from "../types/core/base";
 import { BaseStyles, CardVariant, ComponentState, InteractiveState, ThemePropertyStyles } from "../types";
 import { ComponentThemeRegistry } from "./component-theme-registry";
 
-export class ThemeComponentManager {
+export class ComponentManager {
   private registry: ComponentThemeRegistry;
   //TODO private colorMapping: ColorMapping; //TODO ThemeMode,
 
