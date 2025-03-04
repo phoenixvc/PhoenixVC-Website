@@ -131,6 +131,27 @@ runs:
         repository="${{ inputs.repository }}"
         pr_description="${{ inputs.pr_description }}"
 
+        # Helper function to escape special characters and newlines for sed substitution
+        escape() {
+          printf '%s' "$1" | sed -e 's/[\/&]/\\&/g' -e ':a;N;$!ba;s/\n/ /g'
+        }
+
+        # Escape all variables that may contain special characters or newlines
+        escaped_webhook_url=$(escape "$webhook_url")
+        escaped_location_code=$(escape "$location_code")
+        escaped_resource_group=$(escape "$resource_group")
+        escaped_environment=$(escape "$environment")
+        escaped_branch=$(escape "$branch")
+        escaped_message=$(escape "$message")
+        escaped_title=$(escape "$title")
+        escaped_deployment_url=$(escape "$deployment_url")
+        escaped_change_summary=$(escape "$change_summary")
+        escaped_version=$(escape "$version")
+        escaped_author=$(escape "$author")
+        escaped_repository=$(escape "$repository")
+        escaped_pr_description=$(escape "$pr_description")
+        rollback_url="${{ inputs.rollback_url }}"
+
         # Encode tokens
         encodedGitHubToken=$(echo "${{ inputs.github_token }}" | base64)
         encodedTeamsToken=$(echo "${{ inputs.teams_token }}" | base64)
@@ -168,25 +189,25 @@ runs:
 
         echo "Computed approval URL: $approval_url"
 
-        # Substitute placeholders in the template using sed
+        # Substitute placeholders in the template using sed and the escaped variables
         PAYLOAD=$(echo "$TEMPLATE" | sed \
-          -e "s|{{teamsWebhookUrl}}|${webhook_url}|g" \
-          -e "s|{{locationCode}}|${location_code}|g" \
-          -e "s|{{resourceGroup}}|${resource_group}|g" \
-          -e "s|{{environment}}|${environment}|g" \
-          -e "s|{{branch}}|${branch}|g" \
-          -e "s|{{message}}|${message}|g" \
-          -e "s|{{title}}|${title}|g" \
+          -e "s|{{teamsWebhookUrl}}|${escaped_webhook_url}|g" \
+          -e "s|{{locationCode}}|${escaped_location_code}|g" \
+          -e "s|{{resourceGroup}}|${escaped_resource_group}|g" \
+          -e "s|{{environment}}|${escaped_environment}|g" \
+          -e "s|{{branch}}|${escaped_branch}|g" \
+          -e "s|{{message}}|${escaped_message}|g" \
+          -e "s|{{title}}|${escaped_title}|g" \
           -e "s|{{color}}|$color|g" \
-          -e "s|{{deploymentUrl}}|${deployment_url}|g" \
-          -e "s|{{rollbackUrl}}|${{ inputs.rollback_url }}|g" \
+          -e "s|{{deploymentUrl}}|${escaped_deployment_url}|g" \
+          -e "s|{{rollbackUrl}}|${rollback_url}|g" \
           -e "s|{{encodedToken}}|${encodedGitHubToken}|g" \
           -e "s|{{encodedTeamsToken}}|${encodedTeamsToken}|g" \
           -e "s|{{approvalUrl}}|${escaped_approval_url}|g" \
-          -e "s|{{version}}|${version}|g" \
-          -e "s|{{author}}|${author}|g" \
-          -e "s|{{repository}}|${repository}|g" \
-          -e "s|{{pr_description}}|${pr_description}|g" \
+          -e "s|{{version}}|${escaped_version}|g" \
+          -e "s|{{author}}|${escaped_author}|g" \
+          -e "s|{{repository}}|${escaped_repository}|g" \
+          -e "s|{{pr_description}}|${escaped_pr_description}|g" \
         )
         echo "Generated Payload:"
         echo "$PAYLOAD"
