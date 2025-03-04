@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
-import { useCssVariables } from "./useCssVariables";
+import { useCssVariables } from "../hooks/useCssVariables";
 import {
   ThemeName,
   ThemeMode,
@@ -7,7 +7,6 @@ import {
   ThemeContextType,
   ThemeProviderProps,
   CssVariableConfig,
-  ThemeContext
 } from "@/theme/types";
 import { ThemeConfigValidation } from "./validation";
 import {
@@ -22,13 +21,14 @@ import { ExtendedThemeState } from "../types/context/state";
 import { TypographyScale } from "../mappings";
 import { themeCore } from "../core/theme-core";
 import { useSystemModeContext } from "@/SystemModeContext";
+import ThemeContext from "../context/ThemeContext";
 import {
   getThemeClassNames,
   getSpecificClass,
   isThemeClass,
   replaceThemeClasses,
   getAllThemeClasses
-} from "./theme-provider-utils";
+} from "./ThemeProviderUtils";
 
 const defaultState: ThemeState = {
   name: "Default Theme",
