@@ -190,7 +190,6 @@ runs:
         echo "Computed approval URL: $approval_url"
     
         # Substitute placeholders in the template using sed and the escaped variables.
-        # Note: The last line of the sed command does NOT end with a backslash.
         PAYLOAD=$(echo "$TEMPLATE" | sed \
           -e "s|{{teamsWebhookUrl}}|${escaped_webhook_url}|g" \
           -e "s|{{locationCode}}|${escaped_location_code}|g" \
@@ -209,14 +208,16 @@ runs:
           -e "s|{{author}}|${escaped_author}|g" \
           -e "s|{{repository}}|${escaped_repository}|g" \
           -e "s|{{pr_description}}|${escaped_pr_description}|g"
-        )
+        
+        # Collapse the JSON payload to a single line using jq -c.
+        COMPACT_PAYLOAD=$(echo "$PAYLOAD" | jq -c .)
         echo "Generated Payload:"
-        echo "$PAYLOAD"
+        echo "$COMPACT_PAYLOAD"
     
-        # Write the payload to output for later steps
+        # Write the compact payload to output for later steps
         {
           echo "payload<<EOF"
-          echo "$PAYLOAD"
+          echo "$COMPACT_PAYLOAD"
           echo "EOF"
         } >> $GITHUB_OUTPUT
 
