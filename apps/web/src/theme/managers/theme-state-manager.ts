@@ -1,6 +1,6 @@
 // src/theme/core/theme-manager.ts
 
-import { ThemeStorage } from "../utils/theme-storage";
+import { ThemeStorage } from "./theme-storage-manager";
 import { THEME_CONSTANTS } from "../constants/theme-constants";
 import { Mode, ThemeName, ThemeConfig, ThemeMode, ThemeState } from "../types";
 import { isValidThemeName, isValidThemeMode } from "./theme-validation-manager";
