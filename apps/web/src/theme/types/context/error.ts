@@ -1,6 +1,5 @@
 // theme/types/context/errors.ts
 
-import { ThemeError } from "../core";
 
 /**
  * Theme error codes indicating the type of error that occurred.

@@ -38,6 +38,12 @@ export type ColorSet = ColorDefinition;
 export type ShadeLevel = 50 | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900;
 export type ColorShades = Record<ShadeLevel, ColorDefinition>;
 
+export interface TransformedColorObject extends ColorShades {
+  base?: string; // Optional base color
+  contrast?: string[]; // Contrast colors
+  shades?: string[];
+}
+
 /**
  * Base Color Structures - Initial (for constants)
  */

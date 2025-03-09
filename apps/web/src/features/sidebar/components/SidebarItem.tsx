@@ -6,25 +6,21 @@ import { SidebarItemProps } from "../types";
 
 const SidebarItem: React.FC<SidebarItemProps> = ({
   label,
+  onClick,
   icon,
   style = {},
   className = "",
-  onClick,
+  variant = "default",
   active = false,
-  variant = "default"
+  href = "#", // Default href
 }) => {
   const themeContext = useTheme() || {
     themeName: "default",
     getComponentStyle: () => ({})
   };
-  const { themeName = "default" } = themeContext;
 
-  // Get component style from theme - use the correct path structure
-  const itemStylePath = active ? "sidebar.item.active" : "sidebar.item.default";
-  const itemStyle = themeContext.getComponentStyle?.(itemStylePath, variant) || {};
-
-  // Get icon style if icon exists
-  const iconStyle = icon ? (themeContext.getComponentStyle?.("sidebar.icon", variant) || {}) : {};
+  // Get component style from theme
+  const itemStyle = themeContext.getComponentStyle?.("sidebar.item", variant) || {};
 
   // Combine passed style with theme style
   const combinedStyle = {
@@ -32,32 +28,30 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
     ...style
   };
 
-  return (
-    <div
-      onClick={onClick}
-      className={cn(
-        "flex items-center p-2 rounded cursor-pointer",
-        active ? "bg-primary text-white" : "hover:bg-gray-100 dark:hover:bg-gray-800",
-        `theme-${themeName}-sidebarItem-${variant}`,
-        active ? `theme-${themeName}-sidebarItem-active-${variant}` : "",
-        className
-      )}
-      style={combinedStyle}
-    >
-      {icon && (
-        <span
-          className="mr-2"
-          style={active ?
-            (themeContext.getComponentStyle?.("sidebar.icon.active", variant) || iconStyle) :
-            iconStyle
-          }
-        >
-          {icon}
-        </span>
-      )}
-      {label}
-    </div>
+  const itemClasses = cn(
+    "flex items-center px-3 py-2 text-sm rounded-md w-full",
+    active
+      ? "bg-primary text-primary-foreground"
+      : "hover:bg-accent hover:text-accent-foreground",
+    className
   );
+
+  // Determine if this is a link or button based on onClick
+  if (onClick) {
+    return (
+      <button className={itemClasses} style={combinedStyle} onClick={onClick}>
+        {icon && <span className="mr-2">{icon}</span>}
+        <span>{label}</span>
+      </button>
+    );
+  } else {
+    return (
+      <a href={href} className={itemClasses} style={combinedStyle}>
+        {icon && <span className="mr-2">{icon}</span>}
+        <span>{label}</span>
+      </a>
+    );
+  }
 };
 
 export default SidebarItem;

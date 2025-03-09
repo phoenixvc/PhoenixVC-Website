@@ -84,6 +84,7 @@ export interface SidebarItemProps {
   className?: string;
   variant?: string;
   active: boolean;
+  href?: string;
 }
 
 /**

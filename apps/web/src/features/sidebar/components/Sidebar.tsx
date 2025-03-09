@@ -4,15 +4,17 @@ import { useTheme } from "@/theme";
 import { cn } from "@/lib/utils";
 import SidebarGroup from "./SidebarGroup";
 import { SidebarProps } from "../types";
+import { DEFAULT_SIDEBAR_GROUPS } from "../constants/sidebar.constants";
 
 const Sidebar: React.FC<SidebarProps> = ({
-  groups = [],
+  groups,
   style = {},
   className = "",
   mode = "light",
   variant = "default",
   collapsed = false,
   onClose = () => {},
+  isOpen = false,
 }) => {
   const themeContext = useTheme() || {
     themeName: "default",
@@ -31,18 +33,21 @@ const Sidebar: React.FC<SidebarProps> = ({
     ...style
   };
 
+  // Use provided groups or default sidebar groups
+  const sidebarGroups = groups || DEFAULT_SIDEBAR_GROUPS;
+
   return (
     <div
       className={cn(
         "sidebar h-full",
-        collapsed ? "w-16" : "w-64",
+        isOpen ? (collapsed ? "w-16" : "w-64") : "w-0 md:w-64",
         `theme-${themeName}-sidebar-${variant}`,
         mode === "dark" ? "dark-mode" : "light-mode",
         className
       )}
       style={combinedStyle}
     >
-      {collapsed && (
+      {isOpen && collapsed && (
         <div className="p-2 flex justify-end">
           <button
             onClick={onClose}
@@ -54,7 +59,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
       )}
 
-      {groups.map((group, index) => (
+      {sidebarGroups.map((group, index) => (
         <SidebarGroup
           key={index}
           title={group.title}

@@ -3,31 +3,29 @@ import React from "react";
 import { useTheme } from "@/theme";
 import { cn } from "@/lib/utils";
 import SidebarItem from "./SidebarItem";
-import { SidebarGroupProps, SidebarItem as SidebarItemType } from "../types";
+import { SidebarGroupProps, SidebarItemType } from "../types";
 
 const SidebarGroup: React.FC<SidebarGroupProps> = ({
   title,
-  items,
+  items = [],
   style = {},
   className = "",
   mode = "light",
-  variant = "default"
+  variant = "default",
+  active = false,
+  onClick,
 }) => {
   const themeContext = useTheme() || {
     themeName: "default",
     getComponentStyle: () => ({})
   };
-  const { themeName = "default" } = themeContext;
 
-  // Get component style directly from the theme system
-  const groupStyle = themeContext.getComponentStyle?.("sidebar.group.container", variant) || {};
-  const titleStyle = themeContext.getComponentStyle?.("sidebar.group.title", variant) || {};
-  const groupCustomStyle = themeContext.getComponentStyle?.("sidebar.group.style", variant) || {};
+  // Get component style from theme
+  const groupStyle = themeContext.getComponentStyle?.("sidebar.group", variant) || {};
 
   // Combine passed style with theme style
   const combinedStyle = {
     ...groupStyle,
-    ...groupCustomStyle,
     ...style
   };
 
@@ -35,75 +33,63 @@ const SidebarGroup: React.FC<SidebarGroupProps> = ({
     <div
       className={cn(
         "sidebar-group mb-4",
-        `theme-${themeName}-sidebarGroup-${variant}`,
-        mode === "dark" ? "dark-mode" : "light-mode",
+        mode === "dark" ? "text-gray-200" : "text-gray-700",
         className
       )}
       style={combinedStyle}
     >
       {title && (
-        <h3
-          className={cn(
-            "text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2 px-2",
-            `theme-${themeName}-sidebarGroupTitle-${variant}`
-          )}
-          style={titleStyle}
-        >
+        <h3 className={cn(
+          "text-xs font-semibold uppercase tracking-wider px-4 py-2",
+          mode === "dark" ? "text-gray-400" : "text-gray-500"
+        )}>
           {title}
         </h3>
       )}
-      <div className="space-y-1">
+
+      <div className="space-y-1 px-2">
         {items.map((item, index) => {
           if (typeof item === "string") {
             return (
-              <li
+              <SidebarItem
                 key={index}
-                className={`theme-${themeName}-sidebarGroupItem-${variant}`}
-                style={themeContext.getComponentStyle?.("sidebar.item.default", variant) || {}}
-              >
-                {item}
-              </li>
+                label={item}
+                active={false}
+                variant={variant}
+              />
             );
+          } else {
+            // Handle different item types
+            if (item.type === "link") {
+              return (
+                <SidebarItem
+                  key={index}
+                  label={item.label}
+                  icon={item.icon}
+                  active={item.active || false}
+                  style={item.style}
+                  className={item.className}
+                  variant={variant}
+                  href={item.href || "#"} // Pass href for link items
+                />
+              );
+            } else if (item.type === "button" || item.type === "item") {
+              return (
+                <SidebarItem
+                  key={index}
+                  label={item.label}
+                  icon={item.icon}
+                  active={item.active || false}
+                  onClick={item.onClick}
+                  style={item.style}
+                  className={item.className}
+                  variant={variant}
+                />
+              );
+            }
+            // Add handling for group type if needed
+            return null;
           }
-
-          // Type assertion to help TypeScript understand the structure
-          const sidebarItem = item as SidebarItemType;
-
-          // Handle different item types
-          if (sidebarItem.type === "link" && "href" in sidebarItem) {
-            return (
-              <a
-                key={index}
-                href={sidebarItem.href}
-                className={cn(
-                  `theme-${themeName}-sidebarLink-${variant}`,
-                  "flex items-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800",
-                  sidebarItem.className
-                )}
-                style={{
-                  ...themeContext.getComponentStyle?.("sidebar.item.default", variant),
-                  ...sidebarItem.style
-                }}
-              >
-                {sidebarItem.icon && <span className="mr-2">{sidebarItem.icon}</span>}
-                {sidebarItem.label}
-              </a>
-            );
-          }
-
-          // Default to SidebarItem for "item" type or unspecified
-          return (
-            <SidebarItem
-              key={index}
-              label={sidebarItem.label}
-              style={sidebarItem.style}
-              className={sidebarItem.className}
-              icon={sidebarItem.icon}
-              active={sidebarItem.active}
-              variant={variant}
-              onClick={sidebarItem.onClick}
-            />
-          );
         })}
       </div>
     </div>

@@ -1,19 +1,28 @@
 import {
-    ThemeSchemeInitial,
-    SemanticColors,
-    ValidationResult,
-    ValidationError,
-  } from "@/theme/types";
-  import { validateHexOnly } from "./utils/color-hex-validation";
-  import {
-    REQUIRED_BASE_COLORS,
-    REQUIRED_MODE_COLORS,
-  } from "./constants";
-  import { SemanticColorValidation } from "./semantic-color-validation";
+  ThemeSchemeInitial,
+  SemanticColors,
+  ValidationResult,
+  ValidationError,
+} from "@/theme/types";
+import { validateHexOnly } from "./utils/color-hex-validation";
+import {
+  REQUIRED_BASE_COLORS,
+  REQUIRED_MODE_COLORS,
+} from "./constants";
+import { SemanticColorValidation } from "./semantic-color-validation";
 
-  export const validateInitialTheme = (
+/**
+ * Validation class for ThemeSchemeInitial objects
+ */
+export class ThemeInitialValidation {
+  /**
+   * Validates a ThemeSchemeInitial object
+   * @param theme The theme to validate
+   * @returns ValidationResult indicating if the theme is valid
+   */
+  static validateThemeInitial(
     theme: ThemeSchemeInitial & { semantic?: SemanticColors }
-  ): ValidationResult => {
+  ): ValidationResult {
     const errors: ValidationError[] = [];
 
     // Validate base colors
@@ -89,4 +98,38 @@ import {
       path: "theme",
       value: theme,
     };
-  };
+  }
+
+  /**
+   * Type guard to check if an object is a valid ThemeSchemeInitial
+   * @param obj Object to check
+   * @returns Boolean indicating if the object is a valid ThemeSchemeInitial
+   */
+  static isThemeSchemeInitialType(obj: unknown): obj is ThemeSchemeInitial {
+    if (!obj || typeof obj !== "object") return false;
+
+    const theme = obj as Partial<ThemeSchemeInitial>;
+
+    // Check for required properties
+    if (!theme.base || !theme.light || !theme.dark) {
+      return false;
+    }
+
+    // Check if base has all required colors
+    for (const color of REQUIRED_BASE_COLORS) {
+      if (!theme.base[color]) return false;
+    }
+
+    // Check if light mode has all required colors
+    for (const color of REQUIRED_MODE_COLORS) {
+      if (!theme.light[color]) return false;
+    }
+
+    // Check if dark mode has all required colors
+    for (const color of REQUIRED_MODE_COLORS) {
+      if (!theme.dark[color]) return false;
+    }
+
+    return true;
+  }
+}

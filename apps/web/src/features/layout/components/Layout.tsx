@@ -1,3 +1,4 @@
+// components/Layout/Layout.tsx
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { LayoutProps } from "../types";
@@ -12,10 +13,10 @@ const Layout = ({ children }: LayoutProps) => {
 
   return (
     <motion.div
-    className={`min-h-screen flex flex-col transition-colors duration-200 ${isSidebarOpen ? "sidebar-open" : "sidebar-closed"}`}
-    initial="hidden"
-    animate="visible"
-    variants={containerVariants}
+      className={`min-h-screen flex flex-col transition-colors duration-200 ${isSidebarOpen ? "sidebar-open" : "sidebar-closed"}`}
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
     >
       <div className={styles.layoutContainer}>
         <Header onMenuClick={() => setIsSidebarOpen(prev => !prev)} />
@@ -26,7 +27,7 @@ const Layout = ({ children }: LayoutProps) => {
             onClose={() => setIsSidebarOpen(false)}
           />
 
-          <main className={styles.mainContent}>
+          <main className={`${styles.mainContent} ${isSidebarOpen ? styles.withSidebar : ""}`}>
             {children}
           </main>
         </div>

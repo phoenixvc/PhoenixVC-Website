@@ -2,7 +2,7 @@ import { ColorShades, ModeColors, ShadeLevel, ThemeScheme, ValidationResult, Val
 import { validateHexOnly } from "./utils/color-hex-validation";
 import { createValidationResult } from "./utils/create-validation-result";
 
-export class ProcessedThemeValidation {
+export class ThemeProcessedValidation {
   static REQUIRED_BASE_COLORS = ["primary", "secondary", "accent"] as const;
   static ALL_SHADE_LEVELS: ShadeLevel[] = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
 

@@ -7,8 +7,8 @@ import { CssVariableConfig, ThemeClassSuffix } from "../core";
 import { ExtendedThemeState, ThemeContextState } from "./state";
 import { TypographyScale } from "@/theme/mappings";
 import { Theme } from "@/theme/core/theme";
-import { ThemeLoaderConfig } from "@/theme";
 import { ComponentThemeRegistry } from "@/theme/registry/component-theme-registry";
+import { ThemeAcquisitionConfig } from "@/theme/managers/theme-acquisition-manager";
 
 /**
  * Additional provider configuration options specific to the context.
@@ -90,7 +90,7 @@ export interface ThemeContextType {
 
   // Theme cache utilities
   isThemeCached: (scheme: ThemeName) => boolean;
-  preloadTheme: (scheme: ThemeName, config?: Partial<ThemeLoaderConfig>) => Promise<void>;
+  preloadTheme: (scheme: ThemeName, config?: Partial<ThemeAcquisitionConfig>) => Promise<void>;
   clearThemeCache: () => void;
   getCacheStatus: () => { size: number; schemes: ThemeName[] };
 

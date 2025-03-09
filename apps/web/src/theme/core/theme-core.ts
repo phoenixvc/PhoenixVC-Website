@@ -9,22 +9,23 @@ import { ThemeStyleManager } from "../managers/theme-style-manager";
 import { TypographyManager } from "../managers/typography-manager";
 import { ComponentVariantType } from "../types/mappings/component-variants";
 import { Theme } from "../core/theme";
-import { ThemeLoaderConfig } from "../providers/theme-loader";
 import { ComponentThemeRegistry } from "../registry/component-theme-registry";
 import { ThemeTransformationManager } from "../managers/theme-transformation-manager";
+import { ThemeAcquisitionConfig } from "../managers/theme-acquisition-manager";
 
 export class ThemeCore {
   private static instance: ThemeCore;
 
-  private stateManager: ThemeStateManager;
+  private stateManager!: ThemeStateManager; // Using the definite assignment assertion
   private styleManager: ThemeStyleManager;
   private typographyManager: TypographyManager;
   private componentManager: ComponentManager;
   private componentRegistryManager: ComponentRegistryManager;
   private transformationManager: ThemeTransformationManager;
+  private initialized: boolean = false;
 
   private constructor() {
-    // Initialize managers
+    // Initialize managers that don't depend on ThemeStateManager
     this.componentRegistryManager = new ComponentRegistryManager();
     const componentRegistry = this.componentRegistryManager.getRegistry();
     this.componentManager = new ComponentManager(componentRegistry);
@@ -46,6 +47,13 @@ export class ThemeCore {
       shadeIntensity: 0.1,
       contrastThreshold: 0.5
     });
+  }
+
+  /**
+ * Initialize components that might cause circular dependencies
+ */
+  private initialize(): void {
+    if (this.initialized) return;
 
     // Create state manager
     this.stateManager = ThemeStateManager.getInstance();
@@ -55,11 +63,22 @@ export class ThemeCore {
 
     // Initial theme application
     this.handleThemeStateChange();
+
+    this.initialized = true;
   }
 
+  /**
+   * Get singleton instance of ThemeCore
+   */
   static getInstance(): ThemeCore {
     if (!ThemeCore.instance) {
       ThemeCore.instance = new ThemeCore();
+
+      // Initialize after instance is created
+      // This breaks the circular dependency chain
+      setTimeout(() => {
+        ThemeCore.instance.initialize();
+      }, 0);
     }
     return ThemeCore.instance;
   }
@@ -196,8 +215,8 @@ export class ThemeCore {
     return this.stateManager.isThemeCached(scheme);
   }
 
-  preloadTheme(scheme: ThemeName, config?: Partial<ThemeLoaderConfig>): Promise<void> {
-    return this.stateManager.preloadTheme(scheme, config);
+  preloadTheme(scheme: ThemeName, config?: Partial<ThemeAcquisitionConfig>): Promise<void> {
+    return this.stateManager.preloadTheme(scheme);
   }
 
   clearThemeCache(): void {

@@ -13,10 +13,6 @@ import { ThemeConfigValidation } from "../validation";
 import {
   generateSchemeSemantics,
   generateThemeVariables,
-  loadTheme,
-  isThemeCached,
-  preloadTheme as preloadThemeUtil,
-  ThemeLoaderConfig
 } from ".";
 import { ExtendedThemeState } from "../types/context/state";
 import { TypographyScale } from "../mappings";
@@ -30,6 +26,8 @@ import {
   getAllThemeClasses
 } from "./ThemeProviderUtils";
 import { registerDefaultComponents } from "../utils/register-default-components";
+import { ThemeAcquisitionConfig, ThemeAcquisitionManager } from "../managers/theme-acquisition-manager";
+import { ThemeCacheService } from "../services/theme-cache-service";
 
 const defaultState: ThemeState = {
   name: "Default Theme",
@@ -89,18 +87,22 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({ children, config = {
         console.log("[ThemeProvider] Current state:", state);
 
         setLoadingTheme(true);
-        const theme = await loadTheme(state.themeName);
-        console.log("[ThemeProvider] Loaded theme:", theme);
+        const theme = await ThemeAcquisitionManager.getInstance().acquireTheme(state.themeName);
+        console.log("[ThemeProvider] Loaded theme:", theme.data);
 
-        const semantics = generateSchemeSemantics(theme, state.mode);
-        console.log("[ThemeProvider] Generated semantics:", semantics);
+        if (theme.status == "success" && theme.data)
+        {
+          const semantics = generateSchemeSemantics(theme.data, state.mode);
+          console.log("[ThemeProvider] Generated semantics:", semantics);
 
-        const variables = generateThemeVariables(theme, state.mode);
-        console.log("[ThemeProvider] Generated variables:", variables);
+          const variables = generateThemeVariables(theme.data, state.mode);
+          console.log("[ThemeProvider] Generated variables:", variables);
 
-        applyCssVariables(variables.computed);
+          applyCssVariables(variables.computed);
 
-        setState((prev) => ({ ...prev, initialized: true }));
+          setState((prev) => ({ ...prev, initialized: true }));
+
+        }
       } catch (err) {
         console.error("[ThemeProvider] Theme initialization failed:", err);
         setError(err instanceof Error ? err : new Error("Theme initialization failed"));
@@ -113,6 +115,10 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({ children, config = {
       void initializeTheme();
     }
   }, [state.themeName, state.mode, state.initialized, error, applyCssVariables]);
+
+  const isThemeCached = useCallback((scheme: ThemeName): boolean => {
+    return ThemeCacheService.getInstance().has(scheme);
+  }, []);
 
   // Ensure getThemeState returns the correct type
   const getThemeState = useCallback((): ExtendedThemeState => {
@@ -276,9 +282,9 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({ children, config = {
   }, [loadingTheme]);
 
   // Theme cache utilities
-  const preloadThemeHandler = useCallback(async (themeName: ThemeName, config?: Partial<ThemeLoaderConfig>): Promise<void> => {
+  const preloadThemeHandler = useCallback(async (themeName: ThemeName): Promise<void> => {
     try {
-      await preloadThemeUtil(themeName, config);
+      await ThemeAcquisitionManager.getInstance().acquireTheme(themeName);
     } catch (err) {
       console.error(`[ThemeProvider] Failed to preload theme "${themeName}":`, err);
       throw err;

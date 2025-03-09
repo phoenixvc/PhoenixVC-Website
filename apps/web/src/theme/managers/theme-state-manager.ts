@@ -1,17 +1,11 @@
-// src/theme/core/theme-manager.ts
+// src/theme/core/theme-state-manager.ts
 
-import { ThemeStorage } from "./theme-storage-manager";
+import { ThemeStorageManager } from "./theme-storage-manager";
 import { THEME_CONSTANTS } from "../constants/theme-constants";
 import { Mode, ThemeName, ThemeConfig, ThemeMode, ThemeState } from "../types";
-import { isValidThemeName, isValidThemeMode } from "./theme-validation-manager";
-import {
-  loadTheme,
-  isThemeCached,
-  preloadTheme,
-  clearThemeCache,
-  getCacheStatus,
-  ThemeLoaderConfig
-} from "../providers/theme-loader";
+import { themeValidationManager } from "./theme-validation-manager";
+import { ThemeAcquisitionManager } from "./theme-acquisition-manager";
+import { ThemeCacheService } from "../services/theme-cache-service";
 
 /**
  * Manages the global theme state using the Singleton pattern.
@@ -93,19 +87,19 @@ export class ThemeStateManager {
     this.currentColorScheme = this.getStoredOrDefaultColorScheme();
     this.currentMode = this.getStoredOrDefaultMode();
     this.systemMode = this.getInitialSystemMode();
-    this.useSystem = Boolean(ThemeStorage.getUseSystem());
+    this.useSystem = Boolean(ThemeStorageManager.getUseSystem());
   }
 
   private getStoredOrDefaultColorScheme(): ThemeName {
-    const storedScheme = ThemeStorage.getColorScheme();
-    return storedScheme && isValidThemeName(storedScheme)
+    const storedScheme = ThemeStorageManager.getColorScheme();
+    return storedScheme && themeValidationManager.isValidThemeName(storedScheme)
       ? storedScheme
       : "classic";
   }
 
   private getStoredOrDefaultMode(): Mode {
-    const storedMode = ThemeStorage.getMode();
-    return storedMode && isValidThemeMode(storedMode)
+    const storedMode = ThemeStorageManager.getMode();
+    return storedMode && themeValidationManager.isValidThemeMode(storedMode)
       ? storedMode
       : "light";
   }
@@ -184,7 +178,7 @@ export class ThemeStateManager {
     this._loadingThemePromise = (async () => {
       try {
         // Load the theme
-        await loadTheme(colorScheme);
+        await ThemeAcquisitionManager.getInstance().acquireTheme(colorScheme);
 
         // Apply the theme
         this.applyTheme();
@@ -198,10 +192,10 @@ export class ThemeStateManager {
 
           // Reset color scheme to default
           this.currentColorScheme = THEME_CONSTANTS.DEFAULTS.COLOR_SCHEME;
-          ThemeStorage.saveColorScheme(this.currentColorScheme);
+          ThemeStorageManager.saveColorScheme(this.currentColorScheme);
 
           // Try to load default theme
-          await loadTheme(THEME_CONSTANTS.DEFAULTS.COLOR_SCHEME);
+          await ThemeAcquisitionManager.getInstance().acquireTheme(THEME_CONSTANTS.DEFAULTS.COLOR_SCHEME);
           this.applyTheme();
         } else {
           // This is already the default theme and it failed to load
@@ -257,7 +251,7 @@ export class ThemeStateManager {
    * State management methods.
    */
   async setThemeClasses(scheme: ThemeName): Promise<void> {
-    if (!isValidThemeName(scheme)) {
+    if (!themeValidationManager.isValidThemeName(scheme)) {
       console.warn("[ThemeStateManager] Invalid color scheme provided");
       return;
     }
@@ -266,7 +260,7 @@ export class ThemeStateManager {
       // Only load if the scheme has changed
       if (this.currentColorScheme !== scheme) {
         this.currentColorScheme = scheme;
-        ThemeStorage.saveColorScheme(scheme);
+        ThemeStorageManager.saveColorScheme(scheme);
 
         // Load and apply the new theme
         await this.loadAndApplyTheme(scheme);
@@ -278,15 +272,15 @@ export class ThemeStateManager {
   }
 
   setMode(mode: ThemeMode): void {
-    if (!isValidThemeMode(mode)) {
+    if (!themeValidationManager.isValidThemeMode(mode)) {
       console.warn("[ThemeStateManager] Invalid mode provided");
       return;
     }
     try {
       this.currentMode = mode;
       this.useSystem = false;
-      ThemeStorage.saveMode(mode);
-      ThemeStorage.saveUseSystem(false);
+      ThemeStorageManager.saveMode(mode);
+      ThemeStorageManager.saveUseSystem(false);
       this.applyTheme();
       this.notify();
     } catch (error) {
@@ -297,7 +291,7 @@ export class ThemeStateManager {
   setUseSystem(useSystem: boolean): void {
     try {
       this.useSystem = useSystem;
-      ThemeStorage.saveUseSystem(useSystem);
+      ThemeStorageManager.saveUseSystem(useSystem);
       this.applyTheme();
       this.notify();
     } catch (error) {
@@ -309,17 +303,22 @@ export class ThemeStateManager {
    * Theme cache and loading management
    */
   isThemeCached(scheme: ThemeName): boolean {
-    return isThemeCached(scheme);
+    return ThemeCacheService.getInstance().has(scheme);
   }
 
-  async preloadTheme(scheme: ThemeName, config?: Partial<ThemeLoaderConfig>): Promise<void> {
-    if (!isValidThemeName(scheme)) {
+  /**
+   * Preload a theme for future use
+   * @param scheme The theme name to preload
+   */
+  async preloadTheme(scheme: ThemeName): Promise<void> {
+    if (!themeValidationManager.isValidThemeName(scheme)) {
       console.warn("[ThemeStateManager] Invalid color scheme for preloading");
       return;
     }
 
     try {
-      await preloadTheme(scheme, config);
+      // Fixed: Removed the second parameter that was causing the type error
+      await ThemeAcquisitionManager.getInstance().preloadTheme(scheme);
       this.notify();
     } catch (error) {
       console.error(`[ThemeStateManager] Error preloading theme "${scheme}":`, error);
@@ -327,12 +326,21 @@ export class ThemeStateManager {
   }
 
   clearThemeCache(): void {
-    clearThemeCache();
+    ThemeCacheService.getInstance().clear();
     this.notify();
   }
 
+  /**
+   * Get cache status with proper structure
+   * @returns Object containing cache size and schemes list
+   */
   getCacheStatus(): { size: number; schemes: ThemeName[] } {
-    return getCacheStatus();
+    // Fixed: Transform the returned object to match the expected structure
+    const cacheStatus = ThemeCacheService.getInstance().getCacheStatus();
+    return {
+      size: cacheStatus.size,
+      schemes: cacheStatus.themes // Map 'themes' to 'schemes'
+    };
   }
 
   /**

@@ -5,23 +5,67 @@ import {
   ThemeInitOptions,
   ThemeName,
   ThemeMode,
-  ThemeScheme,
   ThemeSchemeInitial,
   ColorDefinition,
   ColorShades,
-  SemanticColors
+  SemanticColors,
+  ValidationError,
+  ValidationResult,
+  ThemeError,
+  TransformedColorObject
 } from "../types";
 
 import { BaseColorValidation } from "../validation/base-color-validation";
-import { ColorDefinitionValidation } from "../validation/color-definition-validation";
-import { ColorShadesValidation } from "../validation/color-shades-validation";
 import { ModeColorValidation } from "../validation/mode-color-validation";
 import { SemanticColorValidation } from "../validation/semantic-color-validation";
 import { ThemeConfigValidation } from "../validation/theme-config-validation";
-import { ThemeInitialValidation } from "../validation/theme-initial-validation";
-import { ThemeProcessedValidation } from "../validation/theme-processed-validation";
 import { ThemeValidationError } from "../validation/theme-validation-error";
 import { VALID_COLOR_SCHEMES, VALID_MODES } from "../validation/constants";
+import { ThemeProcessedValidation } from "../validation/theme-processed-validation";
+import { ThemeInitialValidation } from "../validation/theme-initial-validation";
+import { ColorShadesValidation } from "../validation/color-shades-validation";
+
+/**
+ * Utility functions for validation operations
+ */
+export const ValidationUtils = {
+  /**
+   * Creates a validation result indicating failure
+   * @param path The path to the validated object
+   * @param value The value being validated
+   * @param error The validation error
+   * @returns A validation result with isValid=false and the error
+   */
+  createInvalidResult(
+    path: string,
+    value: unknown,
+    error: ValidationError
+  ): ValidationResult {
+    return {
+      isValid: false,
+      path,
+      value,
+      errors: [error]
+    };
+  },
+
+  /**
+   * Creates a validation result indicating success
+   * @param path The path to the validated object
+   * @param value The value being validated
+   * @returns A validation result with isValid=true
+   */
+  createValidResult(
+    path: string,
+    value: unknown
+  ): ValidationResult {
+    return {
+      isValid: true,
+      path,
+      value
+    };
+  }
+};
 
 /**
  * ThemeValidationManager
@@ -49,6 +93,8 @@ export class ThemeValidationManager {
 
   /**
    * Validate a theme configuration
+   * @param config The theme configuration to validate
+   * @throws ThemeValidationError if validation fails
    */
   validateThemeConfig(config: ThemeInitOptions & {
     disableTransitions?: boolean;
@@ -56,86 +102,167 @@ export class ThemeValidationManager {
     storageKey?: string;
   }): void {
     try {
-      ThemeConfigValidation.validateThemeConfig(config);
+      const result = ThemeConfigValidation.validateThemeConfig(config);
+      if (!result.isValid && result.errors && result.errors.length > 0) {
+        throw new Error(result.errors[0].message);
+      }
     } catch (error) {
-      throw new ThemeValidationError('Config validation failed', { cause: error });
+      throw new ThemeValidationError(
+        "Config validation failed",
+        ThemeError.INVALID_THEME_CONFIG, // Use the appropriate enum value
+        "config",
+        {
+          originalError: error,
+          message: error instanceof Error ? error.message : String(error)
+        }
+      );
     }
   }
 
   /**
    * Validate a processed theme
+   * @param theme The processed theme to validate
+   * @throws ThemeValidationError if validation fails
    */
   validateProcessedTheme(theme: ThemeColors): void {
     try {
       // Validate the schemes
-      ThemeProcessedValidation.validateProcessedTheme(theme.schemes);
+      const schemesResult = ThemeProcessedValidation.validateProcessedTheme(theme.schemes);
+      if (!schemesResult.isValid && schemesResult.errors && schemesResult.errors.length > 0) {
+        throw new Error(schemesResult.errors[0].message);
+      }
 
       // Validate semantic colors if present
       if (theme.semantic) {
-        SemanticColorValidation.validateSemanticColors(theme.semantic);
+        const semanticResult = SemanticColorValidation.validateSemanticColors(theme.semantic);
+        if (!semanticResult.isValid && semanticResult.errors && semanticResult.errors.length > 0) {
+          throw new Error(semanticResult.errors[0].message);
+        }
       }
     } catch (error) {
-      throw new ThemeValidationError('Processed theme validation failed', { cause: error });
+      throw new ThemeValidationError(
+        "Processed theme validation failed",
+        ThemeError.INVALID_TYPE,
+        "theme",
+        { originalError: error }
+      );
     }
   }
 
   /**
    * Validate an initial theme scheme
+   * @param theme The initial theme scheme to validate
+   * @throws ThemeValidationError if validation fails
    */
   validateInitialTheme(theme: ThemeSchemeInitial): void {
     try {
-      ThemeInitialValidation.validateInitialTheme(theme);
+      const result = ThemeInitialValidation.validateThemeInitial(theme);
+      if (!result.isValid && result.errors && result.errors.length > 0) {
+        throw new Error(result.errors[0].message);
+      }
     } catch (error) {
-      throw new ThemeValidationError('Initial theme validation failed', { cause: error });
+      throw new ThemeValidationError(
+        "Initial theme validation failed",
+        ThemeError.INVALID_SCHEME,
+        "theme",
+        { originalError: error }
+      );
     }
   }
 
   /**
    * Validate base colors
+   * @param baseColors The base colors to validate
+   * @throws ThemeValidationError if validation fails
    */
   validateBaseColors(baseColors: Record<string, ColorDefinition>): void {
     try {
-      BaseColorValidation.validateBaseColors(baseColors);
+      const result = BaseColorValidation.validateBaseColors(baseColors);
+      if (!result.isValid && result.errors && result.errors.length > 0) {
+        throw new Error(result.errors[0].message);
+      }
     } catch (error) {
-      throw new ThemeValidationError('Base colors validation failed', { cause: error });
+      throw new ThemeValidationError(
+        "Base colors validation failed",
+        ThemeError.COLOR_INVALID_TYPE,
+        "baseColors",
+        { originalError: error }
+      );
     }
   }
 
   /**
    * Validate color shades
+   * @param shades The color shades to validate
+   * @throws ThemeValidationError if validation fails
    */
-  validateColorShades(shades: ColorShades): void {
+  validateColorShades(shades: ColorShades, path: string = "colorShades"): void {
     try {
-      ColorShadesValidation.validateColorShades(shades);
+      const result = ColorShadesValidation.validateColorShades(shades, path);
+      if (!result.isValid && result.errors && result.errors.length > 0) {
+        throw new Error(result.errors[0].message);
+      }
     } catch (error) {
-      throw new ThemeValidationError('Color shades validation failed', { cause: error });
+      throw new ThemeValidationError(
+        "Color shades validation failed",
+        ThemeError.MISSING_OR_INVALID_SHADE,
+        path,
+        { originalError: error }
+      );
     }
   }
 
   /**
    * Validate mode colors
+   * @param colors The mode colors to validate
+   * @param mode The theme mode (light or dark) - optional parameter
+   * @throws ThemeValidationError if validation fails
    */
-  validateModeColors(mode: 'light' | 'dark', colors: any): void {
+  validateModeColors(
+    colors: Record<string, ColorDefinition>,
+    mode: "light" | "dark"
+  ): void {
     try {
-      ModeColorValidation.validateModeColors(mode, colors);
+      // Pass colors as the first parameter, mode as the second
+      const result = ModeColorValidation.validateModeColors(colors, mode);
+      if (!result.isValid && result.errors && result.errors.length > 0) {
+        throw new Error(result.errors[0].message);
+      }
     } catch (error) {
-      throw new ThemeValidationError(`${mode} mode colors validation failed`, { cause: error });
+      throw new ThemeValidationError(
+        `${mode || "theme"} mode colors validation failed`,
+        ThemeError.INVALID_MODE,
+        mode || "unknown",
+        { originalError: error }
+      );
     }
   }
 
   /**
    * Validate semantic colors
+   * @param semanticColors The semantic colors to validate
+   * @throws ThemeValidationError if validation fails
    */
   validateSemanticColors(semanticColors: SemanticColors): void {
     try {
-      SemanticColorValidation.validateSemanticColors(semanticColors);
+      const result = SemanticColorValidation.validateSemanticColors(semanticColors);
+      if (!result.isValid && result.errors && result.errors.length > 0) {
+        throw new Error(result.errors[0].message);
+      }
     } catch (error) {
-      throw new ThemeValidationError('Semantic colors validation failed', { cause: error });
+      throw new ThemeValidationError(
+        "Semantic colors validation failed",
+        ThemeError.MISSING_SEMANTIC_COLORS,
+        "semantic",
+        { originalError: error }
+      );
     }
   }
 
   /**
    * Check if a theme is fully transformed with all required components
+   * @param theme The theme to check
+   * @returns Boolean indicating if the theme is fully transformed
    */
   isFullyTransformed(theme: ThemeColors): boolean {
     try {
@@ -153,21 +280,21 @@ export class ThemeValidationManager {
       // Check primary
       if (!baseColors.primary ||
           typeof baseColors.primary !== "object" ||
-          !this.hasRequiredShades(baseColors.primary)) {
+          !this.hasRequiredShades(baseColors.primary as TransformedColorObject)) {
         return false;
       }
 
       // Check secondary
       if (!baseColors.secondary ||
           typeof baseColors.secondary !== "object" ||
-          !this.hasRequiredShades(baseColors.secondary)) {
+          !this.hasRequiredShades(baseColors.secondary as TransformedColorObject)) {
         return false;
       }
 
       // Check accent if it exists
       if (baseColors.accent &&
           (typeof baseColors.accent !== "object" ||
-          !this.hasRequiredShades(baseColors.accent))) {
+          !this.hasRequiredShades(baseColors.accent as TransformedColorObject))) {
         return false;
       }
 
@@ -185,8 +312,10 @@ export class ThemeValidationManager {
 
   /**
    * Check if a color object has all required shade levels
+   * @param colorObj The color object to check
+   * @returns Boolean indicating if the color object has all required shades
    */
-  private hasRequiredShades(colorObj: any): boolean {
+  private hasRequiredShades(colorObj: TransformedColorObject): boolean {
     // Check for key shade levels
     return colorObj.base !== undefined &&
            colorObj.shades !== undefined &&
@@ -197,26 +326,32 @@ export class ThemeValidationManager {
 
   /**
    * Type guard to check if an object is a ThemeColors
+   * @param theme The object to check
+   * @returns Boolean indicating if the object is a ThemeColors
    */
-  isThemeColorsType(theme: any): theme is ThemeColors {
-    return theme &&
+  isThemeColorsType(theme: unknown): theme is ThemeColors {
+    return !!theme &&
            typeof theme === "object" &&
-           theme.schemes !== undefined &&
-           typeof theme.schemes === "object";
+           "schemes" in (theme as Record<string, unknown>) &&
+           typeof (theme as ThemeColors).schemes === "object";
   }
 
   /**
    * Type guard to check if an object is a ThemeSchemeInitial
+   * @param theme The object to check
+   * @returns Boolean indicating if the object is a ThemeSchemeInitial
    */
-  isThemeSchemeInitialType(theme: any): theme is ThemeSchemeInitial {
-    return theme &&
+  isThemeSchemeInitialType(theme: unknown): theme is ThemeSchemeInitial {
+    return !!theme &&
            typeof theme === "object" &&
-           theme.base !== undefined &&
-           typeof theme.base === "object";
+           "base" in (theme as Record<string, unknown>) &&
+           typeof (theme as ThemeSchemeInitial).base === "object";
   }
 
   /**
    * Utility to check if a color scheme is valid
+   * @param themeName The theme name to check
+   * @returns Boolean indicating if the theme name is valid
    */
   isValidThemeName(themeName: ThemeName): themeName is ThemeName {
     return VALID_COLOR_SCHEMES.includes(themeName);
@@ -224,9 +359,39 @@ export class ThemeValidationManager {
 
   /**
    * Utility to check if a theme mode is valid
+   * @param mode The theme mode to check
+   * @returns Boolean indicating if the theme mode is valid
    */
   isValidThemeMode(mode: ThemeMode): mode is ThemeMode {
     return VALID_MODES.includes(mode);
+  }
+
+  /**
+   * Create an invalid validation result using ValidationUtils
+   * @param path The path to the validated object
+   * @param value The value being validated
+   * @param error The validation error
+   * @returns A validation result with isValid=false and the error
+   */
+  createInvalidResult(
+    path: string,
+    value: unknown,
+    error: ValidationError
+  ): ValidationResult {
+    return ValidationUtils.createInvalidResult(path, value, error);
+  }
+
+  /**
+   * Create a valid validation result using ValidationUtils
+   * @param path The path to the validated object
+   * @param value The value being validated
+   * @returns A validation result with isValid=true
+   */
+  createValidResult(
+    path: string,
+    value: unknown
+  ): ValidationResult {
+    return ValidationUtils.createValidResult(path, value);
   }
 }
 
