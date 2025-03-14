@@ -35,23 +35,39 @@ export type ColorSet = ColorDefinition;
 /**
  * Color Shade Structures
  */
+// Base type for shade levels only
 export type ShadeLevel = 50 | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900;
-export type ColorShades = Record<ShadeLevel, ColorDefinition>;
+export type ShadeMap = Record<ShadeLevel, ColorDefinition>;
 
-export interface TransformedColorObject extends ColorShades {
-  base?: string; // Optional base color
-  contrast?: string[]; // Contrast colors
+// Complete color shades with required properties
+export interface ColorShades extends ShadeMap {
+  base: string;
+  contrast: string[];
+  [key: string]: ColorDefinition | string | string[] | undefined;
+}
+
+// Transformed object with optional properties
+export interface TransformedColorObject extends ShadeMap {
+  base?: string;
+  contrast?: string[];
   shades?: string[];
+  [key: string]: ColorDefinition | string | string[] | undefined;
 }
 
 /**
- * Base Color Structures - Initial (for constants)
+ * Enhanced Initial Base Colors Interface
+ * Provides more flexibility while maintaining type safety
  */
 export interface InitialBaseColors {
-  primary: ColorDefinition;
-  secondary: ColorDefinition;
-  accent: ColorDefinition;
+  // Required base colors
+  primary: ColorDefinition | string;
+  secondary: ColorDefinition | string;
+  accent: ColorDefinition | string;
+
+  // Optional additional colors with index signature for extensibility
+  [key: string]: ColorDefinition | string | undefined;
 }
+
 
 /**
  * Base Color Structures - Processed (after shade generation)
@@ -71,7 +87,10 @@ export type ProcessedBaseColors = {
  */
 export interface RequiredModeColors {
   background: ColorDefinition;
-  text: ColorDefinition;
+  text: {
+    primary: ColorDefinition;
+    secondary: ColorDefinition;
+  };
   muted: ColorDefinition;
   border: ColorDefinition;
 }
@@ -105,12 +124,31 @@ export interface OptionalSemanticColors {
 export interface SemanticColors extends RequiredSemanticColors, OptionalSemanticColors {}
 
 /**
- * Theme Configuration and Structures
+ * Enhanced Theme Scheme Initial
+ * Adds metadata and configuration options
  */
 export interface ThemeSchemeInitial {
+  // Core color definitions
   base: InitialBaseColors;
   light: ModeColors;
   dark: ModeColors;
+
+  // Optional metadata for registry integration
+  metadata?: {
+    displayName?: string;
+    description?: string;
+    author?: string;
+    version?: string;
+    tags?: string[];
+  };
+
+  // Optional transformation configuration
+  transformConfig?: {
+    shadeCount?: number;
+    shadeIntensity?: number;
+    contrastThreshold?: number;
+    algorithm?: "linear" | "exponential" | "perceptual";
+  };
 }
 
 export interface ThemeScheme {

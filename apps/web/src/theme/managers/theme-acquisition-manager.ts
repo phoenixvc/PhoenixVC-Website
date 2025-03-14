@@ -5,79 +5,32 @@ import {
   ThemeName,
   ThemeSchemeInitial,
   ThemeMode,
-  SemanticColors
+  SemanticColors,
+  ThemeAcquisitionConfig,
+  AcquisitionStatus,
+  AcquisitionResult,
+  Theme,
+  ThemeScheme,
+  ColorShades
 } from "../types";
-import { THEME_CONSTANTS } from "../constants";
+
 import { themeValidationManager } from "./theme-validation-manager";
 import { ThemeStorageManager } from "./theme-storage-manager";
-import { transformTheme } from "../providers";
 import { themeCacheService, ThemeCacheService } from "../services/theme-cache-service";
 import { ThemeTransformationManager } from "./theme-transformation-manager";
 import { LogManager } from "./log-manager";
+import { ThemeRegistry } from "../registry/theme-registry";
+import { ThemeCore } from "../core/theme-core";
+import { DEFAULT_MODE, DEFAULT_THEME } from "../constants/tokens";
+import ColorUtils from "../utils/color-utils";
 
-/**
- * Configuration options for theme acquisition
- */
-export interface ThemeAcquisitionConfig {
-  /** Base URL for remote theme acquisition */
-  baseUrl?: string;
-
-  /** Default timeout for remote requests in milliseconds */
-  timeout?: number;
-
-  /** Default theme mode to use when transforming themes */
-  defaultMode?: ThemeMode;
-
-  /** Whether to validate themes after acquisition */
-  validateThemes?: boolean;
-
-  /** Whether to transform themes after acquisition */
-  transformThemes?: boolean;
-
-  /** Whether to use local storage for persisting themes */
-  useLocalStorage?: boolean;
-
-  /** Whether to log operations */
-  enableLogging?: boolean;
-
-  /** Whether to allow external theme loading */
-  allowExternalLoading?: boolean;
-}
-
-/**
- * Status of a theme acquisition operation
- */
-export type AcquisitionStatus =
-  | "idle"
-  | "loading"
-  | "success"
-  | "error"
-  | "cached";
-
-/**
- * Result of a theme acquisition operation
- */
-export interface AcquisitionResult {
-  /** Status of the acquisition operation */
-  status: AcquisitionStatus;
-
-  /** The acquired theme data, if successful */
-  data?: ThemeColors;
-
-  /** Error message, if acquisition failed */
-  error?: string;
-
-  /** Source of the theme (local, remote, cache) */
-  source?: "local" | "remote" | "cache" | "default" | "registered";
-
-  /** Timestamp of when the theme was acquired */
-  timestamp: number;
-}
+// Declare themeCore as an optional global variable
+declare const themeCore: ThemeCore | undefined;
 
 /**
  * ThemeAcquisitionManager
  *
- * Responsible for acquiring themes from various sources (local, remote, default),
+ * Responsible for acquiring themes from various sources (registry, local, remote, default),
  * validating them, transforming them if needed, and managing them through the cache service.
  */
 export class ThemeAcquisitionManager {
@@ -90,6 +43,9 @@ export class ThemeAcquisitionManager {
   private themeTransformationManager: ThemeTransformationManager;
   private readonly SERVICE_NAME = "ThemeAcquisitionManager";
 
+  // Reference to the theme registry
+  private themeRegistry: ThemeRegistry | null = null;
+
   /**
    * Private constructor to enforce singleton pattern
    */
@@ -98,15 +54,21 @@ export class ThemeAcquisitionManager {
     this.config = {
       baseUrl: config?.baseUrl || "/themes",
       timeout: config?.timeout || 5000,
-      defaultMode: config?.defaultMode || THEME_CONSTANTS.DEFAULTS.MODE,
+      defaultMode: config?.defaultMode || DEFAULT_MODE,
       validateThemes: config?.validateThemes !== undefined ? config.validateThemes : true,
       transformThemes: config?.transformThemes !== undefined ? config.transformThemes : true,
       useLocalStorage: config?.useLocalStorage !== undefined ? config.useLocalStorage : true,
       enableLogging: config?.enableLogging !== undefined ? config.enableLogging : true,
-      allowExternalLoading: config?.allowExternalLoading !== undefined ? config.allowExternalLoading : false
+      allowExternalLoading: config?.allowExternalLoading !== undefined ? config.allowExternalLoading : false,
+      themeRegistry: config?.themeRegistry || undefined
     };
 
-    this.acquisitionStatus = new Map();
+    // Set theme registry if provided
+    if (config?.themeRegistry) {
+      this.themeRegistry = config.themeRegistry;
+    }
+
+    this.acquisitionStatus = new Map<ThemeName, AcquisitionStatus>();
 
     // Initialize cache service
     this.cacheService = themeCacheService;
@@ -116,7 +78,10 @@ export class ThemeAcquisitionManager {
 
     // Load themes from local storage if enabled
     if (this.config.useLocalStorage) {
-      this.loadThemesFromStorage();
+      this.loadThemesFromStorage().catch((error) => {
+        LogManager.log(this.SERVICE_NAME, "Failed to load themes from local storage", this.isLoggingEnabled(), { warn: true });
+        console.warn(error);
+      });
     }
 
     this.themeTransformationManager = new ThemeTransformationManager();
@@ -146,14 +111,28 @@ export class ThemeAcquisitionManager {
    */
   updateConfig(config: Partial<ThemeAcquisitionConfig>): void {
     this.config = { ...this.config, ...config };
+
+    // Update theme registry if provided
+    if (config.themeRegistry) {
+      this.themeRegistry = config.themeRegistry;
+    }
+
     LogManager.log(this.SERVICE_NAME, "Configuration updated", this.isLoggingEnabled());
+  }
+
+  /**
+   * Set the theme registry
+   */
+  setThemeRegistry(registry: ThemeRegistry): void {
+    this.themeRegistry = registry;
+    LogManager.log(this.SERVICE_NAME, "Theme registry set", this.isLoggingEnabled());
   }
 
   /**
    * Acquire a theme by name
    *
-   * This method attempts to get a theme from cache first, then local storage,
-   * then local sources (if allowed), then remote sources (if allowed),
+   * This method attempts to get a theme from registry first, then cache,
+   * then local storage, then local sources (if allowed), then remote sources (if allowed),
    * and finally falls back to the default theme.
    */
   async acquireTheme(themeName: ThemeName, options?: {
@@ -176,7 +155,51 @@ export class ThemeAcquisitionManager {
       // Update status to loading
       this.acquisitionStatus.set(themeName, "loading");
 
-      // Check cache first if not forcing refresh
+      // First check the registry if available
+      if (!forceRefresh && this.themeRegistry && this.themeRegistry.themes[themeName]) {
+        const registryTheme = this.themeRegistry.themes[themeName];
+        if (registryTheme) {
+          LogManager.log(this.SERVICE_NAME, `Using theme from registry: ${themeName}`, this.isLoggingEnabled());
+
+          // Process the theme to ensure it"s in the right format
+          const processedTheme = this.processTheme(registryTheme, themeName);
+
+          // Cache the theme for future use
+          this.cacheService.set(themeName, processedTheme, undefined, "registry");
+          this.acquisitionStatus.set(themeName, "success");
+
+          return {
+            status: "success",
+            data: processedTheme,
+            source: "registry",
+            timestamp: Date.now()
+          };
+        }
+      }
+
+      // Try to get from ThemeCore if available
+      if (!forceRefresh && typeof themeCore !== "undefined" && typeof themeCore.getTheme === "function") {
+        const coreTheme = themeCore.getTheme(themeName);
+        if (coreTheme) {
+          LogManager.log(this.SERVICE_NAME, `Using theme from ThemeCore: ${themeName}`, this.isLoggingEnabled());
+
+          // Process the theme to ensure it"s in the right format
+          const processedTheme = this.processTheme(coreTheme, themeName);
+
+          // Cache the theme for future use
+          this.cacheService.set(themeName, processedTheme, undefined, "registry");
+          this.acquisitionStatus.set(themeName, "success");
+
+          return {
+            status: "success",
+            data: processedTheme,
+            source: "registry",
+            timestamp: Date.now()
+          };
+        }
+      }
+
+      // Check cache if not forcing refresh
       if (!forceRefresh && this.cacheService.has(themeName)) {
         const cachedTheme = this.cacheService.get(themeName);
         if (cachedTheme) {
@@ -194,7 +217,7 @@ export class ThemeAcquisitionManager {
 
       // Try to load from storage if enabled
       if (this.config.useLocalStorage && !forceRefresh) {
-        const storedTheme = ThemeStorageManager.getThemeData(themeName);
+        const storedTheme = await ThemeStorageManager.getThemeData(themeName);
         if (storedTheme) {
           LogManager.log(this.SERVICE_NAME, `Using stored theme: ${themeName}`, this.isLoggingEnabled());
 
@@ -227,7 +250,12 @@ export class ThemeAcquisitionManager {
 
             // Save to local storage if enabled
             if (this.config.useLocalStorage) {
-              this.saveToLocalStorage(themeName, processedTheme);
+              await this.saveToLocalStorage(themeName, processedTheme);
+            }
+
+            // Add to registry if available
+            if (this.themeRegistry) {
+              this.themeRegistry.themes[themeName] = processedTheme;
             }
 
             return {
@@ -256,7 +284,12 @@ export class ThemeAcquisitionManager {
 
             // Save to local storage if enabled
             if (this.config.useLocalStorage) {
-              this.saveToLocalStorage(themeName, processedTheme);
+              await this.saveToLocalStorage(themeName, processedTheme);
+            }
+
+            // Add to registry if available
+            if (this.themeRegistry) {
+              this.themeRegistry.themes[themeName] = processedTheme;
             }
 
             return {
@@ -277,6 +310,32 @@ export class ThemeAcquisitionManager {
           `External loading is disabled. Skipping local and remote theme loading for: ${themeName}`,
           this.isLoggingEnabled()
         );
+      }
+
+      // Try to get default theme from registry if available
+      if (this.themeRegistry && this.themeRegistry.defaults && this.themeRegistry.defaults.themeName) {
+        const defaultThemeName = this.themeRegistry.defaults.themeName;
+        if (defaultThemeName !== themeName && this.themeRegistry.themes[defaultThemeName]) {
+          LogManager.log(
+            this.SERVICE_NAME,
+            `Using default theme from registry: ${defaultThemeName} for: ${themeName}`,
+            this.isLoggingEnabled()
+          );
+
+          const defaultTheme = this.themeRegistry.themes[defaultThemeName];
+          const processedTheme = this.processTheme(defaultTheme, themeName);
+
+          // Cache the default theme for this name
+          this.cacheService.set(themeName, processedTheme, undefined, "default");
+          this.acquisitionStatus.set(themeName, "success");
+
+          return {
+            status: "success",
+            data: processedTheme,
+            source: "registry",
+            timestamp: Date.now()
+          };
+        }
       }
 
       // Fall back to default theme
@@ -316,35 +375,75 @@ export class ThemeAcquisitionManager {
   }
 
   /**
-   * Check if a theme is cached
+   * Check if a theme is cached or in registry
    */
   isThemeCached(themeName: ThemeName): boolean {
+    // Check registry first
+    if (this.themeRegistry && this.themeRegistry.themes[themeName]) {
+      return true;
+    }
+
+    // Check ThemeCore if available
+    if (typeof themeCore !== "undefined" && typeof themeCore.getTheme === "function" && themeCore.getTheme(themeName)) {
+      return true;
+    }
+
+    // Then check cache
     return this.cacheService.has(themeName);
   }
 
   /**
    * Get cache status information
    */
-  getCacheStatus() {
-    return this.cacheService.getCacheStatus();
+  getCacheStatus(): {
+    size: number;
+    themes: ThemeName[];
+    expirations: Record<string, number>;
+    sources: Record<string, string>;
+  } {
+    const cacheStatus = this.cacheService.getCacheStatus();
+
+    // Add registry themes if available
+    if (this.themeRegistry) {
+      const registryThemes = Object.keys(this.themeRegistry.themes) as ThemeName[];
+
+      // Combine and deduplicate themes
+      const allThemes = [...new Set([...cacheStatus.themes, ...registryThemes])];
+
+      return {
+        ...cacheStatus,
+        size: allThemes.length,
+        themes: allThemes
+      };
+    }
+
+    return cacheStatus;
   }
 
   /**
-   * Clear the theme cache
+   * Clear the theme cache and optionally registry
    */
-  clearCache(themeName?: ThemeName): void {
+  async clearCache(themeName?: ThemeName, clearRegistry = true): Promise<void> {
     this.cacheService.clear(themeName);
 
     // Also clear from local storage if enabled
     if (this.config.useLocalStorage && themeName) {
-      this.removeFromLocalStorage(themeName);
+      await this.removeFromLocalStorage(themeName);
     } else if (this.config.useLocalStorage) {
-      this.clearLocalStorage();
+      await this.clearLocalStorage();
+    }
+
+    // Clear from registry if requested
+    if (clearRegistry && this.themeRegistry && themeName) {
+      delete this.themeRegistry.themes[themeName];
+    } else if (clearRegistry && this.themeRegistry) {
+      this.themeRegistry.themes = {} as Record<ThemeName, ThemeColors>;
     }
 
     LogManager.log(
       this.SERVICE_NAME,
-      themeName ? `Cleared theme "${themeName}" from cache` : "Cleared entire theme cache",
+      themeName ? `Cleared theme "${themeName}" from cache${clearRegistry ? " and registry" : ""}` :
+                 `Cleared entire theme cache${clearRegistry ? " and registry" : ""}`,
       this.isLoggingEnabled()
     );
   }
@@ -352,7 +451,7 @@ export class ThemeAcquisitionManager {
   /**
    * Preload a theme
    */
-  async preloadTheme(themeName: ThemeName, allowExternalLoading?: boolean): Promise<void> {
+  async preloadTheme(themeName: ThemeName, config?: Partial<ThemeAcquisitionConfig>): Promise<void> {
     const endLog = LogManager.log(
       this.SERVICE_NAME,
       `Preloading theme: ${themeName}`,
@@ -361,6 +460,15 @@ export class ThemeAcquisitionManager {
     );
 
     try {
+      // Update config if provided
+      if (config) {
+        this.updateConfig(config);
+      }
+
+      const allowExternalLoading = config?.allowExternalLoading !== undefined
+        ? config.allowExternalLoading
+        : this.config.allowExternalLoading;
+
       await this.acquireTheme(themeName, { allowExternalLoading });
     } finally {
       endLog();
@@ -370,7 +478,7 @@ export class ThemeAcquisitionManager {
   /**
    * Register a theme directly
    */
-  registerTheme(themeName: ThemeName, theme: ThemeColors | ThemeSchemeInitial, semantic?: SemanticColors): ThemeColors {
+  async registerTheme(themeName: ThemeName, theme: ThemeColors | ThemeSchemeInitial, semantic?: SemanticColors): Promise<ThemeColors> {
     const endLog = LogManager.log(
       this.SERVICE_NAME,
       `Registering theme: ${themeName}`,
@@ -383,9 +491,22 @@ export class ThemeAcquisitionManager {
       const processedTheme = this.processTheme(theme, themeName, semantic);
       this.cacheService.set(themeName, processedTheme, semantic, "registered");
 
+      // Add to registry if available
+      if (this.themeRegistry) {
+        this.themeRegistry.themes[themeName] = processedTheme;
+
+        // Add metadata if not present
+        if (!this.themeRegistry.metadata[themeName]) {
+          this.themeRegistry.metadata[themeName] = {
+            displayName: themeName,
+            description: `Theme ${themeName}`
+          };
+        }
+      }
+
       // Save to local storage if enabled
       if (this.config.useLocalStorage) {
-        this.saveToLocalStorage(themeName, processedTheme);
+        await this.saveToLocalStorage(themeName, processedTheme);
       }
 
       return processedTheme;
@@ -396,12 +517,20 @@ export class ThemeAcquisitionManager {
 
   /**
    * Process a theme (validate and transform if needed)
+   * This can handle Theme objects as well as ThemeColors or ThemeSchemeInitial
    */
   private processTheme(
-    theme: ThemeColors | ThemeSchemeInitial,
+    theme: Theme | ThemeColors | ThemeSchemeInitial,
     themeName: ThemeName,
     semantic?: SemanticColors
   ): ThemeColors {
+    // First check if it"s a Theme object
+    if (this.isThemeObject(theme)) {
+      // If it"s a Theme object, extract the ThemeColors part
+      const themeObj = theme as Theme;
+      return this.processTheme(themeObj.colors, themeName, semantic);
+    }
+
     // Transform the theme if needed
     let processedTheme: ThemeColors;
 
@@ -457,16 +586,26 @@ export class ThemeAcquisitionManager {
   }
 
   /**
+   * Check if an object is a Theme
+   */
+  private isThemeObject(obj: unknown): obj is Theme {
+    if (!obj || typeof obj !== "object") {
+      return false;
+    }
+
+    const candidate = obj as Record<string, unknown>;
+    return "name" in candidate &&
+          "colors" in candidate &&
+          "config" in candidate;
+  }
+
+  /**
    * Load a theme from local sources
    */
   private async loadLocalTheme(themeName: ThemeName): Promise<ThemeColors | ThemeSchemeInitial | undefined> {
-    // Implementation depends on your local theme sources
-    // This could be imported from local modules, loaded from JSON files, etc.
-
-    // Example implementation for dynamic import from local modules
     try {
-      // This is just a placeholder - replace with your actual local theme loading logic
-      const module = await import(`../themes/${themeName}`).catch(() => undefined);
+      // Add the .js extension to the import path
+      const module = await import(`../themes/${themeName}.js`).catch(() => undefined);
       return module?.default;
     } catch (error) {
       LogManager.log(this.SERVICE_NAME, `Failed to load local theme: ${themeName}`, this.isLoggingEnabled(), { warn: true });
@@ -520,7 +659,11 @@ export class ThemeAcquisitionManager {
       this.updateConfig(config);
     }
 
-    const effectiveThemeName = themeName || THEME_CONSTANTS.DEFAULTS.COLOR_SCHEME;
+    // Use DEFAULT_THEME from theme-constants.ts as the fallback
+    const effectiveThemeName = themeName ||
+                            (this.themeRegistry?.defaults?.themeName) ||
+                            DEFAULT_THEME;
+
     const result = await this.acquireTheme(effectiveThemeName, {
       allowExternalLoading: config?.allowExternalLoading
     });
@@ -533,43 +676,141 @@ export class ThemeAcquisitionManager {
   }
 
   /**
-   * Create the default theme from constants
+   * Create the default theme from constants or registry
    */
   private createDefaultTheme(): ThemeColors {
-    // Use the default theme from constants
-    const defaultScheme = THEME_CONSTANTS.COLORS.schemes[THEME_CONSTANTS.DEFAULTS.COLOR_SCHEME];
-    const semanticColors = THEME_CONSTANTS.COLORS.semantic;
+    // Create a theme transformation manager instance
+    const themeManager = new ThemeTransformationManager(this.config);
 
-    if (!defaultScheme) {
-      throw new Error("Default theme scheme is missing in THEME_CONSTANTS");
+    // Try to get default theme from registry first
+    if (this.themeRegistry &&
+        this.themeRegistry.defaults &&
+        this.themeRegistry.defaults.themeName &&
+        this.themeRegistry.themes[this.themeRegistry.defaults.themeName]) {
+
+      const registryTheme = this.themeRegistry.themes[this.themeRegistry.defaults.themeName];
+      LogManager.log(this.SERVICE_NAME, "Using default theme from registry", this.isLoggingEnabled());
+
+      return registryTheme;
     }
 
-    // If transformation is enabled, use transformTheme to convert ThemeSchemeInitial to ThemeColors
-    if (this.config.transformThemes) {
-      return transformTheme(defaultScheme, this.config.defaultMode!, semanticColors);
-    } else {
-      // If no transformation is needed, we need to manually create a ThemeColors object
-      // This might require a utility function to convert ThemeSchemeInitial to ThemeScheme
-      const themeManager = new ThemeTransformationManager(this.config);
-      const convertedScheme = themeManager.transformScheme(defaultScheme);
+    try {
+      // Create a minimal color scheme using hex strings for base colors
+      const minimalColorScheme: ThemeSchemeInitial = {
+        base: {
+          primary: "#0066cc",
+          secondary: "#6c757d",
+          tertiary: "#6f42c1",
+          neutral: "#6c757d",
+          accent: "#fd7e14"
+        },
+        light: {
+          // Use ColorUtils.createColorDefinition to ensure proper color definition objects
+          background: ColorUtils.createColorDefinition("#ffffff"),
+          surface: ColorUtils.createColorDefinition("#f8f9fa"),
+          border: ColorUtils.createColorDefinition("#dee2e6"),
+          muted: ColorUtils.createColorDefinition("#e9ecef"),
+          text: {
+            primary: ColorUtils.createColorDefinition("#212529"),
+            secondary: ColorUtils.createColorDefinition("#6c757d")
+          }
+        },
+        dark: {
+          // Use ColorUtils.createColorDefinition to ensure proper color definition objects
+          background: ColorUtils.createColorDefinition("#212529"),
+          surface: ColorUtils.createColorDefinition("#343a40"),
+          border: ColorUtils.createColorDefinition("#495057"),
+          muted: ColorUtils.createColorDefinition("#6c757d"),
+          text: {
+            primary: ColorUtils.createColorDefinition("#f8f9fa"),
+            secondary: ColorUtils.createColorDefinition("#adb5bd")
+          }
+        }
+      };
 
+      // Create semantic colors
+      const semanticColors: SemanticColors = {
+        success: ColorUtils.createColorDefinition("#28a745"),
+        warning: ColorUtils.createColorDefinition("#ffc107"),
+        error: ColorUtils.createColorDefinition("#dc3545"),
+        info: ColorUtils.createColorDefinition("#17a2b8")
+      };
+
+      // Transform the color scheme
+      const transformedColorScheme = themeManager.transformScheme(minimalColorScheme);
+
+      // Return colors part to be merged with defaultTheme
       return {
         schemes: {
-          [THEME_CONSTANTS.DEFAULTS.COLOR_SCHEME]: convertedScheme
+          [DEFAULT_MODE]: transformedColorScheme
         },
         semantic: semanticColors
       };
+    } catch (error) {
+      LogManager.log(this.SERVICE_NAME, `Failed to create default theme colors: ${error}`, this.isLoggingEnabled(), { warn: true });
+
+      // If we can't create the color scheme, use a fallback approach
+      try {
+        // For the fallback, use the ColorUtils.createColorShades helper
+        const fallbackScheme: ThemeScheme = {
+          base: {
+            primary: ColorUtils.createColorShades("#0066cc"),
+            secondary: ColorUtils.createColorShades("#6c757d"),
+            tertiary: ColorUtils.createColorShades("#6f42c1"),
+            neutral: ColorUtils.createColorShades("#6c757d"),
+            accent: ColorUtils.createColorShades("#fd7e14")
+          },
+          light: {
+            background: ColorUtils.createColorDefinition("#ffffff"),
+            surface: ColorUtils.createColorDefinition("#f8f9fa"),
+            border: ColorUtils.createColorDefinition("#dee2e6"),
+            muted: ColorUtils.createColorDefinition("#e9ecef"),
+            text: {
+              primary: ColorUtils.createColorDefinition("#212529"),
+              secondary: ColorUtils.createColorDefinition("#6c757d")
+            }
+          },
+          dark: {
+            background: ColorUtils.createColorDefinition("#212529"),
+            surface: ColorUtils.createColorDefinition("#343a40"),
+            border: ColorUtils.createColorDefinition("#495057"),
+            muted: ColorUtils.createColorDefinition("#6c757d"),
+            text: {
+              primary: ColorUtils.createColorDefinition("#f8f9fa"),
+              secondary: ColorUtils.createColorDefinition("#adb5bd")
+            }
+          }
+        };
+
+        // Create fallback semantic colors
+        const fallbackSemanticColors: SemanticColors = {
+          success: ColorUtils.createColorDefinition("#28a745"),
+          warning: ColorUtils.createColorDefinition("#ffc107"),
+          error: ColorUtils.createColorDefinition("#dc3545"),
+          info: ColorUtils.createColorDefinition("#17a2b8")
+        };
+
+        return {
+          schemes: {
+            [DEFAULT_MODE]: fallbackScheme
+          },
+          semantic: fallbackSemanticColors
+        };
+      } catch (fallbackError) {
+        LogManager.log(this.SERVICE_NAME, `Failed to create fallback theme colors: ${fallbackError}`, this.isLoggingEnabled(), { error: true });
+        throw new Error(`Unable to create theme colors: ${error}. Fallback also failed: ${fallbackError}`);
+      }
     }
   }
 
-  /**
+    /**
    * Save a theme to local storage
    */
-  private saveToLocalStorage(themeName: ThemeName, theme: ThemeColors): void {
+  private async saveToLocalStorage(themeName: ThemeName, theme: ThemeColors): Promise<void> {
     if (!this.config.useLocalStorage) return;
 
     try {
-      ThemeStorageManager.saveThemeData(themeName, theme);
+      await ThemeStorageManager.saveThemeData(themeName, theme);
       LogManager.log(this.SERVICE_NAME, `Saved theme to local storage: ${themeName}`, this.isLoggingEnabled());
     } catch (error) {
       LogManager.log(this.SERVICE_NAME, `Failed to save theme to local storage: ${themeName}`, this.isLoggingEnabled(), { warn: true });
@@ -580,11 +821,11 @@ export class ThemeAcquisitionManager {
   /**
    * Remove a theme from local storage
    */
-  private removeFromLocalStorage(themeName: ThemeName): void {
+  private async removeFromLocalStorage(themeName: ThemeName): Promise<void> {
     if (!this.config.useLocalStorage) return;
 
     try {
-      ThemeStorageManager.removeThemeData(themeName);
+      await ThemeStorageManager.removeThemeData(themeName);
       LogManager.log(this.SERVICE_NAME, `Removed theme from local storage: ${themeName}`, this.isLoggingEnabled());
     } catch (error) {
       LogManager.log(this.SERVICE_NAME, `Failed to remove theme from local storage: ${themeName}`, this.isLoggingEnabled(), { warn: true });
@@ -595,11 +836,11 @@ export class ThemeAcquisitionManager {
   /**
    * Clear all themes from local storage
    */
-  private clearLocalStorage(): void {
+  private async clearLocalStorage(): Promise<void> {
     if (!this.config.useLocalStorage) return;
 
     try {
-      ThemeStorageManager.clearAllThemeData();
+      await ThemeStorageManager.clearAllThemeData();
       LogManager.log(this.SERVICE_NAME, "Cleared all themes from local storage", this.isLoggingEnabled());
     } catch (error) {
       LogManager.log(this.SERVICE_NAME, "Failed to clear themes from local storage", this.isLoggingEnabled(), { warn: true });
@@ -610,20 +851,26 @@ export class ThemeAcquisitionManager {
   /**
    * Load themes from local storage into cache
    */
-  private loadThemesFromStorage(): void {
+  private async loadThemesFromStorage(): Promise<void> {
     if (!this.config.useLocalStorage) return;
 
     try {
-      const themeNames = ThemeStorageManager.getStoredThemeNames();
+      const themeNames = await ThemeStorageManager.getStoredThemeNames();
       LogManager.log(this.SERVICE_NAME, `Found ${themeNames.length} themes in storage`, this.isLoggingEnabled());
 
-      themeNames.forEach(themeName => {
-        const theme = ThemeStorageManager.getThemeData(themeName);
+      for (const themeName of themeNames) {
+        const theme = await ThemeStorageManager.getThemeData(themeName);
         if (theme) {
           this.cacheService.set(themeName, theme, undefined, "local");
+
+          // Also add to registry if available
+          if (this.themeRegistry) {
+            this.themeRegistry.themes[themeName] = theme;
+          }
+
           LogManager.log(this.SERVICE_NAME, `Loaded theme from storage: ${themeName}`, this.isLoggingEnabled());
         }
-      });
+      }
     } catch (error) {
       LogManager.log(this.SERVICE_NAME, "Failed to load themes from storage", this.isLoggingEnabled(), { warn: true });
       console.warn(error);

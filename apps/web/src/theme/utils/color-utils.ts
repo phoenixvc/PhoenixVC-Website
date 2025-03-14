@@ -710,6 +710,139 @@ rgbToHsl(rgb: string | RGBColor): string {
   },
 
   /**
+   * Generate a palette of colors using an exponential distribution for lightness.
+   * This creates more variation in the middle tones while compressing the extremes.
+   *
+   * @param baseHex - Base color in hex format
+   * @param steps - Number of shades to generate
+   * @param intensity - Controls the exponential curve (1.0 = linear, higher = more contrast)
+   * @returns Array of ColorDefinition objects
+   */
+  createExponentialPalette(baseHex: string, steps: number = 9, intensity: number = 2.0): ColorDefinition[] {
+    try {
+      const baseHsl = ColorUtils.hexToHsl(baseHex);
+
+      return Array.from({ length: steps }, (_next, i) => {
+        // Calculate position in the range [0, 1]
+        const position = i / (steps - 1);
+
+        // Apply exponential function to create non-linear distribution
+        // For intensity > 1, this will create more contrast
+        // For intensity < 1, this will reduce contrast
+        let lightness: number;
+
+        if (position <= 0.5) {
+          // For darker half: exponential curve starting from 0
+          lightness = 50 * Math.pow(position * 2, intensity);
+        } else {
+          // For lighter half: exponential curve from 50 to 100
+          lightness = 100 - 50 * Math.pow((1 - position) * 2, intensity);
+        }
+
+        // Ensure lightness is within bounds
+        lightness = Math.min(100, Math.max(0, lightness));
+
+        const hslObj: HSLColor = {
+          h: baseHsl.h,
+          s: baseHsl.s,
+          l: lightness
+        };
+
+        const hslString = ColorUtils.toHSL(hslObj);
+
+        return {
+          hex: ColorUtils.hslToHex(hslObj),
+          rgb: ColorUtils.hslToRgb(hslString) as string,
+          hsl: hslString,
+        };
+      });
+    } catch (error) {
+      throw new ColorError(
+        `Failed to create exponential palette from "${baseHex}": ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  },
+
+  /**
+   * Generate a palette of colors using perceptual adjustments to create
+   * visually uniform steps according to human perception.
+   *
+   * Uses a cubic easing function to better match human perception of lightness.
+   *
+   * @param baseHex - Base color in hex format
+   * @param steps - Number of shades to generate
+   * @returns Array of ColorDefinition objects
+   */
+  createPerceptualPalette(baseHex: string, steps: number = 9): ColorDefinition[] {
+    try {
+      const baseHsl = ColorUtils.hexToHsl(baseHex);
+
+      // Perceptual adjustment function (cubic easing)
+      const perceptualAdjust = (x: number): number => {
+        // Cubic easing function: creates more visually uniform steps
+        return x < 0.5
+          ? 4 * x * x * x
+          : 1 - Math.pow(-2 * x + 2, 3) / 2;
+      };
+
+      return Array.from({ length: steps }, (_next, i) => {
+        // Calculate position in the range [0, 1]
+        const position = i / (steps - 1);
+
+        // Apply perceptual adjustment
+        const adjustedPosition = perceptualAdjust(position);
+
+        // Calculate lightness based on adjusted position
+        const lightness = adjustedPosition * 100;
+
+        // For more vibrant colors in midtones, optionally adjust saturation
+        // Saturation peaks at around 50% lightness
+        const saturationAdjustment = 1 - Math.abs(lightness - 50) / 50 * 0.2;
+        const adjustedSaturation = baseHsl.s * saturationAdjustment;
+
+        const hslObj: HSLColor = {
+          h: baseHsl.h,
+          s: adjustedSaturation, // Optional: adjust saturation for more vibrant midtones
+          l: lightness
+        };
+
+        const hslString = ColorUtils.toHSL(hslObj);
+
+        return {
+          hex: ColorUtils.hslToHex(hslObj),
+          rgb: ColorUtils.hslToRgb(hslString) as string,
+          hsl: hslString,
+        };
+      });
+    } catch (error) {
+      throw new ColorError(
+        `Failed to create perceptual palette from "${baseHex}": ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  },
+
+  createColorShades(baseColor: string): ColorShades {
+    // Generate a palette with 10 colors (for 50, 100, 200, ... 900)
+    const palette = this.createPalette(baseColor, 10);
+
+    // Create a ColorShades object with the required numeric properties
+    return {
+      50: palette[0],
+      100: palette[1],
+      200: palette[2],
+      300: palette[3],
+      400: palette[4],
+      500: palette[5],
+      600: palette[6],
+      700: palette[7],
+      800: palette[8],
+      900: palette[9],
+      base: baseColor,
+      contrast: Array(10).fill("#FFFFFF") // Default contrast colors
+    };
+  },
+  
+  /**
    * [Private] Gather potential validation errors for a ColorDefinition.
    */
   _collectValidationErrors(color: ColorDefinition, path: string): ValidationError[] {

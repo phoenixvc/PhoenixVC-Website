@@ -31,6 +31,15 @@ class CssVariableManager {
   }
 
   /**
+   * Set the primary and secondary colors and regenerate the palette
+   */
+  setThemeColors(primaryColor: string, secondaryColor: string): void {
+    this.primaryColor = primaryColor;
+    this.secondaryColor = secondaryColor;
+    this.generateColorPalette();
+  }
+
+  /**
    * Generates color variations from 100-900 for a given base color
    */
   private generateColorVariations(colorName: string, baseHsl: { h: number, s: number, l: number }): void {
@@ -40,7 +49,8 @@ class CssVariableManager {
     // - Higher numbers are darker (lower lightness)
 
     const variations = [
-      { level: 100, lightness: 0.95 }, // Very light
+      { level: 50, lightness: 0.97 },  // Very light
+      { level: 100, lightness: 0.95 },
       { level: 200, lightness: 0.85 },
       { level: 300, lightness: 0.75 },
       { level: 400, lightness: 0.65 },
@@ -48,7 +58,8 @@ class CssVariableManager {
       { level: 600, lightness: 0.45 },
       { level: 700, lightness: 0.35 },
       { level: 800, lightness: 0.25 },
-      { level: 900, lightness: 0.15 }  // Very dark
+      { level: 900, lightness: 0.15 },  // Very dark
+      { level: 950, lightness: 0.08 }   // Extremely dark
     ];
 
     variations.forEach(({ level, lightness }) => {
@@ -78,7 +89,8 @@ class CssVariableManager {
     const neutralHsl = { ...baseHsl, s: 0.05 };
 
     const variations = [
-      { level: 100, lightness: 0.98 }, // Almost white
+      { level: 50, lightness: 0.99 },   // Almost white
+      { level: 100, lightness: 0.98 },
       { level: 200, lightness: 0.93 },
       { level: 300, lightness: 0.85 },
       { level: 400, lightness: 0.75 },
@@ -86,7 +98,8 @@ class CssVariableManager {
       { level: 600, lightness: 0.48 },
       { level: 700, lightness: 0.35 },
       { level: 800, lightness: 0.22 },
-      { level: 900, lightness: 0.10 }  // Almost black
+      { level: 900, lightness: 0.10 },  // Almost black
+      { level: 950, lightness: 0.05 }   // Extremely dark
     ];
 
     variations.forEach(({ level, lightness }) => {
@@ -99,6 +112,46 @@ class CssVariableManager {
     });
   }
 
+  /**
+   * Set a specific color variable
+   * Used by the theme system to register theme colors
+   */
+  setColorVariable(variableName: string, colorValue: string): void {
+    // Normalize variable name
+    const normalizedName = variableName.startsWith("--") ? variableName : `--${variableName}`;
+
+    // Store in cache
+    this.cache.set(normalizedName, colorValue);
+
+    // If we"re in a browser environment, also set the CSS variable
+    try {
+      if (typeof document !== "undefined") {
+        document.documentElement.style.setProperty(normalizedName, colorValue);
+      }
+    } catch (error) {
+      console.warn(`Could not set CSS variable ${normalizedName}`, error);
+    }
+  }
+
+  /**
+   * Get all color variables as a record
+   * Used by the theme system to generate CSS
+   */
+  getColorVariables(): Record<string, string> {
+    const variables: Record<string, string> = {};
+
+    // Convert the cache to a plain object
+    this.cache.forEach((value, key) => {
+      variables[key] = value;
+    });
+
+    return variables;
+  }
+
+  /**
+   * Refresh the cache with values from the DOM
+   * Useful when the theme might have been changed externally
+   */
   refreshCache(): void {
     try {
       const styles = getComputedStyle(document.documentElement);
@@ -114,6 +167,10 @@ class CssVariableManager {
     }
   }
 
+  /**
+   * Get a CSS variable value
+   * Falls back to generated values if not found in the DOM
+   */
   getValue(variableName: string): string {
     // Normalize variable name
     const normalizedName = variableName.replace(/var\(|\)/g, "").trim();
@@ -139,9 +196,9 @@ class CssVariableManager {
     }
 
     // If we get here, we don"t have a value - try to generate one
-    if (cssVarName.match(/--color-(primary|secondary|neutral)-\d{3}/)) {
+    if (cssVarName.match(/--color-(primary|secondary|neutral)-\d{2,3}/)) {
       // Extract color type and level
-      const match = cssVarName.match(/--color-(\w+)-(\d{3})/);
+      const match = cssVarName.match(/--color-(\w+)-(\d{2,3})/);
       if (match) {
         const [, colorType, levelStr] = match;
         const level = parseInt(levelStr, 10);
@@ -194,6 +251,10 @@ class CssVariableManager {
     return ColorUtils.rgbToHex(rgb);
   }
 
+  /**
+   * Get a full ColorDefinition for a CSS variable
+   * Includes hex, RGB, and HSL representations
+   */
   getCssVariableColor(variableName: string): ColorDefinition {
     const colorValue = this.getValue(variableName);
 
@@ -201,10 +262,10 @@ class CssVariableManager {
     if (colorValue.startsWith("#")) {
       // It"s a hex color
       const rgbObj = ColorUtils.hexToRgb(colorValue) as RGBColor;
-          // Check if rgbObj is properly structured
-        if (typeof rgbObj !== "object" || rgbObj === null || !("r" in rgbObj)) {
-            throw new Error(`Invalid RGB object returned from hexToRgb: ${JSON.stringify(rgbObj)}`);
-        }
+      // Check if rgbObj is properly structured
+      if (typeof rgbObj !== "object" || rgbObj === null || !("r" in rgbObj)) {
+        throw new Error(`Invalid RGB object returned from hexToRgb: ${JSON.stringify(rgbObj)}`);
+      }
 
       const rgb = `rgb(${rgbObj.r}, ${rgbObj.g}, ${rgbObj.b})`;
       const hsl = ColorUtils.rgbToHsl(rgbObj);
@@ -255,6 +316,46 @@ class CssVariableManager {
       // If browser parsing fails, throw an error
       throw new Error(`Could not parse CSS variable value: ${colorValue}`);
     }
+  }
+
+  /**
+   * Apply all CSS variables to the document root
+   * Used to apply the theme to the DOM
+   */
+  applyToDOM(): void {
+    try {
+      if (typeof document === "undefined") return;
+
+      const root = document.documentElement;
+      this.cache.forEach((value, key) => {
+        root.style.setProperty(key, value);
+      });
+    } catch (error) {
+      console.warn("Could not apply CSS variables to DOM", error);
+    }
+  }
+
+  /**
+   * Generate a CSS string with all variables
+   * Useful for server-side rendering or creating stylesheets
+   */
+  generateCSSString(): string {
+    let css = ":root {\n";
+
+    this.cache.forEach((value, key) => {
+      css += `  ${key}: ${value};\n`;
+    });
+
+    css += "}\n";
+    return css;
+  }
+
+  /**
+   * Clear all variables and reset to defaults
+   */
+  reset(): void {
+    this.cache.clear();
+    this.generateColorPalette();
   }
 
   // Helper to parse HSL string like "hsl(120, 100%, 50%)"

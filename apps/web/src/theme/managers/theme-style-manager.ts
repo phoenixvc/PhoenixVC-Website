@@ -2,14 +2,14 @@
 
 import React from "react";
 import { ColorMapping } from "../mappings";
-import { ColorDefinition, ThemeName, ThemeMode } from "../types";
+import { ColorDefinition, ThemeName, ThemeMode, Theme, ThemeColors, ShadeMap, ShadeLevel, ModeColors, REQUIRED_MODE_COLORS, ThemeSpacing, ThemeTypography, ThemeBorders, ThemeShadows, ThemeBreakpoints, ThemeTransitions, ThemeZIndex, ThemeVariables, RequiredModeColorKeys, SemanticColors, REQUIRED_SEMANTIC_COLORS, RequiredSemanticColorKeys } from "../types";
 import { ComponentManager } from "./component-manager";
 import { ComponentRegistryManager } from "../registry/component-registry-manager";
 import { TypographyManager } from "./typography-manager";
-import { Theme } from "../core/theme";
 import { ComponentVariantType } from "../types/mappings/component-variants";
 import { ComponentState, InteractiveState } from "../types/mappings/state-mappings";
 import ColorUtils from "../utils/color-utils";
+import CssVariableManager from "./css-variable-manager";
 
 // Define interfaces for common pattern structures
 interface ColorPatternValue {
@@ -185,7 +185,8 @@ export class ThemeStyleManager {
     componentManager: ComponentManager,
     componentRegistry: ComponentRegistryManager,
     colorMapping: ColorMapping,
-    typographyManager: TypographyManager
+    typographyManager: TypographyManager,
+    private cssVariableManager: CssVariableManager
   ) {
     this.componentManager = componentManager;
     this.componentRegistry = componentRegistry;
@@ -196,7 +197,8 @@ export class ThemeStyleManager {
       componentManager,
       componentRegistry,
       colorMapping,
-      typographyManager
+      typographyManager,
+      cssVariableManager
     });
   }
 
@@ -262,6 +264,231 @@ export class ThemeStyleManager {
     this.componentRegistry.registerTheme(theme);
 
     this.log("Theme registered: ${theme.config.name}");
+  }
+
+  /**
+   * Register just the color portion of a theme
+   * This is used when we have ThemeColors but not a full Theme object
+   */
+  registerThemeColors(themeName: ThemeName, themeColors: ThemeColors): void {
+    this.log(`Registering theme colors for: ${themeName}`, themeColors);
+
+    try {
+      // Create a minimal theme structure with just the colors
+      const minimalTheme: Theme = {
+        name: themeName,
+        colors: themeColors,
+        config: {
+          name: themeName,
+          mode: "light", // Default mode
+          useSystem: false // Add the required useSystem property
+        },
+        components: {}, // Empty components
+        // Add other required properties from the Theme interface with default values
+        spacing: {} as ThemeSpacing,
+        typography: {} as ThemeTypography,
+        borders: {} as ThemeBorders,
+        shadows: {} as ThemeShadows,
+        breakpoints: {} as ThemeBreakpoints,
+        transitions: {} as ThemeTransitions,
+        zIndex: {} as ThemeZIndex,
+        variables: {} as ThemeVariables
+      };
+
+      // Store the theme in our local map
+      this.themes.set(themeName, minimalTheme);
+
+      // Register color schemes with the color mapping system
+      if (themeColors.schemes) {
+        // Process each scheme (default, dark, etc.)
+        Object.entries(themeColors.schemes).forEach(([schemeName, scheme]) => {
+          // Process base colors with their shade maps
+          if (scheme.base) {
+            Object.entries(scheme.base).forEach(([colorName, colorShades]) => {
+              if (typeof colorShades === "object" && colorShades !== null) {
+                // Register each shade level
+                const shadeMap = colorShades as ShadeMap;
+                const shadeLevels: ShadeLevel[] = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
+
+                shadeLevels.forEach(level => {
+                  if (level in shadeMap) {
+                    const shade = shadeMap[level];
+                    if (shade) {
+                      // Register in our CSS variable manager
+                      const cssVarName = `--color-${colorName}-${level}`;
+                      this.cssVariableManager.setColorVariable(cssVarName, shade.hex);
+
+                      // Also register with color mapping for component use
+                      // Use the existing shade object directly if it's a complete ColorDefinition
+                      if (ColorUtils.isCompleteColorDefinition(shade)) {
+                        const mappingKey = `${schemeName}-${colorName}-${level}`;
+                        this.colorMapping.setColor(mappingKey, shade);
+                      } else {
+                        // Create a complete ColorDefinition if needed
+                        const colorDef = ColorUtils.ensureColorDefinition(shade);
+                        const mappingKey = `${schemeName}-${colorName}-${level}`;
+                        this.colorMapping.setColor(mappingKey, colorDef);
+                      }
+                    }
+                  }
+                });
+
+                // Register the base color if available
+                if ("base" in colorShades && typeof colorShades.base === "string") {
+                  const baseHex = colorShades.base;
+                  const cssVarName = `--color-${colorName}`;
+                  this.cssVariableManager.setColorVariable(cssVarName, baseHex);
+
+                  // Create a ColorDefinition for the base color
+                  const colorDef = ColorUtils.createColorDefinition(baseHex);
+                  const mappingKey = `${schemeName}-${colorName}`;
+                  this.colorMapping.setColor(mappingKey, colorDef);
+                }
+              }
+            });
+          }
+
+          // Process mode-specific colors (light/dark)
+          if (scheme.light) {
+            this.registerModeColors(scheme.light, "light", schemeName);
+          }
+
+          if (scheme.dark) {
+            this.registerModeColors(scheme.dark, "dark", schemeName);
+          }
+        });
+      }
+
+      // Process semantic colors
+      if (themeColors.semantic) {
+        this.registerSemanticColors(themeColors.semantic);
+      }
+
+      this.log(`Theme colors registered for: ${themeName}`);
+    } catch (error) {
+      this.log(`Error registering theme colors for ${themeName}`, error, true);
+    }
+  }
+
+  /**
+   * Register mode-specific colors (light/dark)
+   */
+  private registerModeColors(
+    modeColors: ModeColors,
+    mode: "light" | "dark",
+    schemeName: string
+  ): void {
+    // Register required mode colors
+    REQUIRED_MODE_COLORS.forEach(colorKey => {
+      const colorDef = modeColors[colorKey];
+      if (colorDef && "hex" in colorDef) {
+        // Register in CSS variable manager
+        const cssVarName = `--color-${mode}-${colorKey}`;
+        this.cssVariableManager.setColorVariable(cssVarName, colorDef.hex);
+
+        // Also register with color mapping - using string type directly
+        const mappingKey = `${schemeName}-${mode}-${colorKey}`;
+        this.colorMapping.setColor(mappingKey, colorDef);
+      }
+    });
+
+    // Register optional mode colors
+    Object.entries(modeColors).forEach(([colorKey, colorDef]) => {
+      // Skip required colors as we already processed them
+      if (REQUIRED_MODE_COLORS.includes(colorKey as RequiredModeColorKeys)) {
+        return;
+      }
+
+      if (colorDef && "hex" in colorDef) {
+        // Register in CSS variable manager
+        const cssVarName = `--color-${mode}-${colorKey}`;
+        this.cssVariableManager.setColorVariable(cssVarName, colorDef.hex);
+
+        // Also register with color mapping - using string type directly
+        const mappingKey = `${schemeName}-${mode}-${colorKey}`;
+        this.colorMapping.setColor(mappingKey, colorDef);
+      }
+    });
+  }
+
+  /**
+   * Register semantic colors
+   */
+  private registerSemanticColors(semanticColors: SemanticColors): void {
+    // Register required semantic colors
+    REQUIRED_SEMANTIC_COLORS.forEach(colorKey => {
+      const colorDef = semanticColors[colorKey];
+      if (colorDef && "hex" in colorDef) {
+        // Register in CSS variable manager
+        const cssVarName = `--color-${colorKey}`;
+        this.cssVariableManager.setColorVariable(cssVarName, colorDef.hex);
+
+        // Also register with color mapping - using string type directly
+        this.colorMapping.setColor(colorKey, colorDef);
+      }
+    });
+
+    // Register optional semantic colors
+    Object.entries(semanticColors).forEach(([colorKey, colorDef]) => {
+      // Skip required colors as we already processed them
+      if (REQUIRED_SEMANTIC_COLORS.includes(colorKey as RequiredSemanticColorKeys)) {
+        return;
+      }
+
+      if (colorDef && "hex" in colorDef) {
+        // Register in CSS variable manager
+        const cssVarName = `--color-${colorKey}`;
+        this.cssVariableManager.setColorVariable(cssVarName, colorDef.hex);
+
+        // Also register with color mapping - using string type directly
+        this.colorMapping.setColor(colorKey, colorDef);
+      }
+    });
+  }
+
+  /**
+   * Get a full Theme object from ThemeColors
+   * Used to reconstruct a Theme when only colors are available
+   */
+  getFullThemeFromColors(themeName: ThemeName, themeColors: ThemeColors): Theme | undefined {
+    this.log(`Attempting to get full theme from colors for: ${themeName}`);
+
+    try {
+      // Check if we already have this theme stored
+      const existingTheme = this.themes.get(themeName);
+      if (existingTheme) {
+        return existingTheme;
+      }
+
+      // Create a minimal theme with just the colors
+      const minimalTheme: Theme = {
+        name: themeName,
+        colors: themeColors,
+        config: {
+          name: themeName,
+          mode: "light", // Default mode
+          useSystem: false // Add the required useSystem property
+        },
+        components: {}, // Empty components
+        // Add other required properties from the Theme interface with default values
+        spacing: {} as ThemeSpacing,
+        typography: {} as ThemeTypography,
+        borders: {} as ThemeBorders,
+        shadows: {} as ThemeShadows,
+        breakpoints: {} as ThemeBreakpoints,
+        transitions: {} as ThemeTransitions,
+        zIndex: {} as ThemeZIndex,
+        variables: {} as ThemeVariables
+      };
+
+      // Store for future reference
+      this.themes.set(themeName, minimalTheme);
+
+      return minimalTheme;
+    } catch (error) {
+      this.log(`Error getting full theme from colors for ${themeName}`, error, true);
+      return undefined;
+    }
   }
 
   /**

@@ -4,6 +4,7 @@ import { createBaseMappingContext } from "@/theme/mappings";
 import { BaseMappingContext, BaseVariableMapping, ComputedColorSet, ComputedComponentSet, ComputedSemanticSet } from "./base-mappings";
 import { ColorDefinition, ColorShades } from "../core";
 import { ColorMappingConfig } from "./config";
+import ColorUtils from "@/theme/utils/color-utils";
 
   export class ColorMapping {
     private context: BaseMappingContext;
@@ -45,11 +46,40 @@ import { ColorMappingConfig } from "./config";
       return value ? this.parseColorDefinition(value) : undefined;
     }
 
-    // Color Shades Management
+    /**
+     * Sets multiple color shades for a base color name
+     * @param name The base color name
+     * @param shades Object containing shade numbers and color values
+     */
     setShades(name: string, shades: ColorShades): void {
       Object.entries(shades).forEach(([shade, color]) => {
-        const path = `${name}-${shade}`;
-        this.setColor(path, color);
+          if (color !== undefined) {
+              const path = `${name}-${shade}`;
+
+              try {
+                  // Convert the color to a proper ColorDefinition using ColorUtils
+                  let colorDef: ColorDefinition;
+
+                  if (typeof color === "string") {
+                      // Use ColorUtils to create a proper color definition from string
+                      colorDef = ColorUtils.createColorDefinition(color);
+                  } else if (Array.isArray(color)) {
+                      // Handle array format (assuming it"s RGB values like [r, g, b])
+                      const rgbString = `rgb(${color.join(", ")})`;
+                      colorDef = ColorUtils.createColorDefinition(
+                          ColorUtils.rgbToHex(rgbString)
+                      );
+                  } else {
+                      // It"s already a ColorDefinition object, but ensure it"s complete
+                      colorDef = ColorUtils.ensureColorDefinition(color as Partial<ColorDefinition>);
+                  }
+
+                  // Now we have a valid ColorDefinition to pass to setColor
+                  this.setColor(path, colorDef);
+              } catch (error) {
+                  console.warn(`Invalid color value for ${path}, skipping: ${error instanceof Error ? error.message : String(error)}`);
+              }
+          }
       });
     }
 
@@ -208,7 +238,7 @@ import { ColorMappingConfig } from "./config";
 
     private parseColorDefinition(value: ColorDefinition): ColorDefinition {
       // In a real implementation, this would parse a CSS string back to a ColorDefinition.
-      // For now, we'll assume the stored value is already a valid ColorDefinition.
+      // For now, we"ll assume the stored value is already a valid ColorDefinition.
       return value;
     }
 

@@ -6,41 +6,29 @@ import {
   ThemeName,
   ThemeMode,
   ThemeSchemeInitial,
-  ThemeScheme
+  ThemeScheme,
+  ThemeCacheConfig,
+  ThemeCacheEntry,
+  ThemeCacheSource,
+  IThemeCacheService
 } from "../types";
-import { THEME_CONSTANTS } from "../constants";
-import { themeValidationManager, transformTheme } from "../providers";
+import { themeValidationManager } from "../providers";
 import { LogManager } from "../managers/log-manager";
+import { ThemeTransformationManager } from "../managers/theme-transformation-manager";
+import { DEFAULT_MODE } from "../constants/tokens";
 
-export interface ThemeCacheConfig {
-  /** Duration in milliseconds for how long a theme should be cached */
-  cacheDuration: number;
-  /** Default theme mode to use when transforming themes */
-  defaultMode: ThemeMode;
-  /** Maximum number of themes to keep in cache */
-  maxCacheSize?: number;
-  /** Whether to log cache operations */
-  enableLogging?: boolean;
-}
 
-export interface ThemeCacheEntry {
-  /** The fully transformed theme data */
-  theme: ThemeColors;
-  /** Timestamp when the theme was cached */
-  timestamp: number;
-  /** Source of the theme */
-  source: "local" | "remote" | "default" | "registered";
-}
 
 /**
  * ThemeCacheService handles caching of transformed theme data.
  * It ensures that only fully transformed themes are stored in the cache.
  */
-export class ThemeCacheService {
+export class ThemeCacheService implements IThemeCacheService {
   private static instance: ThemeCacheService;
   private cache: Map<ThemeName, ThemeCacheEntry>;
   private config: ThemeCacheConfig;
   private readonly SERVICE_NAME = "ThemeCacheService";
+  private themeTransformationManager: ThemeTransformationManager;
 
   /**
    * Get the singleton instance of ThemeCacheService
@@ -61,10 +49,13 @@ export class ThemeCacheService {
     this.cache = new Map<ThemeName, ThemeCacheEntry>();
     this.config = {
       cacheDuration: config?.cacheDuration || 1000 * 60 * 5, // 5 minutes by default
-      defaultMode: config?.defaultMode || THEME_CONSTANTS.DEFAULTS.MODE,
+      defaultMode: config?.defaultMode || DEFAULT_MODE,
       maxCacheSize: config?.maxCacheSize || 10,
       enableLogging: config?.enableLogging !== undefined ? config.enableLogging : true
     };
+
+    // Initialize the transformation manager
+    this.themeTransformationManager = new ThemeTransformationManager();
   }
 
   /**
@@ -127,8 +118,8 @@ export class ThemeCacheService {
     const mode = this.config.defaultMode;
 
     if (this.isThemeSchemeInitial(input)) {
-      // For ThemeSchemeInitial, just pass it directly
-      return transformTheme(input, mode, semantic);
+      // For ThemeSchemeInitial, use the transformation manager
+      return this.themeTransformationManager.transformTheme(input, mode, semantic);
     } else {
       // For ThemeColors that need transformation
       if (!themeValidationManager.isFullyTransformed(input)) {
@@ -140,15 +131,8 @@ export class ThemeCacheService {
         // Use the type guard to safely access the mode property
         const inputMode = hasMode(input) ? input.mode : mode;
 
-        // Option 1: If transformTheme can handle ThemeColors directly
-        const asTransformable = <T>(value: unknown): T => value as T;
-
-        // Use the type assertion function with an explicit generic type
-        return transformTheme(
-          asTransformable<ThemeSchemeInitial>(input),
-          inputMode,
-          semantic
-        );
+        // Use the transformation manager to handle complex transformations
+        return this.themeTransformationManager.transformThemeColors(input, inputMode, semantic);
       } else {
         // Already transformed, just update semantic if needed
         if (semantic && semantic !== input.semantic) {
@@ -169,7 +153,7 @@ export class ThemeCacheService {
     name: ThemeName,
     themeData: ThemeColors | ThemeSchemeInitial,
     semantic?: SemanticColors,
-    source: "local" | "remote" | "default" | "registered" = "registered"
+    source: ThemeCacheSource = "registered"
   ): ThemeColors {
     const endLog = LogManager.log(this.SERVICE_NAME, `Setting theme: ${name}`, this.isLoggingEnabled(), { group: true });
 

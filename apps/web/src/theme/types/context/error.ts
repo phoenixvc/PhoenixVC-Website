@@ -1,5 +1,7 @@
 // theme/types/context/errors.ts
 
+import { ThemeValidationError } from "@/theme/validation";
+
 
 /**
  * Theme error codes indicating the type of error that occurred.
@@ -42,6 +44,6 @@ export interface BaseThemeEventPayload {
  * Error event payload for theme-related errors.
  */
 export interface ThemeErrorEventPayload extends BaseThemeEventPayload {
-  error: ThemeError;
+  error: ThemeValidationError;
   handled: boolean;
 }

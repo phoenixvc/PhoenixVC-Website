@@ -3,9 +3,9 @@ import { ComponentVariants, ComponentVariantType } from "../types/mappings/compo
 import { VariantResolver, VariantResolverConfig } from "./variant-resolver";
 import { VariantResolutionStrategy } from "./variant-resolution/variant-resolution-strategy";
 import { ComponentThemeRegistry, createComponentRegistry } from "./component-theme-registry";
-import { Theme } from "../core/theme";
 import { ColorDefinition } from "../types/core/colors";
 import ColorUtils from "../utils/color-utils";
+import { Theme } from "../types";
 
 export interface ComponentRegistryManagerConfig {
   variantResolver?: VariantResolver;

@@ -1,14 +1,12 @@
 // theme/types/context/context.ts
-
 import { ReactNode, createContext } from "react";
 import { ThemeChangeEvent, ThemeConfig, ThemeErrorFallback, ThemeErrorHandler, ThemeInitOptions } from "../core/config";
-import { ThemeName, ThemeMode } from "../core/base";
+import { ThemeName, ThemeMode, ThemeAcquisitionConfig, Theme } from "../core/base";
 import { CssVariableConfig, ThemeClassSuffix } from "../core";
 import { ExtendedThemeState, ThemeContextState } from "./state";
 import { TypographyScale } from "@/theme/mappings";
-import { Theme } from "@/theme/core/theme";
 import { ComponentThemeRegistry } from "@/theme/registry/component-theme-registry";
-import { ThemeAcquisitionConfig } from "@/theme/managers/theme-acquisition-manager";
+import { ThemeRegistry } from "@/theme/registry/theme-registry";
 
 /**
  * Additional provider configuration options specific to the context.
@@ -52,7 +50,12 @@ export interface ThemeProviderProps {
   storageKey?: string;
   /** Optional class name for the provider wrapper */
   className?: string;
-  initialRegistry : Partial<ComponentThemeRegistry>;
+
+  /** Component-specific theme registry */
+  componentRegistry?: Partial<ComponentThemeRegistry>;
+
+  /** Global theme registry */
+  themeRegistry?: Partial<ThemeRegistry>;
 }
 
 /**
@@ -110,6 +113,8 @@ export interface ThemeContextType {
 
   // Add component style support
   getComponentStyle?: (component: string, variant?: string, state?: string, mode?: string) => React.CSSProperties;
+  getThemeRegistry?: (component: string, variant?: string, state?: string, mode?: string) => ThemeRegistry;
+  getComponentRegistry?: (component: string, variant?: string, state?: string, mode?: string) => ComponentThemeRegistry;
 }
 
 /**

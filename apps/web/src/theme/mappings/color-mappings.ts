@@ -9,6 +9,7 @@ import { createBaseMappingContext, BaseVariableMapping } from "./base-mappings";
 import { BaseMappingContext } from "../types/mappings/base-mappings";
 import { ColorMappingConfig } from "../types/mappings/config";
 import { ComponentColorSet } from "../types";
+import ColorUtils from "../utils/color-utils";
 
 export class ColorMapping {
     private context: BaseMappingContext;
@@ -50,11 +51,40 @@ export class ColorMapping {
         return value ? this.parseColorDefinition(value) : undefined;
     }
 
-    // Color Shades Management
+    /**
+     * Sets multiple color shades for a base color name
+     * @param name The base color name
+     * @param shades Object containing shade numbers and color values
+     */
     setShades(name: string, shades: ColorShades): void {
         Object.entries(shades).forEach(([shade, color]) => {
-            const path = `${name}-${shade}`;
-            this.setColor(path, color);
+            if (color !== undefined) {
+                const path = `${name}-${shade}`;
+
+                try {
+                    // Convert the color to a proper ColorDefinition using ColorUtils
+                    let colorDef: ColorDefinition;
+
+                    if (typeof color === "string") {
+                        // Use ColorUtils to create a proper color definition from string
+                        colorDef = ColorUtils.createColorDefinition(color);
+                    } else if (Array.isArray(color)) {
+                        // Handle array format (assuming it"s RGB values like [r, g, b])
+                        const rgbString = `rgb(${color.join(", ")})`;
+                        colorDef = ColorUtils.createColorDefinition(
+                            ColorUtils.rgbToHex(rgbString)
+                        );
+                    } else {
+                        // It"s already a ColorDefinition object, but ensure it"s complete
+                        colorDef = ColorUtils.ensureColorDefinition(color as Partial<ColorDefinition>);
+                    }
+
+                    // Now we have a valid ColorDefinition to pass to setColor
+                    this.setColor(path, colorDef);
+                } catch (error) {
+                    console.warn(`Invalid color value for ${path}, skipping: ${error instanceof Error ? error.message : String(error)}`);
+                }
+            }
         });
     }
 
@@ -230,16 +260,16 @@ export class ColorMapping {
 
     //     // Default contrast colors
     //     const lightContrast: ColorDefinition = {
-    //         hex: '#FFFFFF',
-    //         rgb: 'rgb(255, 255, 255)',
-    //         hsl: 'hsl(0, 0%, 100%)',
+    //         hex: "#FFFFFF",
+    //         rgb: "rgb(255, 255, 255)",
+    //         hsl: "hsl(0, 0%, 100%)",
     //         alpha: 1
     //     };
 
     //     const darkContrast: ColorDefinition = {
-    //         hex: '#000000',
-    //         rgb: 'rgb(0, 0, 0)',
-    //         hsl: 'hsl(0, 0%, 0%)',
+    //         hex: "#000000",
+    //         rgb: "rgb(0, 0, 0)",
+    //         hsl: "hsl(0, 0%, 0%)",
     //         alpha: 1
     //     };
 
@@ -276,7 +306,7 @@ export class ColorMapping {
 
     // private getRGBComponents(color: ColorDefinition): number[] {
     //     // Extract RGB values from the color definition
-    //     // This is a simplified example - you'll need to implement proper color parsing
+    //     // This is a simplified example - you"ll need to implement proper color parsing
     //     const match = color.rgb.match(/\d+/g);
     //     if (match) {
     //         return match.map(Number);
@@ -316,7 +346,7 @@ export class ColorMapping {
     }
 
     adjustHue(color: ColorDefinition, degrees: number): ColorDefinition {
-        // Parse the HSL values from the color's hsl string
+        // Parse the HSL values from the color"s hsl string
         const hslMatch = color.hsl.match(/hsla?\((\d+),\s*(\d+)%,\s*(\d+)%(?:,\s*([\d.]+))?\)/);
         if (!hslMatch) {
             throw new Error("Invalid HSL color format");
@@ -453,7 +483,7 @@ export class ColorMapping {
     }
 
     adjustSaturation(color: ColorDefinition, amount: number): ColorDefinition {
-        // Parse the HSL values from the color's hsl string
+        // Parse the HSL values from the color"s hsl string
         const hslMatch = color.hsl.match(/hsla?\((\d+),\s*(\d+)%,\s*(\d+)%(?:,\s*([\d.]+))?\)/);
         if (!hslMatch) {
             throw new Error("Invalid HSL color format");
@@ -489,7 +519,7 @@ export class ColorMapping {
 
     // Alternative version that uses absolute saturation value instead of relative adjustment
     adjustSaturationAbsolute(color: ColorDefinition, saturation: number): ColorDefinition {
-        // Parse the HSL values from the color's hsl string
+        // Parse the HSL values from the color"s hsl string
         const hslMatch = color.hsl.match(/hsla?\((\d+),\s*(\d+)%,\s*(\d+)%(?:,\s*([\d.]+))?\)/);
         if (!hslMatch) {
             throw new Error("Invalid HSL color format");
