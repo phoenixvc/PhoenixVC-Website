@@ -54,7 +54,7 @@ const Header: FC<HeaderProps> = ({
   }, [scrolled]);
 
   return (
-    <header className={`${styles.header} ${scrolled ? styles.headerScrolled : ""}`}>
+    <header className={`${styles.header} ${scrolled ? styles.headerScrolled : ""} ${!isDarkMode ? styles.lightMode : ""}`}>
       <div className={styles.headerContainer}>
         <div className={styles.headerLeft}>
           {/* Only show menu button on mobile or when sidebar is not collapsed */}

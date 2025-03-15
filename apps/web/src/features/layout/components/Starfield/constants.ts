@@ -1,36 +1,44 @@
-// constants.ts
-import { EmployeeData, BlackHoleData } from "./types";
+// components/Layout/Starfield/constants.ts
+import { BlackHoleData, EmployeeData } from "./types";
 
+// Default employees data with more detailed information
 export const DEFAULT_EMPLOYEES: EmployeeData[] = [
-  {
-    id: "js",
-    name: "JS",
-    position: "Software Architect",
-    mass: 100,
-    color: "#60a5fa", // Blue
-    image: "https://via.placeholder.com/150/60a5fa/ffffff?text=JS",
-    fullName: "Jurie Smit"
-  },
-  {
-    id: "em",
-    name: "EM",
-    position: "CEO",
-    mass: 200,
-    color: "#f87171", // Red
-    image: "https://via.placeholder.com/150/f87171/ffffff?text=EM",
-    fullName: "Eben Mare",
-  },
-  {
-    id: "ym",
-    name: "YM",
-    position: "CTO",
-    mass: 100,
-    color: "#4ade80", // Green
-    image: "https://via.placeholder.com/150/4ade80/ffffff?text=YM",
-    fullName: "Yolandi Mare"
-  }
-];
+    {
+      id: "js",
+      name: "Jurie Smit",
+      initials: "JS",
+      position: "Software Architect",
+      mass: 300,
+      color: "#60a5fa", // Blue
+      image: "apps/web/public/themes/Jor.png",
+      fullName: "Jurie Smit",
+      speed: 0.0003
+    },
+    {
+      id: "em",
+      name: "Eben Mare",
+      initials: "EM",
+      position: "CEO",
+      mass: 300,
+      color: "#f87171", // Red
+      image: "apps/web/public/themes/Noster.png",
+      fullName: "Eben Mare",
+      speed: 0.0001,
+    },
+    {
+      id: "ym",
+      name: "Yolandi Mare",
+      initials: "YM",
+      position: "CTO",
+      mass: 150,
+      color: "#4ade80", // Green
+      image: "apps/web/public/themes/YolandE.png",
+      fullName: "Yolandi Mare",
+      speed: 0.00005
+    }
+  ];
 
+// Default black holes configuration
 export const DEFAULT_BLACK_HOLES: BlackHoleData[] = [
   {
     id: "main",
@@ -41,47 +49,67 @@ export const DEFAULT_BLACK_HOLES: BlackHoleData[] = [
   }
 ];
 
-// Color palettes based on selected scheme
-export const getColorPalette = (colorScheme: string) => {
-  switch (colorScheme) {
-    case "purple":
-      return [
-        "rgba(147, 51, 234, 0.9)",  // Purple
-        "rgba(168, 85, 247, 0.9)",  // Light purple
-        "rgba(139, 92, 246, 0.9)",  // Violet
-        "rgba(196, 181, 253, 0.9)", // Lavender
-        "rgba(255, 255, 255, 0.8)"  // White (for contrast)
-      ];
-    case "blue":
-      return [
-        "rgba(59, 130, 246, 0.9)",  // Blue
-        "rgba(96, 165, 250, 0.9)",  // Light blue
-        "rgba(37, 99, 235, 0.9)",   // Royal blue
-        "rgba(191, 219, 254, 0.9)", // Sky blue
-        "rgba(255, 255, 255, 0.8)"  // White (for contrast)
-      ];
-    case "multicolor":
-      return [
-        "rgba(239, 68, 68, 0.9)",   // Red
-        "rgba(249, 115, 22, 0.9)",  // Orange
-        "rgba(59, 130, 246, 0.9)",  // Blue
-        "rgba(16, 185, 129, 0.9)",  // Green
-        "rgba(147, 51, 234, 0.9)",  // Purple
-        "rgba(255, 255, 255, 0.8)"  // White (for contrast)
-      ];
-    case "white":
-      return [
-        "rgba(255, 255, 255, 0.9)",
-        "rgba(255, 255, 255, 0.8)",
-        "rgba(255, 255, 255, 0.7)",
-        "rgba(255, 255, 255, 0.6)",
-        "rgba(255, 255, 255, 1.0)"
-      ];
-    default:
-      return [
-        "rgba(255, 255, 255, 0.9)",
-        "rgba(255, 255, 255, 0.7)",
-        "rgba(255, 255, 255, 0.5)"
-      ];
+// Alternative black hole configurations for multiple black holes
+export const MULTIPLE_BLACK_HOLES: BlackHoleData[] = [
+  {
+    id: "main",
+    x: 0,
+    y: 0,
+    mass: 100,
+    particles: 30
+  },
+  {
+    id: "secondary",
+    x: 200,
+    y: -150,
+    mass: 50,
+    particles: 15
   }
+];
+
+// CSS module styles (to be imported from a separate file)
+export const STYLES = {
+  starfieldCanvas: "absolute top-0 left-0 w-full h-full z-0"
 };
+
+
+export const getColorPalette = (
+    colorScheme: string = "purple",
+    isDarkMode: boolean = true,
+    accentColor?: string
+  ): string[] => {
+    // If custom accent color is provided, create a palette based on it
+    if (accentColor) {
+      return [
+        accentColor,
+        `${accentColor}99`, // 60% opacity
+        `${accentColor}66`, // 40% opacity
+        isDarkMode ? "#ffffff" : "#000000"
+      ];
+    }
+
+    // Default color palettes
+    switch (colorScheme.toLowerCase()) {
+      case "blue":
+        return isDarkMode
+          ? ["#3b82f6", "#60a5fa", "#93c5fd", "#ffffff"] // Dark mode blue
+          : ["#1d4ed8", "#3b82f6", "#60a5fa", "#000000"]; // Light mode blue
+      case "green":
+        return isDarkMode
+          ? ["#10b981", "#34d399", "#6ee7b7", "#ffffff"] // Dark mode green
+          : ["#059669", "#10b981", "#34d399", "#000000"]; // Light mode green
+      case "amber":
+        return isDarkMode
+          ? ["#f59e0b", "#fbbf24", "#fcd34d", "#ffffff"] // Dark mode amber
+          : ["#d97706", "#f59e0b", "#fbbf24", "#000000"]; // Light mode amber
+      case "red":
+        return isDarkMode
+          ? ["#ef4444", "#f87171", "#fca5a5", "#ffffff"] // Dark mode red
+          : ["#dc2626", "#ef4444", "#f87171", "#000000"]; // Light mode red
+      case "purple":
+      default:
+        return isDarkMode
+          ? ["#9333ea", "#a855f7", "#c084fc", "#ffffff"] // Dark mode purple
+          : ["#7e22ce", "#9333ea", "#a855f7", "#000000"]; // Light mode purple
+    }
+  };

@@ -1,56 +1,69 @@
-// interfaces.ts
-export interface EmployeeData {
+// components/Layout/Starfield/types.ts
+
+export interface BlackHoleData {
     id: string;
-    name: string;
-    position: string;
+    x: number; // Percentage of screen width (0-1)
+    y: number; // Percentage of screen height (0-1)
     mass: number;
+    particles: number; // Number of particles to generate
+  }
+
+  export interface EmployeeSatellite {
+    angle: number;
+    distance: number;
+    speed: number;
+    size: number;
     color: string;
-    image?: string;
-    fullName?: string;
-    description?: string;
   }
 
-  export interface BlackHoleData {
-    id: string;
-    x: number; // 0-1 (percentage of screen width)
-    y: number; // 0-1 (percentage of screen height)
-    mass: number;
-    particles: number;
+  export interface Explosion {
+    x: number;
+    y: number;
+    radius: number;
+    maxRadius: number;
+    startTime: number;
+    duration: number;
   }
 
-  export interface InteractiveStarfieldProps {
-    // Core functionality toggles
-    enableFlowEffect: boolean;          // Toggle for the flow effect around content
-    enableBlackHole: boolean;           // Toggle for the black hole effect
-    enableMouseInteraction: boolean;    // Toggle for mouse interaction
-    enableEmployeeStars: boolean;       // Toggle for special employee stars
-
-    // Visual customization
-    starDensity: number;                // Controls number of stars (0.5-3.0, default 1.0)
-    colorScheme: "purple" | "blue" | "multicolor" | "white"; // Color scheme for stars
-    starSize: number;                   // Base size multiplier for stars (0.5-2.0, default 1.0)
-
-    // Layout configuration
-    sidebarWidth: number;               // Width of sidebar in pixels (for offset calculation)
-    centerOffsetX: number;              // Horizontal offset for the center point (0 = center of visible area)
-    centerOffsetY: number;              // Vertical offset for the center point (0 = center of visible area)
-
-    // Black hole customization
-    blackHoles?: BlackHoleData[];       // Multiple black holes configuration
-    blackHoleSize: number;              // Visual size multiplier for black holes (0.5-2.0, default 1.0)
-
-    // Physics customization
-    flowStrength: number;               // Strength of the flow effect (0.0-2.0, default 1.0)
-    gravitationalPull: number;          // Strength of gravitational effects (0.0-2.0, default 1.0)
-    particleSpeed: number;              // Speed of particle movement (0.5-2.0, default 1.0)
-
-    // Employee stars customization
-    employees?: EmployeeData[];         // List of employees to show as special stars
-    employeeStarSize: number;           // Size multiplier for employee stars (1.0-3.0, default 1.5)
-    employeeDisplayStyle: "initials" | "avatar" | "both"; // How to display employees
+  export interface HeroProps {
+    title?: string;
+    subtitle?: string;
+    primaryCta?: {
+      text: string;
+      url: string;
+    };
+    secondaryCta?: {
+      text: string;
+      url: string;
+    };
+    isLoading?: boolean;
   }
 
-  export interface Star {
+  // Container bounds for hero mode
+  export interface ContainerBounds {
+    left: number;
+    right: number;
+    top: number;
+    bottom: number;
+    width: number;
+    height: number;
+  }
+
+  // Hero starfield specific props
+  export interface HeroStarfieldProps {
+    containerRef?: React.RefObject<HTMLDivElement>;
+    colorScheme?: string;
+    starDensity?: number;
+    starSize?: number;
+    lineConnectionDistance?: number;
+    lineOpacity?: number;
+    mouseEffectRadius?: number;
+    mouseEffectColor?: string;
+    isDarkMode?: boolean;
+  }
+
+  // components/Layout/Starfield/types.ts
+export interface Star {
     x: number;
     y: number;
     size: number;
@@ -59,24 +72,10 @@ export interface EmployeeData {
     vy: number;
     originalX: number;
     originalY: number;
-  }
-
-  export interface EmployeeStar {
-    employee: EmployeeData;
-    x: number;
-    y: number;
-    angle: number;
-    orbitRadius: number;
-    orbitSpeed: number;
-    orbitCenterX: number;
-    orbitCenterY: number;
-    satellites: {
-      angle: number;
-      distance: number;
-      speed: number;
-      size: number;
-      color: string;
-    }[];
+    mass: number;
+    speed: number;
+    targetVx?: number;
+    targetVy?: number;
   }
 
   export interface BlackHole {
@@ -84,8 +83,72 @@ export interface EmployeeData {
     x: number;
     y: number;
     mass: number;
-    particles: OrbitingParticle[];
+    radius: number; // Size of the black hole (used in drawing)
+    particles: BlackHoleParticle[];
+    active?: boolean; // Optional property from your original type
+  }
+
+  export interface BlackHoleParticle {
+    x: number;
+    y: number;
     size: number;
+    angle: number;
+    distance: number;
+    speed: number;
+    color: string;
+    alpha?: number; // Optional property from your original type
+  }
+
+  export interface EmployeeData {
+    id: string;
+    name: string;
+    fullName?: string;
+    initials: string;
+    position: string;
+    image?: string;
+    color: string;
+    mass: number;
+    speed: number;
+    x?: number;
+    y?: number;
+  }
+
+  export interface EmployeeStar {
+    employee: EmployeeData;
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    angle: number;
+    rotationSpeed: number;
+    orbitRadius: number;
+    orbitSpeed: number;
+    orbitCenter: {
+      x: number;
+      y: number;
+    };
+    satellites: Satellite[];
+    // New properties
+    orbitalDirection: "clockwise" | "counterclockwise";
+    pathType: "comet" | "satellite" | "planet" | "asteroid" | "star" | "binary";
+    pathEccentricity: number; // 0-1 value where 0 is perfect circle, 1 is extremely elliptical
+    pathTilt: number; // Angle in degrees for the tilt of the orbital plane
+    trailLength?: number; // For comet-like objects with visible trails
+    glowIntensity?: number; // For stars or other glowing objects
+    pulsation?: {
+      enabled: boolean;
+      speed: number;
+      minScale: number;
+      maxScale: number;
+    };
+  }
+
+  export interface Satellite {
+    angle: number;
+    distance: number;
+    speed: number;
+    size: number;
+    color: string;
   }
 
   export interface MousePosition {
@@ -100,28 +163,20 @@ export interface EmployeeData {
     isOnScreen: boolean;
   }
 
-  export interface Explosion {
-    x: number;
-    y: number;
-    radius: number;
-    maxRadius: number;
-    startTime: number;
-    duration: number;
-  }
-
-  export interface OrbitingParticle {
-    x: number;
-    y: number;
-    angle: number;
-    speed: number;
-    distance: number;
-    size: number;
-    color: string;
-  }
-
   export interface HoverInfo {
-    employee: EmployeeData | null;
+    employee: EmployeeData | null; // Allow null for employee
     x: number;
     y: number;
     show: boolean;
   }
+
+  export interface CenterPosition {
+    x: number;
+    y: number;
+  }
+
+// Theme options
+export type ThemeMode = "light" | "dark" | "auto";
+
+// Color schemes
+export type ColorScheme = "purple" | "blue" | "green" | "amber" | "red" | string;

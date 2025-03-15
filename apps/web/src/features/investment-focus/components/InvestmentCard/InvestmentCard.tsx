@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { FocusArea } from "../../types";
 import { investmentFocusAnimations } from "../../animations/animations";
 import styles from "./InvestmentCard.module.css";
+import starfieldStyles from "../../../../features/layout/components/Starfield/starfield.module.css";
 
 interface InvestmentCardProps {
   area: FocusArea;
@@ -14,7 +15,7 @@ export const InvestmentCard: React.FC<InvestmentCardProps> = ({ area, index }) =
       key={index}
       variants={investmentFocusAnimations.card}
       whileHover="hover"
-      className={styles.card}
+      className={styles.card && starfieldStyles.focusAreaCard}
     >
       <motion.div
         className={styles.icon}

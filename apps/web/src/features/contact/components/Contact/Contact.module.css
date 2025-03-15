@@ -1,15 +1,61 @@
 .section {
-  padding: 5rem 1.5rem;
+  padding: 6rem 1.5rem;
   min-height: 100vh;
   display: flex;
   align-items: center;
   background: linear-gradient(
     145deg,
     hsl(var(--background)) 0%,
-    hsl(var(--muted) / 0.15) 100%
+    hsl(var(--muted) / 0.2) 100%
   );
   position: relative;
   overflow: hidden;
+}
+
+/* Light mode section */
+:root:not(.dark) .section {
+  background: linear-gradient(
+    145deg,
+    hsl(var(--background)) 0%,
+    hsl(var(--muted) / 0.1) 100%
+  );
+}
+
+/* Dark mode section */
+.dark .section {
+  background: linear-gradient(
+    145deg,
+    hsl(var(--background)) 0%,
+    hsl(var(--muted) / 0.3) 100%
+  );
+}
+
+/* Add subtle pattern to section */
+.section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: radial-gradient(
+    circle at 25px 25px,
+    hsl(var(--muted) / 0.15) 2px,
+    transparent 0
+  );
+  background-size: 50px 50px;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Light mode pattern */
+:root:not(.dark) .section::before {
+  opacity: 0.3;
+}
+
+/* Dark mode pattern */
+.dark .section::before {
+  opacity: 0.2;
 }
 
 .container {
@@ -18,16 +64,11 @@
   padding: 0 1.5rem;
   position: relative;
   z-index: 1;
+  width: 100%;
 }
 
 .content {
-  max-width: 48rem;
+  max-width: 50rem;
   margin: 0 auto;
   text-align: center;
-}
-
-.error {
-  margin-bottom: 1.5rem;
-  color: hsl(var(--destructive));
-  font-size: 0.9rem;
 }

@@ -1,10 +1,12 @@
 // components/Layout/Starfield/InteractiveStarfield.tsx
-import React, { useRef, useEffect, useState } from "react";
-import { Star, BlackHole, EmployeeStar, Explosion, MousePosition, BlackHoleData, EmployeeData } from "./types";
-import { drawStar, drawBlackHole, drawEmployeeStar, drawExplosions, updateStar } from "./renderer";
-import { initBlackHoles, initEmployeeStars } from "./utils";
-import { DEFAULT_BLACK_HOLES, DEFAULT_EMPLOYEES, getColorPalette } from "./constants";
-import styles from "./interactiveStarfield.module.css";
+import { useRef, useEffect, useState, FC } from "react";
+import styles from "./starfield.module.css";
+import { initBlackHoles, drawBlackHole } from "./blackHoles";
+import { initEmployeeStars, updateEmployeeStars, checkEmployeeHover } from "./employeeStars";
+import { DEFAULT_BLACK_HOLES, DEFAULT_EMPLOYEES } from "./constants";
+import { EmployeeData, HoverInfo, MousePosition, Star, BlackHole, EmployeeStar } from "./types";
+import EmployeeTooltip from "./employeeTooltip";
+import { drawConnections, drawStars, initStars, updateStarPositions } from "./stars";
 
 interface InteractiveStarfieldProps {
   enableFlowEffect?: boolean;
@@ -17,48 +19,62 @@ interface InteractiveStarfieldProps {
   sidebarWidth?: number;
   centerOffsetX?: number;
   centerOffsetY?: number;
-  blackHoles?: BlackHoleData[];
-  blackHoleSize?: number;
   flowStrength?: number;
   gravitationalPull?: number;
   particleSpeed?: number;
-  employees?: EmployeeData[];
   employeeStarSize?: number;
   employeeDisplayStyle?: "initials" | "avatar" | "both";
+  blackHoleSize?: number;
+  heroMode?: boolean;
+  containerRef?: React.RefObject<HTMLDivElement>;
+  lineConnectionDistance?: number;
+  lineOpacity?: number;
+  mouseEffectRadius?: number;
+  mouseEffectColor?: string;
+  initialMousePosition?: { x: number; y: number; isActive: boolean };
   isDarkMode?: boolean;
-  isCollapsed?: boolean;
 }
 
-const InteractiveStarfield: React.FC<InteractiveStarfieldProps> = ({
-  enableFlowEffect = true,
+const InteractiveStarfield: FC<InteractiveStarfieldProps> = ({
+  enableFlowEffect = false,
   enableBlackHole = true,
   enableMouseInteraction = true,
   enableEmployeeStars = true,
-  starDensity = 0.8,
-  colorScheme = "purple",
+  starDensity = 1.0,
+  colorScheme = "white",
   starSize = 1.0,
-  sidebarWidth: propSidebarWidth,
+  sidebarWidth = 0,
   centerOffsetX = 0,
   centerOffsetY = 0,
-  blackHoles = DEFAULT_BLACK_HOLES,
-  blackHoleSize = 1.0,
   flowStrength = 1.0,
   gravitationalPull = 1.0,
   particleSpeed = 1.0,
-  employees = DEFAULT_EMPLOYEES,
   employeeStarSize = 1.0,
   employeeDisplayStyle = "initials",
-  isDarkMode = true,
-  isCollapsed = false
+  blackHoleSize = 1.0,
+  heroMode = false,
+  containerRef = null,
+  lineConnectionDistance = 150,
+  lineOpacity = 0.15,
+  mouseEffectRadius = 150,
+  mouseEffectColor = "rgba(255, 255, 255, 0.1)",
+  initialMousePosition = null,
+  isDarkMode = false
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number>(0);
-  const starsRef = useRef<Star[]>([]);
-  const blackHolesRef = useRef<BlackHole[]>([]);
-  const employeeStarsRef = useRef<EmployeeStar[]>([]);
-  const explosionsRef = useRef<Explosion[]>([]);
   const lastTimeRef = useRef<number>(0);
-  const mouseRef = useRef<MousePosition>({
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [containerBounds, setContainerBounds] = useState({ left: 0, right: 0, top: 0, bottom: 0, width: 0, height: 0 });
+  const [centerPosition, setCenterPosition] = useState({ x: 0, y: 0 });
+
+  // State for animation elements
+  const [stars, setStars] = useState<Star[]>([]);
+  const [blackHoles, setBlackHoles] = useState<BlackHole[]>([]);
+  const [employeeStars, setEmployeeStars] = useState<EmployeeStar[]>([]);
+
+  // Mouse interaction state
+  const [mousePosition, setMousePosition] = useState<MousePosition>({
     x: 0,
     y: 0,
     lastX: 0,
@@ -70,179 +86,69 @@ const InteractiveStarfield: React.FC<InteractiveStarfieldProps> = ({
     isOnScreen: false
   });
 
-  // Calculate sidebar width based on props and layout state
-  const [effectiveSidebarWidth, setEffectiveSidebarWidth] = useState(propSidebarWidth || 0);
+  // Employee hover state
+  const [hoverInfo, setHoverInfo] = useState<HoverInfo>({
+    employee: null,
+    x: 0,
+    y: 0,
+    show: false
+  });
 
-  // Update sidebar width when the sidebar state changes
+  // Set up canvas and initialize elements
   useEffect(() => {
-    // If sidebar width is provided as a prop, use that
-    if (propSidebarWidth !== undefined) {
-      setEffectiveSidebarWidth(propSidebarWidth);
-    } else {
-      // Otherwise, calculate based on collapsed state
-      // These values should match your layout"s sidebar widths
-      setEffectiveSidebarWidth(isCollapsed ? 60 : 220);
-    }
-  }, [propSidebarWidth, isCollapsed]);
-
-  // Initialize stars
-  const initStars = (canvas: HTMLCanvasElement) => {
-    const stars: Star[] = [];
-    const colors = getColorPalette(colorScheme);
-
-    // Calculate number of stars based on canvas size and density
-    const starCount = Math.floor((canvas.width * canvas.height) / 10000 * starDensity);
-
-    for (let i = 0; i < starCount; i++) {
-      const x = Math.random() * canvas.width;
-      const y = Math.random() * canvas.height;
-      const size = (0.5 + Math.random() * 1.5) * starSize;
-      const color = colors[Math.floor(Math.random() * colors.length)];
-
-      stars.push({
-        x,
-        y,
-        size,
-        color,
-        vx: 0,
-        vy: 0,
-        originalX: x,
-        originalY: y
-      });
-    }
-
-    return stars;
-  };
-
-  // Handle mouse movement
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!canvasRef.current) return;
-
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    mouseRef.current.lastX = mouseRef.current.x;
-    mouseRef.current.lastY = mouseRef.current.y;
-    mouseRef.current.x = x;
-    mouseRef.current.y = y;
-    mouseRef.current.speedX = x - mouseRef.current.lastX;
-    mouseRef.current.speedY = y - mouseRef.current.lastY;
-    mouseRef.current.isOnScreen = true;
-  };
-
-  // Handle mouse leave
-  const handleMouseLeave = () => {
-    mouseRef.current.isOnScreen = false;
-  };
-
-  // Handle mouse click
-  const handleMouseClick = (e: MouseEvent) => {
-    if (!canvasRef.current) return;
-
-    mouseRef.current.isClicked = true;
-    mouseRef.current.clickTime = performance.now();
-
-    // Create explosion at click point
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    explosionsRef.current.push({
-      x,
-      y,
-      radius: 0,
-      maxRadius: 50,
-      startTime: performance.now(),
-      duration: 1000
-    });
-  };
-
-  // Animation loop
-  const animate = (now: number) => {
-    if (!canvasRef.current) return;
-
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
+    if (!canvas) return;
 
-    if (!ctx) return;
+    const handleResize = () => {
+      const { innerWidth: width, innerHeight: height } = window;
+      canvas.width = width;
+      canvas.height = height;
+      setDimensions({ width, height });
 
-    // Calculate delta time
-    const deltaTime = now - lastTimeRef.current;
-    lastTimeRef.current = now;
+      // Update container bounds if in hero mode
+      if (heroMode && containerRef?.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        setContainerBounds({
+          left: rect.left,
+          right: rect.right,
+          top: rect.top,
+          bottom: rect.bottom,
+          width: rect.width,
+          height: rect.height
+        });
+        setCenterPosition({
+          x: rect.left + rect.width / 2,
+          y: rect.top + rect.height / 2
+        });
+      }
 
-    // Clear canvas with a slight fade effect for trails
-    ctx.fillStyle = isDarkMode ? "rgba(10, 10, 20, 0.1)" : "rgba(240, 240, 250, 0.1)";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Reinitialize all elements with new dimensions
+      initializeElements(width, height);
+    };
 
-    // Update and draw stars
-    starsRef.current = starsRef.current.map(star =>
-      updateStar(
-        star,
-        canvas,
-        blackHolesRef.current,
-        employeeStarsRef.current,
-        mouseRef.current,
-        enableBlackHole,
-        enableEmployeeStars,
-        enableFlowEffect,
-        enableMouseInteraction,
-        gravitationalPull,
-        flowStrength,
-        particleSpeed,
-        effectiveSidebarWidth,
+    // Initialize elements
+    const initializeElements = (width: number, height: number) => {
+      // Initialize stars
+      const starCount = Math.floor(width * height * 0.00015 * starDensity);
+      const newStars = initStars(
+        width,
+        height,
+        starCount,
+        sidebarWidth,
         centerOffsetX,
-        centerOffsetY
-      )
-    );
-
-    starsRef.current.forEach(star => drawStar(ctx, star));
-
-    // Update and draw black holes
-    if (enableBlackHole) {
-      blackHolesRef.current.forEach(blackHole =>
-        drawBlackHole(ctx, blackHole, deltaTime, particleSpeed)
+        centerOffsetY,
+        starSize,
+        colorScheme
       );
-    }
+      setStars(newStars);
 
-    // Update and draw employee stars
-    if (enableEmployeeStars) {
-      employeeStarsRef.current.forEach(empStar =>
-        drawEmployeeStar(ctx, empStar, deltaTime, employeeStarSize, employeeDisplayStyle)
-      );
-    }
-
-    // Update and draw explosions
-    explosionsRef.current = drawExplosions(ctx, explosionsRef.current, now);
-
-    // Request next frame
-    animationRef.current = requestAnimationFrame(animate);
-  };
-
-  // Initialize canvas and start animation
-  useEffect(() => {
-    if (!canvasRef.current) return;
-
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-
-    if (!ctx) return;
-
-    // Set canvas size to match window
-    const resizeCanvas = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-
-      // Reinitialize stars when canvas is resized
-      starsRef.current = initStars(canvas);
-
-      // Reinitialize black holes
-      blackHolesRef.current = initBlackHoles(
-        canvas.width,
-        canvas.height,
+      // Initialize black holes
+      const newBlackHoles = initBlackHoles(
+        width,
+        height,
         enableBlackHole,
-        blackHoles,
-        effectiveSidebarWidth,
+        DEFAULT_BLACK_HOLES,
+        sidebarWidth,
         centerOffsetX,
         centerOffsetY,
         blackHoleSize,
@@ -250,60 +156,275 @@ const InteractiveStarfield: React.FC<InteractiveStarfieldProps> = ({
         colorScheme,
         starSize
       );
+      setBlackHoles(newBlackHoles);
 
-      // Reinitialize employee stars
-      employeeStarsRef.current = initEmployeeStars(
-        canvas.width,
-        canvas.height,
+      // Initialize employee stars
+      const newEmployeeStars = initEmployeeStars(
+        width,
+        height,
         enableEmployeeStars,
-        employees,
-        effectiveSidebarWidth,
+        DEFAULT_EMPLOYEES,
+        sidebarWidth,
         centerOffsetX,
         centerOffsetY,
         employeeStarSize
       );
+      setEmployeeStars(newEmployeeStars);
+    };
+
+    // Handle mouse events
+    const handleMouseMove = (e: MouseEvent) => {
+      const { clientX, clientY } = e;
+      setMousePosition(prev => {
+        const speedX = clientX - prev.x;
+        const speedY = clientY - prev.y;
+        return {
+          x: clientX,
+          y: clientY,
+          lastX: prev.x,
+          lastY: prev.y,
+          speedX,
+          speedY,
+          isClicked: prev.isClicked,
+          clickTime: prev.clickTime,
+          isOnScreen: true
+        };
+      });
+    };
+
+    const handleMouseDown = () => {
+      setMousePosition(prev => ({
+        ...prev,
+        isClicked: true,
+        clickTime: Date.now()
+      }));
+    };
+
+    const handleMouseUp = () => {
+      setMousePosition(prev => ({
+        ...prev,
+        isClicked: false
+      }));
+    };
+
+    const handleMouseLeave = () => {
+      setMousePosition(prev => ({
+        ...prev,
+        isOnScreen: false
+      }));
     };
 
     // Initial setup
-    resizeCanvas();
+    handleResize();
 
     // Add event listeners
-    window.addEventListener("resize", resizeCanvas);
-    canvas.addEventListener("mousemove", handleMouseMove);
-    canvas.addEventListener("mouseleave", handleMouseLeave);
-    canvas.addEventListener("click", handleMouseClick);
+    window.addEventListener("resize", handleResize);
 
-    // Start animation
-    lastTimeRef.current = performance.now();
-    animationRef.current = requestAnimationFrame(animate);
+    if (enableMouseInteraction) {
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mousedown", handleMouseDown);
+      window.addEventListener("mouseup", handleMouseUp);
+      window.addEventListener("mouseleave", handleMouseLeave);
+    }
 
     // Cleanup
     return () => {
-      window.removeEventListener("resize", resizeCanvas);
-      canvas.removeEventListener("mousemove", handleMouseMove);
-      canvas.removeEventListener("mouseleave", handleMouseLeave);
-      canvas.removeEventListener("click", handleMouseClick);
+      window.removeEventListener("resize", handleResize);
+
+      if (enableMouseInteraction) {
+        window.removeEventListener("mousemove", handleMouseMove);
+        window.removeEventListener("mousedown", handleMouseDown);
+        window.removeEventListener("mouseup", handleMouseUp);
+        window.removeEventListener("mouseleave", handleMouseLeave);
+      }
+
       cancelAnimationFrame(animationRef.current);
     };
   }, [
     enableBlackHole,
     enableEmployeeStars,
-    blackHoles,
-    employees,
+    enableMouseInteraction,
     starDensity,
     colorScheme,
     starSize,
+    sidebarWidth,
+    centerOffsetX,
+    centerOffsetY,
     blackHoleSize,
+    particleSpeed,
+    employeeStarSize,
+    heroMode,
+    containerRef
+  ]);
+
+  // Apply initial mouse position if provided
+  useEffect(() => {
+    if (initialMousePosition && initialMousePosition.isActive) {
+      setMousePosition(prev => ({
+        ...prev,
+        x: initialMousePosition.x,
+        y: initialMousePosition.y,
+        lastX: initialMousePosition.x,
+        lastY: initialMousePosition.y,
+        isOnScreen: true
+      }));
+    }
+  }, [initialMousePosition]);
+
+  // Animation loop
+  useEffect(() => {
+    if (!canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const animate = (timestamp: number) => {
+      if (!lastTimeRef.current) lastTimeRef.current = timestamp;
+      const deltaTime = timestamp - lastTimeRef.current;
+      lastTimeRef.current = timestamp;
+
+      // Clear canvas
+      ctx.clearRect(0, 0, dimensions.width, dimensions.height);
+
+      // Check for employee hover if enabled
+      if (enableEmployeeStars && enableMouseInteraction) {
+        checkEmployeeHover(
+          mousePosition.x,
+          mousePosition.y,
+          employeeStars,
+          employeeStarSize,
+          hoverInfo,
+          setHoverInfo
+        );
+      }
+
+      // Draw connections between stars (network effect) if in hero mode
+      if (heroMode) {
+        drawConnections(
+          ctx,
+          stars,
+          lineConnectionDistance,
+          lineOpacity,
+          colorScheme
+        );
+      }
+
+      // Update and draw stars
+      updateStarPositions(
+        stars,
+        dimensions.width,
+        dimensions.height,
+        deltaTime,
+        enableFlowEffect,
+        flowStrength,
+        mousePosition,
+        enableMouseInteraction,
+        blackHoles,
+        gravitationalPull,
+        heroMode,
+        centerPosition,
+        mouseEffectRadius
+      );
+
+      drawStars(ctx, stars);
+
+      // Draw black holes if enabled
+      if (enableBlackHole) {
+        blackHoles.forEach(blackHole => {
+          drawBlackHole(ctx, blackHole, deltaTime, particleSpeed);
+        });
+      }
+
+      // Draw employee stars if enabled
+      if (enableEmployeeStars) {
+        updateEmployeeStars(
+          ctx,
+          employeeStars,
+          deltaTime,
+          employeeStarSize,
+          employeeDisplayStyle
+        );
+      }
+
+      // Draw mouse effect if mouse is on screen and interaction is enabled
+      if (enableMouseInteraction && mousePosition.isOnScreen) {
+        // Draw mouse effect (glowing circle)
+        const gradient = ctx.createRadialGradient(
+          mousePosition.x,
+          mousePosition.y,
+          0,
+          mousePosition.x,
+          mousePosition.y,
+          mouseEffectRadius
+        );
+
+        gradient.addColorStop(0, mouseEffectColor);
+        gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+
+        ctx.beginPath();
+        ctx.arc(mousePosition.x, mousePosition.y, mouseEffectRadius, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+      }
+
+      animationRef.current = requestAnimationFrame(animate);
+    };
+
+    animationRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      cancelAnimationFrame(animationRef.current);
+    };
+  }, [
+    dimensions,
+    stars,
+    blackHoles,
+    employeeStars,
+    mousePosition,
+    enableFlowEffect,
+    enableBlackHole,
+    enableMouseInteraction,
+    enableEmployeeStars,
+    flowStrength,
+    gravitationalPull,
+    particleSpeed,
     employeeStarSize,
     employeeDisplayStyle,
-    effectiveSidebarWidth
+    heroMode,
+    centerPosition,
+    hoverInfo,
+    colorScheme,
+    lineConnectionDistance,
+    lineOpacity,
+    mouseEffectRadius,
+    mouseEffectColor
   ]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      className={styles.starfieldCanvas}
-    />
+    <>
+      {/* Base starfield background with CSS-based stars */}
+      <div className={`${styles.starfieldBackground} ${!isDarkMode ? styles.lightThemeStarfield : ""}`}></div>
+
+      {/* Nebula overlay */}
+      <div className={`${styles.nebulaOverlay} ${!isDarkMode ? styles.lightThemeNebula : ""}`}></div>
+
+      {/* Phoenix accent */}
+      <div className={`${styles.phoenixAccent} ${!isDarkMode ? styles.lightThemePhoenix : ""}`}></div>
+      <canvas
+        ref={canvasRef}
+        className={styles.starfieldCanvas}
+        aria-hidden="true"
+      />
+
+      {hoverInfo.show && hoverInfo.employee && (
+        <EmployeeTooltip
+          employee={hoverInfo.employee}
+          x={hoverInfo.x}
+          y={hoverInfo.y}
+        />
+      )}
+    </>
   );
 };
 

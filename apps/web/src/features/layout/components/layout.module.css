@@ -28,10 +28,11 @@
 }
 
 .mainContent {
-  flex-grow: 1;
+  flex: 1;
   padding: 20px;
+  width: 100%;
   position: relative;
-  z-index: 1; /* Above the starfield */
+  z-index: 1;
 }
 
 .sidebarOverlay {
@@ -41,15 +42,16 @@
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
-  z-index: 9; /* Below sidebar but above other content */
+  z-index: 10;
   opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .sidebarOverlay.visible {
   opacity: 1;
   pointer-events: all;
+  visibility: visible;
 }
 
 /* Mobile toggle buttons */
@@ -75,6 +77,16 @@
   border: none;
   cursor: pointer;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.darkMode {
+  background-color: #13151a;
+  color: #ffffff;
+}
+
+.lightMode {
+  background-color: #f8f9fa;
+  color: #333333;
 }
 
 /* Only show on mobile */

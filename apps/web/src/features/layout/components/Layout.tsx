@@ -6,6 +6,7 @@ import { Menu, Sun, Moon } from "lucide-react";
 import { Sidebar } from "@/features/sidebar/components/Sidebar";
 import Header from "./Header/Header";
 import InteractiveStarfield from "./Starfield/InteractiveStarfield";
+import starfieldStyles from "./Starfield/interactiveStarfield.module.css";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -18,7 +19,7 @@ const Layout = ({ children }: LayoutProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(220);
 
-  // Check if we're on mobile on mount and when window resizes
+  // Check if we"re on mobile on mount and when window resizes
   useEffect(() => {
     const checkIfMobile = () => {
       const mobile = window.innerWidth < 768;
@@ -81,24 +82,13 @@ const Layout = ({ children }: LayoutProps) => {
 
   return (
     <div className={`${styles.layoutWrapper} ${isDarkMode ? styles.darkMode : styles.lightMode}`}>
-      {/* Add the interactive starfield with proper props */}
+      {/* Interactive starfield background */}
       <InteractiveStarfield
-        enableFlowEffect={true}
-        enableBlackHole={true}
-        enableMouseInteraction={true}
-        enableEmployeeStars={false} // Disable employee stars for a cleaner look
-        starDensity={isDarkMode ? 0.8 : 0.5} // Fewer stars in light mode
-        colorScheme={isDarkMode ? "purple" : "grayscale"}
-        starSize={0.8}
         sidebarWidth={sidebarWidth}
-        blackHoleSize={0.8}
-        flowStrength={1.0}
-        gravitationalPull={1.0}
-        particleSpeed={0.8}
-        isDarkMode={isDarkMode}
-        isCollapsed={isCollapsed}
+        isDarkMode={isDarkMode} // Pass the isDarkMode prop
       />
 
+      {/* Sidebar component */}
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => isMobile && setIsSidebarOpen(false)}
@@ -110,6 +100,7 @@ const Layout = ({ children }: LayoutProps) => {
         mode={isDarkMode ? "dark" : "light"}
       />
 
+      {/* Mobile overlay */}
       {isMobile && isSidebarOpen && (
         <div
           className={`${styles.sidebarOverlay} ${isSidebarOpen ? styles.visible : ""}`}
@@ -117,18 +108,18 @@ const Layout = ({ children }: LayoutProps) => {
         />
       )}
 
+      {/* Main content area */}
       <div
         className={styles.contentWrapper}
         style={{
-          width: isMobile ? "100%" : "100%", // Always 100% width
-          marginLeft: isMobile ? "0" : (isCollapsed ? "60px" : "220px"), // Adjust margin based on sidebar state
+          marginLeft: isMobile ? 0 : (isSidebarOpen ? (isCollapsed ? "60px" : "220px") : 0)
         }}
       >
         <Header
           onMenuClick={toggleSidebar}
           isDarkMode={isDarkMode}
           onThemeToggle={toggleTheme}
-          isSidebarCollapsed={isCollapsed} // Pass the collapsed state
+          isSidebarCollapsed={isCollapsed}
         />
 
         <main className={styles.mainContent}>

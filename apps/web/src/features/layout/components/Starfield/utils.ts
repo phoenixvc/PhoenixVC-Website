@@ -1,8 +1,7 @@
-// utils.ts
-import { BlackHole, EmployeeStar, OrbitingParticle, BlackHoleData, EmployeeData } from "./types";
-import { getColorPalette } from "./constants";
+// components/Layout/Starfield/utils.ts
+import { distance as calculateDistance } from "./math";
 
-// Calculate the effective center point accounting for sidebar and offsets
+// Calculate center point based on canvas dimensions and offsets
 export const calculateCenter = (
   width: number,
   height: number,
@@ -10,145 +9,65 @@ export const calculateCenter = (
   centerOffsetX: number,
   centerOffsetY: number
 ) => {
-  // Adjust for sidebar by shifting center to the right
-  const effectiveWidth = width - sidebarWidth;
-  const centerX = sidebarWidth + (effectiveWidth / 2) + centerOffsetX;
+  const centerX = (width + sidebarWidth) / 2 + centerOffsetX;
   const centerY = height / 2 + centerOffsetY;
-
   return { centerX, centerY };
 };
 
-// Initialize black holes
-export const initBlackHoles = (
-  width: number,
-  height: number,
-  enableBlackHole: boolean,
-  blackHoles: BlackHoleData[],
-  sidebarWidth: number,
-  centerOffsetX: number,
-  centerOffsetY: number,
-  blackHoleSize: number,
-  particleSpeed: number,
-  colorScheme: string,
-  starSize: number
-): BlackHole[] => {
-  if (!enableBlackHole) return [];
-
-  const initializedBlackHoles: BlackHole[] = [];
-
-  blackHoles.forEach(blackHoleData => {
-    // Calculate position based on screen dimensions and adjusted center
-    // Use the effective width (total width - sidebar)
-    const effectiveWidth = width - sidebarWidth;
-
-    // Calculate x position: sidebar width + percentage of effective width
-    const x = sidebarWidth + (effectiveWidth * blackHoleData.x);
-    const y = height * blackHoleData.y;
-
-    // Initialize orbiting particles
-    const particles: OrbitingParticle[] = [];
-    const colors = getColorPalette(colorScheme);
-
-    for (let i = 0; i < blackHoleData.particles; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const distance = 25 + Math.random() * 25;
-      const speed = (0.0005 + Math.random() * 0.001) * particleSpeed;
-
-      const color = colors[Math.floor(Math.random() * colors.length)];
-      const size = (0.5 + Math.random() * 1.5) * starSize;
-
-      particles.push({
-        angle,
-        distance,
-        speed,
-        x: x + Math.cos(angle) * distance,
-        y: y + Math.sin(angle) * distance,
-        size,
-        color
-      });
-    }
-
-    initializedBlackHoles.push({
-      id: blackHoleData.id,
-      x,
-      y,
-      mass: blackHoleData.mass,
-      particles,
-      size: 20 * blackHoleSize // Base size of black hole
-    });
-  });
-
-  return initializedBlackHoles;
+// Generate a random color
+export const getRandomColor = (opacity: number = 1): string => {
+  const r = Math.floor(Math.random() * 255);
+  const g = Math.floor(Math.random() * 255);
+  const b = Math.floor(Math.random() * 255);
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 };
 
-// Initialize employee stars
-export const initEmployeeStars = (
-  width: number,
-  height: number,
-  enableEmployeeStars: boolean,
-  employees: EmployeeData[],
-  sidebarWidth: number,
-  centerOffsetX: number,
-  centerOffsetY: number,
-  employeeStarSize: number
-): EmployeeStar[] => {
-  if (!enableEmployeeStars) return [];
+// Calculate distance between two points
+export const distance = (x1: number, y1: number, x2: number, y2: number): number => {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  return Math.sqrt(dx * dx + dy * dy);
+};
 
-  const employeeStars: EmployeeStar[] = [];
-  const { centerX, centerY } = calculateCenter(
-    width, height, sidebarWidth, centerOffsetX, centerOffsetY
-  );
+// Apply gravitational effect from a point to a star
+export const applyGravity = (
+  starX: number,
+  starY: number,
+  starVx: number,
+  starVy: number,
+  starMass: number,
+  pointX: number,
+  pointY: number,
+  pointMass: number,
+  deltaTime: number
+) => {
+  const dist = calculateDistance(starX, starY, pointX, pointY);
 
-  // Place employees in a circular pattern around the center
-  employees.forEach((employee, index) => {
-    const totalEmployees = employees.length;
-    const angleStep = (Math.PI * 2) / totalEmployees;
-    const baseAngle = index * angleStep;
+  // Avoid division by zero and extreme forces when very close
+  const minDist = 50;
+  if (dist < minDist) return { vx: starVx, vy: starVy };
 
-    // Calculate orbit parameters - smaller orbit radius to keep them more visible
-    const orbitRadius = 100 + (index * 30); // Different orbit radii, but closer to center
-    const orbitSpeed = 0.00005 + (0.00002 * (index % 3)); // Different speeds
+  // Calculate gravitational force
+  const force = (pointMass * starMass) / (dist * dist);
+  const angle = Math.atan2(pointY - starY, pointX - starX);
 
-    // Calculate initial position
-    const x = centerX + Math.cos(baseAngle) * orbitRadius;
-    const y = centerY + Math.sin(baseAngle) * orbitRadius;
+  // Apply force to velocity (with time scaling)
+  const forceX = Math.cos(angle) * force * 0.0001 * deltaTime;
+  const forceY = Math.sin(angle) * force * 0.0001 * deltaTime;
 
-    // Create satellites (small particles orbiting the employee star)
-    const satellites = [];
-    const satelliteCount = 5 + Math.floor(employee.mass / 30); // More satellites for higher mass
+  return {
+    vx: starVx + forceX,
+    vy: starVy + forceY
+  };
+};
 
-    for (let i = 0; i < satelliteCount; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const distance = 15 + Math.random() * 10;
-      const speed = 0.001 + Math.random() * 0.002;
-      const size = (0.5 + Math.random() * 1) * employeeStarSize;
+// Limit a value between min and max
+export const clamp = (value: number, min: number, max: number): number => {
+  return Math.min(Math.max(value, min), max);
+};
 
-      // Use employee color with transparency for satellites
-      const color = employee.color ?
-        `${employee.color}${Math.floor(Math.random() * 50 + 50).toString(16)}` : // Random transparency
-        "rgba(255, 255, 255, 0.7)";
-
-      satellites.push({
-        angle,
-        distance,
-        speed,
-        size,
-        color
-      });
-    }
-
-    employeeStars.push({
-      employee,
-      x,
-      y,
-      angle: baseAngle,
-      orbitRadius,
-      orbitSpeed,
-      orbitCenterX: centerX,
-      orbitCenterY: centerY,
-      satellites
-    });
-  });
-
-  return employeeStars;
+// Ease a value toward a target value
+export const easeToward = (current: number, target: number, factor: number, deltaTime: number): number => {
+  const delta = target - current;
+  return current + delta * factor * (deltaTime / 16);
 };

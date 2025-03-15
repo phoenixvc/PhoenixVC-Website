@@ -4,6 +4,7 @@ import { investmentFocusAnimations } from "../../animations/animations";
 import InvestmentCard from "../InvestmentCard/InvestmentCard";
 import styles from "./InvestmentFocus.module.css";
 import { useSectionObserver } from "@/hooks/useSectionObserver";
+import starfieldStyles from "./Starfield/interactiveStarfield.module.css"; 
 
 export const InvestmentFocus: React.FC = () => {
 

@@ -1,7 +1,6 @@
-// blackHoles.ts
-import { BlackHole, BlackHoleData, OrbitingParticle } from "./types";
+// components/Layout/Starfield/blackHoles.ts
 import { getColorPalette } from "./constants";
-import { calculateCenter } from "./utils";
+import { BlackHole, BlackHoleData, BlackHoleParticle } from "./types";
 
 // Initialize black holes
 export const initBlackHoles = (
@@ -34,7 +33,7 @@ export const initBlackHoles = (
     const y = height * blackHoleData.y;
 
     // Initialize orbiting particles
-    const particles: OrbitingParticle[] = [];
+    const particles: BlackHoleParticle[] = [];
     const colors = getColorPalette(colorScheme);
 
     for (let i = 0; i < blackHoleData.particles; i++) {
@@ -62,7 +61,7 @@ export const initBlackHoles = (
       y,
       mass: blackHoleData.mass,
       particles,
-      size: 20 * blackHoleSize // Base size of black hole
+      radius: 20 * blackHoleSize // Base size of black hole
     });
   });
 
@@ -95,7 +94,7 @@ export const drawBlackHole = (
   // Draw black hole
   const gradient = ctx.createRadialGradient(
     blackHole.x, blackHole.y, 0,
-    blackHole.x, blackHole.y, blackHole.size
+    blackHole.x, blackHole.y, blackHole.radius
   );
 
   gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
@@ -103,7 +102,7 @@ export const drawBlackHole = (
   gradient.addColorStop(1, "rgba(20, 20, 20, 0)");
 
   ctx.beginPath();
-  ctx.arc(blackHole.x, blackHole.y, blackHole.size, 0, Math.PI * 2);
+  ctx.arc(blackHole.x, blackHole.y, blackHole.radius, 0, Math.PI * 2);
   ctx.fillStyle = gradient;
   ctx.fill();
 };

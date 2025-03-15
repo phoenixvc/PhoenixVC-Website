@@ -1,34 +1,115 @@
 .card {
   position: relative;
-  background-color: hsl(var(--card));
-  border-radius: 1rem;
-  padding: 1.5rem;
+  background-color: hsl(var(--card) / 0.9);
+  border-radius: 1.25rem;
+  padding: 1.75rem;
   text-align: center;
-  transition: transform 0.2s ease-in-out, box-shadow 0.3s ease-in-out;
-  border: 1px solid hsl(var(--border));
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  border: 1px solid hsl(var(--border) / 0.2);
+  box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Light mode card */
+:root:not(.dark) .card {
+  background-color: hsl(var(--card) / 0.95);
+  border: 1px solid hsl(var(--border) / 0.15);
+}
+
+/* Dark mode card */
+.dark .card {
+  background-color: hsl(var(--card) / 0.8);
+  border: 1px solid hsl(var(--border) / 0.3);
+  box-shadow:
+    0 4px 20px -5px rgba(0, 0, 0, 0.25),
+    0 0 15px rgba(var(--color-primary-rgb), 0.05);
+}
+
+/* Add subtle gradient to cards */
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(
+    to right,
+    hsl(var(--color-primary)),
+    hsl(var(--color-accent))
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.card:hover::before {
+  opacity: 1;
 }
 
 .card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  transform: translateY(-6px);
+  box-shadow:
+    0 15px 30px -10px rgba(0, 0, 0, 0.15),
+    0 5px 15px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Light mode card hover */
+:root:not(.dark) .card:hover {
+  box-shadow:
+    0 20px 40px -15px rgba(0, 0, 0, 0.1),
+    0 10px 20px -10px rgba(0, 0, 0, 0.05);
+}
+
+/* Dark mode card hover */
+.dark .card:hover {
+  transform: translateY(-6px);
+  box-shadow:
+    0 15px 30px -8px rgba(0, 0, 0, 0.3),
+    0 8px 20px -6px rgba(0, 0, 0, 0.2),
+    0 0 20px rgba(var(--color-primary-rgb), 0.1);
 }
 
 .icon {
-  font-size: 2rem; /* or 4xl, adjust as needed */
-  margin-bottom: 1rem;
-  color: hsl(var(--card-foreground));
+  font-size: 2.25rem;
+  margin-bottom: 1.25rem;
+  color: hsl(var(--color-primary));
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.card:hover .icon {
+  transform: scale(1.1);
+  color: hsl(var(--color-accent));
 }
 
 .title {
   color: hsl(var(--card-foreground));
-  font-size: 1.25rem; /* text-xl */
+  font-size: 1.35rem;
   font-weight: 600;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
+  transition: color 0.3s ease;
+}
+
+.card:hover .title {
+  color: hsl(var(--color-primary));
 }
 
 .description {
   color: hsl(var(--muted-foreground));
-  font-size: 0.875rem; /* text-sm */
-  line-height: 1.6;
+  font-size: 0.925rem;
+  line-height: 1.7;
+  transition: color 0.3s ease;
+}
+
+/* Light mode description */
+:root:not(.dark) .description {
+  color: hsl(var(--muted-foreground) / 0.9);
+}
+
+/* Dark mode description */
+.dark .description {
+  color: hsl(var(--muted-foreground) / 0.85);
+}
+
+.card:hover .description {
+  color: hsl(var(--card-foreground) / 0.9);
 }

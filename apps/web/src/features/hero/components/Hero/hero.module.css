@@ -1,136 +1,123 @@
+/* components/Layout/Hero/hero.module.css */
 .heroSection {
   position: relative;
+  width: 100%;
   min-height: 100vh;
   display: flex;
-  align-items: center;
   justify-content: center;
-  padding: 0;
-  margin: 0;
-  width: 100%;
+  align-items: center;
   overflow: hidden;
-  background: transparent;
-}
-
-/* Network canvas for the animated background */
-.networkCanvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-  pointer-events: all; /* Enable mouse events */
-  cursor: default;
-}
-
-/* Full-page gradient background */
-.heroBackground {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    145deg,
-    hsl(240, 20%, 10%) 0%,
-    hsl(240, 20%, 15%) 100%
-  );
-  z-index: 0;
-  pointer-events: none;
+  /* Remove background color - let the Layout's starfield show through */
+  background-color: transparent;
 }
 
 .heroContainer {
-  max-width: 800px;
-  width: 90%;
-  margin: 0 auto;
-  text-align: center;
   position: relative;
-  z-index: 10;
-  padding: 4rem 3rem;
-  background: rgba(20, 20, 35, 0.7);
-  border-radius: 1rem;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(147, 51, 234, 0.15);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2), 0 0 20px rgba(147, 51, 234, 0.1);
+  z-index: 2;
+  max-width: 1200px;
+  width: 100%;
+  padding: 2rem;
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  text-align: center;
+  transition: color 0.3s ease;
 }
 
 .heroContent {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  max-width: 800px;
+  /* Add a subtle backdrop for better text readability */
+  backdrop-filter: blur(2px);
+  padding: 2rem;
+  border-radius: 1rem;
+  background-color: rgba(0, 0, 0, 0.05); /* Very subtle background */
 }
 
 .heroTitle {
-  font-size: 2.75rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
   background-clip: text;
   -webkit-background-clip: text;
-  color: transparent;
-  background-image: linear-gradient(
-    135deg,
-    #ffffff 0%,
-    #d0d0ff 100%
-  );
-  text-align: center;
-  width: 100%;
+  transition: all 0.3s ease;
 }
 
 .heroSubtitle {
-  font-size: 1rem;
-  line-height: 1.5;
-  margin-bottom: 2rem;
-  color: rgba(255, 255, 255, 0.8);
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
-  text-align: center;
+  font-size: 1.25rem;
+  margin-bottom: 2.5rem;
+  line-height: 1.6;
+  transition: color 0.3s ease;
 }
 
 .heroButtonContainer {
   display: flex;
   gap: 1rem;
   justify-content: center;
-  margin-top: 2rem;
-  width: 100%;
+  flex-wrap: wrap;
 }
 
-/* Button styles with improved colors */
 .heroButton {
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.25rem;
-  font-weight: 500;
+  padding: 0.875rem 1.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
   transition: all 0.2s ease;
-  font-size: 0.9rem;
+  cursor: pointer;
 }
 
 .heroPrimaryButton {
-  background-color: rgb(147, 51, 234); /* Phoenix purple */
   color: white;
-  border: none;
-}
-
-.heroPrimaryButton:hover {
-  background-color: rgb(126, 34, 206); /* Darker purple on hover */
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(147, 51, 234, 0.3);
+  transition: background-color 0.3s ease;
 }
 
 .heroSecondaryButton {
-  background-color: transparent;
-  color: white;
-  border: 1px solid rgba(147, 51, 234, 0.5);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.heroSecondaryButton:hover {
-  border-color: rgba(147, 51, 234, 0.8);
-  background-color: rgba(147, 51, 234, 0.1);
-  transform: translateY(-2px);
+.heroLoading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+.heroSpinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  border-top-color: currentColor;
+  animation: spin 1s ease-in-out infinite;
+  transition: border-color 0.3s ease;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .heroTitle {
+    font-size: 2.5rem;
+  }
+
+  .heroSubtitle {
+    font-size: 1.125rem;
+  }
+
+  .heroButtonContainer {
+    flex-direction: column;
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+  }
+
+  .heroButton {
+    width: 100%;
+  }
 }

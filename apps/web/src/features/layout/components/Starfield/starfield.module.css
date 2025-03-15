@@ -1,0 +1,125 @@
+/* components/Layout/Starfield/interactiveStarfield.module.css */
+.starfieldCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none; /* Allow clicking through to elements below */
+}
+
+.starfieldBackground {
+  background-color: #050816; /* Deeper blue-black */
+  background-image:
+    radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+    radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
+    radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px),
+    radial-gradient(rgba(255,255,255,.4), rgba(255,255,255,.1) 2px, transparent 30px);
+  background-size: 550px 550px, 350px 350px, 250px 250px, 150px 150px;
+  background-position: 0 0, 40px 60px, 130px 270px, 70px 100px;
+  animation: starfieldMotion 200s linear infinite;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+}
+
+/* Light theme starfield - more subtle stars with blue tint */
+.lightThemeStarfield {
+  background-color: #f0f4f8; /* Light blue-gray */
+  background-image:
+    radial-gradient(rgba(30,64,175,.3), rgba(30,64,175,.1) 2px, transparent 40px),
+    radial-gradient(rgba(30,64,175,.25), rgba(30,64,175,.08) 1px, transparent 30px),
+    radial-gradient(rgba(30,64,175,.2), rgba(30,64,175,.05) 2px, transparent 40px),
+    radial-gradient(rgba(30,64,175,.15), rgba(30,64,175,.03) 2px, transparent 30px);
+  background-size: 550px 550px, 350px 350px, 250px 250px, 150px 150px;
+  background-position: 0 0, 40px 60px, 130px 270px, 70px 100px;
+  animation: starfieldMotion 200s linear infinite;
+}
+
+@keyframes starfieldMotion {
+  0% { background-position: 0 0, 40px 60px, 130px 270px, 70px 100px; }
+  100% { background-position: 550px 550px, 390px 410px, 380px 520px, 220px 250px; }
+}
+
+.nebulaOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image:
+    radial-gradient(circle at 20% 80%, rgba(111, 0, 255, 0.1) 0%, transparent 40%),
+    radial-gradient(circle at 80% 10%, rgba(0, 183, 255, 0.08) 0%, transparent 35%),
+    radial-gradient(circle at 60% 60%, rgba(255, 0, 128, 0.07) 0%, transparent 45%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Light theme nebula - more subtle, lighter colors */
+.lightThemeNebula {
+  background-image:
+    radial-gradient(circle at 20% 80%, rgba(111, 0, 255, 0.03) 0%, transparent 40%),
+    radial-gradient(circle at 80% 10%, rgba(0, 183, 255, 0.025) 0%, transparent 35%),
+    radial-gradient(circle at 60% 60%, rgba(255, 0, 128, 0.02) 0%, transparent 45%);
+}
+
+.phoenixAccent {
+  position: fixed;
+  bottom: -5%;
+  right: -5%;
+  width: 50%;
+  height: 50%;
+  background: radial-gradient(ellipse at center, rgba(255, 80, 0, 0.03) 0%, transparent 70%);
+  filter: blur(40px);
+  z-index: -1;
+  transform: rotate(-15deg);
+}
+
+/* Light theme phoenix accent - slightly more visible */
+.lightThemePhoenix {
+  background: radial-gradient(ellipse at center, rgba(255, 80, 0, 0.04) 0%, transparent 70%);
+}
+
+.focusAreaCard {
+  background-color: rgba(2, 12, 27, 0.8); /* Slightly transparent deep blue */
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(99, 123, 255, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3),
+              0 0 15px rgba(67, 87, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.focusAreaCard:hover {
+  border-color: rgba(99, 123, 255, 0.3);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4),
+              0 0 20px rgba(67, 87, 255, 0.2);
+  transform: translateY(-5px);
+}
+
+/* Light theme focus area cards */
+.lightThemeFocusCard {
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(99, 123, 255, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1),
+              0 0 15px rgba(67, 87, 255, 0.05);
+}
+
+.lightThemeFocusCard:hover {
+  border-color: rgba(99, 123, 255, 0.2);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15),
+              0 0 20px rgba(67, 87, 255, 0.1);
+}
+
+/* For light mode */
+.lightMode {
+  background-color: rgba(249, 250, 251, 0.95);
+}
+
+/* For dark mode */
+.darkMode {
+  background-color: rgba(3, 7, 18, 0.95);
+}

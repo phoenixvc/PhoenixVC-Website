@@ -1,29 +1,48 @@
+/* Common Heading Styles with improved gradient visibility */
 .heading {
   font-size: 2.5rem;
   font-weight: bold;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
   background-clip: text;
   -webkit-background-clip: text;
+  color: transparent; /* Make text transparent to show gradient */
   background-image: linear-gradient(
     to right,
     hsl(var(--color-primary)) 0%,
     hsl(var(--color-accent)) 100%
   );
-  color: hsl(var(--color-foreground));
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.25);
   line-height: 1.2;
+  position: relative;
+  /* Remove text-shadow from base style to avoid conflict with gradient */
+}
+
+/* Light mode specific heading adjustments */
+:root:not(.dark) .heading {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode specific heading adjustments */
+.dark .heading {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 15px rgba(var(--color-primary-rgb), 0.2);
 }
 
 .subtitle {
   font-size: 1.125rem;
-  margin-bottom: 2rem;
-  max-width: 40rem;
+  margin-bottom: 2.5rem;
+  max-width: 42rem;
   margin-left: auto;
   margin-right: auto;
-  line-height: 1.6;
+  line-height: 1.7;
   color: hsl(var(--color-text));
+  transition: color 0.3s ease;
 }
 
+/* Light mode specific subtitle */
+:root:not(.dark) .subtitle {
+  color: hsl(var(--color-text) / 0.9);
+}
+
+/* Dark mode specific subtitle */
 .dark .subtitle {
-  color: hsl(var(--color-text));
+  color: hsl(var(--color-text) / 0.85);
 }
