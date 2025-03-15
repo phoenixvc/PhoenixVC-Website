@@ -2,25 +2,37 @@
 .layoutWrapper {
   display: flex;
   min-height: 100vh;
-  background-color: #13141f;
-  color: #ffffff;
+  width: 100%;
+  position: relative;
   transition: background-color 0.3s ease;
+}
+
+.darkMode {
+  background-color: hsl(240, 20%, 10%);
+  color: #f8f9fa;
 }
 
 .lightMode {
   background-color: #f8f9fa;
-  color: #212529;
+  color: #1a1a2e;
 }
 
 .contentWrapper {
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
+  transition: margin-left 0.3s ease, width 0.3s ease;
   flex: 1;
-  transition: margin-left 0.3s ease;
+  position: relative;
 }
 
 .mainContent {
   flex: 1;
+  padding: 1.5rem;
+  padding-top: 90px; /* Account for fixed header */
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
 }
 
 .sidebarOverlay {
@@ -29,8 +41,8 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 90;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 40;
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.3s ease, visibility 0.3s ease;
@@ -41,74 +53,53 @@
   visibility: visible;
 }
 
-.mobileToggle {
+/* Mobile toggle buttons */
+.mobileToggleContainer {
   position: fixed;
-  bottom: 1.5rem;
-  left: 1.5rem;
-  width: 3rem;
-  height: 3rem;
-  border-radius: 50%;
+  bottom: 1rem;
+  right: 1rem;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 50;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transition: all 0.2s ease;
+  gap: 0.5rem;
+  z-index: 30;
 }
 
-.darkMobileToggle {
-  background-color: #2d3748;
-  color: #ffffff;
-}
-
-.darkMobileToggle:hover {
-  background-color: #4a5568;
-}
-
-.lightMobileToggle {
-  background-color: #ffffff;
-  color: #1a202c;
-}
-
-.lightMobileToggle:hover {
-  background-color: #f7fafc;
-}
-
-.themeToggle {
-  width: 2.5rem;
-  height: 2.5rem;
+.mobileToggleButton {
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   border: none;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
 }
 
-.darkThemeToggle {
-  background-color: #2d3748;
-  color: #ffffff;
+.darkMode .mobileToggleButton {
+  background-color: #2d2d3a;
+  color: white;
 }
 
-.darkThemeToggle:hover {
-  background-color: #4a5568;
+.lightMode .mobileToggleButton {
+  background-color: white;
+  color: #1a1a2e;
 }
 
-.lightThemeToggle {
-  background-color: #ffffff;
-  color: #1a202c;
+.mobileToggleButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
 }
 
-.lightThemeToggle:hover {
-  background-color: #f7fafc;
+@media (min-width: 768px) {
+  .mobileToggleContainer {
+    display: none;
+  }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .mainContent {
-    padding: 1.5rem 1rem;
+    padding: 1rem;
+    padding-top: 80px;
   }
 }

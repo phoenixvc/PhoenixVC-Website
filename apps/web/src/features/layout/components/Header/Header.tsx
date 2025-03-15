@@ -1,88 +1,114 @@
 // components/Layout/Header/Header.tsx
-import React from "react";
-import { Menu, Sun, Moon } from "lucide-react";
+import { FC, useEffect, useState } from "react";
 import styles from "./header.module.css";
+import { Menu, Sun, Moon } from "lucide-react";
 
-interface HeaderProps {
-  onMenuClick?: () => void;
-  isDarkMode?: boolean;
-  onThemeToggle?: () => void;
-  isSidebarCollapsed?: boolean;
+interface NavItem {
+  label: string;
+  href: string;
 }
 
-export const Header: React.FC<HeaderProps> = ({
-  onMenuClick,
-  isDarkMode = true,
-  onThemeToggle,
-  isSidebarCollapsed = false,
-}) => {
-  const [currentPath, setCurrentPath] = React.useState("");
+interface HeaderProps {
+  onMenuClick: () => void;
+  isDarkMode: boolean;
+  onThemeToggle: () => void;
+  isSidebarCollapsed: boolean;
+}
 
-  React.useEffect(() => {
-    const updateCurrentPath = () => {
-      setCurrentPath(window.location.pathname);
+const navItems: NavItem[] = [
+  { label: "Home", href: "/" },
+  { label: "Focus Areas", href: "/focus-areas" },
+  { label: "Portfolio", href: "/portfolio" },
+  { label: "Blog", href: "/blog" },
+  { label: "Projects", href: "/projects" },
+  { label: "Contact", href: "/contact" },
+];
+
+const Header: FC<HeaderProps> = ({
+  onMenuClick,
+  isDarkMode,
+  onThemeToggle,
+  isSidebarCollapsed
+}) => {
+  const [scrolled, setScrolled] = useState(false);
+  const [activePath, setActivePath] = useState("/");
+
+  // Handle scroll event to add transparency
+  useEffect(() => {
+    const handleScroll = () => {
+      const isScrolled = window.scrollY > 10;
+      if (isScrolled !== scrolled) {
+        setScrolled(isScrolled);
+      }
     };
 
-    updateCurrentPath();
-    window.addEventListener("popstate", updateCurrentPath);
+    // Set active path based on current location
+    const currentPath = window.location.pathname;
+    setActivePath(currentPath);
+
+    window.addEventListener("scroll", handleScroll);
 
     return () => {
-      window.removeEventListener("popstate", updateCurrentPath);
+      window.removeEventListener("scroll", handleScroll);
     };
-  }, []);
-
-  const navigation = [
-    { name: "Home", href: "/" },
-    { name: "Focus Areas", href: "/focus-areas" },
-    { name: "Portfolio", href: "/portfolio" },
-    { name: "Blog", href: "/blog" },
-    { name: "Projects", href: "/projects" },
-    { name: "Contact", href: "/contact" },
-  ];
+  }, [scrolled]);
 
   return (
-    <header className={`${styles.header} ${isDarkMode ? styles.darkMode : styles.lightMode}`}>
-      <div className={styles.logoContainer}>
-        <span className={styles.logo}>Phoenix VC</span>
-      </div>
+    <header className={`${styles.header} ${scrolled ? styles.headerScrolled : ""}`}>
+      <div className={styles.headerContainer}>
+        <div className={styles.headerLeft}>
+          {/* Only show menu button on mobile or when sidebar is not collapsed */}
+          {(window.innerWidth < 768 || !isSidebarCollapsed) && (
+            <button
+              className={styles.menuButton}
+              onClick={onMenuClick}
+              aria-label="Toggle sidebar"
+            >
+              <Menu size={20} />
+            </button>
+          )}
 
-      <nav className={styles.navigation}>
-        {navigation.map((item) => (
-          <a
-            key={item.name}
-            href={item.href}
-            className={`${styles.navLink} ${
-              currentPath === item.href ? styles.navLinkActive : ""
-            }`}
-          >
-            {item.name}
-          </a>
-        ))}
-      </nav>
+          {/* Only show logo in header when sidebar is collapsed or on mobile */}
+          {(window.innerWidth < 768 || isSidebarCollapsed) && (
+            <a href="/" className={styles.logoContainer}>
+              <span className={styles.logoText}>Phoenix VC</span>
+            </a>
+          )}
+        </div>
 
-      <div className={styles.actions}>
-        {/* Theme toggle button (only visible on desktop) */}
-        {onThemeToggle && (
+        <nav className={styles.nav}>
+          <ul className={styles.navList}>
+            {navItems.map((item) => (
+              <li key={item.href} className={styles.navItem}>
+                <a
+                  href={item.href}
+                  className={`${styles.navLink} ${
+                    activePath === item.href ? styles.activeNavLink : ""
+                  }`}
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <div className={styles.themeToggle}>
           <button
-            className={styles.themeToggle}
+            className={styles.themeToggleButton}
             onClick={onThemeToggle}
-            aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+            aria-label="Toggle theme"
           >
-            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+            {isDarkMode ? (
+              <Sun size={20} />
+            ) : (
+              <Moon size={20} />
+            )}
           </button>
-        )}
-
-        {/* Mobile menu button */}
-        {onMenuClick && (
-          <button
-            className={styles.menuButton}
-            onClick={onMenuClick}
-            aria-label="Toggle menu"
-          >
-            <Menu size={24} />
-          </button>
-        )}
+        </div>
       </div>
     </header>
   );
 };
+
+export default Header;
