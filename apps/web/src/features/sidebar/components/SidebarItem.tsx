@@ -1,8 +1,21 @@
 // features/sidebar/components/SidebarItem.tsx
 import React from "react";
+import { motion } from "framer-motion";
 import { useTheme } from "@/theme";
 import { cn } from "@/lib/utils";
 import { SidebarItemProps } from "../types";
+import styles from "../styles/sidebar.module.css";
+
+const itemVariants = {
+  active: {
+    scale: 1.02,
+    transition: { duration: 0.2 }
+  },
+  inactive: {
+    scale: 1,
+    transition: { duration: 0.2 }
+  }
+};
 
 const SidebarItem: React.FC<SidebarItemProps> = ({
   label,
@@ -12,7 +25,10 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
   className = "",
   variant = "default",
   active = false,
-  href = "#", // Default href
+  href = "#",
+  mode = "light",
+  collapsed = false,
+  type = "link"
 }) => {
   const themeContext = useTheme() || {
     themeName: "default",
@@ -28,28 +44,49 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
     ...style
   };
 
+  // Use CSS module classes
   const itemClasses = cn(
-    "flex items-center px-3 py-2 text-sm rounded-md w-full",
-    active
-      ? "bg-primary text-primary-foreground"
-      : "hover:bg-accent hover:text-accent-foreground",
+    styles.sidebarItem,
+    active && styles.sidebarItemActive,
+    mode === "dark" ? styles.darkItem : styles.lightItem,
     className
   );
 
   // Determine if this is a link or button based on onClick
+  const content = (
+    <>
+      {icon && <span className={styles.itemIcon}>{icon}</span>}
+      {!collapsed && <span className={styles.itemLabel}>{label}</span>}
+    </>
+  );
+
   if (onClick) {
     return (
-      <button className={itemClasses} style={combinedStyle} onClick={onClick}>
-        {icon && <span className="mr-2">{icon}</span>}
-        <span>{label}</span>
-      </button>
+      <motion.button
+        className={itemClasses}
+        style={combinedStyle}
+        onClick={onClick}
+        variants={itemVariants}
+        animate={active ? "active" : "inactive"}
+        whileHover={{ x: 4 }}
+        whileTap={{ scale: 0.98 }}
+      >
+        {content}
+      </motion.button>
     );
   } else {
     return (
-      <a href={href} className={itemClasses} style={combinedStyle}>
-        {icon && <span className="mr-2">{icon}</span>}
-        <span>{label}</span>
-      </a>
+      <motion.a
+        href={href}
+        className={itemClasses}
+        style={combinedStyle}
+        variants={itemVariants}
+        animate={active ? "active" : "inactive"}
+        whileHover={{ x: 4 }}
+        whileTap={{ scale: 0.98 }}
+      >
+        {content}
+      </motion.a>
     );
   }
 };

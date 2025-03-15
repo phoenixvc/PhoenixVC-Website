@@ -1,103 +1,88 @@
-import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X } from "lucide-react";
-import Logo from "@/components/ui/Logo";
-import { Navigation, MobileMenu, NAVIGATION_ITEMS } from "@/features/navigation";
-import { headerVariants } from "../../animations";
+// components/Layout/Header/Header.tsx
+import React from "react";
+import { Menu, Sun, Moon } from "lucide-react";
 import styles from "./header.module.css";
-import { useSmoothScroll } from "@/hooks/index.ts";
-import ThemeToggle from "../ThemeToggle/ThemeToggle";
-import { useTheme } from "@/theme/hooks/useTheme";
 
 interface HeaderProps {
   onMenuClick?: () => void;
+  isDarkMode?: boolean;
+  onThemeToggle?: () => void;
+  isSidebarCollapsed?: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
-  const { themeName: colorScheme, themeMode: mode } = useTheme();
-  const themeClass = `theme-${colorScheme}-${mode}`;
+export const Header: React.FC<HeaderProps> = ({
+  onMenuClick,
+  isDarkMode = true,
+  onThemeToggle,
+  isSidebarCollapsed = false,
+}) => {
+  const [currentPath, setCurrentPath] = React.useState("");
 
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [activeSection, setActiveSection] = useState("home");
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+  React.useEffect(() => {
+    const updateCurrentPath = () => {
+      setCurrentPath(window.location.pathname);
     };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+
+    updateCurrentPath();
+    window.addEventListener("popstate", updateCurrentPath);
+
+    return () => {
+      window.removeEventListener("popstate", updateCurrentPath);
+    };
   }, []);
 
-  useSmoothScroll();
-
-  const handleMenuClick = () => {
-    setIsMenuOpen(prev => !prev);
-    if (onMenuClick) {
-      onMenuClick(); // This should toggle the sidebar
-    }
-  };
+  const navigation = [
+    { name: "Home", href: "/" },
+    { name: "Focus Areas", href: "/focus-areas" },
+    { name: "Portfolio", href: "/portfolio" },
+    { name: "Blog", href: "/blog" },
+    { name: "Projects", href: "/projects" },
+    { name: "Contact", href: "/contact" },
+  ];
 
   return (
-    <motion.header
-      initial="hidden"
-      animate="visible"
-      variants={headerVariants}
-      className={`
-        ${styles.header}
-        ${isScrolled ? styles.headerScrolled : styles.headerTransparent}
-        ${themeClass}
-      `}
-    >
-      <nav className={styles.navContainer}>
-        {/* Logo */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Logo />
-        </motion.div>
+    <header className={`${styles.header} ${isDarkMode ? styles.darkMode : styles.lightMode}`}>
+      <div className={styles.logoContainer}>
+        <span className={styles.logo}>Phoenix VC</span>
+      </div>
 
-        {/* Navigation – visible on desktop */}
-        <div className="hidden md:flex flex-1 justify-center">
-          <Navigation
-            items={NAVIGATION_ITEMS}
-            activeSection={activeSection}
-            onSectionChange={setActiveSection}
-            variant="header"
-          />
-        </div>
-
-        {/* Right: Theme toggle and mobile menu button */}
-        <div className="flex items-center space-x-4">
-          <ThemeToggle />
-          <button
-            className={`${styles.menuButton} md:hidden`}
-            onClick={handleMenuClick}
-            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+      <nav className={styles.navigation}>
+        {navigation.map((item) => (
+          <a
+            key={item.name}
+            href={item.href}
+            className={`${styles.navLink} ${
+              currentPath === item.href ? styles.navLinkActive : ""
+            }`}
           >
-            <motion.div whileTap={{ scale: 0.95 }}>
-              {isMenuOpen ? <X className={styles.icon} /> : <Menu className={styles.icon} />}
-            </motion.div>
-          </button>
-        </div>
+            {item.name}
+          </a>
+        ))}
       </nav>
 
-      {/* Mobile Menu Overlay */}
-      <AnimatePresence mode="wait">
-        {isMenuOpen && (
-          <div className="md:hidden">
-            <MobileMenu
-              isOpen={isMenuOpen}
-              onClose={() => setIsMenuOpen(false)}
-              items={NAVIGATION_ITEMS}
-            />
-          </div>
+      <div className={styles.actions}>
+        {/* Theme toggle button (only visible on desktop) */}
+        {onThemeToggle && (
+          <button
+            className={styles.themeToggle}
+            onClick={onThemeToggle}
+            aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
         )}
-      </AnimatePresence>
-    </motion.header>
+
+        {/* Mobile menu button */}
+        {onMenuClick && (
+          <button
+            className={styles.menuButton}
+            onClick={onMenuClick}
+            aria-label="Toggle menu"
+          >
+            <Menu size={24} />
+          </button>
+        )}
+      </div>
+    </header>
   );
 };
-
-export default Header;

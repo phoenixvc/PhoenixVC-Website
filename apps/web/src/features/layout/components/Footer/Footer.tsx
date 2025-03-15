@@ -1,18 +1,24 @@
+// components/Layout/Footer/Footer.tsx
+import React from "react"; // Added missing import
 import { motion } from "framer-motion";
 import Logo from "@/components/ui/Logo";
-import { SOCIAL_LINKS } from "../../constants";
-import { containerVariants, itemVariants } from "../../animations";
+import { SOCIAL_LINKS } from "../../constants"; // Ensure this import exists
+import { containerVariants, itemVariants } from "../../animations"; // Ensure this import exists
 import styles from "./footer.module.css";
-import { NAVIGATION_ITEMS } from "@/features/navigation";
+import { NAVIGATION_ITEMS } from "@/features/navigation"; // Ensure this import exists
 
-export const Footer: React.FC = () => {
+interface FooterProps {
+  isDarkMode?: boolean; // Added missing prop
+}
+
+export const Footer: React.FC<FooterProps> = ({ isDarkMode = true }) => {
   return (
     <motion.footer
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true }}
       variants={containerVariants}
-      className={styles.footer}
+      className={`${styles.footer} ${isDarkMode ? "" : styles.lightMode}`}
     >
       <div className={styles.container}>
         <div className={styles.gridContainer}>

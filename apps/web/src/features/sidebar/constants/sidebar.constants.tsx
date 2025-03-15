@@ -1,6 +1,6 @@
 // features/sidebar/constants.ts
 import { Home, BookOpen, Palette, FileText, Code, Briefcase, Mail } from "lucide-react";
-import { SidebarGroup, SidebarItemGroup, SidebarItemType } from "../types";
+import { SidebarGroup, SidebarItemGroup, SidebarItemLink } from "../types";
 
 // First, define the sidebar links with proper typing
 export const SIDEBAR_LINKS: SidebarItemGroup[] = [
@@ -57,7 +57,7 @@ export const SIDEBAR_LINKS: SidebarItemGroup[] = [
         type: "link",
         label: "Documentation",
         icon: <BookOpen size={20} />,
-        href: "https://docs.example.com", // Replace with actual domain
+        href: "https://docs.example.com",
         active: false
       },
       {
@@ -74,14 +74,15 @@ export const SIDEBAR_LINKS: SidebarItemGroup[] = [
 // Create sidebar groups from the links with proper type safety
 export const DEFAULT_SIDEBAR_GROUPS: SidebarGroup[] = [
   {
-    title: "Navigation",
-    items: SIDEBAR_LINKS.find(item => item.label === "Navigation")?.children || []
+    title: "Main Navigation",
+    items: SIDEBAR_LINKS.find(item => item.label === "Navigation")?.children.filter(
+      child => child.type === "link"
+    ) as SidebarItemLink[] || []
   },
   {
     title: "Resources",
-    items: SIDEBAR_LINKS.find(item => item.label === "Resources")?.children || []
+    items: SIDEBAR_LINKS.find(item => item.label === "Resources")?.children.filter(
+      child => child.type === "link"
+    ) as SidebarItemLink[] || []
   }
 ];
-
-// If you need this as SidebarItemType[] elsewhere
-export const SIDEBAR_LINKS_AS_ITEMS: SidebarItemType[] = SIDEBAR_LINKS;

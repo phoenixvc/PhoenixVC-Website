@@ -15,22 +15,24 @@ const Hero: FC<HeroProps> = memo(
     secondaryCta = DEFAULT_HERO_CONTENT.secondaryCta,
     isLoading = false,
   }) => {
-
     // Use our observer hook and log when the section becomes visible
-    // this shouldn't be needed with newer react versions
     const sectionRef = useSectionObserver("home", (id) => {
       console.log(`[Home] Section "${id}" is now visible`);
     });
 
     const parallaxRef = useRef<HTMLDivElement>(null);
+    const decorationRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
       const handleScroll = () => {
-        if (parallaxRef.current) {
-          const scrolled = window.pageYOffset;
+        if (!parallaxRef.current || !decorationRef.current) return;
 
-          parallaxRef.current.style.transform = `translateY(${scrolled * 0.3}px)`;
-        }
+        const scrolled = window.pageYOffset;
+        const scrollFactor = 0.3;
+
+        // Apply different parallax rates to create depth
+        parallaxRef.current.style.transform = `translateY(${scrolled * scrollFactor}px)`;
+        decorationRef.current.style.transform = `translateY(${scrolled * -scrollFactor * 0.5}px) rotate(${scrolled * 0.02}deg)`;
       };
 
       window.addEventListener("scroll", handleScroll, { passive: true });
@@ -38,9 +40,19 @@ const Hero: FC<HeroProps> = memo(
     }, []);
 
     return (
-      <section className={styles.heroSection} ref={sectionRef} aria-label="hero section">
-        {/* Optional parallax background */}
+      <section
+        className={styles.heroSection}
+        ref={sectionRef}
+        aria-label="hero section"
+      >
+        {/* Parallax background */}
         <div ref={parallaxRef} className={styles.heroBackground} />
+
+        {/* Floating decoration elements */}
+        <div ref={decorationRef} className={styles.heroDecorations}>
+          <div className={`${styles.heroDecoration} ${styles.decorationLeft}`} />
+          <div className={`${styles.heroDecoration} ${styles.decorationRight}`} />
+        </div>
 
         <div className={styles.heroContainer}>
           <AnimatePresence>
@@ -52,7 +64,7 @@ const Hero: FC<HeroProps> = memo(
                 exit="hidden"
                 variants={heroAnimations.container}
               >
-                {/* Title */}
+                {/* Title with gradient text */}
                 <motion.h1
                   className={styles.heroTitle}
                   variants={heroAnimations.item}

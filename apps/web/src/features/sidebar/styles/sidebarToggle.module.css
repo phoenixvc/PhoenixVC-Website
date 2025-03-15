@@ -1,0 +1,21 @@
+/* features/sidebar/styles/sidebarToggle.module.css */
+.toggleButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .toggleButton:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .darkMode {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #e5e7eb;
+  }
