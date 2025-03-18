@@ -13,7 +13,7 @@ import {
   Star
 } from "../../types";
 import { checkEmployeeHover, updateEmployeeStars } from "../../employeeStars";
-import { drawConnections, drawStars, updateStarPositions } from "../../stars";
+import { drawConnections, drawStars, updateStarActivity, updateStarPositions } from "../../stars";
 import { drawBlackHole } from "../../blackHoles";
 import { checkAddClick, checkCollisions, drawGameUI } from "../../gameState";
 import { AnimationProps, AnimationRefs } from "./types";
@@ -274,6 +274,8 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
         }
       }
 
+      updateStarActivity(currentStars);
+
     // Update star positions in the ref - consolidate this to one place
     if (props.starsRef && props.starsRef.current && props.starsRef.current.length > 0) {
       try {
@@ -329,120 +331,92 @@ function drawMouseEffects(
     props: AnimationProps,
     deltaTime: number
   ): void {
-    // Debug logging to see if this function is being called with valid data
-    console.log("Drawing mouse effects:", {
-      mouseX: currentMousePosition.x,
-      mouseY: currentMousePosition.y,
-      isOnScreen: currentMousePosition.isOnScreen,
-      isClicked: currentMousePosition.isClicked,
-      clickTime: currentMousePosition.clickTime,
-      now: Date.now()
-    });
+    // Default to canvas center if mouse position is undefined.
+    const mouseX = currentMousePosition.x || ctx.canvas.width / 2;
+    const mouseY = currentMousePosition.y || ctx.canvas.height / 2;
 
-    // CHANGE THIS LINE: Remove the isOnScreen condition for testing
-    // if (props.enableMouseInteraction && currentMousePosition && currentMousePosition.isOnScreen) {
-    if (props.enableMouseInteraction && currentMousePosition) {
-      // Force mouse to be on screen for debugging
-      const mouseX = currentMousePosition.x || ctx.canvas.width / 2;
-      const mouseY = currentMousePosition.y || ctx.canvas.height / 2;
+    // Base color for the glow: less opaque in light mode.
+    const baseColor = props.isDarkMode
+      ? "rgba(138,43,226,0.5)"
+      : "rgba(75,0,130,0.3)";
 
-      // Draw mouse effect (glowing circle)
-      const gradient = ctx.createRadialGradient(
-        mouseX,
-        mouseY,
-        0,
-        mouseX,
-        mouseY,
-        props.mouseEffectRadius
-      );
+    // Use transparent black for dark mode, but transparent white for light mode.
+    const endColor = props.isDarkMode ? "rgba(0, 0, 0, 0)" : "rgba(255, 255, 255, 0)";
 
-      // INCREASED OPACITY for better visibility
-      const baseColor = props.isDarkMode ?
-        "rgba(138, 43, 226, 0.5)" : // More visible purple in dark mode
-        "rgba(138, 43, 226, 0.4)";  // More visible purple in light mode
+    // Set up the radial gradient for the mouse glow.
+    const gradient = ctx.createRadialGradient(
+      mouseX,
+      mouseY,
+      0,
+      mouseX,
+      mouseY,
+      props.mouseEffectRadius
+    );
+    gradient.addColorStop(
+      0,
+      currentMousePosition.isClicked
+        ? (props.isDarkMode ? "rgba(138,43,226,0.7)" : "rgba(75,0,130,0.6)")
+        : baseColor
+    );
+    gradient.addColorStop(1, endColor);
 
-      gradient.addColorStop(0, currentMousePosition.isClicked ? "rgba(138, 43, 226, 0.7)" : baseColor);
-      gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.beginPath();
+    ctx.arc(mouseX, mouseY, props.mouseEffectRadius, 0, Math.PI * 2);
+    ctx.fillStyle = gradient;
+    ctx.fill();
 
-      ctx.beginPath();
-      ctx.arc(mouseX, mouseY, props.mouseEffectRadius, 0, Math.PI * 2);
-      ctx.fillStyle = gradient;
-      ctx.fill();
+    // Determine time since click to drive ripple effects.
+    const timeSinceClick = currentMousePosition.clickTime
+      ? Date.now() - currentMousePosition.clickTime
+      : 200; // Fallback for testing
 
-      if (currentMousePosition.x !== 0 && currentMousePosition.y !== 0) {
-        // Draw a trail behind the mouse
-        const trailLength = 10;
-        const trailWidth = 15;
+    // Draw three layered ripple effects.
+    for (let i = 0; i < 3; i++) {
+      const speed = 0.8 + i * 0.4;
+      const delay = i * 100;
+      if (timeSinceClick > delay) {
+        const adjustedTime = timeSinceClick - delay;
+        const maxRadius = props.mouseEffectRadius * 2.5;
+        const rippleRadius = Math.min(
+          maxRadius,
+          props.mouseEffectRadius * (adjustedTime / 1600) * speed
+        );
+        const rippleOpacity = 1 - adjustedTime / 1000;
 
-        // Calculate trail direction based on mouse speed
-        const speedX = currentMousePosition.speedX || 0.1;
-        const speedY = currentMousePosition.speedY || 0.1;
-        const speedMagnitude = Math.sqrt(speedX * speedX + speedY * speedY);
-
-        if (speedMagnitude > 0.1) {
-          // Normalize direction vector
-          const dirX = speedX / speedMagnitude;
-          const dirY = speedY / speedMagnitude;
-
-          // Draw trail segments
-          for (let i = 0; i < trailLength; i++) {
-            const distance = i * 5;
-            const x = mouseX - dirX * distance;
-            const y = mouseY - dirY * distance;
-            const opacity = 1 - (i / trailLength);
-
-            ctx.beginPath();
-            ctx.arc(x, y, trailWidth * opacity, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(180, 100, 255, ${opacity * 0.5})`;
-            ctx.fill();
-          }
-        }
-      }
-
-      // Always show ripple for testing
-      const forceShowRipple = true;
-      if (forceShowRipple || currentMousePosition.isClicked || Date.now() - currentMousePosition.clickTime < 1000) {
-        // Use current time if clickTime is not set
-        const timeSinceClick = currentMousePosition.clickTime ?
-          Date.now() - currentMousePosition.clickTime :
-          200; // Default value for testing
-
-        // Draw multiple ripples with different speeds and colors
-        for (let i = 0; i < 3; i++) {
-          const speed = 0.8 + (i * 0.4); // Different speeds for each ripple
-          const delay = i * 100; // Stagger the ripples
-
-          if (timeSinceClick > delay) {
-            const adjustedTime = timeSinceClick - delay;
-            const maxRadius = props.mouseEffectRadius * 2.5;
-            // Slow down ripple expansion
-            const rippleRadius = Math.min(maxRadius, props.mouseEffectRadius * (adjustedTime / 1600) * speed);
-            const rippleOpacity = 1 - (adjustedTime / 1000);
-
-            if (rippleOpacity > 0) {
-              // Different colors for each ripple - MUCH MORE VISIBLE
-              let rippleColor;
-              if (i === 0) rippleColor = `rgba(138, 43, 226, ${rippleOpacity * 0.95})`;
-              else if (i === 1) rippleColor = `rgba(180, 100, 255, ${rippleOpacity * 0.85})`;
-              else rippleColor = `rgba(255, 255, 255, ${rippleOpacity * 0.75})`;
-
-              ctx.beginPath();
-              ctx.arc(mouseX, mouseY, rippleRadius, 0, Math.PI * 2);
-              ctx.strokeStyle = rippleColor;
-              ctx.lineWidth = 6 - i; // Thicker lines for better visibility
-              ctx.stroke();
-            }
-          }
+        let rippleColor;
+        if (i === 0) {
+          rippleColor = props.isDarkMode
+            ? `rgba(138,43,226,${rippleOpacity * 0.95})`
+            : `rgba(75,0,130,${rippleOpacity * 0.6})`;
+        } else if (i === 1) {
+          rippleColor = props.isDarkMode
+            ? `rgba(180,100,255,${rippleOpacity * 0.85})`
+            : `rgba(100,0,200,${rippleOpacity * 0.5})`;
+        } else {
+          rippleColor = props.isDarkMode
+            ? `rgba(255,255,255,${rippleOpacity * 0.75})`
+            : `rgba(50,50,50,${rippleOpacity * 0.4})`;
         }
 
-        // Add a flash effect at the center
-        if (timeSinceClick < 300) {
-          const flashOpacity = 1 - (timeSinceClick / 300);
-          ctx.beginPath();
-          ctx.arc(mouseX, mouseY, 25, 0, Math.PI * 2); // Larger flash
-          ctx.fillStyle = `rgba(255, 255, 255, ${flashOpacity * 0.9})`;
-          ctx.fill();
-        }
+        ctx.beginPath();
+        ctx.arc(mouseX, mouseY, rippleRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = rippleColor;
+        ctx.lineWidth = 6 - i;
+        ctx.stroke();
       }
     }
+
+    // Toned-down flash effect on click.
+    if (timeSinceClick < 300) {
+      const flashOpacity = 1 - timeSinceClick / 300;
+      const flashRadius = 15; // Subtle flash radius.
+      const flashColor = props.isDarkMode
+        ? `rgba(255,255,255,${flashOpacity * 0.5})`
+        : `rgba(0,0,0,${flashOpacity * 0.5})`;
+      ctx.beginPath();
+      ctx.arc(mouseX, mouseY, flashRadius, 0, Math.PI * 2);
+      ctx.fillStyle = flashColor;
+      ctx.fill();
+    }
   }
+

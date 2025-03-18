@@ -25,6 +25,7 @@ import { useParticleEffects } from "./hooks/useParticleEffects";
 import { useDebugControls } from "./hooks/useDebugControls";
 import DebugControlsOverlay from "./DebugControlsOverlay";
 import { useStarInitialization } from "./hooks/useStarInitialization";
+import { applyClickForce, createClickExplosion } from "./stars";
 
 // Define the ref type
 export type StarfieldRef = {
@@ -224,6 +225,34 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
       );
     }
   }, [drawDebugInfo, externalDrawDebugInfo, mousePosition, debugSettings.mouseEffectRadius, starsRef]);
+
+  useEffect(() => {
+    // Create a global API for testing
+    window.starfieldAPI = {
+      applyForce: (x: number, y: number, radius: number, force: number) => {
+        if (starsRef.current && starsRef.current.length > 0) {
+          console.log(`API: Applying force at ${x}, ${y} with radius ${radius} and force ${force}`);
+          return applyClickForce(starsRef.current, x, y, radius, force);
+        }
+        return 0;
+      },
+      getStarsCount: () => starsRef.current?.length || 0,
+      createExplosion: (x: number, y: number) => {
+        if (canvasRef.current) {
+          const ctx = canvasRef.current.getContext("2d");
+          if (ctx) {
+            createClickExplosion(ctx, x, y, 300, "rgba(255, 255, 255, 0.9)", 1000);
+            return true;
+          }
+        }
+        return false;
+      }
+    };
+
+    return () => {
+      delete window.starfieldAPI;
+    };
+  }, [starsRef]);
 
   useEffect(() => {
     const initTimeout = setTimeout(() => {
@@ -597,6 +626,91 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     }
   };
 
+  const applyStarfieldRepulsion = useCallback((x: number, y: number, radius: number = 300, force: number = 100) => {
+    console.log(`Applying repulsion at (${x}, ${y}) with radius ${radius} and force ${force}`);
+
+    if (window.starfieldAPI) {
+      // Log before calling the API
+      console.log("starfieldAPI is available, calling applyForce");
+
+      // Call the API function
+      const affectedStars = window.starfieldAPI.applyForce(x, y, radius, force);
+
+      // Log the result
+      console.log(`Applied force to ${affectedStars} stars`);
+
+      // Create an explosion effect
+      const explosionCreated = window.starfieldAPI.createExplosion(x, y);
+      console.log(`Explosion created: ${explosionCreated}`);
+
+      return affectedStars;
+    } else {
+      console.error("starfieldAPI is not available!");
+      return 0;
+    }
+  }, []);
+
+  // Update the click handler to use this unified function:
+  const handleCanvasClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!canvasRef.current) {
+      console.error("Click handler called but canvas ref is null");
+      return;
+    }
+
+    // Get click coordinates relative to canvas
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    console.log(`Canvas clicked at canvas coordinates: (${x}, ${y})`);
+    console.log(`Original click event coordinates: (${event.clientX}, ${event.clientY})`);
+    console.log(`Canvas rect: left=${rect.left}, top=${rect.top}, width=${rect.width}, height=${rect.height}`);
+
+    // Use the unified function
+    const affectedStars = applyStarfieldRepulsion(x, y);
+
+    // Update mouse position state
+    if (setMousePosition) {
+      setMousePosition(prev => ({
+        ...prev,
+        x: x,
+        y: y,
+        isClicked: true,
+        clickTime: Date.now()
+      }));
+      console.log("Mouse position state updated for click");
+    }
+  }, [canvasRef, setMousePosition, applyStarfieldRepulsion]);
+
+  useEffect(() => {
+    if (canvasRef.current) {
+      console.log("Adding click event listener to canvas");
+
+      // Add a direct DOM event listener as a backup
+      const canvas = canvasRef.current;
+      const clickHandler = (e: MouseEvent) => {
+        console.log("Native canvas click detected", e.clientX, e.clientY);
+
+        // Get click coordinates relative to canvas
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        console.log(`Converted to canvas coordinates: (${x}, ${y})`);
+
+        // Call our unified function
+        applyStarfieldRepulsion(x, y);
+      };
+
+      canvas.addEventListener("click", clickHandler);
+
+      return () => {
+        console.log("Removing click event listener from canvas");
+        canvas.removeEventListener("click", clickHandler);
+      };
+    }
+  }, [canvasRef, applyStarfieldRepulsion]);
+
   return (
     <>
       {/* Background elements with positive z-index */}
@@ -611,6 +725,41 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
           ref={canvasRef}
           className={styles.starfieldCanvas}
           aria-hidden="true"
+          onClick={(e) => {
+            e.stopPropagation(); // Stop event propagation
+            handleCanvasClick(e);
+          }}
+        />
+
+        {/* Add transparent overlay to capture clicks */}
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            zIndex: 4,
+            cursor: "pointer",
+            background: "transparent"
+          }}
+          onClick={(e) => {
+            const x = e.clientX;
+            const y = e.clientY;
+            console.log(`Overlay clicked at: (${x}, ${y})`);
+            applyStarfieldRepulsion(x, y);
+
+            // Also update mouse position state
+            if (setMousePosition) {
+              setMousePosition(prev => ({
+                ...prev,
+                x: x,
+                y: y,
+                isClicked: true,
+                clickTime: Date.now()
+              }));
+            }
+          }}
         />
       </div>
 

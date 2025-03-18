@@ -132,9 +132,11 @@ export function updateStarPositions(
 
     // Apply velocity limits
     const speed = Math.sqrt(star.vx * star.vx + star.vy * star.vy);
-    if (speed > maxVelocity * GLOBAL_SPEED_MULTIPLIER) { // Apply multiplier to max velocity too
-      star.vx = (star.vx / speed) * maxVelocity * GLOBAL_SPEED_MULTIPLIER;
-      star.vy = (star.vy / speed) * maxVelocity * GLOBAL_SPEED_MULTIPLIER;
+    if (speed > maxVelocity * GLOBAL_SPEED_MULTIPLIER) {
+      // Use a much higher maxVelocity for recently pushed stars
+      const effectiveMaxVelocity = star.isActive ? maxVelocity * 10 : maxVelocity;
+      star.vx = (star.vx / speed) * effectiveMaxVelocity * GLOBAL_SPEED_MULTIPLIER;
+      star.vy = (star.vy / speed) * effectiveMaxVelocity * GLOBAL_SPEED_MULTIPLIER;
     }
 
     // Apply damping
@@ -191,42 +193,66 @@ function handleBoundaries(stars: Star[], width: number, height: number) {
   });
 }
 
-// Draw all stars
 export const drawStars = (
   ctx: CanvasRenderingContext2D,
   stars: Star[]
 ): void => {
-  console.log(`Drawing ${stars.length} stars`);
+  const now = Date.now();
 
   stars.forEach(star => {
-    ctx.beginPath();
-    ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+    // Check if star was recently pushed (within last 1500ms)
+    const recentlyPushed = star.isActive && (now - star.lastPushed < 1500);
 
-    if (star.isActive) {
+    if (recentlyPushed) {
+      // Calculate how recent the push was (1.0 = just now, 0.0 = 1500ms ago)
+      const recency = 1 - (now - star.lastPushed) / 1500;
+
+      // MUCH MORE VISIBLE glow effect for pushed stars
+      const glowRadius = star.size * (3 + recency * 5); // Larger glow for recent pushes
       const gradient = ctx.createRadialGradient(
         star.x, star.y, 0,
-        star.x, star.y, star.size * 2
+        star.x, star.y, glowRadius
       );
-      gradient.addColorStop(0, star.color);
-      gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
 
-      ctx.fillStyle = gradient;
+      // Get base color and create brighter version for center
+      const baseColor = star.color;
 
-      // Draw a slightly larger glow
+      // Extract RGB components to create a brighter version
+      let brighterColor = baseColor;
+      if (baseColor.startsWith("rgba(")) {
+        const parts = baseColor.substring(5, baseColor.length-1).split(",");
+        if (parts.length >= 3) {
+          // Increase RGB values to make brighter (max 255)
+          const r = Math.min(255, parseInt(parts[0]) + 100);
+          const g = Math.min(255, parseInt(parts[1]) + 100);
+          const b = Math.min(255, parseInt(parts[2]) + 100);
+          brighterColor = `rgba(${r}, ${g}, ${b}, 1.0)`;
+        }
+      }
+
+      // Create glow gradient with higher opacity
+      gradient.addColorStop(0, brighterColor);
+      gradient.addColorStop(0.5, baseColor.replace(/[\d.]+\)$/, "0.7)")); // Higher opacity
+      gradient.addColorStop(1, baseColor.replace(/[\d.]+\)$/, "0.2)")); // Higher opacity
+
+      // Draw glow
       ctx.beginPath();
-      ctx.arc(star.x, star.y, star.size * 2, 0, Math.PI * 2);
+      ctx.arc(star.x, star.y, glowRadius, 0, Math.PI * 2);
       ctx.fillStyle = gradient;
       ctx.fill();
 
-      // Draw the actual star
+      // Draw actual star (larger than normal)
+      ctx.beginPath();
+      ctx.arc(star.x, star.y, star.size * (1.5 + recency), 0, Math.PI * 2);
+      ctx.fillStyle = brighterColor;
+      ctx.fill();
+    } else {
+      // Normal star rendering
       ctx.beginPath();
       ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
       ctx.fillStyle = star.color;
-    } else {
-      ctx.fillStyle = star.color;
+      ctx.fill();
     }
-
-    ctx.fill();
   });
 };
 
@@ -248,7 +274,7 @@ export const drawConnections = (
   connectionSources.forEach(star1 => {
     // Check against all stars for connections
     stars.forEach(star2 => {
-      // Don't connect to self
+      // Don"t connect to self
       if (star1 === star2) return;
 
       const dist = distance(star1.x, star1.y, star2.x, star2.y);
@@ -318,7 +344,7 @@ export const applyExplosionForce = (
   force: number
 ): void => {
   // Use extremely low force with global speed multiplier
-  const adjustedForce = force * 0.001 * GLOBAL_SPEED_MULTIPLIER;
+  const adjustedForce = force * 0.1;
 
   stars.forEach(star => {
     const dist = distance(star.x, star.y, x, y);
@@ -395,16 +421,20 @@ export const resetStars = (
   });
 };
 
-// Apply click force to nearby stars with minimal effect
+// Replace the existing applyClickForce function in stars.ts
 export const applyClickForce = (
   stars: Star[],
   clickX: number,
   clickY: number,
-  radius: number,
-  force: number
-): void => {
-  // Use extremely low force with global speed multiplier
-  const adjustedForce = force * 0.001 * GLOBAL_SPEED_MULTIPLIER;
+  radius: number = 200,
+  force: number = 5
+): number => {
+  console.log(`applyClickForce called at (${clickX}, ${clickY}) with radius ${radius} and force ${force}`);
+
+  // Use a MUCH higher force multiplier
+  const adjustedForce = force * 2;
+
+  let affectedCount = 0;
 
   stars.forEach(star => {
     const dx = star.x - clickX;
@@ -412,31 +442,31 @@ export const applyClickForce = (
     const dist = Math.sqrt(dx * dx + dy * dy);
 
     if (dist < radius) {
+      affectedCount++;
+
+      // Calculate direction vector (away from click point)
+      const dirX = dx / Math.max(dist, 0.1); // Avoid division by zero
+      const dirY = dy / Math.max(dist, 0.1);
+
       // Calculate force based on distance (stronger near click point)
-      const strength = (1 - dist / radius) * adjustedForce;
+      const strength = adjustedForce * (1 - dist / radius);
 
-      // Calculate direction vector
-      const dirX = dx / dist;
-      const dirY = dy / dist;
-
-      // Apply force as velocity change
+      // Apply force directly to velocity - MUCH stronger effect
       star.vx += dirX * strength;
       star.vy += dirY * strength;
 
-      // Apply immediate velocity clamping after click
-      const currentVelocity = Math.sqrt(star.vx * star.vx + star.vy * star.vy);
-      const maxClickVelocity = 0.01 * GLOBAL_SPEED_MULTIPLIER; // Apply multiplier to max velocity
+      // Add a small random component for more natural movement
+      star.vx += (Math.random() - 0.5) * strength * 0.2;
+      star.vy += (Math.random() - 0.5) * strength * 0.2;
 
-      if (currentVelocity > maxClickVelocity) {
-        star.vx = (star.vx / currentVelocity) * maxClickVelocity;
-        star.vy = (star.vy / currentVelocity) * maxClickVelocity;
-      }
-
-      // Mark star as "pushed" for tracking collisions
+      // Mark star as "pushed" for visual effects
       star.lastPushed = Date.now();
       star.isActive = true;
     }
   });
+
+  console.log(`Total stars affected: ${affectedCount}`);
+  return affectedCount;
 };
 
 // New function for completely static stars
@@ -460,4 +490,74 @@ export const initStaticStars = (
     starSize,
     colorScheme
   );
+};
+
+// Create a click explosion effect
+export const createClickExplosion = (
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  radius: number = 200,
+  color: string = "rgba(255, 255, 255, 0.8)",
+  duration: number = 800 // Longer duration
+): void => {
+  // Don"t apply global speed multiplier to make effect more visible
+  const adjustedDuration = duration;
+
+  const startTime = performance.now();
+  const animate = () => {
+    const elapsed = performance.now() - startTime;
+    const progress = Math.min(elapsed / adjustedDuration, 1);
+
+    // If animation is complete, stop
+    if (progress >= 1) return;
+
+    // Calculate current radius and opacity
+    const currentRadius = radius * Math.pow(progress, 0.5); // Square root for faster initial expansion
+    const opacity = (1 - progress) * 0.8; // Higher opacity
+
+    // Draw expanding ring
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x, y, currentRadius, 0, Math.PI * 2);
+    ctx.lineWidth = 3 * (1 - progress); // Thicker line
+    ctx.strokeStyle = "rgba(255, 255, 255, " + opacity + ")"; // White ring
+    ctx.stroke();
+
+    // Draw inner glow
+    const gradient = ctx.createRadialGradient(x, y, 0, x, y, currentRadius * 0.8);
+    gradient.addColorStop(0, "rgba(255, 255, 255, " + opacity * 0.7 + ")");
+    gradient.addColorStop(1, "rgba(138, 43, 226, 0)"); // Purple fade
+
+    ctx.fillStyle = gradient;
+    ctx.fill();
+    ctx.restore();
+
+    // Add a bright flash at the center
+    if (progress < 0.3) {
+      const flashOpacity = (0.3 - progress) / 0.3;
+      ctx.beginPath();
+      ctx.arc(x, y, 30, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 255, 255, ${flashOpacity})`;
+      ctx.fill();
+    }
+
+    // Continue animation
+    requestAnimationFrame(animate);
+  };
+
+  // Start animation
+  requestAnimationFrame(animate);
+};
+
+// Helper to gradually deactivate stars
+export const updateStarActivity = (stars: Star[]): void => {
+  const now = Date.now();
+
+  stars.forEach(star => {
+    // If star was pushed more than 1500ms ago, deactivate it
+    if (star.isActive && (now - star.lastPushed > 1500)) {
+      star.isActive = false;
+    }
+  });
 };

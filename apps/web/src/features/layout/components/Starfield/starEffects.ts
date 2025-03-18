@@ -4,72 +4,84 @@ import { EmployeeData, EmployeeStar } from "./types";
 import { hexToRgb } from "./starUtils";
 
 // Draw star glow and core
+// Draw star glow and core
 export function drawStarGlow(
-  ctx: CanvasRenderingContext2D,
-  empStar: EmployeeStar,
-  starSize: number,
-  softRgb: {r: number, g: number, b: number}
-): void {
-  // Enhanced glow effect - softer glow
-  const glowMultiplier = empStar.glowIntensity ||
-    (empStar.pathType === "star" ? 2.5 :  // Reduced from 2.8
-     empStar.pathType === "planet" ? 1.6 : // Reduced from 1.8
-     empStar.pathType === "comet" ? 2.0 : 1.6); // Reduced from 2.2/1.8
+    ctx: CanvasRenderingContext2D,
+    empStar: EmployeeStar,
+    starSize: number,
+    softRgb: {r: number, g: number, b: number}
+  ): void {
+    // Create a unique offset for this star based on employee ID with proper null checking
+    const uniqueOffset = empStar.employee?.id
+      ? (typeof empStar.employee.id === "string"
+          ? empStar.employee.id.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0)
+          : Number(empStar.employee.id))
+      : Math.random() * 1000; // Fallback to a random offset if no employee ID
 
-  const glowGradient = ctx.createRadialGradient(
-    empStar.x, empStar.y, 0,
-    empStar.x, empStar.y, starSize * 2.0 * glowMultiplier // Reduced from 2.2
-  );
+    // Apply subtle pulsing effect using the unique offset
+    const pulseTime = Date.now() * 0.0003 + (uniqueOffset * 0.05);
+    const pulseFactor = 1 + Math.sin(pulseTime) * 0.1; // 10% size variation
 
-  // Use rgba format for star glow to avoid color parsing issues - softer glow
-  glowGradient.addColorStop(0, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.9)`); // Reduced opacity
-  glowGradient.addColorStop(0.3, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.4)`); // Reduced opacity
-  glowGradient.addColorStop(0.6, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.2)`); // Reduced opacity
-  glowGradient.addColorStop(1, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0)`);
+    // Enhanced glow effect - softer glow with independent pulsing
+    const glowMultiplier = empStar.glowIntensity ||
+      (empStar.pathType === "star" ? 2.5 * pulseFactor :
+       empStar.pathType === "planet" ? 1.6 * pulseFactor :
+       empStar.pathType === "comet" ? 2.0 * pulseFactor : 1.6 * pulseFactor);
 
-  ctx.beginPath();
-  ctx.arc(empStar.x, empStar.y, starSize * 2.0 * glowMultiplier, 0, Math.PI * 2);
-  ctx.fillStyle = glowGradient;
-  ctx.fill();
+    const glowGradient = ctx.createRadialGradient(
+      empStar.x, empStar.y, 0,
+      empStar.x, empStar.y, starSize * 2.0 * glowMultiplier
+    );
 
-  const gradient = ctx.createRadialGradient(
-    empStar.x, empStar.y, 0,
-    empStar.x, empStar.y, starSize
-  );
+    // Use rgba format for star glow to avoid color parsing issues - softer glow
+    glowGradient.addColorStop(0, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.9)`);
+    glowGradient.addColorStop(0.3, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.4)`);
+    glowGradient.addColorStop(0.6, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.2)`);
+    glowGradient.addColorStop(1, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0)`);
 
-  // Enhanced core appearance based on path type - with softer colors
-  switch (empStar.pathType) {
-    case "star":
-      gradient.addColorStop(0, "rgba(255, 255, 255, 0.95)"); // Slightly reduced opacity
-      gradient.addColorStop(0.2, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.9)`);
-      gradient.addColorStop(0.7, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.5)`); // Reduced from 0.56
-      gradient.addColorStop(1, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.2)`); // Reduced from 0.25
-      break;
-    case "planet":
-      gradient.addColorStop(0, "rgba(255, 255, 255, 0.95)"); // Slightly reduced opacity
-      gradient.addColorStop(0.3, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.9)`);
-      gradient.addColorStop(0.7, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.55)`); // Reduced from 0.63
-      gradient.addColorStop(1, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.2)`); // Reduced from 0.25
-      break;
-    case "comet":
-      gradient.addColorStop(0, "rgba(255, 255, 255, 0.95)"); // Slightly reduced opacity
-      gradient.addColorStop(0.2, "rgba(255, 255, 238, 0.9)"); // Softer yellow tint for comet core
-      gradient.addColorStop(0.4, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.85)`);
-      gradient.addColorStop(0.7, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.5)`); // Reduced from 0.56
-      gradient.addColorStop(1, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.25)`); // Reduced from 0.31
-      break;
-    default:
-      gradient.addColorStop(0, "rgba(255, 255, 255, 0.95)"); // Slightly reduced opacity
-      gradient.addColorStop(0.3, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.85)`);
-      gradient.addColorStop(0.8, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.45)`); // Reduced from 0.5
-      gradient.addColorStop(1, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.15)`); // Reduced from 0.19
+    ctx.beginPath();
+    ctx.arc(empStar.x, empStar.y, starSize * 2.0 * glowMultiplier, 0, Math.PI * 2);
+    ctx.fillStyle = glowGradient;
+    ctx.fill();
+
+    const gradient = ctx.createRadialGradient(
+      empStar.x, empStar.y, 0,
+      empStar.x, empStar.y, starSize * pulseFactor // Apply pulse to core size too
+    );
+
+    // Enhanced core appearance based on path type - with softer colors
+    switch (empStar.pathType) {
+      case "star":
+        gradient.addColorStop(0, "rgba(255, 255, 255, 0.95)");
+        gradient.addColorStop(0.2, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.9)`);
+        gradient.addColorStop(0.7, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.5)`);
+        gradient.addColorStop(1, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.2)`);
+        break;
+      case "planet":
+        gradient.addColorStop(0, "rgba(255, 255, 255, 0.95)");
+        gradient.addColorStop(0.3, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.9)`);
+        gradient.addColorStop(0.7, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.55)`);
+        gradient.addColorStop(1, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.2)`);
+        break;
+      case "comet":
+        gradient.addColorStop(0, "rgba(255, 255, 255, 0.95)");
+        gradient.addColorStop(0.2, "rgba(255, 255, 238, 0.9)");
+        gradient.addColorStop(0.4, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.85)`);
+        gradient.addColorStop(0.7, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.5)`);
+        gradient.addColorStop(1, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.25)`);
+        break;
+      default:
+        gradient.addColorStop(0, "rgba(255, 255, 255, 0.95)");
+        gradient.addColorStop(0.3, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.85)`);
+        gradient.addColorStop(0.8, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.45)`);
+        gradient.addColorStop(1, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.15)`);
+    }
+
+    ctx.beginPath();
+    ctx.arc(empStar.x, empStar.y, starSize * pulseFactor, 0, Math.PI * 2);
+    ctx.fillStyle = gradient;
+    ctx.fill();
   }
-
-  ctx.beginPath();
-  ctx.arc(empStar.x, empStar.y, starSize, 0, Math.PI * 2);
-  ctx.fillStyle = gradient;
-  ctx.fill();
-}
 
 // Draw comet trail
 export function drawStarTrail(
@@ -336,8 +348,8 @@ export function drawSatellites(
     }
   }
 
-  // Draw hover/select effects
-  export function drawHoverEffects(
+// Draw hover/select effects
+export function drawHoverEffects(
     ctx: CanvasRenderingContext2D,
     empStar: EmployeeStar,
     starSize: number,
@@ -346,13 +358,34 @@ export function drawSatellites(
     if (empStar.isHovered || empStar.isSelected) {
       // Add a pulsing ring around the star when hovered or selected
       ctx.save();
-      const pulseTime = Date.now() * 0.0005; // Reduced from 0.001 to 0.0005 for slower pulse
-      const pulseOpacity = 0.4 + Math.sin(pulseTime * 1.5) * 0.2; // Reduced frequency and amplitude
-      const pulseSize = starSize * (1.3 + Math.sin(pulseTime * 1) * 0.2); // Reduced frequency and amplitude
+
+      if (empStar.isHovered) {
+        // Draw a "clickable" cursor icon or text
+        ctx.save();
+        ctx.font = "14px Arial";
+        ctx.fillStyle = "white";
+        ctx.textAlign = "center";
+        // Fix: Use starSize instead of employeeStarSize
+        ctx.fillText("Click for details", empStar.x, empStar.y - starSize * 5);
+        ctx.restore();
+      }
+
+      // Use the employee ID or another unique property to create independent pulse timing
+      // with proper null checking
+      const uniqueOffset = empStar.employee?.id
+        ? (typeof empStar.employee.id === "string"
+            ? empStar.employee.id.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0)
+            : Number(empStar.employee.id))
+        : Math.random() * 1000; // Fallback to a random offset if no employee ID
+
+      // Use the unique offset to create independent pulse timing
+      const pulseTime = Date.now() * 0.0005 + (uniqueOffset * 0.1);
+      const pulseOpacity = 0.4 + Math.sin(pulseTime * 1.5) * 0.2;
+      const pulseSize = starSize * (1.3 + Math.sin(pulseTime * 1) * 0.2);
 
       ctx.beginPath();
       ctx.arc(empStar.x, empStar.y, pulseSize, 0, Math.PI * 2);
-      ctx.lineWidth = 1.5 + Math.sin(pulseTime * 2) * 0.5; // Reduced frequency and amplitude
+      ctx.lineWidth = 1.5 + Math.sin(pulseTime * 2) * 0.5;
       ctx.strokeStyle = `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, ${pulseOpacity})`;
       ctx.stroke();
       ctx.restore();
@@ -364,8 +397,8 @@ export function drawSatellites(
         const clickIndicatorX = empStar.x + starSize * 1.2;
         const clickIndicatorY = empStar.y - starSize * 1.2;
 
-        // Draw pulsing circle with smoother animation
-        const clickPulse = 0.85 + Math.sin(pulseTime * 2.5) * 0.15; // Reduced amplitude
+        // Draw pulsing circle with smoother animation - also use unique timing
+        const clickPulse = 0.85 + Math.sin(pulseTime * 2.5) * 0.15;
         ctx.beginPath();
         ctx.arc(clickIndicatorX, clickIndicatorY, clickIndicatorSize * clickPulse, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255, 255, 255, ${0.6 + Math.sin(pulseTime * 2) * 0.2})`;
@@ -384,6 +417,7 @@ export function drawSatellites(
 
       // Add floating skill icons around the star when hovered
       if (empStar.isHovered || empStar.isSelected) {
+        // Make sure getSkillsForEmployee is defined or import it
         const skills = getSkillsForEmployee(empStar.employee);
         const skillCount = skills.length;
 
@@ -393,7 +427,8 @@ export function drawSatellites(
           const orbitRadius = starSize * 2.2;
 
           skills.forEach((skill, i) => {
-            const angle = (i / skillCount) * Math.PI * 2 + Date.now() * 0.0005; // Slower rotation
+            // Use unique timing for skill icon rotation too
+            const angle = (i / skillCount) * Math.PI * 2 + Date.now() * 0.0005 + (uniqueOffset * 0.01);
             const iconX = empStar.x + Math.cos(angle) * orbitRadius;
             const iconY = empStar.y + Math.sin(angle) * orbitRadius;
 
@@ -472,7 +507,7 @@ export function drawSatellites(
     softRgb: {r: number, g: number, b: number}
   ): void {
     // Add subtle background nebula effects behind important stars - more subtle
-    // Use nullish coalescing to provide a default value of 0 for mass if it's undefined
+    // Use nullish coalescing to provide a default value of 0 for mass if it"s undefined
     if (((empStar.employee.mass ?? 0) > 200 || empStar.isSelected) && !empStar.useSimpleRendering) {
       ctx.save();
       const nebulaSize = starSize * 7; // Reduced from 8

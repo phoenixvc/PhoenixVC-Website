@@ -113,6 +113,31 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
     }
   };
 
+  // Handle repulsion test
+  const handleRepulsionTest = () => {
+    console.log("Test Repulsion button clicked");
+
+    // Get canvas dimensions
+    const canvasWidth = window.innerWidth;
+    const canvasHeight = window.innerHeight;
+    const centerX = canvasWidth / 2;
+    const centerY = canvasHeight / 2;
+
+    console.log(`Center coordinates: (${centerX}, ${centerY})`);
+
+    // Use the starfieldAPI directly
+    if (window.starfieldAPI) {
+      console.log("Using starfieldAPI from Test Repulsion button");
+      const affectedStars = window.starfieldAPI.applyForce(centerX, centerY, 300, 100);
+      console.log(`Applied force to ${affectedStars} stars from button`);
+
+      // Create an explosion effect
+      window.starfieldAPI.createExplosion(centerX, centerY);
+    } else {
+      console.error("starfieldAPI not available from Test Repulsion button");
+    }
+  };
+
   // Calculate max velocity of any star
   const maxVelocity = stars.length > 0
     ? stars.reduce((max, star) => {
@@ -272,6 +297,12 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
             className={styles.closeButton}
           >
             Close Debug
+          </button>
+          <button
+            onClick={handleRepulsionTest}
+            className={styles.actionButton}
+          >
+            Test Repulsion
           </button>
         </div>
       </div>

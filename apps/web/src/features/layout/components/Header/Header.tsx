@@ -20,8 +20,8 @@ const Header: FC<HeaderProps> = ({
   isSidebarCollapsed,
   gameMode,
   onGameModeToggle,
-  debugMode,
-  onDebugModeToggle
+  debugMode = false, // Debug disabled by default
+  onDebugModeToggle,
 }) => {
   const [scrolled, setScrolled] = useState(false);
   const [activePath, setActivePath] = useState("/");
@@ -40,17 +40,17 @@ const Header: FC<HeaderProps> = ({
     setActivePath(currentPath);
 
     window.addEventListener("scroll", handleScroll);
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [scrolled]);
 
   return (
-    <header className={`${styles.header} ${scrolled ? styles.headerScrolled : ""} ${!isDarkMode ? styles.lightMode : ""}`}>
+    <header
+      className={`${styles.header} ${
+        scrolled ? styles.headerScrolled : ""
+      } ${!isDarkMode ? styles.lightMode : ""}`}
+    >
       <div className={styles.headerContainer}>
         <div className={styles.headerLeft}>
-          {/* Only show menu button on mobile or when sidebar is not collapsed */}
           {(window.innerWidth < 768 || !isSidebarCollapsed) && (
             <button
               className={styles.menuButton}
@@ -61,7 +61,6 @@ const Header: FC<HeaderProps> = ({
             </button>
           )}
 
-          {/* Only show logo in header when sidebar is collapsed or on mobile */}
           {(window.innerWidth < 768 || isSidebarCollapsed) && (
             <a href="/" className={styles.logoContainer}>
               <span className={styles.logoText}>Phoenix VC</span>
@@ -87,10 +86,11 @@ const Header: FC<HeaderProps> = ({
         </nav>
 
         <div className={styles.headerControls}>
-          {/* Game Mode Toggle */}
           {onGameModeToggle && (
             <button
-              className={`${styles.controlButton} ${gameMode ? styles.activeControl : ""}`}
+              className={`${styles.controlButton} ${
+                gameMode ? styles.activeControl : ""
+              }`}
               onClick={onGameModeToggle}
               aria-label="Toggle game mode"
               title={gameMode ? "Disable Game Mode" : "Enable Game Mode"}
@@ -99,10 +99,11 @@ const Header: FC<HeaderProps> = ({
             </button>
           )}
 
-          {/* Debug Mode Toggle */}
           {onDebugModeToggle && (
             <button
-              className={`${styles.controlButton} ${debugMode ? styles.activeControl : ""}`}
+              className={`${styles.controlButton} ${
+                debugMode ? styles.activeControl : ""
+              }`}
               onClick={onDebugModeToggle}
               aria-label="Toggle debug mode"
               title={debugMode ? "Disable Debug Mode" : "Enable Debug Mode"}
@@ -111,18 +112,13 @@ const Header: FC<HeaderProps> = ({
             </button>
           )}
 
-          {/* Theme Toggle */}
           <button
             className={styles.themeToggleButton}
             onClick={onThemeToggle}
             aria-label="Toggle theme"
             title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
           >
-            {isDarkMode ? (
-              <Sun size={20} />
-            ) : (
-              <Moon size={20} />
-            )}
+            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
           </button>
         </div>
       </div>

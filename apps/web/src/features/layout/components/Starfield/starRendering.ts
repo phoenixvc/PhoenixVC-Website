@@ -22,8 +22,11 @@ export const drawEmployeeStar = (
 ): void => {
   if (!ctx || !empStar) return;
 
-  // Update star position
-  updateStarPosition(empStar, deltaTime);
+  // Skip position updates if the star is paused
+  if (!empStar.isMovementPaused) {
+    // Update star position based on orbit
+    updateStarPosition(empStar, deltaTime);
+  }
 
   // Get base color and create softer version
   const baseColor = empStar.employee.color || "#ffffff";

@@ -1,4 +1,4 @@
-/* components/Layout/Starfield/interactiveStarfield.module.css */
+/* components/Layout/Starfield/starfield.module.css */
 
 /* Common styles that don't change between modes */
 .starfieldWrapper {
@@ -12,13 +12,14 @@
 }
 
 .starfieldCanvas {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 3;
-  pointer-events: none !important;
+  z-index: 3; /* Higher than background elements */
+  pointer-events: auto; /* Change from 'none' to 'auto' */
+  cursor: pointer; /* Add this to show it's clickable */
 }
 
 .starfieldWrapper .debugControls,

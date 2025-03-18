@@ -1,19 +1,48 @@
 /* components/Layout/Starfield/employeeTooltip.module.css */
+
+/* Define dark & light mode variables */
+:root {
+  /* Dark mode defaults */
+  --tooltip-bg-dark: rgba(15,15,25,0.85);
+  --tooltip-border-dark: rgba(255,255,255,0.8);
+  --tooltip-shadow-dark: 0 8px 32px rgba(0,0,0,0.6);
+
+  /* Light mode settings */
+  --tooltip-bg-light: rgba(255,255,255,0.85);
+  --tooltip-border-light: rgba(0,0,0,0.5);
+  --tooltip-shadow-light: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+/* Default to dark mode */
 .tooltip {
   position: absolute;
   width: 280px;
-  background-color: rgba(15, 15, 25, 0.85);
+  background-color: var(--tooltip-bg-dark);
   backdrop-filter: blur(10px);
   border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  box-shadow: var(--tooltip-shadow-dark);
   z-index: 1000;
   overflow: hidden;
-  border-left: 4px solid;
-  pointer-events: none; /* Don't interfere with mouse events */
-  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  border-left: 4px solid var(--tooltip-border-dark);
+  pointer-events: none; /* Non-interactive unless pinned */
+  transition: transform 0.2s ease, opacity 0.3s cubic-bezier(0.25, 1, 0.5, 1);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
+/* When light mode is active */
+body.light-mode .tooltip {
+  background-color: var(--tooltip-bg-light);
+  box-shadow: var(--tooltip-shadow-light);
+  border-left: 4px solid var(--tooltip-border-light);
+}
+
+/* Enhance hover for interactive tooltips */
+.tooltip.pinned:hover {
+  transform: scale(1.03);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+}
+
+/* The rest of your CSS can remain unchanged */
 .tooltipGlow {
   position: absolute;
   top: 0;

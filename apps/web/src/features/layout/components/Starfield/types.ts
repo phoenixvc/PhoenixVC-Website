@@ -88,6 +88,10 @@ export interface EmployeeStar {
     name: string;
     icon: string;
   }[];
+  originalVx?: number;
+  originalVy?: number;
+  originalOrbitSpeed?: number;
+  isMovementPaused: boolean;
 }
 
 export interface HoverInfo {
@@ -417,5 +421,10 @@ export interface InteractiveStarfieldProps {
 declare global {
   interface Window {
     employeeStars?: EmployeeStar[];
+    starfieldAPI?: {
+      applyForce: (x: number, y: number, radius: number, force: number) => number;
+      getStarsCount: () => number;
+      createExplosion: (x: number, y: number) => boolean;
+    };
   }
 }

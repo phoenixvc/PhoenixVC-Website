@@ -205,19 +205,43 @@ export const checkEmployeeHover = (
       hoveredStar = empStar;
     }
 
-    // Reset hover state for all stars
-    empStar.isHovered = false;
+    // If this star was previously hovered but now isn't
+    if (empStar.isHovered && empStar !== hoveredStar) {
+      // Restore original orbit speed if it was stored
+      if (empStar.originalOrbitSpeed !== undefined) {
+        empStar.orbitSpeed = empStar.originalOrbitSpeed;
+        empStar.originalOrbitSpeed = undefined;
+      }
+      empStar.isMovementPaused = false;
+      empStar.isHovered = false;
+
+      // Reset pulsation to normal
+      if (empStar.pulsation && !empStar.useSimpleRendering) {
+        empStar.pulsation.enabled = true;
+        empStar.pulsation.minScale = 0.92;
+        empStar.pulsation.maxScale = 1.08;
+        empStar.pulsation.speed = 0.00002;
+      }
+    }
   }
 
   // Update the hovered star
   if (hoveredStar) {
+    // If this star wasn't hovered before, store its original orbit speed
+    if (!hoveredStar.isHovered) {
+      hoveredStar.originalOrbitSpeed = hoveredStar.orbitSpeed;
+      // Freeze the star by setting orbit speed to 0
+      hoveredStar.orbitSpeed = 0;
+      hoveredStar.isMovementPaused = true;
+    }
+
     hoveredStar.isHovered = true;
 
     // Set more dramatic pulsation for hovered star
     if (hoveredStar.pulsation && !hoveredStar.useSimpleRendering) {
       hoveredStar.pulsation.enabled = true;
       hoveredStar.pulsation.minScale = 0.8;
-      hoveredStar.pulsation.maxScale = 1.7; // Much more dramatic hover effect
+      hoveredStar.pulsation.maxScale = 1.3; // Much more dramatic hover effect
       hoveredStar.pulsation.speed = 0.0006; // Faster pulsation when hovered
     }
 
@@ -250,6 +274,7 @@ export const updateEmployeeStars = (
   const cappedDeltaTime = Math.min(deltaTime, 100);
 
   employeeStars.forEach(empStar => {
+    // Draw the star regardless of movement state
     drawEmployeeStar(ctx, empStar, cappedDeltaTime, employeeStarSize, employeeDisplayStyle);
   });
 };

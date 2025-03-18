@@ -18,7 +18,8 @@ const Layout = ({ children }: LayoutProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(220);
   const [gameMode, setGameMode] = useState(false);
-  const [debugMode, setDebugMode] = useState(true);
+  // Disable debug mode by default
+  const [debugMode, setDebugMode] = useState(false);
 
   // Create a ref to the starfield component
   const starfieldRef = useRef<StarfieldRef>(null);
@@ -67,7 +68,7 @@ const Layout = ({ children }: LayoutProps) => {
     if (isMobile) {
       // On mobile, toggle open/closed
       setIsSidebarOpen(prev => !prev);
-      setSidebarWidth(prev => prev === 0 ? 220 : 0);
+      setSidebarWidth(prev => (prev === 0 ? 220 : 0));
     } else {
       // On desktop, toggle between collapsed and full
       setIsCollapsed(prev => !prev);
@@ -146,7 +147,11 @@ const Layout = ({ children }: LayoutProps) => {
   };
 
   return (
-    <div className={`${styles.layoutWrapper} ${isDarkMode ? styles.darkMode : styles.lightMode} ${styles.starfieldContainer}`}>
+    <div
+      className={`${styles.layoutWrapper} ${
+        isDarkMode ? styles.darkMode : styles.lightMode
+      } ${styles.starfieldContainer}`}
+    >
       <InteractiveStarfield
         key={`starfield-${isDarkMode}-${sidebarWidth}-${gameMode}`}
         sidebarWidth={sidebarWidth}
@@ -170,7 +175,6 @@ const Layout = ({ children }: LayoutProps) => {
         drawDebugInfo={customDebugInfo}
       />
 
-      {/* Sidebar component */}
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => isMobile && setIsSidebarOpen(false)}
@@ -182,7 +186,6 @@ const Layout = ({ children }: LayoutProps) => {
         mode={isDarkMode ? "dark" : "light"}
       />
 
-      {/* Mobile overlay */}
       {isMobile && isSidebarOpen && (
         <div
           className={`${styles.sidebarOverlay} ${isSidebarOpen ? styles.visible : ""}`}
@@ -190,11 +193,10 @@ const Layout = ({ children }: LayoutProps) => {
         />
       )}
 
-      {/* Main content area */}
       <div
         className={styles.contentWrapper}
         style={{
-          marginLeft: isMobile ? 0 : (isSidebarOpen ? (isCollapsed ? "60px" : "220px") : 0)
+          marginLeft: isMobile ? 0 : isSidebarOpen ? (isCollapsed ? "60px" : "220px") : 0,
         }}
       >
         <Header
@@ -208,8 +210,12 @@ const Layout = ({ children }: LayoutProps) => {
           onDebugModeToggle={toggleDebugMode}
         />
 
-        <main className={styles.mainContent}>
-          {children}
+        <main className={`${styles.mainContent} ${isDarkMode ? styles.darkMain : styles.lightMain}`}>
+          {React.Children.map(children, (child) =>
+            React.isValidElement(child)
+              ? React.cloneElement(child as React.ReactElement<{ isDarkMode: boolean }>, { isDarkMode })
+              : child
+          )}
         </main>
 
         <Footer isDarkMode={isDarkMode} />
