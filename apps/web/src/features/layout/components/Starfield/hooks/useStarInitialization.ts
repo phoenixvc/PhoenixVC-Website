@@ -1,0 +1,347 @@
+// hooks/useStarInitialization.ts
+import { useState, useRef, useCallback, useMemo } from "react";
+import { Star, BlackHole, EmployeeStar, DebugSettings } from "../types";
+import { initBlackHoles } from "../blackHoles";
+import { initEmployeeStars } from "../employeeStars";
+import { DEFAULT_BLACK_HOLES, DEFAULT_EMPLOYEES, getColorPalette } from "../constants";
+
+interface StarInitializationProps {
+  canvasRef: React.RefObject<HTMLCanvasElement>;
+  dimensionsRef: React.MutableRefObject<{ width: number; height: number }>;
+  starDensity: number;
+  sidebarWidth: number;
+  centerOffsetX: number;
+  centerOffsetY: number;
+  starSize: number;
+  colorScheme: string;
+  enableBlackHole: boolean;
+  blackHoleSize: number;
+  particleSpeed: number;
+  enableEmployeeStars: boolean;
+  employeeStarSize: number;
+  debugSettings: DebugSettings;
+  cancelAnimation: () => void;
+}
+
+export const useStarInitialization = ({
+  canvasRef,
+  dimensionsRef,
+  starDensity,
+  sidebarWidth,
+  centerOffsetX,
+  centerOffsetY,
+  starSize,
+  colorScheme,
+  enableBlackHole,
+  blackHoleSize,
+  particleSpeed,
+  enableEmployeeStars,
+  employeeStarSize,
+  debugSettings,
+  cancelAnimation
+}: StarInitializationProps) => {
+  // Store stars in refs to prevent re-renders
+  const starsRef = useRef<Star[]>([]);
+  const blackHolesRef = useRef<BlackHole[]>([]);
+  const employeeStarsRef = useRef<EmployeeStar[]>([]);
+  const isStarsInitializedRef = useRef(false);
+  const isInitializedRef = useRef(false);
+
+  // State for UI updates only - not used for animation calculations
+  const [stars, setStars] = useState<Star[]>([]);
+  const [blackHoles, setBlackHoles] = useState<BlackHole[]>([]);
+  const [employeeStars, setEmployeeStars] = useState<EmployeeStar[]>([]);
+
+  // Custom function to initialize stars with lower initial velocities - memoized
+  const initializeStarsWithLowVelocity = useCallback((
+    width: number,
+    height: number,
+    starCount: number,
+    sidebarWidth: number = 0,
+    centerOffsetX: number = 0,
+    centerOffsetY: number = 0,
+    starSize: number = 1.0,
+    colorScheme: string = "white"
+  ): Star[] => {
+    console.log(`Initializing ${starCount} stars with size ${starSize}`);
+
+    // Create a new array to hold the stars
+    const stars: Star[] = [];
+    const colors = getColorPalette(colorScheme);
+
+    // Calculate effective width (accounting for sidebar)
+    const effectiveWidth = width - sidebarWidth;
+
+    for (let i = 0; i < starCount; i++) {
+      // Position stars within the effective width (after sidebar)
+      const x = sidebarWidth + Math.random() * effectiveWidth;
+      const y = Math.random() * height;
+
+      // Random size with weighted distribution (more small stars)
+      const sizeMultiplier = Math.pow(Math.random(), 2) * 2 + 0.5;
+      const size = sizeMultiplier * starSize;
+
+      // Random color from palette
+      const color = colors[Math.floor(Math.random() * colors.length)];
+
+      // Create star with small initial velocity
+      stars.push({
+        x,
+        y,
+        size,
+        color,
+        vx: (Math.random() - 0.5) * 0.05, // Small random initial velocity
+        vy: (Math.random() - 0.5) * 0.05, // Small random initial velocity
+        originalX: x,
+        originalY: y,
+        mass: size * 2,
+        speed: Math.random() * 0.05,  // Small random speed
+        isActive: false,
+        lastPushed: 0,
+        targetVx: 0,
+        targetVy: 0,
+        fx: 0,
+        fy: 0
+      });
+    }
+
+    console.log(`Created ${stars.length} stars with first star:`, stars[0]);
+    return stars;
+  }, []);
+
+  const initializeElements = useCallback(() => {
+    console.log("Initializing elements with dimensions:", dimensionsRef.current);
+
+    // Always reinitialize stars when this function is called
+    isStarsInitializedRef.current = false;
+
+    const width = dimensionsRef.current.width || window.innerWidth;
+    const height = dimensionsRef.current.height || window.innerHeight;
+
+    if (width === 0 || height === 0) {
+      console.log("Invalid dimensions, using window dimensions");
+      dimensionsRef.current = {
+        width: window.innerWidth,
+        height: window.innerHeight
+      };
+    }
+
+    if (canvasRef.current) {
+      canvasRef.current.width = dimensionsRef.current.width;
+      canvasRef.current.height = dimensionsRef.current.height;
+      console.log("Canvas dimensions set to:", canvasRef.current.width, canvasRef.current.height);
+    }
+
+    // Create stars with explicit dimensions
+    const starCount = Math.floor(dimensionsRef.current.width * dimensionsRef.current.height * 0.00015 * starDensity);
+    console.log(`Creating ${starCount} stars`);
+
+    const newStars = initializeStarsWithLowVelocity(
+      dimensionsRef.current.width,
+      dimensionsRef.current.height,
+      starCount,
+      sidebarWidth,
+      centerOffsetX,
+      centerOffsetY,
+      starSize,
+      colorScheme
+    );
+
+    // Initialize black holes
+    const newBlackHoles = initBlackHoles(
+      width,
+      height,
+      enableBlackHole,
+      DEFAULT_BLACK_HOLES,
+      sidebarWidth,
+      centerOffsetX,
+      centerOffsetY,
+      blackHoleSize,
+      particleSpeed,
+      colorScheme,
+      starSize
+    );
+
+    // Initialize employee stars with extremely slow orbit speeds
+    const newEmployeeStars = initEmployeeStars(
+      width,
+      height,
+      enableEmployeeStars,
+      DEFAULT_EMPLOYEES,
+      sidebarWidth,
+      centerOffsetX,
+      centerOffsetY,
+      employeeStarSize
+    );
+
+    // Modify employee stars to have extremely slow orbit speeds
+    const modifiedEmployeeStars = newEmployeeStars.map(empStar => ({
+      ...empStar,
+      orbitSpeed: debugSettings.employeeOrbitSpeed, // Use debug setting
+      pulsation: {
+        enabled: false,
+        speed: 0,
+        minScale: 1,
+        maxScale: 1,
+        scale: 1,
+        direction: 1
+      },
+      trailLength: 0,
+      glowIntensity: empStar.glowIntensity || 1.0
+    }));
+
+    // Update refs first
+    starsRef.current = [...newStars];
+    blackHolesRef.current = newBlackHoles;
+    employeeStarsRef.current = modifiedEmployeeStars;
+
+    // Then update state (for UI updates only)
+    setStars(newStars);
+    setBlackHoles(newBlackHoles);
+    setEmployeeStars(modifiedEmployeeStars);
+
+    console.log(`Initialized with ${newStars.length} stars`);
+    isStarsInitializedRef.current = true;
+  }, [
+    starDensity,
+    sidebarWidth,
+    centerOffsetX,
+    centerOffsetY,
+    starSize,
+    colorScheme,
+    enableBlackHole,
+    blackHoleSize,
+    particleSpeed,
+    enableEmployeeStars,
+    employeeStarSize,
+    initializeStarsWithLowVelocity,
+    debugSettings.employeeOrbitSpeed,
+    canvasRef,
+    dimensionsRef
+  ]);
+
+  // Create a function to ensure stars exist (for animation loop)
+  const ensureStarsExist = useCallback(() => {
+    console.log("Ensuring stars exist");
+
+    if (!starsRef.current || starsRef.current.length === 0) {
+      console.log("Stars not initialized, initializing now");
+
+      // Try to initialize elements first
+      initializeElements();
+
+      // If still no stars, create fallback stars
+      if (!starsRef.current || starsRef.current.length === 0) {
+        console.log("Creating fallback stars");
+
+        // Create a minimal set of stars as fallback
+        const fallbackStars = [];
+        const width = dimensionsRef.current.width || window.innerWidth;
+        const height = dimensionsRef.current.height || window.innerHeight;
+
+        for (let i = 0; i < 100; i++) {
+          fallbackStars.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            size: Math.random() * 2 + 1,
+            color: "rgba(255, 255, 255, 0.8)",
+            vx: (Math.random() - 0.5) * 0.05,
+            vy: (Math.random() - 0.5) * 0.05,
+            originalX: 0,
+            originalY: 0,
+            mass: 1,
+            speed: 0,
+            isActive: false,
+            lastPushed: 0,
+            targetVx: 0,
+            targetVy: 0,
+            fx: 0,
+            fy: 0
+          });
+        }
+
+        // Update the ref and state
+        starsRef.current = fallbackStars;
+        setStars(fallbackStars);
+        console.log("Created fallback stars:", fallbackStars.length);
+      }
+    }
+
+    return starsRef.current;
+  }, [initializeElements, dimensionsRef]);
+
+  // Function to reset all stars
+  const resetStars = useCallback(() => {
+    console.log("Reset stars called");
+
+    const width = dimensionsRef.current.width || window.innerWidth;
+    const height = dimensionsRef.current.height || window.innerHeight;
+
+    if (!width || !height) {
+      console.log("Invalid dimensions, can't reset stars");
+      return;
+    }
+
+    // Cancel any existing animation first
+    cancelAnimation();
+
+    // Reset initialization flags to force complete reinitialization
+    isStarsInitializedRef.current = false;
+    isInitializedRef.current = false;
+
+    const starCount = Math.floor(width * height * 0.00015 * starDensity);
+    console.log(`Creating ${starCount} stars`);
+
+    // Create completely new stars with low velocity
+    const newStars = initializeStarsWithLowVelocity(
+      width,
+      height,
+      starCount,
+      sidebarWidth,
+      centerOffsetX,
+      centerOffsetY,
+      starSize,
+      colorScheme
+    );
+
+    console.log(`Created ${newStars.length} stars`);
+
+    // Update ref first
+    starsRef.current = [...newStars];
+
+    // Then update state
+    setStars(newStars);
+
+    // Force a re-initialization of all elements with a small delay
+    // to ensure state updates have propagated
+    setTimeout(() => {
+      initializeElements();
+    }, 50);
+
+    console.log("Stars reset complete");
+  }, [
+    starDensity,
+    sidebarWidth,
+    centerOffsetX,
+    centerOffsetY,
+    starSize,
+    colorScheme,
+    initializeStarsWithLowVelocity,
+    initializeElements,
+    cancelAnimation,
+    dimensionsRef
+  ]);
+
+  return {
+    stars,
+    starsRef,
+    blackHoles,
+    blackHolesRef,
+    employeeStars,
+    employeeStarsRef,
+    initializeElements,
+    ensureStarsExist,
+    resetStars,
+    isStarsInitializedRef
+  };
+};

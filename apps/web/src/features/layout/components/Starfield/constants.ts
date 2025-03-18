@@ -1,51 +1,68 @@
 // components/Layout/Starfield/constants.ts
 import { BlackHoleData, EmployeeData } from "./types";
 
-// Default employees data with more detailed information
-export const DEFAULT_EMPLOYEES: EmployeeData[] = [
-    {
-      id: "js",
-      name: "Jurie Smit",
-      initials: "JS",
-      position: "Software Architect",
-      mass: 300,
-      color: "#60a5fa", // Blue
-      image: "apps/web/public/themes/Jor.png",
-      fullName: "Jurie Smit",
-      speed: 0.0003
-    },
-    {
-      id: "em",
-      name: "Eben Mare",
-      initials: "EM",
-      position: "CEO",
-      mass: 300,
-      color: "#f87171", // Red
-      image: "apps/web/public/themes/Noster.png",
-      fullName: "Eben Mare",
-      speed: 0.0001,
-    },
-    {
-      id: "ym",
-      name: "Yolandi Mare",
-      initials: "YM",
-      position: "CTO",
-      mass: 150,
-      color: "#4ade80", // Green
-      image: "apps/web/public/themes/YolandE.png",
-      fullName: "Yolandi Mare",
-      speed: 0.00005
-    }
+  // Default black hole positions
+  export const DEFAULT_BLACK_HOLES = [
+    { x: 0.2, y: 0.3, radius: 25, color: "#8A2BE2" },
+    { x: 0.8, y: 0.7, radius: 30, color: "#8A2BE2" },
   ];
 
-// Default black holes configuration
-export const DEFAULT_BLACK_HOLES: BlackHoleData[] = [
+// Default employees data with more detailed information
+export const DEFAULT_EMPLOYEES: EmployeeData[] = [
   {
-    id: "main",
-    x: 0.5, // Center horizontally
-    y: 0.5, // Center vertically
+    id: "js",
+    name: "Jurie Smit",
+    initials: "JS",
+    position: "Software Architect",
     mass: 300,
-    particles: 50
+    color: "#60a5fa", // Blue
+    image: "apps/web/public/themes/Jor.png",
+    fullName: "Jurie Smit",
+    speed: 0.0003,
+    title: "Software Architect",
+    bio: "Jurie is a software architect with a passion for building scalable and maintainable systems. He enjoys working with the latest technologies and mentoring junior developers.",
+    department: "Engineering",
+    experience: 18,
+    expertise: "System Design, Cloud Architecture",
+    projects: ["Core Platform", "API Gateway", "Microservices"],
+    skills: ["Architecture", "Cloud", "DevOps", "Mentoring"],
+    relatedEmployees: ["ym"] // Related to Yolandi (CTO)
+  },
+  {
+    id: "em",
+    name: "Eben Mare",
+    initials: "EM",
+    position: "CEO",
+    mass: 300,
+    color: "#f87171", // Red
+    image: "apps/web/public/themes/Noster.png",
+    fullName: "Eben Mare",
+    speed: 0.0001,
+    title: "CEO",
+    department: "Executive",
+    experience: 20,
+    expertise: "Business Strategy, Leadership",
+    projects: ["Company Vision", "Growth Strategy"],
+    skills: ["Leadership", "Strategy", "Vision", "Management"],
+    relatedEmployees: ["ym"] // Related to Yolandi (spouse/CTO)
+  },
+  {
+    id: "ym",
+    name: "Yolandi Mare",
+    initials: "YM",
+    position: "CTO",
+    mass: 150,
+    color: "#4ade80", // Green
+    image: "apps/web/public/themes/YolandE.png",
+    fullName: "Yolandi Mare",
+    speed: 0.00005,
+    title: "Solver of Problems",
+    department: "Product",
+    experience: 10,
+    expertise: "Product Development, Technical Leadership",
+    projects: ["Product Roadmap", "Technical Strategy"],
+    skills: ["Product", "Technology", "Innovation", "Leadership"],
+    relatedEmployees: ["em", "js"] // Related to Eben (spouse/CEO) and Jurie (technical team)
   }
 ];
 

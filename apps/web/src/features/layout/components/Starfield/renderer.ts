@@ -50,121 +50,121 @@ export const drawBlackHole = (
 };
 
 // Draw an employee star with its satellites
-export const drawEmployeeStar = (
-    ctx: CanvasRenderingContext2D,
-    empStar: EmployeeStar,
-    deltaTime: number,
-    employeeStarSize: number,
-    employeeDisplayStyle: "initials" | "avatar" | "both"
-  ): void => {
-    // Update position based on orbit
-    empStar.angle += empStar.orbitSpeed * deltaTime;
-    empStar.x = empStar.orbitCenter.x + Math.cos(empStar.angle) * empStar.orbitRadius;
-    empStar.y = empStar.orbitCenter.y + Math.sin(empStar.angle) * empStar.orbitRadius;
+// export const drawEmployeeStar = (
+//     ctx: CanvasRenderingContext2D,
+//     empStar: EmployeeStar,
+//     deltaTime: number,
+//     employeeStarSize: number,
+//     employeeDisplayStyle: "initials" | "avatar" | "both"
+//   ): void => {
+//     // Update position based on orbit
+//     empStar.angle += empStar.orbitSpeed * deltaTime;
+//     empStar.x = empStar.orbitCenter.x + Math.cos(empStar.angle) * empStar.orbitRadius;
+//     empStar.y = empStar.orbitCenter.y + Math.sin(empStar.angle) * empStar.orbitRadius;
 
-    // Update and draw satellites
-    empStar.satellites.forEach(satellite => {
-      satellite.angle += satellite.speed * deltaTime;
-      const satX = empStar.x + Math.cos(satellite.angle) * satellite.distance;
-      const satY = empStar.y + Math.sin(satellite.angle) * satellite.distance;
+//     // Update and draw satellites
+//     empStar.satellites.forEach(satellite => {
+//       satellite.angle += satellite.speed * deltaTime;
+//       const satX = empStar.x + Math.cos(satellite.angle) * satellite.distance;
+//       const satY = empStar.y + Math.sin(satellite.angle) * satellite.distance;
 
-      ctx.beginPath();
-      ctx.arc(satX, satY, satellite.size, 0, Math.PI * 2);
-      ctx.fillStyle = satellite.color;
-      ctx.fill();
-    });
+//       ctx.beginPath();
+//       ctx.arc(satX, satY, satellite.size, 0, Math.PI * 2);
+//       ctx.fillStyle = satellite.color;
+//       ctx.fill();
+//     });
 
-    const starSize = 12 * employeeStarSize;
-    const baseColor = empStar.employee.color || "#ffffff";
+//     const starSize = 12 * employeeStarSize;
+//     const baseColor = empStar.employee.color || "#ffffff";
 
-    // Draw employee star with glow effect
-    const glowGradient = ctx.createRadialGradient(
-      empStar.x, empStar.y, 0,
-      empStar.x, empStar.y, starSize * 1.5
-    );
+//     // Draw employee star with glow effect
+//     const glowGradient = ctx.createRadialGradient(
+//       empStar.x, empStar.y, 0,
+//       empStar.x, empStar.y, starSize * 1.5
+//     );
 
-    glowGradient.addColorStop(0, baseColor);
-    glowGradient.addColorStop(0.5, `${baseColor}40`); // 25% opacity
-    glowGradient.addColorStop(1, `${baseColor}00`); // 0% opacity
+//     glowGradient.addColorStop(0, baseColor);
+//     glowGradient.addColorStop(0.5, `${baseColor}40`); // 25% opacity
+//     glowGradient.addColorStop(1, `${baseColor}00`); // 0% opacity
 
-    ctx.beginPath();
-    ctx.arc(empStar.x, empStar.y, starSize * 1.5, 0, Math.PI * 2);
-    ctx.fillStyle = glowGradient;
-    ctx.fill();
+//     ctx.beginPath();
+//     ctx.arc(empStar.x, empStar.y, starSize * 1.5, 0, Math.PI * 2);
+//     ctx.fillStyle = glowGradient;
+//     ctx.fill();
 
-    // Inner star
-    const gradient = ctx.createRadialGradient(
-      empStar.x, empStar.y, 0,
-      empStar.x, empStar.y, starSize
-    );
+//     // Inner star
+//     const gradient = ctx.createRadialGradient(
+//       empStar.x, empStar.y, 0,
+//       empStar.x, empStar.y, starSize
+//     );
 
-    gradient.addColorStop(0, baseColor);
-    gradient.addColorStop(0.7, `${baseColor}80`); // 50% opacity
-    gradient.addColorStop(1, `${baseColor}20`); // 12% opacity
+//     gradient.addColorStop(0, baseColor);
+//     gradient.addColorStop(0.7, `${baseColor}80`); // 50% opacity
+//     gradient.addColorStop(1, `${baseColor}20`); // 12% opacity
 
-    ctx.beginPath();
-    ctx.arc(empStar.x, empStar.y, starSize, 0, Math.PI * 2);
-    ctx.fillStyle = gradient;
-    ctx.fill();
+//     ctx.beginPath();
+//     ctx.arc(empStar.x, empStar.y, starSize, 0, Math.PI * 2);
+//     ctx.fillStyle = gradient;
+//     ctx.fill();
 
-    // Draw employee representation based on display style
-    if (employeeDisplayStyle === "avatar" && empStar.employee.image) {
-      // Create a circular clip path for the avatar
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(empStar.x, empStar.y, starSize * 0.8, 0, Math.PI * 2);
-      ctx.clip();
+//     // Draw employee representation based on display style
+//     if (employeeDisplayStyle === "avatar" && empStar.employee.image) {
+//       // Create a circular clip path for the avatar
+//       ctx.save();
+//       ctx.beginPath();
+//       ctx.arc(empStar.x, empStar.y, starSize * 0.8, 0, Math.PI * 2);
+//       ctx.clip();
 
-      // Create image element and draw when loaded
-      const img = new Image();
-      img.src = empStar.employee.image;
+//       // Create image element and draw when loaded
+//       const img = new Image();
+//       img.src = empStar.employee.image;
 
-      // Only draw if the image is already loaded
-      if (img.complete) {
-        const imgSize = starSize * 1.6;
-        ctx.drawImage(img, empStar.x - imgSize/2, empStar.y - imgSize/2, imgSize, imgSize);
-      } else {
-        // If image not loaded, draw initials as fallback
-        ctx.font = `bold ${Math.floor(10 * employeeStarSize)}px Arial`;
-        ctx.fillStyle = "#ffffff";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(empStar.employee.initials, empStar.x, empStar.y); // Use initials instead of name
-      }
+//       // Only draw if the image is already loaded
+//       if (img.complete) {
+//         const imgSize = starSize * 1.6;
+//         ctx.drawImage(img, empStar.x - imgSize/2, empStar.y - imgSize/2, imgSize, imgSize);
+//       } else {
+//         // If image not loaded, draw initials as fallback
+//         ctx.font = `bold ${Math.floor(10 * employeeStarSize)}px Arial`;
+//         ctx.fillStyle = "#ffffff";
+//         ctx.textAlign = "center";
+//         ctx.textBaseline = "middle";
+//         ctx.fillText(empStar.employee.initials, empStar.x, empStar.y); // Use initials instead of name
+//       }
 
-      ctx.restore();
-    } else if (employeeDisplayStyle === "both" && empStar.employee.image) {
-      // Draw smaller avatar with name below
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(empStar.x, empStar.y - starSize * 0.3, starSize * 0.6, 0, Math.PI * 2);
-      ctx.clip();
+//       ctx.restore();
+//     } else if (employeeDisplayStyle === "both" && empStar.employee.image) {
+//       // Draw smaller avatar with name below
+//       ctx.save();
+//       ctx.beginPath();
+//       ctx.arc(empStar.x, empStar.y - starSize * 0.3, starSize * 0.6, 0, Math.PI * 2);
+//       ctx.clip();
 
-      const img = new Image();
-      img.src = empStar.employee.image;
+//       const img = new Image();
+//       img.src = empStar.employee.image;
 
-      if (img.complete) {
-        const imgSize = starSize * 1.2;
-        ctx.drawImage(img, empStar.x - imgSize/2, empStar.y - starSize * 0.3 - imgSize/2, imgSize, imgSize);
-      }
+//       if (img.complete) {
+//         const imgSize = starSize * 1.2;
+//         ctx.drawImage(img, empStar.x - imgSize/2, empStar.y - starSize * 0.3 - imgSize/2, imgSize, imgSize);
+//       }
 
-      ctx.restore();
+//       ctx.restore();
 
-      // Draw name below
-      ctx.font = `bold ${Math.floor(8 * employeeStarSize)}px Arial`;
-      ctx.fillStyle = "#ffffff";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(empStar.employee.name, empStar.x, empStar.y + starSize * 0.5);
-    } else {
-      // Default: just draw initials
-      ctx.font = `bold ${Math.floor(10 * employeeStarSize)}px Arial`;
-      ctx.fillStyle = "#ffffff";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(empStar.employee.initials, empStar.x, empStar.y); // Use initials instead of name
-    }
-  };
+//       // Draw name below
+//       ctx.font = `bold ${Math.floor(8 * employeeStarSize)}px Arial`;
+//       ctx.fillStyle = "#ffffff";
+//       ctx.textAlign = "center";
+//       ctx.textBaseline = "middle";
+//       ctx.fillText(empStar.employee.name, empStar.x, empStar.y + starSize * 0.5);
+//     } else {
+//       // Default: just draw initials
+//       ctx.font = `bold ${Math.floor(10 * employeeStarSize)}px Arial`;
+//       ctx.fillStyle = "#ffffff";
+//       ctx.textAlign = "center";
+//       ctx.textBaseline = "middle";
+//       ctx.fillText(empStar.employee.initials, empStar.x, empStar.y); // Use initials instead of name
+//     }
+//   };
 
 // Draw explosions
 export const drawExplosions = (
@@ -248,8 +248,9 @@ export const updateStar = (
       const dist = Math.sqrt(distSq);
 
       if (dist > 10 && dist < 200) {
-        // Gravitational force based on employee mass
-        const force = (empStar.employee.mass / distSq) * gravitationalPull * 0.005;
+        // Use nullish coalescing to provide a default mass value if undefined
+        const employeeMass = empStar.employee.mass ?? 100; // Default mass of 100 if undefined
+        const force = (employeeMass / distSq) * gravitationalPull * 0.005;
         ax += dx / dist * force;
         ay += dy / dist * force;
       }

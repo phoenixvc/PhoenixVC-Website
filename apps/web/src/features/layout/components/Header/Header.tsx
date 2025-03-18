@@ -1,19 +1,8 @@
 // components/Layout/Header/Header.tsx
 import { FC, useEffect, useState } from "react";
 import styles from "./header.module.css";
-import { Menu, Sun, Moon } from "lucide-react";
-
-interface NavItem {
-  label: string;
-  href: string;
-}
-
-interface HeaderProps {
-  onMenuClick: () => void;
-  isDarkMode: boolean;
-  onThemeToggle: () => void;
-  isSidebarCollapsed: boolean;
-}
+import { Menu, Sun, Moon, Bug, Gamepad2 } from "lucide-react";
+import { HeaderProps, NavItem } from "./types";
 
 const navItems: NavItem[] = [
   { label: "Home", href: "/" },
@@ -28,7 +17,11 @@ const Header: FC<HeaderProps> = ({
   onMenuClick,
   isDarkMode,
   onThemeToggle,
-  isSidebarCollapsed
+  isSidebarCollapsed,
+  gameMode,
+  onGameModeToggle,
+  debugMode,
+  onDebugModeToggle
 }) => {
   const [scrolled, setScrolled] = useState(false);
   const [activePath, setActivePath] = useState("/");
@@ -93,11 +86,37 @@ const Header: FC<HeaderProps> = ({
           </ul>
         </nav>
 
-        <div className={styles.themeToggle}>
+        <div className={styles.headerControls}>
+          {/* Game Mode Toggle */}
+          {onGameModeToggle && (
+            <button
+              className={`${styles.controlButton} ${gameMode ? styles.activeControl : ""}`}
+              onClick={onGameModeToggle}
+              aria-label="Toggle game mode"
+              title={gameMode ? "Disable Game Mode" : "Enable Game Mode"}
+            >
+              <Gamepad2 size={18} />
+            </button>
+          )}
+
+          {/* Debug Mode Toggle */}
+          {onDebugModeToggle && (
+            <button
+              className={`${styles.controlButton} ${debugMode ? styles.activeControl : ""}`}
+              onClick={onDebugModeToggle}
+              aria-label="Toggle debug mode"
+              title={debugMode ? "Disable Debug Mode" : "Enable Debug Mode"}
+            >
+              <Bug size={18} />
+            </button>
+          )}
+
+          {/* Theme Toggle */}
           <button
             className={styles.themeToggleButton}
             onClick={onThemeToggle}
             aria-label="Toggle theme"
+            title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
           >
             {isDarkMode ? (
               <Sun size={20} />

@@ -407,4 +407,79 @@
   .headerContainer {
     padding: 0 1rem;
   }
+
+  .iconButton {
+    background: transparent;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 10px;
+    transition: background-color 0.2s, transform 0.2s;
+  }
+
+  .iconButton:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: scale(1.05);
+  }
+
+  .iconButton.active {
+    color: #8a2be2;
+    background-color: rgba(138, 43, 226, 0.15);
+  }
+}
+
+.headerControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.controlButton {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.controlButton:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.activeControl {
+  background-color: rgba(138, 43, 226, 0.2);
+  color: var(--primary-color);
+}
+
+/* Update the existing themeToggle class */
+.themeToggle {
+  display: flex;
+  align-items: center;
+}
+
+.themeToggleButton {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.themeToggleButton:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }

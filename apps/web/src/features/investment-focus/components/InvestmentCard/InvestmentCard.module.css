@@ -113,3 +113,33 @@
 .card:hover .description {
   color: hsl(var(--card-foreground) / 0.9);
 }
+
+.focusAreaCard {
+  background-color: rgba(2, 12, 27, 0.8); /* Slightly transparent deep blue */
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(99, 123, 255, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3),
+              0 0 15px rgba(67, 87, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.focusAreaCard:hover {
+  border-color: rgba(99, 123, 255, 0.3);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4),
+              0 0 20px rgba(67, 87, 255, 0.2);
+  transform: translateY(-5px);
+}
+
+/* Light theme focus area cards */
+.lightThemeFocusCard {
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(99, 123, 255, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1),
+              0 0 15px rgba(67, 87, 255, 0.05);
+}
+
+.lightThemeFocusCard:hover {
+  border-color: rgba(99, 123, 255, 0.2);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15),
+              0 0 20px rgba(67, 87, 255, 0.1);
+}
