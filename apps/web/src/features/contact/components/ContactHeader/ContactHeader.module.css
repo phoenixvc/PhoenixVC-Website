@@ -1,4 +1,5 @@
 /* features/contact/components/ContactHeader/ContactHeader.module.css */
+/* features/contact/components/ContactHeader/ContactHeader.module.css */
 .heading {
   font-size: 2.5rem;
   font-weight: 700;
@@ -19,20 +20,6 @@
   z-index: 2;
 }
 
-.subtitle {
-  font-size: 1.125rem;
-  line-height: 1.6;
-  color: hsla(250, 15%, 85%, 0.9); /* Light purple-gray */
-  text-align: center;
-  max-width: 600px;
-  margin: 0 auto 2.5rem auto; /* Added bottom margin */
-  position: relative;
-  z-index: 2;
-  text-shadow: 0 0 20px hsla(270, 50%, 10%, 0.5); /* Dark purple shadow */
-  font-weight: 500; /* Added weight */
-  letter-spacing: 0.015em; /* Improved letter spacing */
-}
-
 /* Add dark/light mode variants */
 :root:not(.dark) .heading {
   background: linear-gradient(
@@ -45,30 +32,31 @@
   text-shadow: 0 0 30px hsla(270, 70%, 60%, 0.2);
 }
 
-:root:not(.dark) .subtitle {
-  color: hsla(250, 20%, 30%, 0.9); /* Dark purple-gray for light mode */
+.subtitle {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto 2.5rem auto;
+  position: relative;
+  z-index: 2;
+  font-weight: 500;
+  letter-spacing: 0.015em;
+}
+
+.lightSubtitle {
+  color: rgba(50, 50, 70, 0.9); /* Darker color for better contrast */
   text-shadow: none;
 }
 
-.dark .heading {
-  background: linear-gradient(
-    135deg,
-    hsl(270, 80%, 65%),  /* Brighter purple for dark mode */
-    hsl(250, 95%, 70%)   /* Brighter violet for dark mode */
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  text-shadow: 0 0 30px hsla(270, 70%, 60%, 0.4);
-}
-
-.dark .subtitle {
-  color: hsla(250, 15%, 95%, 0.95); /* Brighter text for better visibility */
-  text-shadow: 0 0 20px hsla(270, 50%, 10%, 0.5), 0 0 15px rgba(138, 43, 226, 0.4); /* Enhanced glow */
+.darkSubtitle {
+  color: rgba(240, 240, 255, 0.95); /* Brighter text for better visibility */
+  text-shadow: 0 0 20px rgba(13, 12, 34, 0.5), 0 0 15px rgba(138, 43, 226, 0.4);
   position: relative;
 }
 
-/* Optional animated gradient underline for subtitle in dark mode */
-.dark .subtitle::after {
+/* Animated gradient underline for subtitle in dark mode */
+.darkSubtitle::after {
   content: "";
   position: absolute;
   bottom: -0.75rem;
@@ -83,6 +71,7 @@
     rgba(138, 43, 226, 0.6),
     transparent
   );
+  animation: glow 3s infinite alternate;
 }
 
 @media (max-width: 768px) {
@@ -95,8 +84,19 @@
   }
 
   /* Adjust underline for mobile */
-  .dark .subtitle::after {
+  .darkSubtitle::after {
     left: 15%;
     width: 70%;
+  }
+}
+
+@keyframes glow {
+  0% {
+    opacity: 0.4;
+    box-shadow: 0 0 5px rgba(138, 43, 226, 0.3);
+  }
+  100% {
+    opacity: 0.8;
+    box-shadow: 0 0 10px rgba(138, 43, 226, 0.6);
   }
 }

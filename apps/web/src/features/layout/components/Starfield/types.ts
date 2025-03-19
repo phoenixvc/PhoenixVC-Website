@@ -33,6 +33,7 @@ export interface EmployeeData {
   bio?: string;
   title: string;
   relatedEmployees: string[];
+  product: string;
 }
 
 export interface Satellite {

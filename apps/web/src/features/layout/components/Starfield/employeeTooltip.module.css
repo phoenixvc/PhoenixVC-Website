@@ -4,33 +4,48 @@
 :root {
   /* Dark mode defaults */
   --tooltip-bg-dark: rgba(15,15,25,0.85);
-  --tooltip-border-dark: rgba(255,255,255,0.8);
+  --tooltip-border-dark: rgba(157,78,221,0.8);
   --tooltip-shadow-dark: 0 8px 32px rgba(0,0,0,0.6);
+  --tooltip-text-dark: rgba(255,255,255,0.9);
+  --tooltip-subtext-dark: rgba(255,255,255,0.7);
+  --tooltip-header-bg-dark: rgba(0,0,0,0.2);
+  --tooltip-divider-dark: rgba(255,255,255,0.1);
 
   /* Light mode settings */
-  --tooltip-bg-light: rgba(255,255,255,0.85);
-  --tooltip-border-light: rgba(0,0,0,0.5);
-  --tooltip-shadow-light: 0 8px 32px rgba(0,0,0,0.3);
+  --tooltip-bg-light: rgba(255,255,255,0.9);
+  --tooltip-border-light: rgba(123,44,191,0.6);
+  --tooltip-shadow-light: 0 8px 32px rgba(123,44,191,0.2);
+  --tooltip-text-light: rgba(30,30,50,0.9);
+  --tooltip-subtext-light: rgba(30,30,50,0.7);
+  --tooltip-header-bg-light: rgba(123,44,191,0.08);
+  --tooltip-divider-light: rgba(123,44,191,0.1);
 }
 
-/* Default to dark mode */
+/* Base tooltip styling */
 .tooltip {
   position: absolute;
   width: 280px;
   background-color: var(--tooltip-bg-dark);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-radius: 12px;
   box-shadow: var(--tooltip-shadow-dark);
   z-index: 1000;
   overflow: hidden;
   border-left: 4px solid var(--tooltip-border-dark);
   pointer-events: none; /* Non-interactive unless pinned */
-  transition: transform 0.2s ease, opacity 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+              background-color 0.3s ease,
+              color 0.3s ease,
+              border-color 0.3s ease;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* When light mode is active */
-body.light-mode .tooltip {
+/* Light mode tooltip - support multiple possible light mode classes */
+.tooltip.lightMode,
+body.light-mode .tooltip,
+[data-theme="light"] .tooltip,
+html[data-theme="light"] .tooltip {
   background-color: var(--tooltip-bg-light);
   box-shadow: var(--tooltip-shadow-light);
   border-left: 4px solid var(--tooltip-border-light);
@@ -42,7 +57,13 @@ body.light-mode .tooltip {
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
 }
 
-/* The rest of your CSS can remain unchanged */
+.tooltip.lightMode.pinned:hover,
+body.light-mode .tooltip.pinned:hover,
+[data-theme="light"] .tooltip.pinned:hover,
+html[data-theme="light"] .tooltip.pinned:hover {
+  box-shadow: 0 10px 40px rgba(123, 44, 191, 0.3);
+}
+
 .tooltipGlow {
   position: absolute;
   top: 0;
@@ -56,15 +77,24 @@ body.light-mode .tooltip {
 
 .visible {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) !important;
 }
 
+/* Header styling */
 .tooltipHeader {
   display: flex;
   align-items: center;
   padding: 16px;
-  background: rgba(0, 0, 0, 0.2);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--tooltip-header-bg-dark);
+  border-bottom: 1px solid var(--tooltip-divider-dark);
+}
+
+.tooltip.lightMode .tooltipHeader,
+body.light-mode .tooltipHeader,
+[data-theme="light"] .tooltipHeader,
+html[data-theme="light"] .tooltipHeader {
+  background: var(--tooltip-header-bg-light);
+  border-bottom: 1px solid var(--tooltip-divider-light);
 }
 
 .tooltipAvatar {
@@ -75,6 +105,13 @@ body.light-mode .tooltip {
   margin-right: 14px;
   border: 3px solid;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+}
+
+.tooltip.lightMode .tooltipAvatar,
+body.light-mode .tooltipAvatar,
+[data-theme="light"] .tooltipAvatar,
+html[data-theme="light"] .tooltipAvatar {
+  box-shadow: 0 0 15px rgba(123, 44, 191, 0.2);
 }
 
 .tooltipAvatar img {
@@ -91,15 +128,29 @@ body.light-mode .tooltip {
   margin: 0 0 5px 0;
   font-size: 18px;
   font-weight: 600;
-  color: white;
+  color: var(--tooltip-text-dark);
   letter-spacing: -0.01em;
+}
+
+.tooltip.lightMode .tooltipTitle h3,
+body.light-mode .tooltipTitle h3,
+[data-theme="light"] .tooltipTitle h3,
+html[data-theme="light"] .tooltipTitle h3 {
+  color: var(--tooltip-text-light);
 }
 
 .tooltipTitle p {
   margin: 0;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--tooltip-subtext-dark);
   font-weight: 500;
+}
+
+.tooltip.lightMode .tooltipTitle p,
+body.light-mode .tooltipTitle p,
+[data-theme="light"] .tooltipTitle p,
+html[data-theme="light"] .tooltipTitle p {
+  color: var(--tooltip-subtext-light);
 }
 
 .tooltipContent {
@@ -114,31 +165,60 @@ body.light-mode .tooltip {
 }
 
 .tooltipLabel {
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--tooltip-subtext-dark);
   font-weight: 500;
 }
 
+.tooltip.lightMode .tooltipLabel,
+body.light-mode .tooltipLabel,
+[data-theme="light"] .tooltipLabel,
+html[data-theme="light"] .tooltipLabel {
+  color: var(--tooltip-subtext-light);
+}
+
 .tooltipValue {
-  color: white;
+  color: var(--tooltip-text-dark);
   font-weight: 600;
+}
+
+.tooltip.lightMode .tooltipValue,
+body.light-mode .tooltipValue,
+[data-theme="light"] .tooltipValue,
+html[data-theme="light"] .tooltipValue {
+  color: var(--tooltip-text-light);
 }
 
 .tooltipBio {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--tooltip-divider-dark);
+}
+
+.tooltip.lightMode .tooltipBio,
+body.light-mode .tooltipBio,
+[data-theme="light"] .tooltipBio,
+html[data-theme="light"] .tooltipBio {
+  border-top: 1px solid var(--tooltip-divider-light);
 }
 
 .tooltipBio p {
   margin: 0;
   font-size: 13px;
   line-height: 1.5;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--tooltip-text-dark);
+}
+
+.tooltip.lightMode .tooltipBio p,
+body.light-mode .tooltipBio p,
+[data-theme="light"] .tooltipBio p,
+html[data-theme="light"] .tooltipBio p {
+  color: var(--tooltip-text-light);
 }
 
 .tooltipFooter {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   margin-top: 12px;
 }
 
@@ -151,23 +231,22 @@ body.light-mode .tooltip {
   color: white;
 }
 
-@keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
-  }
-}
+/* Badge text stays white in both modes */
 
+/* Animation for pinned tooltips */
 .pinned {
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.7);
   border-width: 4px;
   pointer-events: auto; /* Allow interaction when pinned */
   animation: pinPulse 2s infinite;
+}
+
+.tooltip.lightMode.pinned,
+body.light-mode .pinned,
+[data-theme="light"] .pinned,
+html[data-theme="light"] .pinned {
+  box-shadow: 0 8px 40px rgba(123, 44, 191, 0.25);
+  animation: pinPulseLight 2s infinite;
 }
 
 .tooltipCloseButton {
@@ -188,22 +267,51 @@ body.light-mode .tooltip {
   transition: all 0.2s ease;
 }
 
+.tooltip.lightMode .tooltipCloseButton,
+body.light-mode .tooltipCloseButton,
+[data-theme="light"] .tooltipCloseButton,
+html[data-theme="light"] .tooltipCloseButton {
+  background: rgba(123, 44, 191, 0.15);
+  color: var(--tooltip-text-light);
+}
+
 .tooltipCloseButton:hover {
   background: rgba(255, 255, 255, 0.3);
   transform: scale(1.1);
 }
 
+.tooltip.lightMode .tooltipCloseButton:hover,
+body.light-mode .tooltipCloseButton:hover,
+[data-theme="light"] .tooltipCloseButton:hover,
+html[data-theme="light"] .tooltipCloseButton:hover {
+  background: rgba(123, 44, 191, 0.25);
+}
+
 .tooltipPinnedIndicator {
   display: flex;
   align-items: center;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--tooltip-subtext-dark);
   font-size: 12px;
   margin-left: 8px;
 }
 
+.tooltip.lightMode .tooltipPinnedIndicator,
+body.light-mode .tooltipPinnedIndicator,
+[data-theme="light"] .tooltipPinnedIndicator,
+html[data-theme="light"] .tooltipPinnedIndicator {
+  color: var(--tooltip-subtext-light);
+}
+
 .tooltipPinnedIndicator svg {
   margin-right: 4px;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--tooltip-subtext-dark);
+}
+
+.tooltip.lightMode .tooltipPinnedIndicator svg,
+body.light-mode .tooltipPinnedIndicator svg,
+[data-theme="light"] .tooltipPinnedIndicator svg,
+html[data-theme="light"] .tooltipPinnedIndicator svg {
+  color: var(--tooltip-subtext-light);
 }
 
 @keyframes pinPulse {
@@ -215,5 +323,17 @@ body.light-mode .tooltip {
   }
   100% {
     box-shadow: 0 8px 40px rgba(0, 0, 0, 0.7);
+  }
+}
+
+@keyframes pinPulseLight {
+  0% {
+    box-shadow: 0 8px 40px rgba(123, 44, 191, 0.25);
+  }
+  50% {
+    box-shadow: 0 8px 40px rgba(123, 44, 191, 0.4);
+  }
+  100% {
+    box-shadow: 0 8px 40px rgba(123, 44, 191, 0.25);
   }
 }

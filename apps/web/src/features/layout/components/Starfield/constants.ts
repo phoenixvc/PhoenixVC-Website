@@ -26,7 +26,8 @@ export const DEFAULT_EMPLOYEES: EmployeeData[] = [
     expertise: "System Design, Cloud Architecture",
     projects: ["Core Platform", "API Gateway", "Microservices"],
     skills: ["Architecture", "Cloud", "DevOps", "Mentoring"],
-    relatedEmployees: ["ym"] // Related to Yolandi (CTO)
+    relatedEmployees: ["ym"], // Related to Yolandi (CTO)
+    product: "Website"
   },
   {
     id: "em",
@@ -44,7 +45,8 @@ export const DEFAULT_EMPLOYEES: EmployeeData[] = [
     expertise: "Business Strategy, Leadership",
     projects: ["Company Vision", "Growth Strategy"],
     skills: ["Leadership", "Strategy", "Vision", "Management"],
-    relatedEmployees: ["ym"] // Related to Yolandi (spouse/CTO)
+    relatedEmployees: ["ym"], // Related to Yolandi (spouse/CTO)
+    product: "The whole shebang!"
   },
   {
     id: "ym",
@@ -62,7 +64,8 @@ export const DEFAULT_EMPLOYEES: EmployeeData[] = [
     expertise: "Product Development, Technical Leadership",
     projects: ["Product Roadmap", "Technical Strategy"],
     skills: ["Product", "Technology", "Innovation", "Leadership"],
-    relatedEmployees: ["em", "js"] // Related to Eben (spouse/CEO) and Jurie (technical team)
+    relatedEmployees: ["em", "js"], // Related to Eben (spouse/CEO) and Jurie (technical team)
+    product: "The vowels in team."
   }
 ];
 

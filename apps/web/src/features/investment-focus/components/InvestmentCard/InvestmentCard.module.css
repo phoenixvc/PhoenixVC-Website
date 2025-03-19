@@ -1,4 +1,4 @@
-/* InvestmentCard.module.css */
+/* InvestmentCard.module.css - IMPROVED */
 
 /* Base card styling */
 .card {
@@ -12,31 +12,34 @@
   align-items: center;
   text-align: center;
   overflow: hidden;
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
-/* Dark mode card styling - semi-transparent to blend with starfield */
+/* Dark mode card styling - improved contrast and glow */
 .card.darkMode {
-  background-color: rgba(30, 30, 50, 0.6);
-  border: 1px solid rgba(157, 78, 221, 0.2);
-  box-shadow: 0 4px 20px rgba(157, 78, 221, 0.2);
+  background-color: rgba(30, 30, 50, 0.5);
+  border: 1px solid rgba(157, 78, 221, 0.25);
+  box-shadow: 0 4px 20px rgba(157, 78, 221, 0.15);
 }
 
 .card.darkMode:hover {
-  box-shadow: 0 8px 30px rgba(157, 78, 221, 0.3);
+  background-color: rgba(35, 35, 60, 0.6);
+  border: 1px solid rgba(157, 78, 221, 0.35);
+  box-shadow: 0 8px 30px rgba(157, 78, 221, 0.25);
 }
 
-/* Light mode card styling */
+/* Light mode card styling - improved depth */
 .card.lightMode {
-  background: rgba(255, 255, 255, 0.65);
-  box-shadow: 0 4px 20px rgba(114, 9, 183, 0.15);
-  border: 1px solid rgba(114, 9, 183, 0.12);
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 4px 20px rgba(114, 9, 183, 0.1);
+  border: 1px solid rgba(114, 9, 183, 0.08);
 }
 
 .card.lightMode:hover {
-  box-shadow: 0 8px 25px rgba(114, 9, 183, 0.25);
-  background: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 8px 25px rgba(114, 9, 183, 0.2);
+  border: 1px solid rgba(114, 9, 183, 0.15);
 }
 
 /* Card hover effect */
@@ -44,7 +47,7 @@
   transform: translateY(-5px);
 }
 
-/* Card underline effect */
+/* Card underline effect - improved animation */
 .card::after {
   content: '';
   position: absolute;
@@ -54,7 +57,7 @@
   height: 3px;
   transform: scaleX(0.3);
   transform-origin: left;
-  transition: transform 0.3s ease;
+  transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
 /* Light mode underline */
@@ -72,8 +75,9 @@
   background: linear-gradient(
     to right,
     #9d4edd,
-    #c77dff
+    #e0aaff
   );
+  box-shadow: 0 0 12px rgba(224, 170, 255, 0.4);
 }
 
 .card:hover::after {
@@ -104,12 +108,12 @@
 .card.darkMode::before {
   background: linear-gradient(
     135deg,
-    rgba(157, 78, 221, 0.05) 0%,
-    rgba(199, 125, 255, 0.03) 100%
+    rgba(157, 78, 221, 0.08) 0%,
+    rgba(199, 125, 255, 0.05) 100%
   );
 }
 
-/* Add subtle shimmer effect to light mode cards */
+/* Add subtle shimmer effect to cards */
 @keyframes shimmer {
   0% {
     background-position: -100% 0;
@@ -137,7 +141,25 @@
   z-index: 0;
 }
 
-/* Icon container */
+.card.darkMode::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(157, 78, 221, 0),
+    rgba(157, 78, 221, 0.05),
+    rgba(157, 78, 221, 0)
+  );
+  background-size: 200% 100%;
+  animation: shimmer 8s infinite;
+  z-index: 0;
+}
+
+/* Icon container - improved glow */
 .icon {
   width: 70px;
   height: 70px;
@@ -151,19 +173,20 @@
   z-index: 1;
 }
 
-/* Dark mode icon styling */
+/* Dark mode icon styling - enhanced glow */
 .card.darkMode .icon {
   background: linear-gradient(
     135deg,
-    rgba(157, 78, 221, 0.2) 0%,
-    rgba(199, 125, 255, 0.15) 100%
+    rgba(157, 78, 221, 0.25) 0%,
+    rgba(199, 125, 255, 0.2) 100%
   );
-  box-shadow: 0 2px 15px rgba(199, 125, 255, 0.25);
+  box-shadow: 0 2px 15px rgba(199, 125, 255, 0.3),
+              inset 0 0 10px rgba(199, 125, 255, 0.15);
 }
 
 .card.darkMode .icon svg {
-  color: #e0aaff;
-  filter: drop-shadow(0 0 8px rgba(199, 125, 255, 0.4));
+  color: #f0ccff;
+  filter: drop-shadow(0 0 8px rgba(224, 170, 255, 0.6));
 }
 
 /* Light mode icon styling */
@@ -199,14 +222,14 @@
   -webkit-text-fill-color: transparent;
 }
 
-/* Dark mode title styling */
+/* Dark mode title styling - brighter gradient */
 .card.darkMode .title {
   background-image: linear-gradient(
     to right,
-    #c77dff,
-    #e0aaff
+    #d8a3ff,
+    #f0ccff
   );
-  text-shadow: 0 0 10px rgba(199, 125, 255, 0.3);
+  text-shadow: 0 0 10px rgba(216, 163, 255, 0.4);
 }
 
 /* Light mode title styling */
@@ -219,21 +242,24 @@
   text-shadow: 0 1px 3px rgba(90, 24, 154, 0.3);
 }
 
-/* Card description */
+/* Card description - improved readability */
 .description {
   font-size: 0.95rem;
   line-height: 1.6;
   position: relative;
   z-index: 1;
   margin: 0;
+  font-weight: 400;
+  letter-spacing: 0.015em;
 }
 
-/* Dark mode description styling */
+/* Dark mode description styling - brighter for better readability */
 .card.darkMode .description {
-  color: #d1d1e0;
+  color: rgba(240, 240, 255, 0.9);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 /* Light mode description styling */
 .card.lightMode .description {
-  color: #3a3a4a;
+  color: rgba(50, 50, 70, 0.95);
 }

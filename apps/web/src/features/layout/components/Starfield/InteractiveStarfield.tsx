@@ -784,6 +784,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
           employee={hoverInfo.employee}
           x={hoverInfo.x}
           y={hoverInfo.y}
+          isDarkMode={isDarkMode}
         />
       )}
 
