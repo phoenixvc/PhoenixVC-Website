@@ -1,145 +1,239 @@
+/* InvestmentCard.module.css */
+
+/* Base card styling */
 .card {
   position: relative;
-  background-color: hsl(var(--card) / 0.9);
-  border-radius: 1.25rem;
-  padding: 1.75rem;
+  padding: 2rem 1.5rem;
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
-  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-  border: 1px solid hsl(var(--border) / 0.2);
-  box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
 }
 
-/* Light mode card */
-:root:not(.dark) .card {
-  background-color: hsl(var(--card) / 0.95);
-  border: 1px solid hsl(var(--border) / 0.15);
+/* Dark mode card styling - semi-transparent to blend with starfield */
+.card.darkMode {
+  background-color: rgba(30, 30, 50, 0.6);
+  border: 1px solid rgba(157, 78, 221, 0.2);
+  box-shadow: 0 4px 20px rgba(157, 78, 221, 0.2);
 }
 
-/* Dark mode card */
-.dark .card {
-  background-color: hsl(var(--card) / 0.8);
-  border: 1px solid hsl(var(--border) / 0.3);
-  box-shadow:
-    0 4px 20px -5px rgba(0, 0, 0, 0.25),
-    0 0 15px rgba(var(--color-primary-rgb), 0.05);
+.card.darkMode:hover {
+  box-shadow: 0 8px 30px rgba(157, 78, 221, 0.3);
 }
 
-/* Add subtle gradient to cards */
+/* Light mode card styling */
+.card.lightMode {
+  background: rgba(255, 255, 255, 0.65);
+  box-shadow: 0 4px 20px rgba(114, 9, 183, 0.15);
+  border: 1px solid rgba(114, 9, 183, 0.12);
+}
+
+.card.lightMode:hover {
+  box-shadow: 0 8px 25px rgba(114, 9, 183, 0.25);
+  background: rgba(255, 255, 255, 0.75);
+}
+
+/* Card hover effect */
+.card:hover {
+  transform: translateY(-5px);
+}
+
+/* Card underline effect */
+.card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  transform: scaleX(0.3);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+/* Light mode underline */
+.card.lightMode::after {
+  background: linear-gradient(
+    to right,
+    #5a189a,
+    #7b2cbf
+  );
+  box-shadow: 0 0 8px rgba(123, 44, 191, 0.4);
+}
+
+/* Dark mode underline */
+.card.darkMode::after {
+  background: linear-gradient(
+    to right,
+    #9d4edd,
+    #c77dff
+  );
+}
+
+.card:hover::after {
+  transform: scaleX(1);
+}
+
+/* Card background gradient */
 .card::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
+  bottom: 0;
+  z-index: 0;
+}
+
+/* Light mode card background */
+.card.lightMode::before {
   background: linear-gradient(
-    to right,
-    hsl(var(--color-primary)),
-    hsl(var(--color-accent))
+    135deg,
+    rgba(114, 9, 183, 0.06) 0%,
+    rgba(157, 78, 221, 0.03) 100%
   );
-  opacity: 0;
-  transition: opacity 0.3s ease;
 }
 
-.card:hover::before {
-  opacity: 1;
+/* Dark mode card background */
+.card.darkMode::before {
+  background: linear-gradient(
+    135deg,
+    rgba(157, 78, 221, 0.05) 0%,
+    rgba(199, 125, 255, 0.03) 100%
+  );
 }
 
-.card:hover {
-  transform: translateY(-6px);
-  box-shadow:
-    0 15px 30px -10px rgba(0, 0, 0, 0.15),
-    0 5px 15px -5px rgba(0, 0, 0, 0.1);
+/* Add subtle shimmer effect to light mode cards */
+@keyframes shimmer {
+  0% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
-/* Light mode card hover */
-:root:not(.dark) .card:hover {
-  box-shadow:
-    0 20px 40px -15px rgba(0, 0, 0, 0.1),
-    0 10px 20px -10px rgba(0, 0, 0, 0.05);
+.card.lightMode::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0.15),
+    rgba(255, 255, 255, 0)
+  );
+  background-size: 200% 100%;
+  animation: shimmer 6s infinite;
+  z-index: 0;
 }
 
-/* Dark mode card hover */
-.dark .card:hover {
-  transform: translateY(-6px);
-  box-shadow:
-    0 15px 30px -8px rgba(0, 0, 0, 0.3),
-    0 8px 20px -6px rgba(0, 0, 0, 0.2),
-    0 0 20px rgba(var(--color-primary-rgb), 0.1);
-}
-
+/* Icon container */
 .icon {
-  font-size: 2.25rem;
-  margin-bottom: 1.25rem;
-  color: hsl(var(--color-primary));
-  transition: transform 0.3s ease, color 0.3s ease;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  position: relative;
+  z-index: 1;
 }
 
-.card:hover .icon {
-  transform: scale(1.1);
-  color: hsl(var(--color-accent));
+/* Dark mode icon styling */
+.card.darkMode .icon {
+  background: linear-gradient(
+    135deg,
+    rgba(157, 78, 221, 0.2) 0%,
+    rgba(199, 125, 255, 0.15) 100%
+  );
+  box-shadow: 0 2px 15px rgba(199, 125, 255, 0.25);
 }
 
+.card.darkMode .icon svg {
+  color: #e0aaff;
+  filter: drop-shadow(0 0 8px rgba(199, 125, 255, 0.4));
+}
+
+/* Light mode icon styling */
+.card.lightMode .icon {
+  background: linear-gradient(
+    135deg,
+    rgba(90, 24, 154, 0.12) 0%,
+    rgba(123, 44, 191, 0.08) 100%
+  );
+  box-shadow: 0 2px 10px rgba(114, 9, 183, 0.2),
+              inset 0 0 15px rgba(114, 9, 183, 0.1);
+}
+
+.card.lightMode .icon svg {
+  color: #5a189a;
+  filter: drop-shadow(0 2px 4px rgba(90, 24, 154, 0.3));
+}
+
+.icon svg {
+  width: 32px;
+  height: 32px;
+}
+
+/* Card title */
 .title {
-  color: hsl(var(--card-foreground));
-  font-size: 1.35rem;
-  font-weight: 600;
+  font-size: 1.5rem;
+  font-weight: 700;
   margin-bottom: 1rem;
-  transition: color 0.3s ease;
+  position: relative;
+  z-index: 1;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.card:hover .title {
-  color: hsl(var(--color-primary));
+/* Dark mode title styling */
+.card.darkMode .title {
+  background-image: linear-gradient(
+    to right,
+    #c77dff,
+    #e0aaff
+  );
+  text-shadow: 0 0 10px rgba(199, 125, 255, 0.3);
 }
 
+/* Light mode title styling */
+.card.lightMode .title {
+  background-image: linear-gradient(
+    to right,
+    #5a189a,
+    #7b2cbf
+  );
+  text-shadow: 0 1px 3px rgba(90, 24, 154, 0.3);
+}
+
+/* Card description */
 .description {
-  color: hsl(var(--muted-foreground));
-  font-size: 0.925rem;
-  line-height: 1.7;
-  transition: color 0.3s ease;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  position: relative;
+  z-index: 1;
+  margin: 0;
 }
 
-/* Light mode description */
-:root:not(.dark) .description {
-  color: hsl(var(--muted-foreground) / 0.9);
+/* Dark mode description styling */
+.card.darkMode .description {
+  color: #d1d1e0;
 }
 
-/* Dark mode description */
-.dark .description {
-  color: hsl(var(--muted-foreground) / 0.85);
-}
-
-.card:hover .description {
-  color: hsl(var(--card-foreground) / 0.9);
-}
-
-.focusAreaCard {
-  background-color: rgba(2, 12, 27, 0.8); /* Slightly transparent deep blue */
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(99, 123, 255, 0.1);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3),
-              0 0 15px rgba(67, 87, 255, 0.1);
-  transition: all 0.3s ease;
-}
-
-.focusAreaCard:hover {
-  border-color: rgba(99, 123, 255, 0.3);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4),
-              0 0 20px rgba(67, 87, 255, 0.2);
-  transform: translateY(-5px);
-}
-
-/* Light theme focus area cards */
-.lightThemeFocusCard {
-  background-color: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(99, 123, 255, 0.1);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1),
-              0 0 15px rgba(67, 87, 255, 0.05);
-}
-
-.lightThemeFocusCard:hover {
-  border-color: rgba(99, 123, 255, 0.2);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15),
-              0 0 20px rgba(67, 87, 255, 0.1);
+/* Light mode description styling */
+.card.lightMode .description {
+  color: #3a3a4a;
 }

@@ -1,20 +1,27 @@
-import { FC } from "react";
+// features/contact/components/ContactHeader/ContactHeader.tsx
+import { FC, memo } from "react";
 import { motion } from "framer-motion";
 import { contactAnimations } from "../../animations";
-import { ContactHeaderProps } from "../../types";
 import styles from "./ContactHeader.module.css";
 
-const ContactHeader: FC<ContactHeaderProps> = ({ title, subtitle, className = "" }) => {
-  return (
-    <div className={className}>
-      <motion.h2 className={styles.heading} variants={contactAnimations.item}>
-        {title}
-      </motion.h2>
-      <motion.p className={styles.subtitle} variants={contactAnimations.item}>
-        {subtitle}
-      </motion.p>
-    </div>
-  );
-};
+interface ContactHeaderProps {
+  title: string;
+  subtitle: string;
+  isDarkMode: boolean;
+}
 
+const ContactHeader: FC<ContactHeaderProps> = memo(({ title, subtitle, isDarkMode }) => {
+  return (
+    <motion.div variants={contactAnimations.item}>
+      <h2 className={`${styles.heading} ${isDarkMode ? styles.dark : ""}`}>
+        {title}
+      </h2>
+      <p className={`${styles.subtitle} ${isDarkMode ? styles.dark : ""}`}>
+        {subtitle}
+      </p>
+    </motion.div>
+  );
+});
+
+ContactHeader.displayName = "ContactHeader";
 export default ContactHeader;

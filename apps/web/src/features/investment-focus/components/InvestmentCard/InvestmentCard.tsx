@@ -1,38 +1,40 @@
 import { motion } from "framer-motion";
 import { FocusArea } from "../../types";
-import { investmentFocusAnimations } from "../../animations/animations";
 import styles from "./InvestmentCard.module.css";
-import starfieldStyles from "../../../../features/layout/components/Starfield/starfield.module.css";
+import { investmentFocusAnimations } from "../../animations/animations";
 
 interface InvestmentCardProps {
   area: FocusArea;
   index: number;
+  isDarkMode: boolean;
 }
 
-export const InvestmentCard: React.FC<InvestmentCardProps> = ({ area, index }) => {
+const InvestmentCard: React.FC<InvestmentCardProps> = ({ area, index, isDarkMode }) => {
   return (
     <motion.div
-      key={index}
+      className={`${styles.card} ${isDarkMode ? styles.darkMode : styles.lightMode}`}
       variants={investmentFocusAnimations.card}
-      whileHover="hover"
-      className={styles.card && starfieldStyles.focusAreaCard}
+      custom={index}
     >
+      {/* Card Icon */}
       <motion.div
         className={styles.icon}
-        variants={investmentFocusAnimations.icon}
         role="img"
         aria-label={`${area.title} icon`}
+        variants={investmentFocusAnimations.icon}
       >
         {area.icon}
       </motion.div>
 
-      <motion.h3 className={styles.title} layout>
+      {/* Card Title */}
+      <h3 className={styles.title}>
         {area.title}
-      </motion.h3>
+      </h3>
 
-      <motion.p className={styles.description} layout>
+      {/* Card Description */}
+      <p className={styles.description}>
         {area.description}
-      </motion.p>
+      </p>
     </motion.div>
   );
 };

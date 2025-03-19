@@ -1,57 +1,69 @@
+/* features/contact/components/ContactForm/ContactForm.module.css */
 .card {
-  background: linear-gradient(
-    135deg,
-    hsl(var(--background) / 0.85),
-    hsl(var(--background) / 0.95)
-  );
-  border: 1px solid hsl(var(--border) / 0.25);
+  /* Base styles */
   border-radius: 1.5rem;
   padding: 2.5rem;
   max-width: 32rem;
   margin: 0 auto;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  box-shadow:
-    0 4px 20px -5px hsl(var(--shadow) / 0.2),
-    0 2px 10px -3px hsl(var(--shadow) / 0.1);
   transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
   position: relative;
   overflow: hidden;
 }
 
-/* Light mode card enhancements */
-:root:not(.dark) .card {
-  background: linear-gradient(
-    135deg,
-    hsl(var(--background) / 0.9),
-    hsl(var(--background))
-  );
-  border: 1px solid hsl(var(--border) / 0.15);
+/* Dark mode - cosmic theme with increased transparency */
+.dark {
+  background: rgba(13, 12, 34, 0.4); /* Increased transparency */
+  border: 1px solid rgba(138, 43, 226, 0.2);
   box-shadow:
-    0 10px 30px -10px rgba(0, 0, 0, 0.1),
-    0 4px 10px -3px rgba(0, 0, 0, 0.05);
+    0 4px 20px -5px rgba(0, 0, 0, 0.3),
+    0 2px 10px -3px rgba(0, 0, 0, 0.2),
+    0 0 30px rgba(138, 43, 226, 0.15);
 }
 
-/* Dark mode card enhancements */
-.dark .card {
-  background: linear-gradient(
-    135deg,
-    hsl(var(--background) / 0.7),
-    hsl(var(--background) / 0.8)
-  );
-  border: 1px solid hsl(var(--border) / 0.3);
+/* Light mode with increased transparency */
+.card:not(.dark) {
+  background: rgba(250, 250, 255, 0.6); /* Increased transparency */
+  border: 1px solid rgba(138, 43, 226, 0.15);
   box-shadow:
-    0 10px 30px -5px rgba(0, 0, 0, 0.3),
-    0 4px 10px -3px rgba(0, 0, 0, 0.2),
-    0 0 20px 0 rgba(var(--color-primary-rgb), 0.05);
+    0 10px 30px -10px rgba(0, 0, 0, 0.1),
+    0 4px 10px -3px rgba(0, 0, 0, 0.05),
+    0 0 20px rgba(138, 43, 226, 0.1);
+}
+
+/* Animated glow border effect - matches cosmic theme */
+.card::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(138, 43, 226, 0.3),
+    transparent,
+    rgba(138, 43, 226, 0.4),
+    transparent
+  );
+  z-index: -1;
+  border-radius: 1.6rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.card:hover::before {
+  opacity: 1;
 }
 
 .card:hover {
   transform: translateY(-4px);
   box-shadow:
-    0 15px 30px -10px hsl(var(--shadow) / 0.25),
-    0 8px 15px -5px hsl(var(--shadow) / 0.15),
-    0 0 5px hsl(var(--primary) / 0.1);
+    0 15px 30px -10px rgba(0, 0, 0, 0.3),
+    0 8px 15px -5px rgba(0, 0, 0, 0.2),
+    0 0 20px rgba(138, 43, 226, 0.25);
 }
 
 /* Light mode card hover */
@@ -59,15 +71,7 @@
   box-shadow:
     0 20px 40px -15px rgba(0, 0, 0, 0.1),
     0 10px 20px -10px rgba(0, 0, 0, 0.05),
-    0 0 5px rgba(var(--color-primary-rgb), 0.1);
-}
-
-/* Dark mode card hover */
-.dark .card:hover {
-  box-shadow:
-    0 20px 40px -10px rgba(0, 0, 0, 0.4),
-    0 10px 20px -5px rgba(0, 0, 0, 0.3),
-    0 0 15px 0 rgba(var(--color-primary-rgb), 0.15);
+    0 0 20px rgba(138, 43, 226, 0.15);
 }
 
 .form {
@@ -88,65 +92,72 @@
   }
 }
 
-/* Improved form inputs with better focus states */
+/* Form inputs with cosmic styling - more transparent */
 .input, .textarea {
   width: 100%;
   padding: 0.975rem 1.35rem;
   border-radius: 0.85rem;
-  background-color: hsl(var(--background) / 0.6);
-  border: 1px solid hsl(var(--border) / 0.3);
+  /* Semi-transparent inputs to show starfield */
+  background-color: rgba(20, 18, 40, 0.3); /* Increased transparency */
+  border: 1px solid rgba(138, 43, 226, 0.3);
   transition: all 0.25s ease;
   font-size: 0.95rem;
-  color: hsl(var(--foreground));
+  color: rgba(255, 255, 255, 0.9);
 }
 
-/* Light mode inputs */
+/* Light mode inputs - more transparent */
 :root:not(.dark) .input,
 :root:not(.dark) .textarea {
-  background-color: hsl(var(--background) / 0.8);
-  border: 1px solid hsl(var(--border) / 0.2);
+  background-color: rgba(255, 255, 255, 0.5); /* Increased transparency */
+  border: 1px solid rgba(138, 43, 226, 0.2);
+  color: rgba(20, 18, 40, 0.9);
 }
 
-/* Dark mode inputs */
-.dark .input,
-.dark .textarea {
-  background-color: hsl(var(--background) / 0.4);
-  border: 1px solid hsl(var(--border) / 0.4);
-  color: hsl(var(--foreground) / 0.9);
+/* Placeholder styling */
+.input::placeholder, .textarea::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+  transition: color 0.2s ease;
+}
+
+:root:not(.dark) .input::placeholder,
+:root:not(.dark) .textarea::placeholder {
+  color: rgba(20, 18, 40, 0.5);
+}
+
+.input:focus::placeholder, .textarea:focus::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+:root:not(.dark) .input:focus::placeholder,
+:root:not(.dark) .textarea:focus::placeholder {
+  color: rgba(20, 18, 40, 0.3);
 }
 
 .input:focus, .textarea:focus {
-  border-color: hsl(var(--primary) / 0.8);
-  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.15);
+  border-color: rgba(138, 43, 226, 0.8);
+  box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.2);
   outline: none;
-  background-color: hsl(var(--background) / 0.9);
+  background-color: rgba(20, 18, 40, 0.5); /* Slightly more opaque when focused */
 }
 
 /* Light mode focus */
 :root:not(.dark) .input:focus,
 :root:not(.dark) .textarea:focus {
-  background-color: hsl(var(--background));
-  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1);
+  background-color: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.15);
 }
 
-/* Dark mode focus */
-.dark .input:focus,
-.dark .textarea:focus {
-  background-color: hsl(var(--background) / 0.5);
-  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.2);
-}
-
-/* Enhanced button with glow effects */
+/* Button with cosmic glow effects */
 .button {
   width: 100%;
   padding: 1.1rem 1.5rem;
   border-radius: 0.85rem;
   background: linear-gradient(
     135deg,
-    hsl(var(--primary)),
-    hsl(var(--primary-dark, var(--primary)) / 0.9)
+    rgba(138, 43, 226, 1),
+    rgba(123, 44, 191, 0.9)
   );
-  color: hsl(var(--primary-foreground));
+  color: white;
   font-weight: 600;
   font-size: 1rem;
   letter-spacing: 0.01em;
@@ -155,38 +166,52 @@
   overflow: hidden;
   border: none;
   cursor: pointer;
+  /* Add cosmic glow */
+  box-shadow: 0 0 15px rgba(138, 43, 226, 0.3);
+}
+
+/* Shine effect for button */
+.button::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -60%;
+  width: 20%;
+  height: 200%;
+  opacity: 0;
+  transform: rotate(30deg);
+  background: rgba(255, 255, 255, 0.13);
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.13) 0%,
+    rgba(255, 255, 255, 0.13) 77%,
+    rgba(255, 255, 255, 0.5) 92%,
+    rgba(255, 255, 255, 0.0) 100%
+  );
+}
+
+.button:hover::after {
+  opacity: 1;
+  left: 130%;
+  transition: left 0.7s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
 .button:hover {
   background: linear-gradient(
     135deg,
-    hsl(var(--primary) / 0.95),
-    hsl(var(--primary-dark, var(--primary)))
+    rgba(153, 50, 245, 1),
+    rgba(138, 43, 226, 0.9)
   );
   transform: translateY(-2px);
   box-shadow:
-    0 6px 15px -3px hsl(var(--primary) / 0.3),
-    0 3px 8px -2px hsl(var(--primary) / 0.2);
-}
-
-/* Light mode button */
-:root:not(.dark) .button:hover {
-  box-shadow:
-    0 8px 20px -5px hsl(var(--primary) / 0.25),
-    0 4px 10px -3px hsl(var(--primary) / 0.15);
-}
-
-/* Dark mode button */
-.dark .button:hover {
-  box-shadow:
-    0 8px 25px -5px hsl(var(--primary) / 0.4),
-    0 4px 15px -3px hsl(var(--primary) / 0.3),
-    0 0 10px 0 hsl(var(--primary) / 0.2);
+    0 6px 15px -3px rgba(138, 43, 226, 0.4),
+    0 3px 8px -2px rgba(138, 43, 226, 0.3),
+    0 0 20px rgba(138, 43, 226, 0.25);
 }
 
 .button:active {
   transform: translateY(0);
-  box-shadow: 0 2px 8px -2px hsl(var(--primary) / 0.3);
+  box-shadow: 0 2px 8px -2px rgba(138, 43, 226, 0.3);
 }
 
 .button:disabled {
@@ -196,9 +221,112 @@
   transform: translateY(0);
 }
 
+/* Loading state styling */
+.loading {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+}
+
+.loading::before {
+  content: '';
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.5rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: rgba(255, 255, 255, 1);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Success state styling */
+.success {
+  display: inline-flex;
+  align-items: center;
+  color: white;
+}
+
+.success::before {
+  content: '✓';
+  margin-right: 0.5rem;
+  font-weight: bold;
+  animation: scaleIn 0.3s ease-in-out;
+}
+
+@keyframes scaleIn {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Error message styling */
 .error {
-  color: hsl(var(--destructive));
+  color: rgba(255, 100, 100, 0.9);
   font-size: 0.875rem;
   margin-top: 0.5rem;
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.error::before {
+  content: '!';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  background-color: rgba(255, 100, 100, 0.2);
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .card {
+    padding: 2rem 1.5rem;
+  }
+
+  .button {
+    padding: 1rem 1.25rem;
+    font-size: 0.95rem;
+  }
+
+  .input, .textarea {
+    padding: 0.875rem 1.25rem;
+    font-size: 0.925rem;
+  }
+}
+
+/* Fix for dark mode inputs - ensure these are applied */
+.dark .input, .dark .textarea {
+  background-color: rgba(20, 18, 40, 0.3); /* Increased transparency */
+  border: 1px solid rgba(138, 43, 226, 0.3);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Fix for light mode inputs */
+.input:not(.dark), .textarea:not(.dark) {
+  background-color: rgba(255, 255, 255, 0.5); /* Increased transparency */
+  border: 1px solid rgba(138, 43, 226, 0.2);
+  color: rgba(20, 18, 40, 0.9);
+}
+
+/* Additional class to ensure dark mode is applied to input elements */
+.dark input.input, .dark textarea.textarea {
+  background-color: rgba(20, 18, 40, 0.3);
+  color: rgba(255, 255, 255, 0.9);
 }

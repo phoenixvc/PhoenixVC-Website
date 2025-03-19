@@ -1,29 +1,22 @@
 // features/contact/types/index.ts
-import { Variants } from "framer-motion";
+export interface ContactHeaderProps {
+  title: string;
+  subtitle: string;
+  className?: string;
+}
+
+export interface ContactFormProps {
+  onSubmit: (data: ContactFormData) => void;
+  isLoading: boolean;
+  isSuccess?: boolean;
+}
 
 export interface ContactFormData {
   name: string;
   email: string;
   subject: string;
   message: string;
-}
-
-export interface ContactFormProps {
-  onSubmit: (data: ContactFormData) => void;
-  isLoading?: boolean;
-  className?: string;
-  isSuccess?: boolean;
-}
-
-export interface ContactAnimations {
-  container: Variants;
-  item: Variants;
-}
-
-export interface ContactHeaderProps {
-  title?: string;
-  subtitle?: string;
-  className?: string;
+  company: string;
 }
 
 export interface ContactState {

@@ -1,48 +1,75 @@
-/* Common Heading Styles with improved gradient visibility */
+/* features/contact/components/ContactHeader/ContactHeader.module.css */
 .heading {
   font-size: 2.5rem;
-  font-weight: bold;
-  margin-bottom: 1.5rem;
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent; /* Make text transparent to show gradient */
-  background-image: linear-gradient(
-    to right,
-    hsl(var(--color-primary)) 0%,
-    hsl(var(--color-accent)) 100%
-  );
+  font-weight: 700;
   line-height: 1.2;
+  margin-bottom: 1rem;
+  text-align: center;
+  background: linear-gradient(
+    135deg,
+    hsl(270, 70%, 60%),  /* Bright purple */
+    hsl(250, 90%, 65%)   /* Vibrant violet */
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 30px hsla(270, 70%, 60%, 0.3); /* Purple glow */
   position: relative;
-  /* Remove text-shadow from base style to avoid conflict with gradient */
-}
-
-/* Light mode specific heading adjustments */
-:root:not(.dark) .heading {
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-/* Dark mode specific heading adjustments */
-.dark .heading {
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 15px rgba(var(--color-primary-rgb), 0.2);
+  z-index: 2;
 }
 
 .subtitle {
   font-size: 1.125rem;
-  margin-bottom: 2.5rem;
-  max-width: 42rem;
-  margin-left: auto;
-  margin-right: auto;
-  line-height: 1.7;
-  color: hsl(var(--color-text));
-  transition: color 0.3s ease;
+  line-height: 1.6;
+  color: hsla(250, 15%, 85%, 0.9); /* Light purple-gray */
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+  text-shadow: 0 0 20px hsla(270, 50%, 10%, 0.5); /* Dark purple shadow */
 }
 
-/* Light mode specific subtitle */
+/* Add dark/light mode variants */
+:root:not(.dark) .heading {
+  background: linear-gradient(
+    135deg,
+    hsl(270, 60%, 45%),  /* Darker purple for light mode */
+    hsl(250, 80%, 55%)   /* Slightly darker violet for light mode */
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  text-shadow: 0 0 30px hsla(270, 70%, 60%, 0.2);
+}
+
 :root:not(.dark) .subtitle {
-  color: hsl(var(--color-text) / 0.9);
+  color: hsla(250, 20%, 30%, 0.9); /* Dark purple-gray for light mode */
+  text-shadow: none;
 }
 
-/* Dark mode specific subtitle */
+.dark .heading {
+  background: linear-gradient(
+    135deg,
+    hsl(270, 80%, 65%),  /* Brighter purple for dark mode */
+    hsl(250, 95%, 70%)   /* Brighter violet for dark mode */
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  text-shadow: 0 0 30px hsla(270, 70%, 60%, 0.4);
+}
+
 .dark .subtitle {
-  color: hsl(var(--color-text) / 0.85);
+  color: hsla(250, 15%, 85%, 0.9); /* Light purple-gray for dark mode */
+  text-shadow: 0 0 20px hsla(270, 50%, 10%, 0.5);
+}
+
+@media (max-width: 768px) {
+  .heading {
+    font-size: 2rem;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+  }
 }

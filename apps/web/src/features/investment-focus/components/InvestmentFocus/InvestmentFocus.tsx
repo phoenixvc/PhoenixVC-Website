@@ -1,21 +1,28 @@
+// components/InvestmentFocus/InvestmentFocus.tsx
 import { motion } from "framer-motion";
 import { FOCUS_AREAS } from "../../constants";
 import { investmentFocusAnimations } from "../../animations/animations";
 import InvestmentCard from "../InvestmentCard/InvestmentCard";
 import styles from "./InvestmentFocus.module.css";
 import { useSectionObserver } from "@/hooks/useSectionObserver";
-import starfieldStyles from "./Starfield/interactiveStarfield.module.css"; 
+import { FC } from "react";
 
-export const InvestmentFocus: React.FC = () => {
+interface InvestmentFocusProps {
+  isDarkMode?: boolean;
+}
 
+export const InvestmentFocus: FC<InvestmentFocusProps> = ({ isDarkMode = true }) => {
   // Use our observer hook and log when the section becomes visible
-  // this shouldn't be needed with newer react versions
   const sectionRef = useSectionObserver("focus", (id) => {
     console.log(`[Focus] Section "${id}" is now visible`);
   });
 
   return (
-    <section id="focus" ref={sectionRef} className={styles.section}>
+    <section
+      id="focus"
+      ref={sectionRef}
+      className={`${styles.section} ${isDarkMode ? styles.darkMode : styles.lightMode}`}
+    >
       <motion.div
         className="container mx-auto px-6 max-w-6xl"
         initial="hidden"
@@ -37,7 +44,12 @@ export const InvestmentFocus: React.FC = () => {
           variants={investmentFocusAnimations.container}
         >
           {FOCUS_AREAS.map((area, index) => (
-            <InvestmentCard key={index} area={area} index={index} />
+            <InvestmentCard
+              key={index}
+              area={area}
+              index={index}
+              isDarkMode={isDarkMode}
+            />
           ))}
         </motion.div>
       </motion.div>
