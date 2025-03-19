@@ -311,22 +311,65 @@
   }
 }
 
-/* Fix for dark mode inputs - ensure these are applied */
-.dark .input, .dark .textarea {
-  background-color: rgba(20, 18, 40, 0.3); /* Increased transparency */
-  border: 1px solid rgba(138, 43, 226, 0.3);
-  color: rgba(255, 255, 255, 0.9);
+/* Make these styles more specific to override any conflicting styles */
+html.dark .input,
+html.dark .textarea,
+.dark .input,
+.dark .textarea {
+  background-color: rgba(15, 12, 30, 0.95) !important; /* Very dark, almost opaque background */
+  border: 1px solid rgba(138, 43, 226, 0.4) !important; /* Purple border */
+  color: rgba(255, 255, 255, 0.95) !important; /* Bright text */
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.3), 0 0 3px rgba(138, 43, 226, 0.2) !important; /* Deeper inner shadow */
 }
 
-/* Fix for light mode inputs */
-.input:not(.dark), .textarea:not(.dark) {
-  background-color: rgba(255, 255, 255, 0.5); /* Increased transparency */
-  border: 1px solid rgba(138, 43, 226, 0.2);
-  color: rgba(20, 18, 40, 0.9);
+/* Enhanced focus state for dark mode - with increased specificity */
+html.dark .input:focus,
+html.dark .textarea:focus,
+.dark .input:focus,
+.dark .textarea:focus {
+  background-color: rgba(10, 8, 25, 0.98) !important; /* Even darker when focused, almost black */
+  border-color: rgba(153, 50, 245, 0.8) !important; /* Brighter border */
+  box-shadow: 0 0 0 2px rgba(153, 50, 245, 0.25), inset 0 0 8px rgba(0, 0, 0, 0.2) !important; /* Enhanced glow */
 }
 
-/* Additional class to ensure dark mode is applied to input elements */
-.dark input.input, .dark textarea.textarea {
-  background-color: rgba(20, 18, 40, 0.3);
-  color: rgba(255, 255, 255, 0.9);
+/* Improved placeholder contrast - with increased specificity */
+html.dark .input::placeholder,
+html.dark .textarea::placeholder,
+.dark .input::placeholder,
+.dark .textarea::placeholder {
+  color: rgba(255, 255, 255, 0.5) !important; /* Visible but subdued placeholder text */
+}
+
+/* Additional selectors to catch all possible input elements */
+input[type="text"].dark,
+input[type="email"].dark,
+input[type="tel"].dark,
+textarea.dark,
+.dark input[type="text"],
+.dark input[type="email"],
+.dark input[type="tel"],
+.dark textarea {
+  background-color: rgba(15, 12, 30, 0.95) !important;
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+/* Optional cosmic particles effect */
+.dark.card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.15) 1px, transparent 1px);
+  background-size: 15px 15px;
+  opacity: 0.1;
+  z-index: -1;
+  animation: twinkle 8s infinite alternate;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.05; }
+  50% { opacity: 0.15; }
 }

@@ -25,10 +25,12 @@
   color: hsla(250, 15%, 85%, 0.9); /* Light purple-gray */
   text-align: center;
   max-width: 600px;
-  margin: 0 auto;
+  margin: 0 auto 2.5rem auto; /* Added bottom margin */
   position: relative;
   z-index: 2;
   text-shadow: 0 0 20px hsla(270, 50%, 10%, 0.5); /* Dark purple shadow */
+  font-weight: 500; /* Added weight */
+  letter-spacing: 0.015em; /* Improved letter spacing */
 }
 
 /* Add dark/light mode variants */
@@ -60,8 +62,27 @@
 }
 
 .dark .subtitle {
-  color: hsla(250, 15%, 85%, 0.9); /* Light purple-gray for dark mode */
-  text-shadow: 0 0 20px hsla(270, 50%, 10%, 0.5);
+  color: hsla(250, 15%, 95%, 0.95); /* Brighter text for better visibility */
+  text-shadow: 0 0 20px hsla(270, 50%, 10%, 0.5), 0 0 15px rgba(138, 43, 226, 0.4); /* Enhanced glow */
+  position: relative;
+}
+
+/* Optional animated gradient underline for subtitle in dark mode */
+.dark .subtitle::after {
+  content: "";
+  position: absolute;
+  bottom: -0.75rem;
+  left: 25%;
+  width: 50%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(138, 43, 226, 0.6),
+    rgba(153, 50, 245, 0.8),
+    rgba(138, 43, 226, 0.6),
+    transparent
+  );
 }
 
 @media (max-width: 768px) {
@@ -71,5 +92,11 @@
 
   .subtitle {
     font-size: 1rem;
+  }
+
+  /* Adjust underline for mobile */
+  .dark .subtitle::after {
+    left: 15%;
+    width: 70%;
   }
 }

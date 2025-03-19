@@ -1,14 +1,14 @@
 // components/Layout/Footer/Footer.tsx
-import React from "react"; // Added missing import
+import React from "react";
 import { motion } from "framer-motion";
 import Logo from "@/components/ui/Logo";
-import { SOCIAL_LINKS } from "../../constants"; // Ensure this import exists
-import { containerVariants, itemVariants } from "../../animations"; // Ensure this import exists
+import { SOCIAL_LINKS } from "../../constants";
+import { containerVariants, itemVariants } from "../../animations";
 import styles from "./footer.module.css";
-import { NAVIGATION_ITEMS } from "@/features/navigation"; // Ensure this import exists
+import { NAVIGATION_ITEMS } from "@/features/navigation";
 
 interface FooterProps {
-  isDarkMode?: boolean; // Added missing prop
+  isDarkMode?: boolean;
 }
 
 export const Footer: React.FC<FooterProps> = ({ isDarkMode = true }) => {
@@ -18,42 +18,46 @@ export const Footer: React.FC<FooterProps> = ({ isDarkMode = true }) => {
       whileInView="visible"
       viewport={{ once: true }}
       variants={containerVariants}
-      className={`${styles.footer} ${isDarkMode ? "" : styles.lightMode}`}
+      className={`${styles.footer} ${isDarkMode ? styles.dark : styles.light}`}
     >
+      <div className={styles.footerGlow}></div>
       <div className={styles.container}>
         <div className={styles.gridContainer}>
-          {/* Left section: Logo and description */}
+          {/* Logo and company description */}
           <motion.div className={styles.logoSection} variants={itemVariants}>
-            <Logo />
+            <div className={styles.logoWrapper}>
+              <Logo />
+            </div>
             <p className={styles.description}>
               Empowering visionary entrepreneurs and innovative startups to shape the future of technology.
             </p>
+            <div className={styles.socialLinks}>
+              {SOCIAL_LINKS.map((link) => (
+                <motion.a
+                  key={link.href}
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.socialIcon}
+                  variants={itemVariants}
+                  whileHover={{ scale: 1.1 }}
+                  aria-label={link.label}
+                >
+                  <span className={styles.iconWrapper}>
+                    {link.icon || link.label.charAt(0)}
+                  </span>
+                </motion.a>
+              ))}
+            </div>
           </motion.div>
 
-          {/* Quick Links */}
-          <motion.div variants={itemVariants}>
-            <h4 className={styles.sectionTitle}>Quick Links</h4>
+          {/* Navigation Links - Matching sidebar sections */}
+          <motion.div variants={itemVariants} className={styles.linksSection}>
+            <h4 className={styles.sectionTitle}>Navigation</h4>
             <ul className={styles.linkList}>
-              {NAVIGATION_ITEMS.map((item) => (
+              {NAVIGATION_ITEMS.filter(item => item.type !== "section").map((item) => (
                 <motion.li key={item.path} variants={itemVariants}>
-                  <a
-                    href={item.path}
-                    className={styles.link}
-                    onClick={(e) => {
-                      if (item.type === "section") {
-                        e.preventDefault();
-                        const targetId = item.reference || item.path.replace("/#", "");
-                        const element = document.getElementById(targetId);
-
-                        if (element) {
-                          element.scrollIntoView({ behavior: "smooth" });
-                        } else {
-                          // Fallback to hash change if element isn't found
-                          window.location.hash = targetId;
-                        }
-                      }
-                    }}
-                  >
+                  <a href={item.path} className={styles.link}>
                     {item.label}
                   </a>
                 </motion.li>
@@ -61,28 +65,23 @@ export const Footer: React.FC<FooterProps> = ({ isDarkMode = true }) => {
             </ul>
           </motion.div>
 
-          {/* Connect */}
-          <motion.div variants={itemVariants}>
-            <h4 className={styles.sectionTitle}>Connect</h4>
+          {/* Resources section - Similar to sidebar resources */}
+          <motion.div variants={itemVariants} className={styles.linksSection}>
+            <h4 className={styles.sectionTitle}>Resources</h4>
             <ul className={styles.linkList}>
-              {SOCIAL_LINKS.map((link) => (
-                <motion.li key={link.href} variants={itemVariants}>
-                  <a
-                    href={link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={styles.link}
-                  >
-                    {link.label}
-                  </a>
-                </motion.li>
-              ))}
+              <motion.li variants={itemVariants}>
+                <a href="/documentation" className={styles.link}>Documentation</a>
+              </motion.li>
+              <motion.li variants={itemVariants}>
+                <a href="/theme-designer" className={styles.link}>Theme Designer</a>
+              </motion.li>
             </ul>
           </motion.div>
         </div>
 
-        {/* Footer bottom */}
+        {/* Footer bottom with cosmic particles */}
         <motion.div variants={itemVariants} className={styles.footerBottom}>
+          <div className={styles.particles}></div>
           <p className={styles.copyright}>
             &copy; {new Date().getFullYear()} Phoenix VC. All rights reserved.
           </p>
