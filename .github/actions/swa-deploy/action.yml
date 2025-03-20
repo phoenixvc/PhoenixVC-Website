@@ -89,6 +89,7 @@ runs:
 
     - name: Get Deployment Information
       id: get_deployment_info
+      shell: bash
       run: |
         echo "deployment_id=${{ github.event.inputs.deploymentId }}" >> $GITHUB_OUTPUT
         echo "artifact_id=${{ github.event.inputs.artifactId }}" >> $GITHUB_OUTPUT
