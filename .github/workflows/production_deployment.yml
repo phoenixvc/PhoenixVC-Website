@@ -77,7 +77,7 @@ jobs:
           azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
           location_code: ${{ env.LOCATION_CODE }}
           repository: JustAGhosT/PhoenixVC-Modernized
-          token: ${{ secrets.PROD_DEPLOYMENT_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get Deployment Information
         id: get_deployment_info
