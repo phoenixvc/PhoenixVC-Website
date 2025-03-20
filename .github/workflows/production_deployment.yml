@@ -1,3 +1,6 @@
+env:
+  LOCATION_CODE: saf
+
 name: Deploy to Production
 
 on:
@@ -59,7 +62,6 @@ jobs:
       deployment_id: ${{ steps.get_deployment_info.outputs.deployment_id }}
       artifact_id: ${{ steps.get_deployment_info.outputs.artifact_id }}
       run_id: ${{ github.run_id }}
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -94,17 +96,19 @@ jobs:
           ENCODED_TOKEN=$(echo -n "${{ secrets.GITHUB_TOKEN }}" | base64)
           echo "encoded_token=${ENCODED_TOKEN}" >> $GITHUB_OUTPUT
 
+  # ───────────────────────────────────────────────
+  # ✅ SWA DEPLOYMENT VIA SWA CLI
+  # ───────────────────────────────────────────────
   swa_deploy_production:
     runs-on: ubuntu-latest
-    needs: [deploy_resources_production]
+    needs: deploy_resources_production
     timeout-minutes: 15
     environment:
       name: production
       url: ${{ steps.swa_deploy.outputs.deployment_url }}
     outputs:
-        production_url: ${{ steps.swa_deploy.outputs.deployment_url }}
-        deployment_id: ${{ steps.swa_deploy.outputs.deployment_id }}
-
+      production_url: ${{ steps.swa_deploy.outputs.deployment_url }}
+      deployment_id: ${{ steps.swa_deploy.outputs.deployment_id }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -129,7 +133,7 @@ jobs:
           MAX_RETRIES=10
           COUNT=0
           while [ $COUNT -lt $MAX_RETRIES ]; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ steps.deploy_production.outputs.staticSiteUrl }}")
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ steps.deploy_production_resources.outputs.staticSiteUrl }}")
             if [ "$STATUS" == "200" ]; then
               echo "✅ SWA deployment verified successfully!"
               exit 0
@@ -161,34 +165,34 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Store Deployment Metadata
-        run: |
-          cat << EOF > deployment_metadata.json
-          {
-            "version": "${{ env.DEPLOY_VERSION }}",
-            "deploymentId": "${{ github.event.inputs.deploymentId }}",
-            "artifactId": "${{ github.event.inputs.artifactId }}",
-            "runId": "${{ github.event.inputs.runId }}",
-            "timestamp": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-          }
-          EOF
-
-          az storage blob upload \
-            --account-name ${{ secrets.STORAGE_ACCOUNT_NAME }} \
-            --container-name deployments \
-            --name "prod_${{ env.DEPLOY_VERSION }}.json" \
-            --file deployment_metadata.json
-
-      - name: Create Job Summary
-        run: |
-          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
-          echo "* Static Site: ${{ steps.deploy_production.outputs.staticSiteUrl }}" >> $GITHUB_STEP_SUMMARY
-          echo "* Teams Logic App: ${{ steps.deploy_production.outputs.teamsLogicAppUrl }}" >> $GITHUB_STEP_SUMMARY
-          echo "* GitHub Logic App: ${{ steps.deploy_production.outputs.githubLogicAppUrl }}" >> $GITHUB_STEP_SUMMARY
-
+      #- name: Store Deployment Metadata
+      #  run: |
+      #    cat << EOF > deployment_metadata.json
+      #    {
+      #      "version": "${{ env.DEPLOY_VERSION }}",
+      #      "deploymentId": "${{ github.event.inputs.deploymentId }}",
+      #      "artifactId": "${{ github.event.inputs.artifactId }}",
+      #      "runId": "${{ github.event.inputs.runId }}",
+      #      "timestamp": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+      #    }
+      #    EOF
+      #
+      #    az storage blob upload \
+      #      --account-name ${{ secrets.STORAGE_ACCOUNT_NAME }} \
+      #     --container-name deployments \
+      #     --name "prod_${{ env.DEPLOY_VERSION }}.json" \
+      #     --file deployment_metadata.json
+      #
+      #- name: Create Job Summary
+      #  run: |
+      #    echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+      #    echo "* Static Site: ${{ steps.deploy_production_resources.outputs.staticSiteUrl }}" >> $GITHUB_STEP_SUMMARY
+      #    echo "* Teams Logic App: ${{ needs.deploy_resources_production.outputs.teamsLogicAppUrl }}" >> $GITHUB_STEP_SUMMARY
+      #   echo "* GitHub Logic App: ${{ needs.deploy_resources_production.outputs.githubLogicAppUrl }}" >> $GITHUB_STEP_SUMMARY
+      #
   trigger_dns_update:
-    needs: deploy_to_production
-    if: needs.deploy_to_production.result == 'success' && github.event.inputs.includeDnsUpdate == 'true'
+    needs: swa_deploy_production
+    if: needs.swa_deploy_production.result == 'success' && github.event.inputs.includeDnsUpdate == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Trigger DNS Configuration
@@ -200,8 +204,8 @@ jobs:
             -d '{"ref": "refs/heads/main", "inputs": {"ENVIRONMENT": "prod"}}'
 
   deploy_docs:
-    needs: deploy_to_production
-    if: needs.deploy_to_production.result == 'success'
+    needs: swa_deploy_production
+    if: needs.swa_deploy_production.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -228,7 +232,7 @@ jobs:
           mkdocs gh-deploy --force
 
   notify_deployment:
-    needs: [deploy_to_production, trigger_dns_update, deploy_docs]
+    needs: [swa_deploy_production, trigger_dns_update, deploy_docs]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -243,16 +247,16 @@ jobs:
         uses: ./.github/actions/teams-notification
         with:
           webhook_url: ${{ secrets.TEAMS_WEBHOOK_URL }}
-          title: ${{ needs.deploy_to_production.result == 'success' && 'Production Deployment Complete' || 'Production Deployment Failed' }}
-          message: ${{ needs.deploy_to_production.result == 'success' && 'The deployment to PRODUCTION has completed successfully.' || 'The deployment to PRODUCTION has failed. Manual intervention required.' }}
+          title: ${{ needs.swa_deploy_production.result == 'success' && 'Production Deployment Complete' || 'Production Deployment Failed' }}
+          message: ${{ needs.swa_deploy_production.result == 'success' && 'The deployment to PRODUCTION has completed successfully.' || 'The deployment to PRODUCTION has failed. Manual intervention required.' }}
           environment: "production"
-          deployment_url: ${{ needs.deploy_to_production.outputs.staticSiteUrl }}
-          logic_app_url: ${{ needs.deploy_to_production.outputs.teamsLogicAppUrl }}
-          github_logic_app_url: ${{ needs.deploy_to_production.outputs.githubLogicAppUrl }}
+          deployment_url: ${{ needs.swa_deploy_production.outputs.production_url }}
+          logic_app_url: ${{ needs.deploy_resources_production.outputs.teamsLogicAppUrl }}
+          github_logic_app_url: ${{ needs.deploy_resources_production.outputs.githubLogicAppUrl }}
           branch: ${{ github.ref }}
           location_code: ${{ env.LOCATION_CODE }}
           resource_group: prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
-          color: ${{ needs.deploy_to_production.result == 'success' && '00A300' || 'FF0000' }}
+          color: ${{ needs.swa_deploy_production.result == 'success' && '00A300' || 'FF0000' }}
           deployment_id: ${{ github.event.inputs.deploymentId }}
           artifact_id: ${{ github.event.inputs.artifactId }}
           run_id: ${{ github.event.inputs.runId }}
