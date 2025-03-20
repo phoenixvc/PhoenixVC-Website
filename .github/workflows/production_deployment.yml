@@ -1,5 +1,5 @@
 env:
-  LOCATION_CODE: saf
+  LOCATION_CODE: euw
 
 name: Deploy to Production
 
