@@ -10,7 +10,7 @@ interface ExtendedHeroProps extends HeroProps {
   isDarkMode: boolean;
   colorScheme?: string;
   accentColor?: string;
-  enableMouseTracking?: boolean; // Add this prop
+  enableMouseTracking?: boolean;
 }
 
 const Hero: FC<ExtendedHeroProps> = memo(
@@ -23,13 +23,14 @@ const Hero: FC<ExtendedHeroProps> = memo(
     isDarkMode,
     colorScheme = "purple",
     accentColor,
-    enableMouseTracking = false, // Default to false
+    enableMouseTracking = false,
   }) => {
     const sectionRef = useSectionObserver("home", (id) => {
       console.log(`[Home] Section "${id}" is now visible`);
     });
     const containerRef = useRef<HTMLDivElement>(null);
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+    const [isMouseNearBorder, setIsMouseNearBorder] = useState(false);
 
     // Add mouse tracking effect if enabled
     useEffect(() => {
@@ -43,6 +44,15 @@ const Hero: FC<ExtendedHeroProps> = memo(
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
 
+        // Check if mouse is near the border (within 20px)
+        const borderThreshold = 20;
+        const isNearBorder =
+          x < borderThreshold ||
+          y < borderThreshold ||
+          x > rect.width - borderThreshold ||
+          y > rect.height - borderThreshold;
+
+        setIsMouseNearBorder(isNearBorder);
         setMousePosition({ x, y });
       };
 
@@ -72,7 +82,9 @@ const Hero: FC<ExtendedHeroProps> = memo(
       <section className={styles.heroSection} ref={sectionRef} aria-label="hero section">
         <div className={isDarkMode ? styles.heroOverlayDark : styles.heroOverlayLight} />
         <div
-          className={`${styles.heroContainer} ${textColor} ${enableMouseTracking ? styles.mouseTrackingEnabled : ""}`}
+          className={`${styles.heroContainer} ${textColor} ${
+            enableMouseTracking ? `${styles.mouseTrackingEnabled} ${isMouseNearBorder ? styles.mouseBorder : ""}` : ""
+          }`}
           ref={containerRef}
           style={enableMouseTracking ? {
             "--mouse-x": `${mousePosition.x}px`,

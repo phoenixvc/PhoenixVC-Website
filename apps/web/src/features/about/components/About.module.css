@@ -1,18 +1,18 @@
 /* features/about/components/About/About.module.css */
 .section {
-  padding: 6rem 1.5rem;
+  padding: 6rem 2rem;
   position: relative;
   overflow: hidden;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .darkMode {
-  background-color: rgba(26, 26, 46, 0.7); /* Increased transparency */
+  background-color: rgba(22, 22, 35, 0.85);
   color: #f0f0f0;
 }
 
 .lightMode {
-  background-color: rgba(248, 249, 250, 0.7); /* Increased transparency */
+  background-color: rgba(248, 249, 250, 0.85);
   color: #333;
 }
 
@@ -26,61 +26,313 @@
 .content {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 3rem;
 }
 
 .title {
-  font-size: 2.5rem;
+  font-size: 3rem;
   font-weight: 700;
-  color: #9c27b0; /* Purple color to match your theme */
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 0.5rem;
+  background-clip: text;
+  -webkit-background-clip: text;
 }
 
 .darkTitle {
-  color: linear-gradient(135deg, #9c27b0, #673ab7);
+  background-image: linear-gradient(135deg, #9c27b0, #673ab7);
+  color: transparent;
 }
 
 .lightTitle {
-  color: linear-gradient(135deg, #7b1fa2, #512da8);
+  background-image: linear-gradient(135deg, #7b1fa2, #512da8);
+  color: transparent;
 }
 
 .divider {
-  width: 80px;
-  height: 3px;
+  width: 100px;
+  height: 4px;
   background: linear-gradient(90deg, #9c27b0, #673ab7);
-  margin: 0 auto 2rem auto;
+  margin: 0 auto 1rem auto;
   border-radius: 2px;
+}
+
+.featuredStatement {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-style: italic;
+  font-weight: 300;
+  margin: 1rem 0 2rem;
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1rem;
+  position: relative;
+}
+
+.quote {
+  font-size: 3rem;
+  line-height: 0;
+  height: 20px;
+  color: #9c27b0;
+  margin: 0 0.5rem;
+  opacity: 0.7;
+}
+
+.twoColumnLayout {
+  display: flex;
+  flex-direction: row;
+  gap: 3rem;
+  align-items: center;
+  margin: 2rem 0;
+}
+
+.imageColumn {
+  flex: 1;
+  min-width: 300px;
+}
+
+.imageContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.imageOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.1);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Add to About.module.css */
+.logoImage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  z-index: 2;
+  opacity: 0.9; /* Default opacity for images */
+  transition: opacity 0.3s ease;
+}
+
+.videoContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+}
+
+.phoenixVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.5s ease; /* Slightly longer transition for smoother effect */
+}
+
+/* Add a hover state for the container */
+.imageContainer:hover .logoImage {
+  opacity: 0.6; /* Further reduce opacity when hovering */
+}
+
+.phoenixVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.phoenixSymbol {
+  width: 60%;
+  height: 60%;
+  position: relative;
+  z-index: 2;
+  animation: pulse 4s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.7; }
+}
+
+.textColumn {
+  flex: 1.5;
 }
 
 .paragraphContainer {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  max-width: 800px;
-  margin: 0 auto;
 }
 
 .paragraph {
   font-size: 1.125rem;
   line-height: 1.8;
   text-align: justify;
-  opacity: 0.9; /* Slightly transparent text */
+  opacity: 0.9;
+  position: relative;
+  padding-left: 1rem;
+  border-left: 2px solid rgba(156, 39, 176, 0.3);
+}
+
+.paragraph:hover {
+  border-left: 2px solid rgba(156, 39, 176, 0.8);
+}
+
+.valuesSection {
+  margin: 3rem 0;
+  padding: 2rem 0;
+  border-top: 1px solid rgba(156, 39, 176, 0.2);
+}
+
+.valuesSectionTitle {
+  font-size: 1.75rem;
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #9c27b0;
+}
+
+.valuesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.valueCard {
+  padding: 1.5rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(156, 39, 176, 0.2);
+  transition: all 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.darkMode .valueCard {
+  background: rgba(30, 30, 45, 0.4);
+}
+
+.lightMode .valueCard {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.valueCard:hover {
+  border-color: rgba(156, 39, 176, 0.6);
+  box-shadow: 0 5px 15px rgba(156, 39, 176, 0.1);
+}
+
+.valueIconContainer {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #9c27b0, #673ab7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  color: white;
+}
+
+.valueTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  text-align: center;
+}
+
+.valueDescription {
+  font-size: 1rem;
+  line-height: 1.6;
+  text-align: center;
+  opacity: 0.8;
+}
+
+.ctaSection {
+  margin: 3rem 0 1rem;
+  text-align: center;
+  padding: 2rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(156, 39, 176, 0.1), rgba(103, 58, 183, 0.1));
+}
+
+.ctaText {
+  font-size: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.ctaButton {
+  padding: 0.75rem 1.5rem;
+  border-radius: 30px;
+  background: linear-gradient(135deg, #9c27b0, #673ab7);
+  color: white;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.ctaButton:hover {
+  box-shadow: 0 5px 15px rgba(156, 39, 176, 0.3);
+}
+
+.ctaIcon {
+  transition: transform 0.3s ease;
+}
+
+.ctaButton:hover .ctaIcon {
+  transform: translateX(3px);
 }
 
 /* Responsive styles */
+@media (max-width: 992px) {
+  .twoColumnLayout {
+    flex-direction: column;
+  }
+
+  .imageColumn {
+    width: 100%;
+  }
+
+  .imageContainer {
+    height: 300px;
+  }
+}
+
 @media (max-width: 768px) {
   .section {
-    padding: 4rem 1rem;
+    padding: 4rem 1.5rem;
   }
 
   .title {
-    font-size: 2rem;
+    font-size: 2.5rem;
   }
 
-  .paragraph {
-    font-size: 1rem;
-    line-height: 1.7;
+  .featuredStatement {
+    font-size: 1.25rem;
+  }
+
+  .valuesGrid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   }
 }
 
@@ -90,6 +342,23 @@
   }
 
   .title {
-    font-size: 1.75rem;
+    font-size: 2rem;
+  }
+
+  .featuredStatement {
+    font-size: 1.1rem;
+  }
+
+  .paragraph {
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+
+  .valuesGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .ctaSection {
+    padding: 1.5rem 1rem;
   }
 }

@@ -16,7 +16,7 @@ export const DEFAULT_EMPLOYEES: EmployeeData[] = [
     position: "Software Architect",
     mass: 300,
     color: "#60a5fa", // Blue
-    image: "apps/web/public/themes/Jor.png",
+    image: "themes/Jor.png",
     fullName: "Jurie Smit",
     speed: 0.0003,
     title: "Software Architect",
@@ -36,7 +36,7 @@ export const DEFAULT_EMPLOYEES: EmployeeData[] = [
     position: "CEO",
     mass: 300,
     color: "#f87171", // Red
-    image: "apps/web/public/themes/Noster.png",
+    image: "themes/Noster.png",
     fullName: "Eben Mare",
     speed: 0.0001,
     title: "CEO",
@@ -55,7 +55,7 @@ export const DEFAULT_EMPLOYEES: EmployeeData[] = [
     position: "CTO",
     mass: 150,
     color: "#4ade80", // Green
-    image: "apps/web/public/themes/YolandE.png",
+    image: "themes/YolandE.png",
     fullName: "Yolandi Mare",
     speed: 0.00005,
     title: "Solver of Problems",

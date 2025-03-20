@@ -1,5 +1,5 @@
 // components/Layout/Sidebar/Sidebar.tsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { ChevronLeft } from "lucide-react";
 import styles from "../styles/sidebar.module.css";
 import { SidebarProps } from "../types";
@@ -15,22 +15,38 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onCollapse,
   mode = "dark"
 }) => {
-  const [currentPath, setCurrentPath] = React.useState("");
+  const [currentPath, setCurrentPath] = useState("");
 
-  React.useEffect(() => {
+  useEffect(() => {
     const updateCurrentPath = () => {
-      setCurrentPath(window.location.pathname);
+      const pathname = window.location.pathname;
+      const hash = window.location.hash;
+
+      // For homepage with hash
+      if (pathname === "/" && hash) {
+        setCurrentPath(pathname + hash);
+      }
+      // For homepage without hash
+      else if (pathname === "/" && !hash) {
+        setCurrentPath(pathname);
+      }
+      // For other pages
+      else {
+        setCurrentPath(pathname);
+      }
     };
 
     updateCurrentPath();
     window.addEventListener("popstate", updateCurrentPath);
+    window.addEventListener("hashchange", updateCurrentPath);
 
     return () => {
       window.removeEventListener("popstate", updateCurrentPath);
+      window.removeEventListener("hashchange", updateCurrentPath);
     };
   }, []);
 
-  // Don"t render if closed on mobile
+  // Don't render if closed on mobile
   if (isMobile && !isOpen) return null;
 
   const sidebarClasses = [
@@ -44,14 +60,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
   // Function to check if a link is active
   const isLinkActive = (href: string) => {
     if (href === "/") {
+      return currentPath === "/";
+    }
+    // For hash links on homepage
+    if (href.startsWith("/#")) {
       return currentPath === href;
     }
-    // For hash links, check if they"re in the current URL
-    if (href.startsWith("/#")) {
-      return window.location.hash === href.substring(1);
-    }
-    // For other links, check if the path starts with the href
-    return currentPath.startsWith(href);
+    // For other pages
+    return currentPath.startsWith(href) && !currentPath.includes("#");
   };
 
   return (

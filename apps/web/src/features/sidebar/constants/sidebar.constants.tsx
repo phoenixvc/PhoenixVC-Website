@@ -1,6 +1,6 @@
 // features/sidebar/constants.ts
-import { Home, Info, BookOpen, Palette, FileText, Code, Briefcase, Mail, Target } from "lucide-react";
 import { SidebarGroup, SidebarItemGroup, SidebarItemLink } from "../types";
+import { navItems, resourceItems } from "@/constants/navigation";
 
 // First, define the sidebar links with proper typing
 export const SIDEBAR_LINKS: SidebarItemGroup[] = [
@@ -9,79 +9,26 @@ export const SIDEBAR_LINKS: SidebarItemGroup[] = [
     label: "Navigation",
     title: "Navigation",
     active: false,
-    children: [
-      {
-        type: "link",
-        label: "Home",
-        icon: <Home size={20} />,
-        href: "/",
-        active: false
-      },
-      {
-        type: "link",
-        label: "About",
-        icon: <Info size={20} />,
-        href: "/#about",
-        active: false
-      },
-      {
-        type: "link",
-        label: "Focus Areas",
-        icon: <Target size={20} />,
-        href: "/#focus-areas",
-        active: false
-      },
-      {
-        type: "link",
-        label: "Portfolio",
-        icon: <Briefcase size={20} />,
-        href: "/#portfolio",
-        active: false
-      },
-      {
-        type: "link",
-        label: "Blog",
-        icon: <FileText size={20} />,
-        href: "/blog",
-        active: false
-      },
-      {
-        type: "link",
-        label: "Projects",
-        icon: <Code size={20} />,
-        href: "/projects",
-        active: false
-      },
-      {
-        type: "link",
-        label: "Contact",
-        icon: <Mail size={20} />,
-        href: "/#contact",
-        active: false
-      }
-    ]
+    children: navItems.map(item => ({
+      type: "link",
+      label: item.label,
+      icon: item.icon,
+      href: item.href,
+      active: false
+    })) as SidebarItemLink[]
   },
   {
     type: "group",
     label: "Resources",
     title: "Resources",
     active: false,
-    children: [
-      {
-        type: "link",
-        label: "Documentation",
-        icon: <BookOpen size={20} />,
-        href: "https://docs.example.com",
-        active: false
-      },
-      {
-        type: "link",
-        label: "Theme Designer",
-        icon: <Palette size={20} />,
-        href: "/theme-designer",
-        active: false
-      }
-    ]
+    children: resourceItems.map(item => ({
+      type: "link",
+      label: item.label,
+      icon: item.icon,
+      href: item.href,
+      active: false
+    })) as SidebarItemLink[]
   }
 ];
 

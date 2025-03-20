@@ -2,9 +2,8 @@
 import { FC, useEffect, useState } from "react";
 import styles from "./header.module.css";
 import { Menu, Sun, Moon, Bug, Gamepad2 } from "lucide-react";
-import { HeaderProps, NavItem } from "./types";
-import { navItems } from "@/constants";
-
+import { HeaderProps } from "./types";
+import { navItems } from "@/constants/navigation";
 
 const Header: FC<HeaderProps> = ({
   onMenuClick,
@@ -13,11 +12,11 @@ const Header: FC<HeaderProps> = ({
   isSidebarCollapsed,
   gameMode,
   onGameModeToggle,
-  debugMode = false, // Debug disabled by default
+  debugMode = false,
   onDebugModeToggle,
 }) => {
   const [scrolled, setScrolled] = useState(false);
-  const [activePath, setActivePath] = useState("/");
+  const [activePath, setActivePath] = useState("");
 
   // Handle scroll event to add transparency
   useEffect(() => {
@@ -29,12 +28,46 @@ const Header: FC<HeaderProps> = ({
     };
 
     // Set active path based on current location
-    const currentPath = window.location.pathname;
-    setActivePath(currentPath);
+    const updateActivePath = () => {
+      const pathname = window.location.pathname;
+      const hash = window.location.hash;
 
+      // For homepage with hash
+      if (pathname === "/" && hash) {
+        setActivePath(pathname + hash);
+      }
+      // For homepage without hash
+      else if (pathname === "/" && !hash) {
+        setActivePath(pathname);
+      }
+      // For other pages
+      else {
+        setActivePath(pathname);
+      }
+    };
+
+    updateActivePath();
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("hashchange", updateActivePath);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("hashchange", updateActivePath);
+    };
   }, [scrolled]);
+
+  // Function to determine if a nav item is active
+  const isNavItemActive = (href: string) => {
+    if (href === "/") {
+      return activePath === "/";
+    }
+    // For hash links on homepage
+    if (href.startsWith("/#")) {
+      return activePath === href;
+    }
+    // For other pages
+    return activePath.startsWith(href) && !activePath.includes("#");
+  };
 
   return (
     <header
@@ -68,7 +101,7 @@ const Header: FC<HeaderProps> = ({
                 <a
                   href={item.href}
                   className={`${styles.navLink} ${
-                    activePath === item.href ? styles.activeNavLink : ""
+                    isNavItemActive(item.href) ? styles.activeNavLink : ""
                   }`}
                 >
                   {item.label}

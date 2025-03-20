@@ -176,7 +176,6 @@ export const initEmployeeStars = (
   return employeeStars;
 };
 
-// Check if mouse is hovering over an employee star
 export const checkEmployeeHover = (
   mouseX: number,
   mouseY: number,
@@ -245,10 +244,11 @@ export const checkEmployeeHover = (
       hoveredStar.pulsation.speed = 0.0006; // Faster pulsation when hovered
     }
 
+    // Use the actual mouse coordinates for tooltip positioning
     setHoverInfo({
       employee: hoveredStar.employee,
-      x: hoveredStar.x,
-      y: hoveredStar.y,
+      x: mouseX, // Use mouse X instead of star X
+      y: mouseY, // Use mouse Y instead of star Y
       show: true
     });
 

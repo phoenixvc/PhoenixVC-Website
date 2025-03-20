@@ -35,6 +35,26 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
     getComponentStyle: () => ({})
   };
 
+  // Function to determine if the item is active based on current URL
+  const isActive = React.useMemo(() => {
+    if (active) return true;
+
+    if (!href || typeof window === "undefined") return false;
+
+    const pathname = window.location.pathname;
+    const hash = window.location.hash;
+
+    if (href === "/") {
+      return pathname === "/" && !hash;
+    }
+
+    if (href.startsWith("/#")) {
+      return pathname === "/" && hash === href.substring(1);
+    }
+
+    return pathname.startsWith(href) && !pathname.includes("#");
+  }, [active, href]);
+
   // Get component style from theme
   const itemStyle = themeContext.getComponentStyle?.("sidebar.item", variant) || {};
 
@@ -44,10 +64,11 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
     ...style
   };
 
-  // Use CSS module classes
+  // Use CSS module classes with improved active state detection
   const itemClasses = cn(
     styles.sidebarItem,
-    active && styles.sidebarItemActive,
+    isActive && styles.sidebarItemActive,
+    collapsed && styles.sidebarItemCollapsed,
     mode === "dark" ? styles.darkItem : styles.lightItem,
     className
   );
@@ -67,7 +88,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
         style={combinedStyle}
         onClick={onClick}
         variants={itemVariants}
-        animate={active ? "active" : "inactive"}
+        animate={isActive ? "active" : "inactive"}
         whileHover={{ x: 4 }}
         whileTap={{ scale: 0.98 }}
       >
@@ -81,7 +102,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
         className={itemClasses}
         style={combinedStyle}
         variants={itemVariants}
-        animate={active ? "active" : "inactive"}
+        animate={isActive ? "active" : "inactive"}
         whileHover={{ x: 4 }}
         whileTap={{ scale: 0.98 }}
       >

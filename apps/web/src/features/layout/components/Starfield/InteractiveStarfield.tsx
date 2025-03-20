@@ -96,6 +96,21 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     y: 0,
     show: false
   });
+  const [pinnedEmployee, setPinnedEmployee] = useState<EmployeeData | null>(null);
+  const [pinnedPosition, setPinnedPosition] = useState({ x: 0, y: 0 });
+
+  const handlePinEmployee = (employee: EmployeeData) => {
+    console.log("Pinning employee in starfield:", employee.name);
+    setPinnedEmployee(employee);
+    setPinnedPosition({ x: mousePosition.x, y: mousePosition.y });
+    // Hide hover tooltip when pinning
+    setHoverInfo({ employee: null, x: 0, y: 0, show: false });
+  };
+
+  const handleUnpinEmployee = () => {
+    console.log("Unpinning employee in starfield");
+    setPinnedEmployee(null);
+  };
 
   // Game state
   const [gameState, setGameState] = useState<GameState>(initGameState());
@@ -306,6 +321,18 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
       getIP().catch(e => console.log("IP address fetching failed:", e));
     }
   }, [gameMode]);
+
+  useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      // If we have a pinned employee and click is not on tooltip
+      if (pinnedEmployee && canvasRef.current && e.target === canvasRef.current) {
+        handleUnpinEmployee();
+      }
+    };
+
+    window.addEventListener("click", handleGlobalClick);
+    return () => window.removeEventListener("click", handleGlobalClick);
+  }, [pinnedEmployee]);
 
   // Set up canvas and handle resize
   useEffect(() => {
@@ -669,6 +696,8 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     // Use the unified function
     const affectedStars = applyStarfieldRepulsion(x, y);
 
+    // const containerRef = useRef<HTMLDivElement>(null);
+
     // Update mouse position state
     if (setMousePosition) {
       setMousePosition(prev => ({
@@ -779,12 +808,24 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
         />
       )}
 
-      {hoverInfo.show && hoverInfo.employee && (
+      {pinnedEmployee && (
+        <EmployeeTooltip
+          employee={pinnedEmployee}
+          x={pinnedPosition.x}
+          y={pinnedPosition.y}
+          isPinned={true}
+          isDarkMode={isDarkMode}
+          onUnpin={handleUnpinEmployee}
+        />
+      )}
+
+      {hoverInfo.show && hoverInfo.employee && !pinnedEmployee && (
         <EmployeeTooltip
           employee={hoverInfo.employee}
           x={hoverInfo.x}
           y={hoverInfo.y}
           isDarkMode={isDarkMode}
+          onPin={handlePinEmployee}
         />
       )}
 
