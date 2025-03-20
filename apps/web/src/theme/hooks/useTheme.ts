@@ -13,6 +13,16 @@ export function useTheme() {
   return {
     ...theme,
 
+    // Theme name getter and setter
+    themeName: theme.themeName || "cosmic-frontier", // Default to cosmic-frontier if not set
+    setThemeName: (name: string) => {
+      if (theme.setTheme) {
+        theme.setTheme(name);
+      } else {
+        console.warn("setThemeName is not available in the current theme context");
+      }
+    },
+
     // Typography helpers
     typography: {
       // Get typography for a specific element

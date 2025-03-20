@@ -7,7 +7,7 @@ import { ThemeVariables } from "./variables";
 /**
  * Core Theme Identity
  */
-export type ThemeName = "classic" | "forest" | "ocean" | "phoenix" | "lavender" | "cloud";
+export type ThemeName = "classic" | "forest" | "ocean" | "phoenix" | "lavender" | "cloud" | "cosmic-frontier";
 export type ThemeMode = "light" | "dark";
 
 /**

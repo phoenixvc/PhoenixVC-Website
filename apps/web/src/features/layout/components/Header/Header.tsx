@@ -1,9 +1,10 @@
 // components/Layout/Header/Header.tsx
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useState, useRef } from "react";
 import styles from "./header.module.css";
-import { Menu, Sun, Moon, Bug, Gamepad2 } from "lucide-react";
+import { Menu, Sun, Moon, Bug, Gamepad2, ChevronDown, User, Palette } from "lucide-react";
 import { HeaderProps } from "./types";
 import { navItems } from "@/constants/navigation";
+import { useTheme } from "@/theme";
 
 const Header: FC<HeaderProps> = ({
   onMenuClick,
@@ -17,6 +18,19 @@ const Header: FC<HeaderProps> = ({
 }) => {
   const [scrolled, setScrolled] = useState(false);
   const [activePath, setActivePath] = useState("");
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [themeMenuOpen, setThemeMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+  const { themeName, setThemeName } = useTheme();
+
+  // Available themes with "coming soon" labels
+  const availableThemes = [
+    { id: "cosmic-frontier", name: "Cosmic Frontier", comingSoon: false },
+    { id: "classic", name: "Classic", comingSoon: true },
+    { id: "neon-city", name: "Neon City", comingSoon: true },
+    { id: "forest-calm", name: "Forest Calm", comingSoon: true },
+    { id: "ocean-depths", name: "Ocean Depths", comingSoon: true },
+  ];
 
   // Handle scroll event to add transparency
   useEffect(() => {
@@ -50,11 +64,22 @@ const Header: FC<HeaderProps> = ({
     window.addEventListener("scroll", handleScroll);
     window.addEventListener("hashchange", updateActivePath);
 
+    // Close profile menu when clicking outside
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setProfileMenuOpen(false);
+        setThemeMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
     return () => {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("hashchange", updateActivePath);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [scrolled]);
+  }, [scrolled, profileMenuRef]);
 
   // Function to determine if a nav item is active
   const isNavItemActive = (href: string) => {
@@ -67,6 +92,12 @@ const Header: FC<HeaderProps> = ({
     }
     // For other pages
     return activePath.startsWith(href) && !activePath.includes("#");
+  };
+
+  const handleThemeSelect = (themeId: string) => {
+    setThemeName(themeId);
+    setThemeMenuOpen(false);
+    setProfileMenuOpen(false);
   };
 
   return (
@@ -146,6 +177,63 @@ const Header: FC<HeaderProps> = ({
           >
             {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
           </button>
+
+          {/* Profile Button with Gradient Background and Icon */}
+          <div className={styles.profileMenuContainer} ref={profileMenuRef}>
+            <button
+              className={`${styles.profileButton} ${profileMenuOpen ? styles.active : ""}`}
+              onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+              aria-label="Profile menu"
+            >
+              <div className={styles.profileImageContainer}>
+                <div className={styles.profileImage}>
+                  <User size={16} className={styles.profileUserIcon} />
+                </div>
+              </div>
+              <ChevronDown size={16} className={`${styles.dropdownIcon} ${profileMenuOpen ? styles.open : ""}`} />
+            </button>
+
+            {/* Profile Dropdown Menu */}
+            {profileMenuOpen && (
+              <div className={styles.profileDropdown}>
+                <div className={styles.profileHeader}>
+                  <div className={styles.profileImageLarge}>
+                    <User size={24} className={styles.profileUserIconLarge} />
+                  </div>
+                  <div className={styles.profileInfo}>
+                    <div className={styles.profileName}>Guest User</div>
+                    <div className={styles.profileEmail}>guest@example.com</div>
+                  </div>
+                </div>
+
+                <div className={styles.dropdownDivider}></div>
+
+                {/* Theme Selection Option */}
+                <div className={styles.dropdownItem} onClick={() => setThemeMenuOpen(!themeMenuOpen)}>
+                  <Palette size={18} className={styles.dropdownItemIcon} />
+                  <span>Theme Selection</span>
+                  <ChevronDown size={16} className={`${styles.dropdownItemChevron} ${themeMenuOpen ? styles.open : ""}`} />
+                </div>
+
+                {/* Theme Selection Submenu */}
+                {themeMenuOpen && (
+                  <div className={styles.themeSubmenu}>
+                    {availableThemes.map(theme => (
+                      <div
+                        key={theme.id}
+                        className={`${styles.themeOption} ${themeName === theme.id ? styles.activeTheme : ""}`}
+                        onClick={() => !theme.comingSoon && handleThemeSelect(theme.id)}
+                      >
+                        <div className={styles.themeColorIndicator} data-theme={theme.id}></div>
+                        <span>{theme.name}</span>
+                        {theme.comingSoon && <span className={styles.comingSoonBadge}>Coming Soon</span>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>
