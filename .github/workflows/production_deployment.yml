@@ -44,18 +44,70 @@ jobs:
           fi
           echo "passed=true" >> $GITHUB_OUTPUT
 
-  deploy_to_production:
+  # ───────────────────────────────────────────────
+  # ✅ DEPLOY PRODUCTION RESOURCES
+  # ───────────────────────────────────────────────
+  deploy_resources_production:
+    runs-on: ubuntu-latest
     needs: validate_approval
     if: needs.validate_approval.outputs.validation_passed == 'true'
+    outputs:
+      staticSiteUrl: ${{ steps.deploy_production_resources.outputs.staticSiteUrl }}
+      teamsLogicAppUrl: ${{ steps.deploy_production_resources.outputs.teamsLogicAppUrl }}
+      githubLogicAppUrl: ${{ steps.deploy_production_resources.outputs.githubLogicAppUrl }}
+      encoded_token: ${{ steps.encode_token.outputs.encoded_token }}
+      deployment_id: ${{ steps.get_deployment_info.outputs.deployment_id }}
+      artifact_id: ${{ steps.get_deployment_info.outputs.artifact_id }}
+      run_id: ${{ github.run_id }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          repository: JustAGhosT/PhoenixVC-Modernized
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Deploy Production Resources
+        id: deploy_production_resources
+        uses: ./.github/actions/deploy-azure-resources
+        with:
+          environment: production
+          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          location_code: ${{ env.LOCATION_CODE }}
+          repository: JustAGhosT/PhoenixVC-Modernized
+          token: ${{ secrets.PROD_DEPLOYMENT_TOKEN }}
+
+      - name: Get Deployment Information
+        id: get_deployment_info
+        run: |
+          DEPLOYMENT_ID="${{ github.run_id }}_${{ github.sha }}"
+          ARTIFACT_ID="phoenixvc_$(date +%Y%m%d)_${{ github.sha }}_${{ github.run_number }}"
+          echo "deployment_id=${DEPLOYMENT_ID}" >> $GITHUB_OUTPUT
+          echo "artifact_id=${ARTIFACT_ID}" >> $GITHUB_OUTPUT
+
+      - name: Encode GitHub Token
+        id: encode_token
+        run: |
+          ENCODED_TOKEN=$(echo -n "${{ secrets.GITHUB_TOKEN }}" | base64)
+          echo "encoded_token=${ENCODED_TOKEN}" >> $GITHUB_OUTPUT
+
+  # ───────────────────────────────────────────────
+  # ✅ DEPLOY TO PRODUCTION
+  # ───────────────────────────────────────────────
+  deploy_to_production:
+    needs: deploy_resources_production
     runs-on: ubuntu-latest
     environment:
       name: production
-      url: ${{ steps.deploy_production.outputs.staticSiteUrl }}
+      url: ${{ steps.swa_deploy.outputs.deployment_url }}
     timeout-minutes: 30
     outputs:
-      staticSiteUrl: ${{ steps.deploy_production.outputs.staticSiteUrl }}
-      teamsLogicAppUrl: ${{ steps.deploy_production.outputs.teamsLogicAppUrl }}
-      githubLogicAppUrl: ${{ steps.deploy_production.outputs.githubLogicAppUrl }}
+      staticSiteUrl: ${{ steps.swa_deploy.outputs.deployment_url }}
+      teamsLogicAppUrl: ${{ steps.deploy_production_resources.outputs.teamsLogicAppUrl }}
+      githubLogicAppUrl: ${{ steps.deploy_production_resources.outputs.githubLogicAppUrl }}
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -86,52 +138,38 @@ jobs:
           echo "🔍 Checking downloaded files..."
           ls -lh apps/web/dist
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
+  # ───────────────────────────────────────────────
+  # ✅ PRODUCTION SITE DEPLOYMENT VIA SWA CLI
+  # ───────────────────────────────────────────────
+  swa_deploy_production:
+    runs-on: ubuntu-latest
+    needs: [deploy_to_production]
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: ${{ steps.swa_deploy.outputs.deployment_url }}
+    outputs:
+        production_url: ${{ steps.swa_deploy.outputs.deployment_url }}
+        deployment_id: ${{ steps.swa_deploy.outputs.deployment_id }}
 
-      - name: Deploy Resources to Production
-        id: deploy_production
-        uses: ./.github/actions/deploy-azure-resources
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
         with:
-          environment: production
-          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
-          location_code: ${{ env.LOCATION_CODE }}
           repository: JustAGhosT/PhoenixVC-Modernized
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
-      - name: Verify Resource Deployment
-        id: verify_resources
-        run: |
-          # Verify Logic Apps endpoints
-          if [[ -n "${{ steps.deploy_production.outputs.teamsLogicAppUrl }}" ]]; then
-            TEAMS_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ steps.deploy_production.outputs.teamsLogicAppUrl }}")
-            if [ "$TEAMS_STATUS" != "200" ]; then
-              echo "⚠️ Teams Logic App endpoint returned status $TEAMS_STATUS"
-              exit 1
-            fi
-          fi
-
-          if [[ -n "${{ steps.deploy_production.outputs.githubLogicAppUrl }}" ]]; then
-            GITHUB_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ steps.deploy_production.outputs.githubLogicAppUrl }}")
-            if [ "$GITHUB_STATUS" != "200" ]; then
-              echo "⚠️ GitHub Logic App endpoint returned status $GITHUB_STATUS"
-              exit 1
-            fi
-          fi
-
-      - name: Deploy to Azure Static Web Apps
+      - name: Use SWA Deploy Action for Production
         id: swa_deploy
-        uses: Azure/static-web-apps-deploy@v1
+        uses: ./.github/actions/swa-deploy
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_PROD }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: "upload"
-          app_location: "./dist"
-          skip_app_build: true
-          production_branch: "main"
+          artifact-name: web-dist-${{ needs.deploy_resources_production.outputs.artifact_id }}
+          app-name: prod-${{ env.LOCATION_CODE }}-swa-phoenixvc-website
+          resource-group: prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
+          env: production
+          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          deployment_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_PROD }}
 
       - name: Verify SWA Deployment
         run: |
