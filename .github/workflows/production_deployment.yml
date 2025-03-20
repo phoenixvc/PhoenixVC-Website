@@ -12,6 +12,9 @@ on:
       token:
         description: 'Encoded approval token'
         required: true
+      runID:
+        description: 'Encoded approval token'
+        required: true
       includeDnsUpdate:
         description: 'Include DNS configuration update'
         type: boolean
@@ -66,6 +69,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ github.event.inputs.artifactId }}
+          run-id: ${{ github.event.inputs.runId }}
           path: ./dist
 
       - name: Setup Node.js
