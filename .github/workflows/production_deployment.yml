@@ -85,10 +85,11 @@ jobs:
       - name: Get Deployment Information
         id: get_deployment_info
         run: |
-          DEPLOYMENT_ID="${{ github.run_id }}_${{ github.sha }}"
-          ARTIFACT_ID="phoenixvc_$(date +%Y%m%d)_${{ github.sha }}_${{ github.run_number }}"
-          echo "deployment_id=${DEPLOYMENT_ID}" >> $GITHUB_OUTPUT
-          echo "artifact_id=${ARTIFACT_ID}" >> $GITHUB_OUTPUT
+          echo "deployment_id=${{ github.event.inputs.deploymentId }}" >> $GITHUB_OUTPUT
+          echo "artifact_id=${{ github.event.inputs.artifactId }}" >> $GITHUB_OUTPUT
+          echo "run_id=${{ github.event.inputs.runID }}" >> $GITHUB_OUTPUT
+          echo "commit_sha=${{ github.sha }}" >> $GITHUB_OUTPUT
+          echo "timestamp=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
 
       - name: Encode GitHub Token
         id: encode_token
