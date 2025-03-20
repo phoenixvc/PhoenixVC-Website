@@ -122,7 +122,7 @@ jobs:
         id: swa_deploy
         uses: ./.github/actions/swa-deploy
         with:
-          artifact-name: web-dist-${{ needs.deploy_resources_production.outputs.artifact_id }}
+          artifact-name: ${{ needs.deploy_resources_production.outputs.artifact_id }}
           run-id: ${{ github.event.inputs.runID }}
           app-name: prod-${{ env.LOCATION_CODE }}-swa-phoenixvc-website
           resource-group: prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
