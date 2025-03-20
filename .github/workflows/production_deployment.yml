@@ -213,55 +213,6 @@ jobs:
             https://api.github.com/repos/${{ github.repository }}/actions/workflows/configure_dns.yml/dispatches \
             -d '{"ref": "refs/heads/main", "inputs": {"ENVIRONMENT": "prod"}}'
 
-  configure_custom_domain:
-    runs-on: ubuntu-latest
-    needs: swa_deploy_production
-    environment:
-      name: production
-    steps:
-      - name: Azure CLI Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-  
-      - name: Configure Custom Domain on Azure Static Web App
-        shell: bash
-        run: |
-          DOMAIN="phoenixvc.tech"
-          SUBDOMAIN=""  # Set this if you have a subdomain, leave blank otherwise
-  
-          if [[ -z "$SUBDOMAIN" ]]; then
-            FULL_DOMAIN="$DOMAIN"
-            RECORD_SET_NAME="asuid"
-          else
-            FULL_DOMAIN="$SUBDOMAIN.$DOMAIN"
-            RECORD_SET_NAME="asuid.$SUBDOMAIN"
-          fi
-  
-          echo "Configuring domain '$FULL_DOMAIN' on Azure Static Web App..."
-  
-          # Link custom domain to Static Web App and retrieve validation token
-          VALIDATION_TOKEN=$(az staticwebapp hostname set \
-            --resource-group "prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website" \
-            --name "prod-${{ env.LOCATION_CODE }}-swa-phoenixvc-website" \
-            --hostname "$FULL_DOMAIN" \
-            --validation-method dns-txt \
-            --query validationToken \
-            -o tsv)
-  
-          echo "✅ Domain '$FULL_DOMAIN' configuration initiated. Validation Token: $VALIDATION_TOKEN"
-  
-          echo "Creating DNS record in Azure DNS zone '$DOMAIN'..."
-  
-          # Create TXT record for domain validation in Azure DNS
-          az network dns record-set txt add-record \
-            --resource-group "prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website" \
-            --zone-name "$DOMAIN" \
-            --record-set-name "$RECORD_SET_NAME" \
-            --value "$VALIDATION_TOKEN"
-  
-          echo "✅ DNS record created successfully for domain validation."
-
   deploy_docs:
     needs: swa_deploy_production
     if: needs.swa_deploy_production.result == 'success'
