@@ -65,8 +65,8 @@ var logicAppDefinitionText = '''
           "Content-Type": "application/json"
         },
         "body": {
-          "@type": "MessageCard",
-          "@context": "http://schema.org/extensions",
+          "@@type": "MessageCard",
+          "@@context": "http://schema.org/extensions",
           "text": "Deployment Notification",
           "summary": "@{coalesce(triggerBody()?['title'], 'Deployment Notification')}",
           "themeColor": "@{if(empty(triggerBody()?['color']), '0076D7', replace(triggerBody()?['color'], '#', ''))}",
@@ -117,7 +117,7 @@ var logicAppDefinitionText = '''
           ],
           "potentialAction": [
             {
-              "@type": "OpenUri",
+              "@@type": "OpenUri",
               "name": "View Deployment",
               "targets": [
                 {
@@ -127,11 +127,11 @@ var logicAppDefinitionText = '''
               ]
             },
             {
-              "@type": "ActionCard",
+              "@@type": "ActionCard",
               "name": "Approve Production Deployment",
               "inputs": [
                 {
-                  "@type": "TextInput",
+                  "@@type": "TextInput",
                   "id": "comment",
                   "title": "Comment",
                   "isMultiline": false,
@@ -140,21 +140,21 @@ var logicAppDefinitionText = '''
               ],
               "actions": [
                 {
-                  "@type": "HttpPOST",
+                  "@@type": "HttpPOST",
                   "name": "Approve",
                   "target": "@{coalesce(triggerBody()?['approvalUrl'], '')}",
                   "body": {
                     "deploymentId": "@{coalesce(triggerBody()?['deploymentId'], '')}",
                     "artifactId": "@{coalesce(triggerBody()?['artifactId'], '')}",
                     "runId": "@{coalesce(triggerBody()?['runId'], '')}",
-                    "approver": "@{input.comment}",
+                    "approver": "@{inputs('comment')}",
                     "teamsWebhookUrl": "@{triggerBody()?['teamsWebhookUrl']}"
                   }
                 }
               ]
             },
             {
-              "@type": "OpenUri",
+              "@@type": "OpenUri",
               "name": "Rollback Deployment",
               "targets": [
                 {
