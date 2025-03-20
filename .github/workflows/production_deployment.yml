@@ -132,12 +132,13 @@ jobs:
 
       - name: Verify SWA Deployment
         run: |
-          URL="${{ needs.swa_deploy_production.outputs.production_url }}"
+          URL="${{ needs.deploy_resources_production.outputs.staticSiteUrl }}"
+          
           if [[ -z "$URL" ]]; then
-            echo "❌ URL is empty. Check your SWA deploy action outputs."
+            echo "❌ URL is empty. Check your deploy_resources_production outputs."
             exit 1
           fi
-      
+          
           MAX_RETRIES=10
           COUNT=0
           while [ $COUNT -lt $MAX_RETRIES ]; do
@@ -146,10 +147,11 @@ jobs:
               echo "✅ SWA deployment verified successfully at $URL!"
               exit 0
             fi
-            echo "⏳ Waiting for deployment at $URL... (Attempt $COUNT/$MAX_RETRIES)"
+            echo "⏳ Waiting for deployment at $URL... (Attempt $((COUNT + 1))/$MAX_RETRIES)"
             sleep 30
             COUNT=$((COUNT+1))
           done
+          
           echo "❌ SWA deployment verification failed at $URL after $MAX_RETRIES attempts"
           exit 1
 
