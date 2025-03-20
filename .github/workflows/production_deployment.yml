@@ -38,7 +38,7 @@ jobs:
       - name: Check Deployment and Artifact
         id: validation_check
         run: |
-          if [[ ! "${{ github.event.inputs.artifactId }}" =~ ^web-dist-_[0-9]{8}_[a-f0-9]+_[0-9]+$ ]]; then
+          if [[ ! "${{ github.event.inputs.artifactId }}" =~ ^web-dist-[0-9]{8}_[0-9]{6}$ ]]; then
             echo "Invalid artifact ID format"
             exit 1
           fi
