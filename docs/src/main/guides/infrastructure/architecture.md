@@ -260,12 +260,12 @@ graph TD
   D[Development] --> T[Testing]
   T --> S[Staging]
   S --> P[Production]
-  
+
   subgraph "Production Deployment"
     P1[Region 1]
     P2[Region 2]
   end
-  
+
   P --> P1
   P --> P2
 ```

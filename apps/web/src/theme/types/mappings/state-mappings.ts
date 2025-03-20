@@ -3,11 +3,12 @@ import { ColorDefinition } from "../core/colors";
 
 // core/colors.ts
 export interface ComponentState {
-    background: ColorDefinition;
-    foreground: ColorDefinition;
-    border: ColorDefinition;
-    shadow?: ColorDefinition;
-    opacity?: ColorDefinition;
+    background: Partial<ColorDefinition>;
+    foreground: Partial<ColorDefinition>;
+    border: Partial<ColorDefinition>;
+    shadow?: Partial<ColorDefinition>;
+    opacity?: Partial<ColorDefinition>;
+    style?: Record<string, string | number>;
 }
 
 export interface InteractiveState extends ComponentState {

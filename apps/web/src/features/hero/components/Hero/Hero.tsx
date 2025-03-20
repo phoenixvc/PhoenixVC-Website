@@ -1,93 +1,149 @@
-import { FC, memo, useRef, useEffect } from "react";
+import { FC, memo, useRef, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CTAButton } from "@/components/ui/";
 import { heroAnimations } from "../../animations";
 import { DEFAULT_HERO_CONTENT } from "../../constants";
 import styles from "./hero.module.css";
-import type { HeroProps } from "../../types";
 import { useSectionObserver } from "@/hooks/useSectionObserver";
+import { HeroProps } from "@/features/layout/components/Starfield/types";
 
-const Hero: FC<HeroProps> = memo(
+interface ExtendedHeroProps extends HeroProps {
+  isDarkMode: boolean;
+  colorScheme?: string;
+  accentColor?: string;
+  enableMouseTracking?: boolean;
+}
+
+const Hero: FC<ExtendedHeroProps> = memo(
   ({
     title = DEFAULT_HERO_CONTENT.title,
-    subtitle = DEFAULT_HERO_CONTENT.subtitle,
+    subtitle = "Empowering breakthrough innovations through strategic investments and global partnerships.",
     primaryCta = DEFAULT_HERO_CONTENT.primaryCta,
     secondaryCta = DEFAULT_HERO_CONTENT.secondaryCta,
     isLoading = false,
+    isDarkMode,
+    colorScheme = "purple",
+    accentColor,
+    enableMouseTracking = false,
   }) => {
-
-    // Use our observer hook and log when the section becomes visible
-    // this shouldn't be needed with newer react versions
     const sectionRef = useSectionObserver("home", (id) => {
       console.log(`[Home] Section "${id}" is now visible`);
     });
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+    const [isMouseNearBorder, setIsMouseNearBorder] = useState(false);
 
-    const parallaxRef = useRef<HTMLDivElement>(null);
-
+    // Add mouse tracking effect if enabled
     useEffect(() => {
-      const handleScroll = () => {
-        if (parallaxRef.current) {
-          const scrolled = window.pageYOffset;
+      if (!enableMouseTracking || !containerRef.current) return;
 
-          parallaxRef.current.style.transform = `translateY(${scrolled * 0.3}px)`;
-        }
+      const handleMouseMove = (e: MouseEvent) => {
+        const container = containerRef.current;
+        if (!container) return;
+
+        const rect = container.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        // Check if mouse is near the border (within 20px)
+        const borderThreshold = 20;
+        const isNearBorder =
+          x < borderThreshold ||
+          y < borderThreshold ||
+          x > rect.width - borderThreshold ||
+          y > rect.height - borderThreshold;
+
+        setIsMouseNearBorder(isNearBorder);
+        setMousePosition({ x, y });
       };
 
-      window.addEventListener("scroll", handleScroll, { passive: true });
-      return () => window.removeEventListener("scroll", handleScroll);
-    }, []);
+      const container = containerRef.current;
+      container.addEventListener("mousemove", handleMouseMove);
+
+      return () => {
+        container.removeEventListener("mousemove", handleMouseMove);
+      };
+    }, [enableMouseTracking]);
+
+    const getThemeStyles = () => {
+      const textColor = isDarkMode ? "text-white" : "text-gray-900";
+      const gradientColors = accentColor
+        ? `from-${accentColor} to-${accentColor}`
+        : colorScheme === "purple"
+        ? "from-purple-500 to-indigo-600"
+        : colorScheme === "blue"
+        ? "from-blue-500 to-cyan-600"
+        : "from-purple-500 to-indigo-600";
+      return { textColor, gradientColors };
+    };
+
+    const { textColor, gradientColors } = getThemeStyles();
 
     return (
       <section className={styles.heroSection} ref={sectionRef} aria-label="hero section">
-        {/* Optional parallax background */}
-        <div ref={parallaxRef} className={styles.heroBackground} />
-
-        <div className={styles.heroContainer}>
+        <div className={isDarkMode ? styles.heroOverlayDark : styles.heroOverlayLight} />
+        <div
+          className={`${styles.heroContainer} ${textColor} ${
+            enableMouseTracking ? `${styles.mouseTrackingEnabled} ${isMouseNearBorder ? styles.mouseBorder : ""}` : ""
+          }`}
+          ref={containerRef}
+          style={enableMouseTracking ? {
+            "--mouse-x": `${mousePosition.x}px`,
+            "--mouse-y": `${mousePosition.y}px`
+          } as React.CSSProperties : undefined}
+        >
           <AnimatePresence>
             {!isLoading && (
               <motion.div
-                className={styles.heroContent}
+                className={styles.heroContentWrapper}
                 initial="hidden"
                 animate="visible"
                 exit="hidden"
                 variants={heroAnimations.container}
               >
-                {/* Title */}
-                <motion.h1
-                  className={styles.heroTitle}
-                  variants={heroAnimations.item}
+                <div
+                  className={`${styles.heroContentInner} ${isDarkMode ? styles.darkInner : styles.lightInner}`}
                 >
-                  {title}
-                </motion.h1>
-
-                {/* Subtitle */}
-                <motion.p
-                  className={styles.heroSubtitle}
-                  variants={heroAnimations.item}
-                >
-                  {subtitle}
-                </motion.p>
-
-                {/* CTAs */}
-                <motion.div
-                  className={styles.heroButtonContainer}
-                  variants={heroAnimations.item}
-                >
-                  <CTAButton href={primaryCta.href} variant="primary">
-                    {primaryCta.text}
-                  </CTAButton>
-
-                  <CTAButton href={secondaryCta.href} variant="secondary">
-                    {secondaryCta.text}
-                  </CTAButton>
-                </motion.div>
+                  <motion.h1
+                    className={`${styles.heroTitle} bg-gradient-to-r ${gradientColors} bg-clip-text text-transparent`}
+                    variants={heroAnimations.item}
+                  >
+                    {title}
+                  </motion.h1>
+                  <motion.p
+                    className={`${styles.heroSubtitle} ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
+                    variants={heroAnimations.item}
+                  >
+                    {subtitle}
+                  </motion.p>
+                  <motion.div className={styles.heroButtonContainer} variants={heroAnimations.item}>
+                    <button
+                      className={`${styles.heroButton} ${styles.heroPrimaryButton} ${
+                        accentColor
+                          ? `bg-${accentColor} hover:bg-${accentColor}-600`
+                          : isDarkMode
+                          ? "bg-purple-600 hover:bg-purple-700"
+                          : "bg-purple-500 hover:bg-purple-600"
+                      }`}
+                    >
+                      {primaryCta.text}
+                    </button>
+                    <button
+                      className={`${styles.heroButton} ${styles.heroSecondaryButton} ${
+                        isDarkMode
+                          ? "bg-gray-800 text-white hover:bg-gray-700"
+                          : "bg-white text-gray-800 hover:bg-gray-100"
+                      }`}
+                    >
+                      {secondaryCta.text}
+                    </button>
+                  </motion.div>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
-
           {isLoading && (
             <div className={styles.heroLoading}>
-              <div className={styles.heroSpinner} />
+              <div className={`${styles.heroSpinner} ${isDarkMode ? "border-white" : "border-gray-800"}`} />
             </div>
           )}
         </div>

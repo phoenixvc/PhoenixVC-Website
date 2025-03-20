@@ -1,19 +1,17 @@
 // features/contact/animations/index.ts
-import { ContactAnimations } from "../types";
 import { ANIMATION_DURATION } from "../constants";
 
-export const contactAnimations: ContactAnimations = {
+export const contactAnimations = {
   container: {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      y: 0,
       transition: {
         duration: ANIMATION_DURATION.container,
-        ease: "easeOut",
-        staggerChildren: 0.2
-      }
-    }
+        staggerChildren: 0.15,
+        delayChildren: 0.1,
+      },
+    },
   },
   item: {
     hidden: { opacity: 0, y: 20 },
@@ -22,8 +20,8 @@ export const contactAnimations: ContactAnimations = {
       y: 0,
       transition: {
         duration: ANIMATION_DURATION.item,
-        ease: "easeOut"
-      }
-    }
-  }
+        ease: [0.22, 1, 0.36, 1],
+      },
+    },
+  },
 };

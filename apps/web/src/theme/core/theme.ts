@@ -1,133 +1,5 @@
-import { ComponentVariants, ThemeColors, ThemeConfig, ThemeVariables } from "../types";
+import { ComponentVariants, Theme, ThemeColors, ThemeConfig, ThemeSpacing, ThemeVariables } from "../types";
 import { defaultTheme } from "./defaultTheme";
-
-// Direct design token interfaces
-export interface ThemeSpacing {
-  unit: number;
-  xs: number;
-  sm: number;
-  md: number;
-  lg: number;
-  xl: number;
-  xxl: number;
-  // Add other spacing values as needed
-}
-
-export interface ThemeTypography {
-  fontFamily: {
-    base: string;
-    heading: string;
-    monospace: string;
-  };
-  fontSize: {
-    xs: string;
-    sm: string;
-    md: string;
-    lg: string;
-    xl: string;
-    xxl: string;
-  };
-  fontWeight: {
-    light: number;
-    regular: number;
-    medium: number;
-    semibold: number;
-    bold: number;
-  };
-  lineHeight: {
-    tight: number;
-    normal: number;
-    relaxed: number;
-  };
-  letterSpacing: {
-    tight: string;
-    normal: string;
-    wide: string;
-  };
-}
-
-export interface ThemeBorders {
-  radius: {
-    none: string;
-    sm: string;
-    md: string;
-    lg: string;
-    full: string;
-  };
-  width: {
-    none: string;
-    thin: string;
-    normal: string;
-    thick: string;
-  };
-  style: {
-    solid: string;
-    dashed: string;
-    dotted: string;
-  };
-}
-
-export interface ThemeShadows {
-  none: string;
-  sm: string;
-  md: string;
-  lg: string;
-  xl: string;
-}
-
-export interface ThemeBreakpoints {
-  xs: string;
-  sm: string;
-  md: string;
-  lg: string;
-  xl: string;
-}
-
-export interface ThemeTransitions {
-  duration: {
-    fast: string;
-    normal: string;
-    slow: string;
-  };
-  easing: {
-    easeIn: string;
-    easeOut: string;
-    easeInOut: string;
-  };
-}
-
-export interface ThemeZIndex {
-  dropdown: number;
-  modal: number;
-  overlay: number;
-  popover: number;
-  tooltip: number;
-}
-
-// The hybrid Theme interface
-export interface Theme {
-  // Core configuration
-  config: ThemeConfig;
-
-  // Direct design tokens
-  colors: ThemeColors;
-  spacing: ThemeSpacing;
-  typography: ThemeTypography;
-  borders: ThemeBorders;
-  shadows: ThemeShadows;
-  breakpoints: ThemeBreakpoints;
-  transitions: ThemeTransitions;
-  zIndex: ThemeZIndex;
-
-  // Computed variables
-  variables: ThemeVariables;
-
-  // Component-specific styling
-  components: ComponentVariants;
-
-  // Extension point
-  [key: string]: unknown;
-}
 
 // Theme factory function for the hybrid approach
 export function createTheme(
@@ -139,23 +11,48 @@ export function createTheme(
   const variables: ThemeVariables = generateThemeVariables(config, colors);
 
   // Create the theme object with both approaches
-  return {
+  const theme: Theme = {
+    ...defaultTheme,
     config,
     colors,
     variables,
-    ...defaultTheme,
-    ...overrides,
+    // Ensure spacing.unit is a string
+    spacing: {
+      // Convert all numeric spacing properties to strings
+      ...Object.entries(defaultTheme.spacing).reduce((acc, [key, value]) => ({
+        ...acc,
+        [key]: typeof value === "number" ? String(value) : value
+      }), {}),
+
+      // Apply any overrides, also ensuring they're strings
+      ...(overrides?.spacing ? Object.entries(overrides.spacing).reduce((acc, [key, value]) => ({
+        ...acc,
+        [key]: typeof value === "number" ? String(value) : value
+      }), {}) : {})
+    } as ThemeSpacing,
     // Deep merge for nested objects
     typography: {
       ...defaultTheme.typography,
-      ...overrides,
+      ...(overrides?.typography || {})
     },
     components: {
       ...defaultTheme.components,
-      ...overrides,
+      ...(overrides?.components || {})
     }
-    // Other deep merges as needed
+    // Other properties from defaultTheme and overrides
   };
+
+  // Add any remaining overrides
+  if (overrides) {
+    Object.keys(overrides).forEach(key => {
+      if (!["config", "colors", "variables", "typography", "components", "spacing"].includes(key)) {
+        // @ts-ignore - We"re being careful with the keys
+        theme[key] = overrides[key];
+      }
+    });
+  }
+
+  return theme;
 }
 
 // Helper function to generate theme variables from colors
@@ -183,7 +80,7 @@ function generateThemeVariables(
       primary: baseColors.primary[500].hsl,
       secondary: baseColors.secondary[500].hsl,
       background: modeColors.background.hsl,
-      text: modeColors.text.hsl,
+      text: modeColors.text.primary.hsl,
       border: modeColors.border.hsl,
     },
     spacing: {

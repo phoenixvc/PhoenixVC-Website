@@ -1,89 +1,808 @@
+/* header.module.css */
 .header {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  z-index: 100;
-  transition:
-    background 0.4s ease-in-out,
-    box-shadow 0.3s ease-in-out,
-    border-bottom 0.3s ease-in-out,
-    backdrop-filter 0.3s ease-in-out;
+  z-index: 50;
+  transition: all 0.3s ease;
+  height: 70px;
+  background-color: rgba(13, 14, 30, 0.85); /* Darker, more saturated with less opacity */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(99, 123, 255, 0.1); /* Subtle blue glow border */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Stronger shadow for depth */
 }
 
-.headerTransparent {
-  background: linear-gradient(
-    to bottom,
-    hsl(var(--alternate-background) / 0.80) 0%,
-    transparent
-  );
+/* Transparent header when scrolled */
+.headerScrolled {
+  background-color: rgba(13, 14, 30, 0.75);
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
-
-  box-shadow: 0 1px 6px hsl(var(--color-shadow) / 0.3);
-  border-bottom: 1px solid hsl(var(--border) / 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15),
+              0 0 10px rgba(99, 123, 255, 0.05); /* Added subtle blue glow */
 }
 
-.headerScrolled {
-  background: linear-gradient(
-    to bottom,
-    hsl(var(--alternate-background) / 0.7) 0%,
-    hsl(var(--alternate-background) / 0.4) 50%,
-    hsl(var(--alternate-background) / 0.2) 100%
-  );
-  backdrop-filter: blur(15px) brightness(0.95);
-
-  box-shadow: 0 2px 15px hsl(var(--color-shadow) / 0.35);
-  border-bottom: 1px solid hsl(var(--color-border) / 0.25);
-}
-
-.navContainer {
-  max-width: 1280px;
+.headerContainer {
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 1rem 1.5rem;
+  padding: 0 1.5rem;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.navContainer a {
-  color: hsl(var(--color-foreground));
-  position: relative;
-  padding: 0.5rem 0.75rem;
-  transition: color 0.2s ease-in-out;
-}
-
-.navContainer a:hover {
-  color: hsl(var(--color-foreground) / 0.7);
-}
-
-.navContainer a[aria-current="page"] {
-  color: hsl(var(--color-foreground) / 0.95);
-  font-weight: 600;
-}
-
-.navContainer a[aria-current="page"]::after {
-  content: "";
-  position: absolute;
-  bottom: -2px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: hsl(var(--color-foreground));
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .menuButton {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.8); /* Increased visibility */
+  cursor: pointer;
   padding: 0.5rem;
-  border-radius: 8px;
-  transition: background-color 0.2s ease-in-out;
-}
-.menuButton:hover {
-  background-color: hsl(var(--color-hover));
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
 }
 
-.icon {
-  width: 24px;
-  height: 24px;
+.menuButton:hover {
+  color: rgba(255, 255, 255, 1);
+  background-color: rgba(147, 51, 234, 0.2); /* Phoenix purple glow on hover */
+}
+
+.logoContainer {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.logoText,
+.header .logoText {
+  font-size: 1.25rem;
+  font-weight: 700;
+  background: linear-gradient(90deg, #e31bff 0%, #ff6b00 100%); /* Magenta to purple gradient */
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 10px rgba(227, 27, 255, 0.3); /* Subtle glow effect */
+  letter-spacing: 0.5px;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+}
+
+.navList {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 2rem;
+}
+
+.navItem {
+  position: relative;
+}
+
+.navLink {
+  color: rgba(255, 255, 255, 0.8); /* Increased visibility */
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  padding: 0.5rem 0;
+  letter-spacing: 0.02em; /* Slightly improved readability */
+}
+
+.navLink:hover {
+  color: rgba(255, 255, 255, 1);
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.4); /* Subtle glow on hover */
+}
+
+.activeNavLink {
+  color: white;
+  position: relative;
+}
+
+.activeNavLink::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, #9333ea, #ff6b00); /* Phoenix gradient */
+  border-radius: 1px;
+  box-shadow: 0 0 8px rgba(147, 51, 234, 0.5); /* Subtle glow */
+}
+
+.themeToggle {
+  display: flex;
+  align-items: center;
+}
+
+.themeToggleButton {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.8); /* Increased visibility */
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.themeToggleButton:hover {
+  color: rgba(255, 255, 255, 1);
+  background-color: rgba(147, 51, 234, 0.2); /* Phoenix purple glow on hover */
+}
+
+/* Light mode header styles - UPDATED FOR LIGHTER APPEARANCE */
+.header.lightMode {
+  background-color: rgba(252, 253, 255, 0.8); /* Much lighter, almost white background */
+  border-bottom: 1px solid rgba(99, 123, 255, 0.08);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); /* Lighter shadow */
+}
+
+.headerScrolled.lightMode {
+  background-color: rgba(252, 253, 255, 0.7); /* Even more transparent when scrolled */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04),
+              0 0 10px rgba(99, 123, 255, 0.02);
+}
+
+.lightMode .menuButton,
+.lightMode .themeToggleButton {
+  color: rgba(13, 14, 30, 0.7); /* Slightly lighter text */
+}
+
+.lightMode .menuButton:hover,
+.lightMode .themeToggleButton:hover {
+  color: rgba(13, 14, 30, 0.9);
+  background-color: rgba(147, 51, 234, 0.08); /* More subtle hover effect */
+}
+
+.lightMode .logoText,
+.header.lightMode .logoText {
+  background: linear-gradient(90deg, #e31bff 0%, #ff6b00 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 8px rgba(227, 27, 255, 0.2); /* Reduced glow for light mode */
+}
+
+.lightMode .navLink {
+  color: rgba(13, 14, 30, 0.7); /* Lighter text */
+}
+
+.lightMode .navLink:hover {
+  color: rgba(13, 14, 30, 0.9);
+  text-shadow: none;
+}
+
+.lightMode .activeNavLink {
+  color: #13141f;
+}
+
+.lightMode .activeNavLink::after {
+  box-shadow: 0 0 8px rgba(147, 51, 234, 0.3); /* Reduced glow for light mode */
+}
+
+@media (max-width: 768px) {/* header.module.css */
+  .header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 50;
+    transition: all 0.3s ease;
+    height: 70px;
+    background-color: rgba(13, 14, 30, 0.85); /* Darker, more saturated with less opacity */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(99, 123, 255, 0.1); /* Subtle blue glow border */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Stronger shadow for depth */
+  }
+
+  /* Transparent header when scrolled */
+  .headerScrolled {
+    background-color: rgba(13, 14, 30, 0.75);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15),
+                0 0 10px rgba(99, 123, 255, 0.05); /* Added subtle blue glow */
+  }
+
+  .headerContainer {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .menuButton {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.8); /* Increased visibility */
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+
+  .menuButton:hover {
+    color: rgba(255, 255, 255, 1);
+    background-color: rgba(147, 51, 234, 0.2); /* Phoenix purple glow on hover */
+  }
+
+  .logoContainer {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+  }
+
+  .logoText {
+    font-size: 1.25rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, #fff 30%, #ff6b00 100%); /* Phoenix orange gradient */
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 15px rgba(255, 107, 0, 0.3); /* Subtle glow effect */
+  }
+
+  .nav {
+    display: flex;
+    align-items: center;
+  }
+
+  .navList {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 2rem;
+  }
+
+  .navItem {
+    position: relative;
+  }
+
+  .navLink {
+    color: rgba(255, 255, 255, 0.8); /* Increased visibility */
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    padding: 0.5rem 0;
+    letter-spacing: 0.02em; /* Slightly improved readability */
+  }
+
+  .navLink:hover {
+    color: rgba(255, 255, 255, 1);
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.4); /* Subtle glow on hover */
+  }
+
+  .activeNavLink {
+    color: white;
+    position: relative;
+  }
+
+  .activeNavLink::after {
+    content: "";
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, #9333ea, #ff6b00); /* Phoenix gradient */
+    border-radius: 1px;
+    box-shadow: 0 0 8px rgba(147, 51, 234, 0.5); /* Subtle glow */
+  }
+
+  .themeToggle {
+    display: flex;
+    align-items: center;
+  }
+
+  .themeToggleButton {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.8); /* Increased visibility */
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+
+  .themeToggleButton:hover {
+    color: rgba(255, 255, 255, 1);
+    background-color: rgba(147, 51, 234, 0.2); /* Phoenix purple glow on hover */
+  }
+
+  /* Light mode header styles - UPDATED FOR LIGHTER APPEARANCE */
+  .header.lightMode {
+    background-color: rgba(252, 253, 255, 0.8); /* Much lighter, almost white background */
+    border-bottom: 1px solid rgba(99, 123, 255, 0.08);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); /* Lighter shadow */
+  }
+
+  .headerScrolled.lightMode {
+    background-color: rgba(252, 253, 255, 0.7); /* Even more transparent when scrolled */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04),
+                0 0 10px rgba(99, 123, 255, 0.02);
+  }
+
+  .lightMode .menuButton,
+  .lightMode .themeToggleButton {
+    color: rgba(13, 14, 30, 0.7); /* Slightly lighter text */
+  }
+
+  .lightMode .menuButton:hover,
+  .lightMode .themeToggleButton:hover {
+    color: rgba(13, 14, 30, 0.9);
+    background-color: rgba(147, 51, 234, 0.08); /* More subtle hover effect */
+  }
+
+  .lightMode .logoText {
+    background: linear-gradient(90deg, #9333ea 30%, #ff6b00 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 15px rgba(255, 107, 0, 0.15); /* Reduced glow */
+  }
+
+  .lightMode .navLink {
+    color: rgba(13, 14, 30, 0.7); /* Lighter text */
+  }
+
+  .lightMode .navLink:hover {
+    color: rgba(13, 14, 30, 0.9);
+    text-shadow: none;
+  }
+
+  .lightMode .activeNavLink {
+    color: #13141f;
+  }
+
+  .lightMode .activeNavLink::after {
+    box-shadow: 0 0 8px rgba(147, 51, 234, 0.3); /* Reduced glow for light mode */
+  }
+
+  @media (max-width: 768px) {
+    .navList {
+      display: none;
+    }
+
+    .headerContainer {
+      padding: 0 1rem;
+    }
+  }
+
+  .navList {
+    display: none;
+  }
+
+  .headerContainer {
+    padding: 0 1rem;
+  }
+
+  .iconButton {
+    background: transparent;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 10px;
+    transition: background-color 0.2s, transform 0.2s;
+  }
+
+  .iconButton:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: scale(1.05);
+  }
+
+  .iconButton.active {
+    color: #8a2be2;
+    background-color: rgba(138, 43, 226, 0.15);
+  }
+}
+
+.headerControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.controlButton {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.controlButton:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.activeControl {
+  background-color: rgba(138, 43, 226, 0.2);
+  color: var(--primary-color);
+}
+
+/* Update the existing themeToggle class */
+.themeToggle {
+  display: flex;
+  align-items: center;
+}
+
+.themeToggleButton {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.themeToggleButton:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.profileUserIcon {
+  color: rgba(255, 255, 255, 0.9);
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.3));
+}
+
+.lightMode .profileUserIcon {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+/* Profile Button & Dropdown Styles */
+.profileMenuContainer {
+  position: relative;
+}
+
+.profileButton {
+  display: flex;
+  align-items: center;
+  background: transparent;
+  border: none;
+  padding: 4px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  gap: 4px;
+}
+
+.profileButton:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.profileButton.active {
+  background-color: rgba(147, 51, 234, 0.2);
+}
+
+.lightMode .profileButton:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.lightMode .profileButton.active {
+  background-color: rgba(147, 51, 234, 0.1);
+}
+
+.profileImageContainer {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(227, 27, 255, 0.6);
+  box-shadow: 0 0 10px rgba(227, 27, 255, 0.3);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profileButton:hover .profileImageContainer {
+  box-shadow: 0 0 15px rgba(227, 27, 255, 0.5);
+}
+
+.profileImage {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #9333ea, #e31bff);
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dropdownIcon {
+  color: rgba(255, 255, 255, 0.8);
+  transition: transform 0.3s ease;
+}
+
+.lightMode .dropdownIcon {
+  color: rgba(13, 14, 30, 0.7);
+}
+
+.dropdownIcon.open {
+  transform: rotate(180deg);
+}
+
+/* Profile Dropdown Menu */
+.profileDropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 260px;
+  background-color: rgba(20, 18, 40, 0.95);
+  border-radius: 8px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3),
+              0 0 15px rgba(227, 27, 255, 0.15);
+  border: 1px solid rgba(227, 27, 255, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  overflow: hidden;
+  z-index: 100;
+  animation: fadeIn 0.2s ease;
+}
+
+.lightMode .profileDropdown {
+  background-color: rgba(252, 253, 255, 0.95);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1),
+              0 0 15px rgba(227, 27, 255, 0.1);
+  border: 1px solid rgba(227, 27, 255, 0.15);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.profileHeader {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profileImageLarge {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #9333ea, #e31bff);
+  border: 2px solid rgba(227, 27, 255, 0.6);
+  box-shadow: 0 0 10px rgba(227, 27, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profileUserIconLarge {
+  color: rgba(255, 255, 255, 0.9);
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.3));
+}
+
+.lightMode .profileUserIconLarge {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.profileInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.profileName {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.lightMode .profileName {
+  color: rgba(13, 14, 30, 0.9);
+}
+
+.profileEmail {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.lightMode .profileEmail {
+  color: rgba(13, 14, 30, 0.6);
+}
+
+.dropdownDivider {
+  height: 1px;
+  background: linear-gradient(90deg,
+    rgba(227, 27, 255, 0.1),
+    rgba(227, 27, 255, 0.3) 50%,
+    rgba(227, 27, 255, 0.1)
+  );
+  margin: 0;
+}
+
+.dropdownItem {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.lightMode .dropdownItem {
+  color: rgba(13, 14, 30, 0.8);
+}
+
+.dropdownItem:hover {
+  background-color: rgba(227, 27, 255, 0.1);
+  color: rgba(255, 255, 255, 1);
+}
+
+.lightMode .dropdownItem:hover {
+  background-color: rgba(227, 27, 255, 0.05);
+  color: rgba(13, 14, 30, 1);
+}
+
+.dropdownItemIcon {
+  color: rgba(227, 27, 255, 0.8);
+}
+
+.dropdownItemChevron {
+  margin-left: auto;
+  transition: transform 0.3s ease;
+}
+
+.dropdownItemChevron.open {
+  transform: rotate(180deg);
+}
+
+/* Theme Submenu */
+.themeSubmenu {
+  padding: 8px;
+  background-color: rgba(13, 14, 30, 0.5);
+  border-top: 1px solid rgba(227, 27, 255, 0.1);
+  animation: fadeIn 0.2s ease;
+}
+
+.lightMode .themeSubmenu {
+  background-color: rgba(240, 240, 245, 0.5);
+}
+
+.themeOption {
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: rgba(255, 255, 255, 0.8);
+  position: relative;
+}
+
+.lightMode .themeOption {
+  color: rgba(13, 14, 30, 0.8);
+}
+
+.themeOption:hover:not(:has(.comingSoonBadge)) {
+  background-color: rgba(227, 27, 255, 0.1);
+  color: rgba(255, 255, 255, 1);
+}
+
+.lightMode .themeOption:hover:not(:has(.comingSoonBadge)) {
+  background-color: rgba(227, 27, 255, 0.05);
+  color: rgba(13, 14, 30, 1);
+}
+
+.activeTheme {
+  background-color: rgba(227, 27, 255, 0.15);
+  color: rgba(255, 255, 255, 1);
+}
+
+.lightMode .activeTheme {
+  background-color: rgba(227, 27, 255, 0.08);
+  color: rgba(13, 14, 30, 1);
+}
+
+.themeColorIndicator {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.lightMode .themeColorIndicator {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Theme color indicators */
+.themeColorIndicator[data-theme="classic"] {
+  background: linear-gradient(135deg, #3b3663, #1e1a42);
+}
+
+.themeColorIndicator[data-theme="cosmic-frontier"] {
+  background: linear-gradient(135deg, #e31bff, #a31bff);
+}
+
+.themeColorIndicator[data-theme="neon-city"] {
+  background: linear-gradient(135deg, #00ffcc, #0077ff);
+}
+
+.themeColorIndicator[data-theme="forest-calm"] {
+  background: linear-gradient(135deg, #4caf50, #1b5e20);
+}
+
+.themeColorIndicator[data-theme="ocean-depths"] {
+  background: linear-gradient(135deg, #03a9f4, #0d47a1);
+}
+
+.comingSoonBadge {
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  background-color: rgba(227, 27, 255, 0.2);
+  border-radius: 10px;
+  margin-left: auto;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.lightMode .comingSoonBadge {
+  background-color: rgba(227, 27, 255, 0.1);
+  color: rgba(13, 14, 30, 0.7);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .profileDropdown {
+    right: -16px;
+  }
 }

@@ -1,4 +1,4 @@
-// SidebarContainer.tsx
+// features/sidebar/components/SidebarContainer.tsx
 import React from "react";
 import { useTheme } from "@/theme";
 import { cn } from "@/lib/utils";
@@ -14,10 +14,15 @@ const SidebarContainer: React.FC<ExtendedSidebarContainerProps> = ({
   className = "",
   variant = "default",
   isOpen = false,
-  onClick
+  onClick,
+  mode = "light",
+  collapsed = false
 }) => {
-  const themeContext = useTheme();
-  const { themeName = "default" } = themeContext || { themeName: "default" };
+  const themeContext = useTheme() || {
+    themeName: "default",
+    getComponentStyle: () => ({})
+  };
+  const { themeName = "default" } = themeContext;
 
   // Add responsive state
   const [isMobile, setIsMobile] = React.useState(false);
@@ -39,56 +44,61 @@ const SidebarContainer: React.FC<ExtendedSidebarContainerProps> = ({
     };
   }, []);
 
-  // Default variant styles
-  const defaultVariantStyle: React.CSSProperties = {
-    backgroundColor: "var(--theme-sidebar-bg, #ffffff)",
-    color: "var(--theme-sidebar-text, #333333)",
-    boxShadow: "var(--theme-sidebar-shadow, 0px 4px 6px rgba(0, 0, 0, 0.1))",
-    borderRight: "var(--theme-sidebar-border, 1px solid #e5e7eb)"
-  };
-
-  // Get component style directly from the theme system or use default
-  const themeStyle = themeContext?.getComponentStyle?.("sidebar", variant) || {};
+  // Get component style from theme using the consistent path structure
+  const containerStyle = themeContext.getComponentStyle?.("sidebar.container", variant) || {};
+  const sidebarStyle = themeContext.getComponentStyle?.("sidebar.style", variant) || {};
 
   // Combine styles with priority: theme style > default variant style > passed style
-  const containerStyle: React.CSSProperties = {
-    ...defaultVariantStyle,
-    ...themeStyle,
+  const combinedStyle: React.CSSProperties = {
     position: "fixed",
     top: 0,
     left: 0,
     height: "100vh",
     width: isMobile ? "100%" : "var(--theme-sidebar-width, 240px)",
-    zIndex: 1000,
+    backgroundColor: "var(--theme-sidebar-bg, #ffffff)",
+    color: "var(--theme-sidebar-text, #333333)",
+    boxShadow: "var(--theme-sidebar-shadow, 0px 4px 6px rgba(0, 0, 0, 0.1))",
+    borderRight: "var(--theme-sidebar-border, 1px solid #e5e7eb)",
+    zIndex: 40,
     transition: "transform 0.3s ease",
-    transform: isOpen ? "translateX(0)" : "translateX(-80%)",
-    cursor: isOpen ? "default" : "pointer",
+    transform: isOpen ? "translateX(0)" : "translateX(-100%)",
+    overflow: "auto",
+    ...containerStyle,
+    ...sidebarStyle,
     ...style
   };
 
-  // For mobile, fully hide when closed
-  if (isMobile && !isOpen) {
-    containerStyle.transform = "translateX(-100%)";
-  }
-
   // Define CSS classes for open/closed states
   const sidebarClasses = cn(
-    "sidebar-container",
-    isOpen ? "sidebar-open" : "sidebar-closed",
-    isMobile ? "sidebar-mobile" : "sidebar-desktop",
+    "fixed inset-y-0 left-0 z-40 flex flex-col",
+    "bg-background border-r shadow-sm",
+    isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+    isMobile ? "w-full md:w-64" : "w-64",
+    "transition-transform duration-300 ease-in-out",
     `theme-${themeName}-sidebar-${variant}`,
     className
   );
 
   return (
-    <aside
-      className={sidebarClasses}
-      style={containerStyle}
-      onClick={onClick}
-      aria-expanded={isOpen}
-    >
-      {children}
-    </aside>
+    <>
+      {/* Overlay for mobile */}
+      {isMobile && isOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30"
+          onClick={onClick}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={sidebarClasses}
+        style={combinedStyle}
+        aria-expanded={isOpen}
+      >
+        {children}
+      </aside>
+    </>
   );
 };
 

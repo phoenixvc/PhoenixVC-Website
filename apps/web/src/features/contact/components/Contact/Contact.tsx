@@ -1,3 +1,4 @@
+// features/contact/components/Contact/Contact.tsx
 import { FC, memo, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import ContactHeader from "../ContactHeader/ContactHeader";
@@ -8,7 +9,12 @@ import styles from "./Contact.module.css";
 import type { ContactFormData, ContactState } from "../../types";
 import { useSectionObserver } from "@/hooks/useSectionObserver";
 
-const Contact: FC = memo(() => {
+// Add isDarkMode to the component props
+interface ContactProps {
+  isDarkMode: boolean;
+}
+
+const Contact: FC<ContactProps> = memo(({ isDarkMode }) => {
   const [state, setState] = useState<ContactState>({
     isLoading: false,
     error: null,
@@ -62,7 +68,7 @@ const Contact: FC = memo(() => {
   }, [handleSubmit]);
 
   return (
-    <section id="contact" ref={sectionRef} className={styles.section}>
+    <section id="contact" ref={sectionRef} className={`${styles.section} ${isDarkMode ? styles.darkMode : styles.lightMode}`}>
       <div className={styles.container}>
         <motion.div
           className={styles.content}
@@ -74,6 +80,7 @@ const Contact: FC = memo(() => {
           <ContactHeader
             title={DEFAULT_CONTACT_CONTENT.title}
             subtitle={DEFAULT_CONTACT_CONTENT.subtitle}
+            isDarkMode={isDarkMode}
           />
 
           {state.error && (
@@ -84,7 +91,7 @@ const Contact: FC = memo(() => {
 
           {state.success && (
             <motion.div className={styles.success} variants={contactAnimations.item}>
-              Thank you for your message! We"ll get back to you soon.
+              Thank you for your message! We'll get back to you soon.
             </motion.div>
           )}
 
@@ -92,6 +99,7 @@ const Contact: FC = memo(() => {
             onSubmit={handleSubmitWrapper}
             isLoading={state.isLoading}
             isSuccess={state.success}
+            isDarkMode={isDarkMode}
           />
         </motion.div>
       </div>

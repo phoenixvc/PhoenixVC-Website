@@ -1,21 +1,55 @@
-// App.tsx - Remove the ComponentManagerProvider
+// App.tsx
 import { Layout } from "@/features/layout";
 import { Hero } from "@/features/hero";
 import { InvestmentFocus } from "@/features/investment-focus";
 import { Contact } from "@/features/contact";
-import { BrowserRouter } from "react-router-dom";
-import Sidebar from "./features/sidebar/components/Sidebar";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useTheme } from "@/theme"; // Import useTheme hook
+import { About } from "./features/about";
+import { Blog } from "./features/blog";
+import { Projects } from "./features/projects";
+import { Portfolio } from "./features/portfolio";
 
 const App = () => {
   console.log("App rendered");
+  const { themeMode } = useTheme(); // Get current theme mode
+  const isDarkMode = themeMode === "dark";
 
   return (
     <BrowserRouter>
-      <Layout>
-        <Hero />
-        <InvestmentFocus />
-        <Contact />
-      </Layout>
+      <Routes>
+        <Route path="/" element={
+          <Layout>
+            <Hero
+              title="Shaping Tomorrow's Technology"
+              subtitle="Strategic investments and partnerships empowering innovation across the globe"
+              isDarkMode={isDarkMode}
+              enableMouseTracking={true}
+            />
+            <InvestmentFocus isDarkMode={isDarkMode} />
+            <About isDarkMode={isDarkMode} />
+            <Contact isDarkMode={isDarkMode} />
+          </Layout>
+        } />
+
+        <Route path="/blog" element={
+          <Layout>
+            <Blog />
+          </Layout>
+        } />
+
+        <Route path="/projects" element={
+          <Layout>
+            <Projects />
+          </Layout>
+        } />
+
+        <Route path="/portfolio" element={
+          <Layout>
+            <Portfolio />
+          </Layout>
+        } />
+      </Routes>
     </BrowserRouter>
   );
 };

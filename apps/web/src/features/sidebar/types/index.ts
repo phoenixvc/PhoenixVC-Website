@@ -7,6 +7,8 @@ interface SidebarItemBase {
   icon?: ReactNode;
   style?: React.CSSProperties;
   className?: string;
+  active?: boolean; // Make active optional with default false
+  onClick?: () => void;
 }
 
 // Link item
@@ -24,24 +26,33 @@ export interface SidebarItemButton extends SidebarItemBase {
 
 // Group item
 export interface SidebarItemGroup extends SidebarItemBase {
+  title?: string; // Make title optional
   type: "group";
-  children?: SidebarItemType[];
+  children: SidebarItemType[];
 }
 
 // Union type for all sidebar items
 export type SidebarItem = SidebarItemLink | SidebarItemButton | SidebarItemGroup;
 
-// SidebarItemType can be a string or one of the sidebar item types
-export type SidebarItemType = string | SidebarItem;
+// SidebarItemType can be a SidebarItem (not a string anymore)
+export type SidebarItemType = SidebarItem;
+
+// Define what a sidebar group is in the context of the sidebar component
+export interface SidebarGroup {
+  title?: string;
+  items: SidebarItemLink[]; // Specifically use SidebarItemLink for items
+}
 
 // Props for the Sidebar component
 export interface SidebarProps {
   isOpen?: boolean;
   onClose?: () => void;
-  items?: SidebarItemType[];
-  style?: React.CSSProperties;
-  className?: string;
-  variant?: string;
+  isDarkMode?: boolean;
+  isMobile?: boolean;
+  collapsed?: boolean;
+  onToggle?: () => void;
+  onCollapse?: () => void;
+  mode?: "light" | "dark";
 }
 
 // Props for the SidebarContainer component
@@ -52,38 +63,25 @@ export interface SidebarContainerProps {
   variant?: string;
   isOpen?: boolean;
   onClick?: () => void;
+  mode?: "light" | "dark";
+  collapsed?: boolean;
 }
 
 // Props for the SidebarGroup component
 export interface SidebarGroupProps {
-  title: string;
-  items: SidebarItemType[];
-  style?: React.CSSProperties;
-  className?: string;
-  mode?: string;
+  title?: string;
+  items: SidebarItemLink[]; // Use SidebarItemLink specifically
+  mode?: "light" | "dark";
   variant?: string;
+  collapsed?: boolean;
+  isDarkMode?: boolean;
 }
 
-export interface SidebarItemProps {
-  label: string;
-  onClick?: () => void;
-  icon?: React.ReactNode;
+// Props for the SidebarItem component
+export interface SidebarItemProps extends SidebarItemLink {
   style?: React.CSSProperties;
   className?: string;
   variant?: string;
+  mode?: "light" | "dark";
+  collapsed?: boolean;
 }
-
-/**
- * Component skin configuration, representing the final appearance.
- */
-
-// export interface ComponentSkin {
-//   colors: {
-//     surface: SurfaceColors;
-//   };
-//   states: {
-//     interactive: InteractiveStates;
-//     component: ComponentStateConfig;
-//   };
-//   computed: ComputedSets;
-// }

@@ -1,136 +1,122 @@
-// Sidebar.tsx
-import React, { useState } from "react";
-import { useTheme } from "@/theme";
-import { SidebarProps, SidebarItemType } from "../types";
-import SidebarContainer from "./SidebarContainer";
-import SidebarGroup from "./SidebarGroup";
-import SidebarItem from "./SidebarItem";
-import { SIDEBAR_LINKS } from "../constants/sidebar.constants";
+// components/Layout/Sidebar/Sidebar.tsx
+import React, { useEffect, useState } from "react";
+import { ChevronLeft } from "lucide-react";
+import styles from "../styles/sidebar.module.css";
+import { SidebarProps } from "../types";
+import { DEFAULT_SIDEBAR_GROUPS } from "../constants/sidebar.constants";
 
-const Sidebar: React.FC<SidebarProps> = ({
-  isOpen: propIsOpen = false,
-  onClose = () => {},
-  items = SIDEBAR_LINKS,
-  style = {},
-  className = "",
-  variant = "default"
+export const Sidebar: React.FC<SidebarProps> = ({
+  isOpen = true,
+  onClose,
+  isDarkMode = true,
+  isMobile = false,
+  collapsed = false,
+  onToggle,
+  onCollapse,
+  mode = "dark"
 }) => {
-  // Local state to track sidebar open state
-  const [isOpen, setIsOpen] = useState(propIsOpen);
+  const [currentPath, setCurrentPath] = useState("");
 
-  // Use the prop value when it changes
-  React.useEffect(() => {
-    setIsOpen(propIsOpen);
-  }, [propIsOpen]);
+  useEffect(() => {
+    const updateCurrentPath = () => {
+      const pathname = window.location.pathname;
+      const hash = window.location.hash;
 
-  const themeContext = useTheme();
-  const { themeName = "default", themeMode = "light" } = themeContext || {};
-
-  // Handler for toggling sidebar
-  const handleToggleSidebar = () => {
-    const newIsOpen = !isOpen;
-    setIsOpen(newIsOpen);
-    if (!newIsOpen) {
-      onClose();
-    }
-  };
-
-  // Handler for closing sidebar
-  const handleClose = () => {
-    setIsOpen(false);
-    onClose();
-  };
-
-  // Helper function to render sidebar items safely
-  const renderSidebarItem = (item: SidebarItemType, index: number) => {
-    // Handle string items
-    if (typeof item === "string") {
-      return <div key={index}>{item}</div>;
-    }
-
-    // For object items, handle based on type
-    if (typeof item === "object" && item !== null) {
-      // Handle group items
-      if ("type" in item && item.type === "group") {
-        return (
-          <SidebarGroup
-            key={index}
-            title={item.label}
-            items={item.children || []}
-            style={item.style}
-            className={item.className}
-            mode={themeMode}
-            variant={variant}
-          />
-        );
+      // For homepage with hash
+      if (pathname === "/" && hash) {
+        setCurrentPath(pathname + hash);
       }
-
-      // Handle link items
-      if ("type" in item && item.type === "link") {
-        return (
-          <div key={index} className="mb-2">
-            <a
-              href={item.href}
-              className={`flex items-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${item.className || ""}`}
-              style={item.style}
-            >
-              {item.icon && <span className="mr-2">{item.icon}</span>}
-              {item.label}
-            </a>
-          </div>
-        );
+      // For homepage without hash
+      else if (pathname === "/" && !hash) {
+        setCurrentPath(pathname);
       }
-
-      // Handle button/item items - use SidebarItem component
-      if ("type" in item && (item.type === "item" || item.type === "button")) {
-        return (
-          <div key={index} className="mb-2">
-            <SidebarItem
-              label={item.label}
-              icon={item.icon}
-              onClick={item.onClick}
-              style={item.style}
-              className={item.className}
-              variant={variant}
-            />
-          </div>
-        );
+      // For other pages
+      else {
+        setCurrentPath(pathname);
       }
+    };
+
+    updateCurrentPath();
+    window.addEventListener("popstate", updateCurrentPath);
+    window.addEventListener("hashchange", updateCurrentPath);
+
+    return () => {
+      window.removeEventListener("popstate", updateCurrentPath);
+      window.removeEventListener("hashchange", updateCurrentPath);
+    };
+  }, []);
+
+  // Don't render if closed on mobile
+  if (isMobile && !isOpen) return null;
+
+  const sidebarClasses = [
+    styles.sidebar,
+    collapsed ? styles.sidebarCollapsed : "",
+    isDarkMode ? styles.darkMode : styles.lightMode,
+    isMobile ? styles.mobileSidebar : "",
+    isMobile && isOpen ? styles.sidebarExpanded : ""
+  ].filter(Boolean).join(" ");
+
+  // Function to check if a link is active
+  const isLinkActive = (href: string) => {
+    if (href === "/") {
+      return currentPath === "/";
     }
-
-    // Fallback for any other type
-    console.warn(`Unknown sidebar item type at index ${index}:`, item);
-    return null;
+    // For hash links on homepage
+    if (href.startsWith("/#")) {
+      return currentPath === href;
+    }
+    // For other pages
+    return currentPath.startsWith(href) && !currentPath.includes("#");
   };
 
   return (
-    <SidebarContainer
-      style={style}
-      className={className}
-      isOpen={isOpen}
-      variant={variant}
-      onClick={!isOpen ? handleToggleSidebar : undefined}
-    >
-      <div className="p-4 flex justify-between items-center border-b border-gray-200 dark:border-gray-700">
-        <h2 className="text-lg font-semibold">Menu</h2>
-        {isOpen && (
+    <aside className={sidebarClasses}>
+      <div className={styles.sidebarHeader}>
+        <span className={styles.sidebarLogo}>Phoenix VC</span>
+        {onCollapse && !isMobile && (
           <button
-            onClick={handleClose}
-            aria-label="Close Sidebar"
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+            className={styles.sidebarToggle}
+            onClick={onCollapse}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
-            ✕
+            <ChevronLeft size={20} className={collapsed ? styles.rotateIcon : ""} />
+          </button>
+        )}
+        {isMobile && onClose && (
+          <button
+            className={styles.closeButton}
+            onClick={onClose}
+            aria-label="Close sidebar"
+          >
+            &times;
           </button>
         )}
       </div>
 
-      {isOpen && (
-        <div className="p-4 overflow-y-auto">
-          {items.map((item, index) => renderSidebarItem(item, index))}
-        </div>
-      )}
-    </SidebarContainer>
+      <div className={styles.sidebarContent}>
+        {DEFAULT_SIDEBAR_GROUPS.map((group) => (
+          <div key={group.title} className={styles.sidebarSection}>
+            <h3 className={styles.sidebarSectionTitle}>{group.title}</h3>
+            <nav className={styles.sidebarNav}>
+              {group.items.map((item) => (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  className={`${styles.sidebarLink} ${
+                    isLinkActive(item.href) ? styles.sidebarLinkActive : ""
+                  }`}
+                >
+                  <span className={styles.sidebarIcon}>
+                    {item.icon}
+                  </span>
+                  <span className={styles.sidebarLabel}>{item.label}</span>
+                </a>
+              ))}
+            </nav>
+          </div>
+        ))}
+      </div>
+    </aside>
   );
 };
-
-export default Sidebar;

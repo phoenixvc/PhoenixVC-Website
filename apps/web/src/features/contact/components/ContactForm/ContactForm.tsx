@@ -1,100 +1,144 @@
+// features/contact/components/ContactForm/ContactForm.tsx
 import { FC, memo, useState } from "react";
 import { motion } from "framer-motion";
-import { useForm } from "react-hook-form";
 import { contactAnimations } from "../../animations";
-import { FORM_VALIDATION } from "../../constants";
 import styles from "./ContactForm.module.css";
-import type { ContactFormProps, ContactFormData } from "../../types";
+import type { ContactFormData } from "../../types";
 
-const ContactForm: FC<ContactFormProps> = memo(({ onSubmit, isLoading }) => {
-  const [isSuccess, setIsSuccess] = useState(false);
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors }
-  } = useForm<ContactFormData>();
+interface ContactFormProps {
+  onSubmit: (data: ContactFormData) => void;
+  isLoading: boolean;
+  isSuccess: boolean;
+  isDarkMode: boolean;
+}
 
-  // Define the submit handler to return void.
-  const onSubmitForm = (data: ContactFormData): void => {
-    // Wrap the async work in an IIFE.
-    void (async () => {
-      try {
-        // Wrap the onSubmit callback in Promise.resolve so that even if it isn’t a promise,
-        // it is treated as a thenable.
-        await Promise.resolve(onSubmit(data));
-        setIsSuccess(true);
-        reset();
-        setTimeout(() => setIsSuccess(false), 3000);
-      } catch (error) {
-        console.error("Form submission error:", error);
-      }
-    })();
+const ContactForm: FC<ContactFormProps> = memo(({
+  onSubmit,
+  isLoading,
+  isSuccess,
+  isDarkMode
+}) => {
+  const [formData, setFormData] = useState<ContactFormData>({
+    name: "",
+    email: "",
+    subject: "",
+    company: "",
+    message: "",
+  });
+
+  const [errors, setErrors] = useState<Partial<Record<keyof ContactFormData, string>>>({});
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Clear error when field is edited
+    if (errors[name as keyof ContactFormData]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: Partial<Record<keyof ContactFormData, string>> = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = "Name is required";
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+
+    if (!formData.message.trim()) {
+      newErrors.message = "Message is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (validateForm()) {
+      onSubmit(formData);
+    }
   };
 
   return (
-    <motion.div className={styles.card} variants={contactAnimations.item}>
-      <form className={styles.form} onSubmit={void handleSubmit(onSubmitForm)}>
-        <div className={styles.inputGrid}>
+    <motion.div variants={contactAnimations.item}>
+      <div className={`${styles.card} ${isDarkMode ? styles.dark : ""}`}>
+        <form className={styles.form} onSubmit={handleSubmit}>
+          <div className={styles.inputGrid}>
+            <div>
+              <input
+                type="text"
+                name="name"
+                placeholder="Your Name"
+                className={styles.input}
+                value={formData.name}
+                onChange={handleChange}
+                disabled={isLoading || isSuccess}
+              />
+              {errors.name && <div className={styles.error}>{errors.name}</div>}
+            </div>
+
+            <div>
+              <input
+                type="email"
+                name="email"
+                placeholder="Your Email"
+                className={styles.input}
+                value={formData.email}
+                onChange={handleChange}
+                disabled={isLoading || isSuccess}
+              />
+              {errors.email && <div className={styles.error}>{errors.email}</div>}
+            </div>
+          </div>
+
           <div>
             <input
-              {...register("name", FORM_VALIDATION.name)}
-              placeholder="Name"
+              type="text"
+              name="company"
+              placeholder="Company (Optional)"
               className={styles.input}
-              disabled={isLoading}
+              value={formData.company}
+              onChange={handleChange}
+              disabled={isLoading || isSuccess}
             />
-            {errors.name && (
-              <span className={styles.error}>{errors.name.message}</span>
-            )}
           </div>
+
           <div>
-            <input
-              {...register("email", FORM_VALIDATION.email)}
-              placeholder="Email"
-              className={styles.input}
-              disabled={isLoading}
+            <textarea
+              name="message"
+              placeholder="Your Message"
+              className={styles.textarea}
+              rows={5}
+              value={formData.message}
+              onChange={handleChange}
+              disabled={isLoading || isSuccess}
             />
-            {errors.email && (
-              <span className={styles.error}>{errors.email.message}</span>
-            )}
+            {errors.message && <div className={styles.error}>{errors.message}</div>}
           </div>
-        </div>
 
-        <div>
-          <input
-            {...register("subject", FORM_VALIDATION.subject)}
-            placeholder="Subject"
-            className={styles.input}
-            disabled={isLoading}
-          />
-          {errors.subject && (
-            <span className={styles.error}>{errors.subject.message}</span>
-          )}
-        </div>
-
-        <div>
-          <textarea
-            {...register("message", FORM_VALIDATION.message)}
-            placeholder="Message"
-            rows={4}
-            className={styles.textarea}
-            disabled={isLoading}
-          />
-          {errors.message && (
-            <span className={styles.error}>{errors.message.message}</span>
-          )}
-        </div>
-
-        <button type="submit" className={styles.button} disabled={isLoading}>
-          {isLoading ? (
-            <span className={styles.loading}>Sending...</span>
-          ) : isSuccess ? (
-            <span className={styles.success}>Message Sent!</span>
-          ) : (
-            "Send Message"
-          )}
-        </button>
-      </form>
+          <button
+            type="submit"
+            className={styles.button}
+            disabled={isLoading || isSuccess}
+          >
+            {isLoading ? (
+              <span className={styles.loading}>Sending...</span>
+            ) : isSuccess ? (
+              <span className={styles.success}>Message Sent</span>
+            ) : (
+              "Send Message"
+            )}
+          </button>
+        </form>
+      </div>
     </motion.div>
   );
 });

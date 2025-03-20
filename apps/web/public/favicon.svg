@@ -1,0 +1,41 @@
+<svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="phoenixGradient" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#e61e4d" />
+      <stop offset="60%" stop-color="#ff5a00" />
+      <stop offset="100%" stop-color="#ff7b00" />
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(100, 50)">
+    <!-- Main body/neck curve -->
+    <path d="M100,60 C90,90 100,130 100,180 C100,220 90,260 70,290"
+          stroke="url(#phoenixGradient)" stroke-width="18" fill="none" stroke-linecap="round" />
+
+    <!-- Head curve -->
+    <path d="M100,60 C110,40 130,30 150,50"
+          stroke="url(#phoenixGradient)" stroke-width="18" fill="none" stroke-linecap="round" />
+
+    <!-- Left wing - flowing feathers -->
+    <path d="M90,90 C60,70 30,60 10,30 C0,10 20,5 40,25"
+          stroke="url(#phoenixGradient)" stroke-width="16" fill="none" stroke-linecap="round" />
+    <path d="M80,110 C50,90 25,80 5,50 C-5,30 10,20 30,40"
+          stroke="url(#phoenixGradient)" stroke-width="14" fill="none" stroke-linecap="round" />
+    <path d="M75,130 C45,110 20,100 0,70 C-10,50 5,40 25,60"
+          stroke="url(#phoenixGradient)" stroke-width="12" fill="none" stroke-linecap="round" />
+
+    <!-- Right wing - flowing feathers -->
+    <path d="M110,90 C140,70 170,60 190,30 C200,10 180,5 160,25"
+          stroke="url(#phoenixGradient)" stroke-width="16" fill="none" stroke-linecap="round" />
+    <path d="M120,110 C150,90 175,80 195,50 C205,30 190,20 170,40"
+          stroke="url(#phoenixGradient)" stroke-width="14" fill="none" stroke-linecap="round" />
+    <path d="M125,130 C155,110 180,100 200,70 C210,50 195,40 175,60"
+          stroke="url(#phoenixGradient)" stroke-width="12" fill="none" stroke-linecap="round" />
+
+    <!-- Tail feathers -->
+    <path d="M70,290 C60,300 50,310 60,320 C70,330 85,320 80,300"
+          stroke="url(#phoenixGradient)" stroke-width="14" fill="none" stroke-linecap="round" />
+    <path d="M80,270 C70,290 65,310 80,325 C95,335 110,320 100,300"
+          stroke="url(#phoenixGradient)" stroke-width="12" fill="none" stroke-linecap="round" />
+  </g>
+</svg>

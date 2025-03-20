@@ -1,89 +1,148 @@
-.phoenixContainer {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-    overflow: visible;
-  }
+:root {
+  --hero-bg-dark: rgba(0, 0, 0, 0.5);
+  --hero-bg-light: rgba(245, 245, 245, 0.95);
+}
 
-  .phoenix {
+.heroSection {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  background-color: transparent;
+}
+
+.heroOverlayDark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  background: radial-gradient(circle at center, rgba(0,0,0,0) 0%, rgba(0,0,0,0.3) 100%);
+}
+
+.heroOverlayLight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  background: radial-gradient(circle at center, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 100%);
+}
+
+.heroContainer {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+}
+
+.heroContentWrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.heroContentInner {
+  max-width: 800px;
+  width: 100%;
+  border-radius: 1rem;
+  padding: 2rem;
+  text-align: center;
+  background-color: transparent; /* default, overridden by classes below */
+}
+
+.darkInner {
+  background-color: var(--hero-bg-dark);
+}
+
+.lightInner {
+  background-color: var(--hero-bg-light);
+}
+
+.heroTitle {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  background-clip: text;
+  -webkit-background-clip: text;
+  transition: all 0.3s ease;
+}
+
+.heroSubtitle {
+  font-size: 1.25rem;
+  margin-bottom: 2.5rem;
+  line-height: 1.6;
+  transition: color 0.3s ease;
+}
+
+.heroButtonContainer {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.heroButton {
+  padding: 0.875rem 1.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.heroPrimaryButton {
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+.heroSecondaryButton {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.heroLoading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+.heroSpinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  border-top-color: currentColor;
+  animation: spin 1s ease-in-out infinite;
+  transition: border-color 0.3s ease;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+  .heroTitle { font-size: 2.5rem; }
+  .heroSubtitle { font-size: 1.125rem; }
+  .heroButtonContainer {
+    flex-direction: column;
     width: 100%;
-    max-width: 800px;
-    height: auto;
-    filter: drop-shadow(0 0 20px hsla(var(--primary) / 0.2));
-    will-change: transform;
+    max-width: 300px;
+    margin: 0 auto;
   }
-
-  .phoenixPath {
-    fill: hsl(var(--primary));
-    transition: fill 0.3s ease;
-  }
-
-  .phoenixGlow {
-    fill: none;
-    stroke: hsl(var(--accent));
-    stroke-width: 2;
-    filter: blur(8px);
-    opacity: 0.5;
-  }
-
-  /* Animation states */
-  .phoenix--hover {
-    animation: phoenixHover 4s ease-in-out infinite;
-  }
-
-  .phoenix--dive {
-    animation: phoenixDive 1.5s ease-in-out forwards;
-  }
-
-  .phoenix--egg {
-    animation: phoenixEgg 1s ease-in-out forwards;
-  }
-
-  .phoenix--rebirth {
-    animation: phoenixRebirth 2s ease-in-out forwards;
-  }
-
-  @keyframes phoenixHover {
-    0%, 100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-20px);
-    }
-  }
-
-  @keyframes phoenixDive {
-    0% {
-      transform: translateY(0) scale(1);
-    }
-    100% {
-      transform: translateY(200px) scale(0.5);
-    }
-  }
-
-  @keyframes phoenixEgg {
-    0% {
-      transform: translateY(200px) scale(0.5);
-    }
-    100% {
-      transform: translateY(200px) scale(0.1);
-    }
-  }
-
-  @keyframes phoenixRebirth {
-    0% {
-      transform: translateY(200px) scale(0.1);
-      filter: brightness(1);
-    }
-    50% {
-      transform: translateY(100px) scale(1.2);
-      filter: brightness(1.5);
-    }
-    100% {
-      transform: translateY(0) scale(1);
-      filter: brightness(1);
-    }
-  }
+  .heroButton { width: 100%; }
+}

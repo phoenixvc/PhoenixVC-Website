@@ -1,7 +1,7 @@
 // theme/providers/ComponentManagerProvider.tsx
 import React from "react";
 import ComponentManagerContext from "../context/ComponentManagerContext";
-import { ComponentManager } from "../core/component-manager";
+import { ComponentManager } from "../managers/component-manager";
 
 interface ComponentManagerProviderProps {
   children: React.ReactNode;

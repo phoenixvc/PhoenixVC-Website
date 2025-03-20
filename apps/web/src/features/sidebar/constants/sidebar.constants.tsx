@@ -1,59 +1,49 @@
-import { SidebarItemType } from "../types";
-import { Home, BookOpen, Palette, FileText, Code, Briefcase, Mail } from "lucide-react";
+// features/sidebar/constants.ts
+import { SidebarGroup, SidebarItemGroup, SidebarItemLink } from "../types";
+import { navItems, resourceItems } from "@/constants/navigation";
 
-export const SIDEBAR_LINKS: SidebarItemType[] = [
+// First, define the sidebar links with proper typing
+export const SIDEBAR_LINKS: SidebarItemGroup[] = [
   {
     type: "group",
     label: "Navigation",
-    children: [
-      {
-        type: "link",
-        label: "Home",
-        icon: <Home size={20} />,
-        href: "/"
-      },
-      {
-        type: "link",
-        label: "Portfolio",
-        icon: <Briefcase size={20} />,
-        href: "/#portfolio"
-      },
-      {
-        type: "link",
-        label: "Blog",
-        icon: <FileText size={20} />,
-        href: "/blog"
-      },
-      {
-        type: "link",
-        label: "Projects",
-        icon: <Code size={20} />,
-        href: "/projects"
-      },
-      {
-        type: "link",
-        label: "Contact",
-        icon: <Mail size={20} />,
-        href: "/#contact"
-      }
-    ]
+    title: "Navigation",
+    active: false,
+    children: navItems.map(item => ({
+      type: "link",
+      label: item.label,
+      icon: item.icon,
+      href: item.href,
+      active: false
+    })) as SidebarItemLink[]
   },
   {
     type: "group",
     label: "Resources",
-    children: [
-      {
-        type: "link",
-        label: "Documentation",
-        icon: <BookOpen size={20} />,
-        href: "https://docs.{domainname}." //{//this actual domain - TODO< correct}
-      },
-      {
-        type: "link",
-        label: "Theme Designer",
-        icon: <Palette size={20} />,
-        href: "/theme-designer"
-      }
-    ]
+    title: "Resources",
+    active: false,
+    children: resourceItems.map(item => ({
+      type: "link",
+      label: item.label,
+      icon: item.icon,
+      href: item.href,
+      active: false
+    })) as SidebarItemLink[]
+  }
+];
+
+// Create sidebar groups from the links with proper type safety
+export const DEFAULT_SIDEBAR_GROUPS: SidebarGroup[] = [
+  {
+    title: "Main Navigation",
+    items: SIDEBAR_LINKS.find(item => item.label === "Navigation")?.children.filter(
+      child => child.type === "link"
+    ) as SidebarItemLink[] || []
+  },
+  {
+    title: "Resources",
+    items: SIDEBAR_LINKS.find(item => item.label === "Resources")?.children.filter(
+      child => child.type === "link"
+    ) as SidebarItemLink[] || []
   }
 ];

@@ -5,8 +5,8 @@ export const siteConfig = {
     url: "https://phoenixvc.com", // Replace with actual URL
     ogImage: "/og.png",
     links: {
-      twitter: "https://twitter.com/phoenixvc",
-      linkedin: "https://linkedin.com/company/phoenixvc",
+      // twitter: "https://twitter.com/phoenixvc",
+      linkedin: "https://www.linkedin.com/company/101922781/",
       medium: "https://medium.com/@phoenixvc"
     }
   };

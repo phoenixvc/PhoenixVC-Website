@@ -2,8 +2,10 @@
 import { ComponentVariants, ComponentVariantType } from "../types/mappings/component-variants";
 import { VariantResolver, VariantResolverConfig } from "./variant-resolver";
 import { VariantResolutionStrategy } from "./variant-resolution/variant-resolution-strategy";
-import { ComponentThemeRegistry, createComponentRegistry } from "../core/component-theme-registry";
-import { Theme } from "../core/theme";
+import { ComponentThemeRegistry, createComponentRegistry } from "./component-theme-registry";
+import { ColorDefinition } from "../types/core/colors";
+import ColorUtils from "../utils/color-utils";
+import { Theme } from "../types";
 
 export interface ComponentRegistryManagerConfig {
   variantResolver?: VariantResolver;
@@ -24,7 +26,10 @@ export class ComponentRegistryManager {
 
     // Initialize with default registry if provided
     const baseRegistry = createComponentRegistry(initialRegistry);
-    this.initializeFromObject(baseRegistry);
+
+    // Hydrate colors before initializing the registry
+    const hydratedRegistry = this.hydrateRegistryColors(baseRegistry);
+    this.initializeFromObject(hydratedRegistry);
   }
 
   /**
@@ -44,6 +49,33 @@ export class ComponentRegistryManager {
   }
 
   /**
+   * Recursively hydrate all color definitions in the registry
+   */
+  private hydrateRegistryColors<T extends object>(obj: T): T {
+    if (!obj) return obj;
+
+    const result = { ...obj } as T;
+
+    // Process each property
+    for (const key in result) {
+      const value = result[key];
+
+      if (value && typeof value === "object") {
+        if ("hex" in value && typeof (value as { hex: unknown }).hex === "string") {
+          // This looks like a ColorDefinition, hydrate it
+          const colorDef = ColorUtils.ensureColorDefinition(value as Partial<ColorDefinition>);
+          (result as Record<string, unknown>)[key] = colorDef;
+        } else {
+          // Recursively process nested objects
+          (result as Record<string, unknown>)[key] = this.hydrateRegistryColors(value as object);
+        }
+      }
+    }
+
+    return result;
+  }
+
+  /**
    * Register a theme"s component variants
    */
   registerTheme(theme: Theme | { components: ComponentVariants }): void {
@@ -52,8 +84,11 @@ export class ComponentRegistryManager {
 
     if (!components) return;
 
+    // Hydrate colors in the theme components before registering
+    const hydratedComponents = this.hydrateRegistryColors(components);
+
     // Register each component and its variants
-    Object.entries(components).forEach(([componentName, variants]) => {
+    Object.entries(hydratedComponents).forEach(([componentName, variants]) => {
       if (!variants) return;
 
       // Create component entry if it doesn"t exist
@@ -124,8 +159,11 @@ export class ComponentRegistryManager {
       this.registry.set(component, new Map());
     }
 
+    // Hydrate colors in the variant before setting
+    const hydratedValue = this.hydrateRegistryColors(value);
+
     const componentMap = this.registry.get(component)!;
-    componentMap.set(variant, value);
+    componentMap.set(variant, hydratedValue);
   }
 
   /**
@@ -195,7 +233,8 @@ export class ComponentRegistryManager {
    */
   resetToDefaults(defaultRegistry: Partial<ComponentThemeRegistry>): void {
     this.clear();
-    this.initializeFromObject(defaultRegistry);
+    const hydratedRegistry = this.hydrateRegistryColors(defaultRegistry);
+    this.initializeFromObject(hydratedRegistry);
   }
 
   /**
@@ -246,7 +285,7 @@ export class ComponentRegistryManager {
   ): ComponentVariantType | undefined {
     const componentVariants = this.getComponentVariants(component);
     if (!componentVariants) {
-      console.warn(`Component not found: ${component}`);
+      console.warn(`Component not found to apply variant: ${component}`);
       return undefined;
     }
 

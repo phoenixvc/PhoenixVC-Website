@@ -1,13 +1,12 @@
 // theme/types/context/context.ts
-
 import { ReactNode, createContext } from "react";
 import { ThemeChangeEvent, ThemeConfig, ThemeErrorFallback, ThemeErrorHandler, ThemeInitOptions } from "../core/config";
-import { ThemeName, ThemeMode } from "../core/base";
+import { ThemeName, ThemeMode, ThemeAcquisitionConfig, Theme } from "../core/base";
 import { CssVariableConfig, ThemeClassSuffix } from "../core";
 import { ExtendedThemeState, ThemeContextState } from "./state";
 import { TypographyScale } from "@/theme/mappings";
-import { Theme } from "@/theme/core/theme";
-import { ThemeLoaderConfig } from "@/theme";
+import { ComponentThemeRegistry } from "@/theme/registry/component-theme-registry";
+import { ThemeRegistry } from "@/theme/registry/theme-registry";
 
 /**
  * Additional provider configuration options specific to the context.
@@ -51,6 +50,12 @@ export interface ThemeProviderProps {
   storageKey?: string;
   /** Optional class name for the provider wrapper */
   className?: string;
+
+  /** Component-specific theme registry */
+  componentRegistry?: Partial<ComponentThemeRegistry>;
+
+  /** Global theme registry */
+  themeRegistry?: Partial<ThemeRegistry>;
 }
 
 /**
@@ -75,7 +80,7 @@ export interface ThemeContextType {
   getThemeClassNames: (scheme: ThemeName) => Record<string, string>;
   getSpecificClass: (suffix: ThemeClassSuffix) => string | unknown;
   replaceThemeClasses: (currentClasses: string, newScheme: ThemeName) => string;
-  setThemeClasses: (scheme: ThemeName) => void;
+  setTheme: (name: string) => void;
   setMode: (mode: ThemeMode) => void;
   toggleMode: () => void;
   setUseSystemMode: (useSystem: boolean) => void;
@@ -88,7 +93,7 @@ export interface ThemeContextType {
 
   // Theme cache utilities
   isThemeCached: (scheme: ThemeName) => boolean;
-  preloadTheme: (scheme: ThemeName, config?: Partial<ThemeLoaderConfig>) => Promise<void>;
+  preloadTheme: (scheme: ThemeName, config?: Partial<ThemeAcquisitionConfig>) => Promise<void>;
   clearThemeCache: () => void;
   getCacheStatus: () => { size: number; schemes: ThemeName[] };
 
@@ -108,6 +113,8 @@ export interface ThemeContextType {
 
   // Add component style support
   getComponentStyle?: (component: string, variant?: string, state?: string, mode?: string) => React.CSSProperties;
+  getThemeRegistry?: (component: string, variant?: string, state?: string, mode?: string) => ThemeRegistry;
+  getComponentRegistry?: (component: string, variant?: string, state?: string, mode?: string) => ComponentThemeRegistry;
 }
 
 /**

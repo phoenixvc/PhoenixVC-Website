@@ -1,0 +1,201 @@
+/* components/Layout/Starfield/debugControls.module.css */
+.debugOverlayContainer {
+    position: fixed;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  .debugIndicator {
+    position: absolute;
+    top: 10px;
+    background-color: rgba(138, 43, 226, 0.8);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    pointer-events: auto;
+    cursor: pointer;
+  }
+
+  /* Dark mode debug controls */
+  .debugControls {
+    position: absolute;
+    top: 40px;
+    background-color: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+    width: 240px;
+    pointer-events: auto;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+
+  /* Light mode debug controls */
+  .debugControlsLight {
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #333;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Main heading */
+  .debugControls h3 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+  }
+
+  /* Section headings - dark mode */
+  .debugInfoSection h4,
+  .controlsSection h4 {
+    margin: 0 0 4px 0;
+    font-size: 12px;
+    color: #8a2be2;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Section headings - light mode */
+  .debugControlsLight .debugInfoSection h4,
+  .debugControlsLight .controlsSection h4 {
+    color: #6200ea;
+  }
+
+  /* Sections */
+  .debugInfoSection,
+  .controlsSection {
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  /* Sections - light mode */
+  .debugControlsLight .debugInfoSection,
+  .debugControlsLight .controlsSection {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+  }
+
+  /* Debug info grid */
+  .debugInfoGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3px 15px;
+    font-size: 11px;
+    margin-bottom: 2px;
+  }
+
+  /* Control items */
+  .debugControls div:not(.debugInfoGrid):not(.debugButtons):not(.debugInfoSection):not(.controlsSection) {
+    margin-bottom: 6px;
+  }
+
+  /* Labels */
+  .debugControls label {
+    display: block;
+    margin-bottom: 2px;
+    font-size: 12px;
+    color: #eee;
+  }
+
+  /* Labels - light mode */
+  .debugControlsLight label {
+    color: #333;
+  }
+
+  /* Range inputs */
+  .debugControls input[type="range"] {
+    width: 100%;
+    height: 4px;
+    background: #444;
+    border-radius: 2px;
+    pointer-events: auto;
+    margin-bottom: 0;
+    accent-color: #8a2be2;
+  }
+
+  /* Range inputs - light mode */
+  .debugControlsLight input[type="range"] {
+    background: #ddd;
+    accent-color: #6200ea;
+  }
+
+  /* Buttons container */
+  .debugButtons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  /* Buttons */
+  .debugButtons button {
+    flex: 1;
+    padding: 6px 8px;
+    border: none;
+    border-radius: 4px;
+    background-color: #333;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 12px;
+    min-width: 70px;
+  }
+
+  /* Buttons - light mode */
+  .debugControlsLight .debugButtons button {
+    background-color: #e0e0e0;
+    color: #333;
+  }
+
+  .debugButtons button:hover {
+    background-color: #444;
+  }
+
+  .debugControlsLight .debugButtons button:hover {
+    background-color: #d0d0d0;
+  }
+
+  /* Special styling for test button */
+  .testButton {
+    background-color: #8a2be2 !important;
+    color: white !important;
+  }
+
+  .testButton:hover {
+    background-color: #9d3eff !important;
+  }
+
+  /* Special styling for close button */
+  .closeButton {
+    background-color: #8a2be2 !important;
+    color: white !important;
+  }
+
+  .closeButton:hover {
+    background-color: #9d3eff !important;
+  }
+
+  /* Scrollbar styling */
+  .debugControls::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .debugControls::-webkit-scrollbar-thumb {
+    background-color: #8a2be2;
+    border-radius: 3px;
+  }
+
+  .debugControls::-webkit-scrollbar-track {
+    background-color: #222;
+  }
+
+  /* Scrollbar styling - light mode */
+  .debugControlsLight::-webkit-scrollbar-track {
+    background-color: #eee;
+  }

@@ -1,7 +1,9 @@
 // /theme/types/core/config.ts
 
 import type { Layout, ThemeName, ThemeMode } from "./base";
-import type { ThemeStorage, ThemeTransition } from "./storage";
+import { ThemeColors, ThemeSchemeInitial } from "./colors";
+import type { ThemeStorage } from "./storage";
+import { ThemeTransition } from "./transition";
 
 // Core Configuration Interfaces
 export interface ThemeConfig {
@@ -75,14 +77,6 @@ export interface ThemeStorageConfig extends ThemeStorage {
     timestamp?: number;
 }
 
-// Export all types
-export type {
-    ThemeName as ColorScheme,
-    ThemeMode as Mode,
-    ThemeStorage,
-    ThemeTransition
-};
-
 export interface ThemeConfigValidator {
     validate: (config: ThemeConfig) => boolean;
     validateStrict: (config: ThemeConfig) => void; // throws on invalid
@@ -95,3 +89,69 @@ export interface ThemeBuilder {
     withPlugins: (plugins: ThemePlugin[]) => ThemeBuilder;
     build: () => ThemeConfig;
 }
+
+/**
+ * Theme Registry Entry
+ * Combines theme data with metadata for registry storage
+ */
+export interface ThemeRegistryEntry {
+    // The theme data
+    theme: ThemeColors;
+
+    // Metadata for UI display and management
+    metadata: {
+      displayName: string;
+      description?: string;
+      author?: string;
+      version?: string;
+      tags?: string[];
+      preview?: string; // URL or base64 image
+      created?: number; // timestamp
+      modified?: number; // timestamp
+    };
+
+    // Configuration used to generate this theme
+    sourceConfig?: {
+      initialScheme?: ThemeSchemeInitial;
+      transformConfig?: TransformationConfig;
+    };
+  }
+
+/**
+ * Options for dark mode transformations
+ */
+export interface DarkModeOptions {
+    darkenBackground?: number;
+    lightenText?: number;
+    adjustSaturation?: number;
+  }
+
+  /**
+   * Options for light mode transformations
+   */
+  export interface LightModeOptions {
+    lightenBackground?: number;
+    darkenText?: number;
+    adjustSaturation?: number;
+  }
+
+  /**
+   * Combined transformation options
+   */
+  export interface TransformOptions {
+    darkMode?: DarkModeOptions;
+    lightMode?: LightModeOptions;
+  }
+
+  /**
+   * Configuration for the theme transformation process
+   */
+  export interface TransformationConfig {
+    defaultMode: ThemeMode;
+    shadeCount: number;
+    shadeIntensity: number;
+    contrastThreshold: number;
+    algorithm?: "linear" | "exponential" | "perceptual";
+    preserveMetadata?: boolean;
+    transformOptions?: TransformOptions;
+  }
