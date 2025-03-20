@@ -7,6 +7,9 @@ param location string = resourceGroup().location
 @description('Tags for the Logic App')
 param tags object = {}
 
+@description('Approval Logic App URL')
+param approvalLogicAppUrl string
+
 var logicAppDefinitionText = '''
 {
   "$schema": "https://schema.management.azure.com/schemas/2016-06-01/workflowdefinition.json",
@@ -29,7 +32,9 @@ var logicAppDefinitionText = '''
             "title": { "type": "string" },
             "color": { "type": "string" },
             "deploymentUrl": { "type": "string" },
-            "approvalUrl": { "type": "string" },
+            "deploymentId": { "type": "string" },
+            "artifactId": { "type": "string" },
+            "runId": { "type": "string" },
             "rollbackUrl": { "type": "string" },
             "version": { "type": "string" },
             "author": { "type": "string" },
@@ -42,7 +47,6 @@ var logicAppDefinitionText = '''
             "resourceGroup",
             "environment",
             "branch",
-            "message",
             "deploymentUrl"
           ]
         }
@@ -59,8 +63,8 @@ var logicAppDefinitionText = '''
           "Content-Type": "application/json"
         },
         "body": {
-          "@@type": "MessageCard",
-          "@@context": "http://schema.org/extensions",
+          "@type": "MessageCard",
+          "@context": "http://schema.org/extensions",
           "text": "Deployment Notification",
           "summary": "@{coalesce(triggerBody()?['title'], 'Deployment Notification')}",
           "themeColor": "@{if(empty(triggerBody()?['color']), '0076D7', replace(triggerBody()?['color'], '#', ''))}",
@@ -90,20 +94,8 @@ var logicAppDefinitionText = '''
                   "value": "@{triggerBody()?['branch']}"
                 },
                 {
-                  "name": "Version",
-                  "value": "@{triggerBody()?['version']}"
-                },
-                {
-                  "name": "Author",
-                  "value": "@{triggerBody()?['author']}"
-                },
-                {
                   "name": "Repository",
-                  "value": "@{triggerBody()?['repository']}"
-                },
-                {
-                  "name": "PR Description",
-                  "value": "@{triggerBody()?['pr_description']}"
+                  "value": "@{coalesce(triggerBody()?['repository'], 'PhoenixVC-Modernized')}"
                 }
               ],
               "markdown": true
@@ -111,7 +103,7 @@ var logicAppDefinitionText = '''
           ],
           "potentialAction": [
             {
-              "@@type": "OpenUri",
+              "@type": "OpenUri",
               "name": "View Deployment",
               "targets": [
                 {
@@ -121,18 +113,28 @@ var logicAppDefinitionText = '''
               ]
             },
             {
-              "@@type": "OpenUri",
-              "name": "Approve Production",
-              "targets": [
+              "@type": "ActionCard",
+              "name": "Approve Production Deployment",
+              "inputs": [
                 {
-                  "os": "default",
-                  "uri": "@{coalesce(triggerBody()?['approvalUrl'], '')}"
+                  "@type": "TextInput",
+                  "id": "comment",
+                  "title": "Comment",
+                  "isMultiline": false,
+                  "isRequired": false
                 }
               ],
-              "when": "@{not(empty(triggerBody()?['approvalUrl']))}"
+              "actions": [
+                {
+                  "@type": "HttpPOST",
+                  "name": "Approve",
+                  "target": "@{parameters('approvalLogicAppUrl')}",
+                  "body": "{\\"deploymentId\\": \\"@{coalesce(triggerBody()?['deploymentId'], '0')}\\", \\"artifactId\\": \\"@{coalesce(triggerBody()?['artifactId'], 'website')}\\", \\"runId\\": \\"@{coalesce(triggerBody()?['runId'], '0')}\\", \\"approver\\": \\"@{coalesce(triggerBody()?['author'], '@{input.comment}')}\\", \\"teamsWebhookUrl\\": \\"@{triggerBody()?['teamsWebhookUrl']}\\"}"
+                }
+              ]
             },
             {
-              "@@type": "OpenUri",
+              "@type": "OpenUri",
               "name": "Rollback Deployment",
               "targets": [
                 {
@@ -145,6 +147,22 @@ var logicAppDefinitionText = '''
         }
       },
       "runAfter": {}
+    },
+    "Return_Response": {
+      "type": "Response",
+      "kind": "Http",
+      "inputs": {
+        "statusCode": 200,
+        "body": {
+          "message": "Teams notification sent successfully"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      },
+      "runAfter": {
+        "Post_to_Teams": ["Succeeded"]
+      }
     }
   },
   "outputs": {}
@@ -160,8 +178,14 @@ resource logicApp 'Microsoft.Logic/workflows@2019-05-01' = {
   properties: {
     state: 'Enabled'
     definition: finalLogicAppDefinition
+    parameters: {
+      'approvalLogicAppUrl': {
+        'value': approvalLogicAppUrl
+      }
+    }
   }
 }
 
 output logicAppId string = logicApp.id
 output logicAppName string = logicApp.name
+output logicAppUrl string = '${logicApp.properties.accessEndpoint}triggers/manual/invoke?api-version=2020-05-01-preview'
