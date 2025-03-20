@@ -4,6 +4,9 @@ inputs:
   artifact-name:
     description: "The name of the artifact to download"
     required: true
+  run-id:
+    description: "The run ID from which to download the artifact"
+    required: true
   app-name:
     description: "The SWA app name"
     required: true
@@ -42,6 +45,7 @@ runs:
       uses: actions/download-artifact@v4
       with:
         name: ${{ inputs.artifact-name }}
+        run-id: ${{ inputs.run-id }}
         path: ${{ inputs.artifact-path }}
 
     # Login to Azure
@@ -65,18 +69,13 @@ runs:
       shell: bash
       run: |
         echo "Preparing configuration..."
-        # Ensure the config directory exists in the artifact
         mkdir -p ${{ inputs.artifact-path }}/.config
-
-        # Copy the config file if it doesn't exist in the artifact
         if [ ! -f "${{ inputs.artifact-path }}/.config/staticwebapp.config.json" ]; then
           echo "Copying staticwebapp.config.json to artifact directory..."
           cp .config/staticwebapp.config.json ${{ inputs.artifact-path }}/.config/
         else
           echo "Config file already exists in artifact directory"
         fi
-
-        # Display the config for verification
         echo "Using configuration:"
         cat ${{ inputs.artifact-path }}/.config/staticwebapp.config.json
 
@@ -84,7 +83,6 @@ runs:
       id: get_token
       shell: bash
       run: |
-        # Get deployment token using Azure CLI
         TOKEN=$(az staticwebapp secrets list --name ${{ inputs.app-name }} --resource-group ${{ inputs.resource-group }} --query "properties.apiKey" -o tsv)
         echo "::add-mask::$TOKEN"
         echo "deployment_token=$TOKEN" >> $GITHUB_OUTPUT
@@ -114,12 +112,10 @@ runs:
         DEPLOYMENT_PROVIDER: "DevOps"
         DEPLOYMENT_ID: ${{ steps.generate_deployment_id.outputs.id }}
 
-    # Get the deployment URL for output
     - name: Get Deployment URL
       id: get_deployment_url
       shell: bash
       run: |
-        # Get the URL from Azure CLI
         URL=$(az staticwebapp show --name ${{ inputs.app-name }} --resource-group ${{ inputs.resource-group }} --query "defaultHostname" -o tsv)
         if [[ -n "$URL" ]]; then
           FULL_URL="https://$URL"
