@@ -282,8 +282,77 @@ jobs:
           mkdocs build -f docs/mkdocs.yml
           mkdocs gh-deploy --force
 
+   # ───────────────────────────────────────────────
+  # ✅ Configure Custom Domain and DNS
+  # ───────────────────────────────────────────────
+  configure_custom_domain_dns:
+    runs-on: ubuntu-latest
+    needs: swa_deploy_production
+    environment:
+      name: production
+    steps:
+      - name: Azure CLI Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Configure Custom Domain & DNS
+        shell: bash
+        run: |
+          RESOURCE_GROUP="prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website"
+          STATIC_WEB_APP_NAME="prod-${{ env.LOCATION_CODE }}-swa-phoenixvc-website"
+          DOMAIN="phoenixvc.tech"
+
+          echo "Linking custom domain: $DOMAIN"
+
+          # Set Custom Domain
+          az staticwebapp hostname set \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$STATIC_WEB_APP_NAME" \
+            --hostname "$DOMAIN" \
+            --validation-method dns-txt
+
+          echo "Fetching validation token for DNS"
+
+          # Fetch Validation Token
+          VALIDATION_TOKEN=$(az staticwebapp hostname show \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$STATIC_WEB_APP_NAME" \
+            --hostname "$DOMAIN" \
+            --query "validationToken" -o tsv)
+
+          echo "Validation token retrieved: $VALIDATION_TOKEN"
+
+          echo "Adding TXT record for domain validation"
+
+          # Add TXT Record for validation
+          az network dns record-set txt add-record \
+            --resource-group "$RESOURCE_GROUP" \
+            --zone-name "$DOMAIN" \
+            --record-set-name "asuid" \
+            --value "$VALIDATION_TOKEN"
+
+          echo "Adding CNAME record to Azure Static Web App"
+
+          # Add CNAME Record to point root domain to SWA
+          DEFAULT_HOSTNAME=$(az staticwebapp show \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$STATIC_WEB_APP_NAME" \
+            --query "defaultHostname" -o tsv)
+
+          az network dns record-set cname set-record \
+            --resource-group "$RESOURCE_GROUP" \
+            --zone-name "$DOMAIN" \
+            --record-set-name "@" \
+            --cname "$DEFAULT_HOSTNAME"
+
+          echo "✅ DNS configuration completed successfully."
+
+  # ───────────────────────────────────────────────
+  # ✅ Notification Job
+  # ───────────────────────────────────────────────
   notify_deployment:
-    needs: [swa_deploy_production, trigger_dns_update, deploy_docs]
+    needs: [swa_deploy_production, trigger_dns_update, deploy_docs, configure_custom_domain_dns]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -311,3 +380,4 @@ jobs:
           deployment_id: ${{ github.event.inputs.deploymentId }}
           artifact_id: ${{ github.event.inputs.artifactId }}
           run_id: ${{ github.event.inputs.runId }}
+
