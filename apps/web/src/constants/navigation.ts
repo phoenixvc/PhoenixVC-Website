@@ -1,9 +1,15 @@
 // src/constants/navigation.ts
-export const navigationItems = [
-    { href: "#about", label: "About" },
-    { href: "#investment", label: "Investment Focus" },
-    { href: "#contact", label: "Contact" },
-  ];
+
+import { NavItem } from "@/types";
+
+export const navItems: NavItem[] = [
+  { label: "Home", href: "/" },
+  { label: "Focus Areas", href: "/#focus" },
+  { label: "About", href: "/#about" },
+  { label: "Blog", href: "/blog" },
+  { label: "Projects", href: "/projects" },
+  { label: "Contact", href: "/#contact" },
+];
 
   export const socialLinks = [
     { href: "#", label: "LinkedIn", icon: "linkedin" },

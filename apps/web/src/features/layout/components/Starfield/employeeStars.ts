@@ -3,7 +3,7 @@
 import { EmployeeData, EmployeeStar, HoverInfo, Satellite } from "./types";
 import { calculateCenter } from "./utils";
 import { createSoftenedColor } from "./starUtils";
-import { drawEmployeeStar } from "./starREndering";
+import { drawEmployeeStar } from "./starRendering";
 
 // Initialize employee stars
 export const initEmployeeStars = (

@@ -1,0 +1,95 @@
+/* features/about/components/About/About.module.css */
+.section {
+  padding: 6rem 1.5rem;
+  position: relative;
+  overflow: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.darkMode {
+  background-color: rgba(26, 26, 46, 0.7); /* Increased transparency */
+  color: #f0f0f0;
+}
+
+.lightMode {
+  background-color: rgba(248, 249, 250, 0.7); /* Increased transparency */
+  color: #333;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #9c27b0; /* Purple color to match your theme */
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.darkTitle {
+  color: linear-gradient(135deg, #9c27b0, #673ab7);
+}
+
+.lightTitle {
+  color: linear-gradient(135deg, #7b1fa2, #512da8);
+}
+
+.divider {
+  width: 80px;
+  height: 3px;
+  background: linear-gradient(90deg, #9c27b0, #673ab7);
+  margin: 0 auto 2rem auto;
+  border-radius: 2px;
+}
+
+.paragraphContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.paragraph {
+  font-size: 1.125rem;
+  line-height: 1.8;
+  text-align: justify;
+  opacity: 0.9; /* Slightly transparent text */
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .section {
+    padding: 4rem 1rem;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .paragraph {
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+}
+
+@media (max-width: 480px) {
+  .section {
+    padding: 3rem 1rem;
+  }
+
+  .title {
+    font-size: 1.75rem;
+  }
+}

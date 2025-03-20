@@ -1,15 +1,16 @@
-import { FC, memo, useRef, useEffect } from "react";
+import { FC, memo, useRef, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { heroAnimations } from "../../animations";
 import { DEFAULT_HERO_CONTENT } from "../../constants";
 import styles from "./hero.module.css";
-import type { HeroProps } from "../../types";
 import { useSectionObserver } from "@/hooks/useSectionObserver";
+import { HeroProps } from "@/features/layout/components/Starfield/types";
 
 interface ExtendedHeroProps extends HeroProps {
-  isDarkMode: boolean; // Now directly passed from the parent
+  isDarkMode: boolean;
   colorScheme?: string;
   accentColor?: string;
+  enableMouseTracking?: boolean; // Add this prop
 }
 
 const Hero: FC<ExtendedHeroProps> = memo(
@@ -22,11 +23,36 @@ const Hero: FC<ExtendedHeroProps> = memo(
     isDarkMode,
     colorScheme = "purple",
     accentColor,
+    enableMouseTracking = false, // Default to false
   }) => {
     const sectionRef = useSectionObserver("home", (id) => {
       console.log(`[Home] Section "${id}" is now visible`);
     });
     const containerRef = useRef<HTMLDivElement>(null);
+    const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+    // Add mouse tracking effect if enabled
+    useEffect(() => {
+      if (!enableMouseTracking || !containerRef.current) return;
+
+      const handleMouseMove = (e: MouseEvent) => {
+        const container = containerRef.current;
+        if (!container) return;
+
+        const rect = container.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        setMousePosition({ x, y });
+      };
+
+      const container = containerRef.current;
+      container.addEventListener("mousemove", handleMouseMove);
+
+      return () => {
+        container.removeEventListener("mousemove", handleMouseMove);
+      };
+    }, [enableMouseTracking]);
 
     const getThemeStyles = () => {
       const textColor = isDarkMode ? "text-white" : "text-gray-900";
@@ -45,7 +71,14 @@ const Hero: FC<ExtendedHeroProps> = memo(
     return (
       <section className={styles.heroSection} ref={sectionRef} aria-label="hero section">
         <div className={isDarkMode ? styles.heroOverlayDark : styles.heroOverlayLight} />
-        <div className={`${styles.heroContainer} ${textColor}`} ref={containerRef}>
+        <div
+          className={`${styles.heroContainer} ${textColor} ${enableMouseTracking ? styles.mouseTrackingEnabled : ""}`}
+          ref={containerRef}
+          style={enableMouseTracking ? {
+            "--mouse-x": `${mousePosition.x}px`,
+            "--mouse-y": `${mousePosition.y}px`
+          } as React.CSSProperties : undefined}
+        >
           <AnimatePresence>
             {!isLoading && (
               <motion.div

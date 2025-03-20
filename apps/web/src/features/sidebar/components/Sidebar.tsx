@@ -1,8 +1,9 @@
 // components/Layout/Sidebar/Sidebar.tsx
 import React from "react";
-import { Home, Briefcase, FileText, Code, Mail, FileIcon, Palette, ChevronLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import styles from "../styles/sidebar.module.css";
 import { SidebarProps } from "../types";
+import { DEFAULT_SIDEBAR_GROUPS } from "../constants/sidebar.constants";
 
 export const Sidebar: React.FC<SidebarProps> = ({
   isOpen = true,
@@ -29,21 +30,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     };
   }, []);
 
-  // Don't render if closed on mobile
+  // Don"t render if closed on mobile
   if (isMobile && !isOpen) return null;
-
-  const mainNavigation = [
-    { name: "Home", href: "/", icon: Home },
-    { name: "Portfolio", href: "/portfolio", icon: Briefcase },
-    { name: "Blog", href: "/blog", icon: FileText },
-    { name: "Projects", href: "/projects", icon: Code },
-    { name: "Contact", href: "/contact", icon: Mail },
-  ];
-
-  const resources = [
-    { name: "Documentation", href: "/documentation", icon: FileIcon },
-    { name: "Theme Designer", href: "/theme-designer", icon: Palette },
-  ];
 
   const sidebarClasses = [
     styles.sidebar,
@@ -52,6 +40,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
     isMobile ? styles.mobileSidebar : "",
     isMobile && isOpen ? styles.sidebarExpanded : ""
   ].filter(Boolean).join(" ");
+
+  // Function to check if a link is active
+  const isLinkActive = (href: string) => {
+    if (href === "/") {
+      return currentPath === href;
+    }
+    // For hash links, check if they"re in the current URL
+    if (href.startsWith("/#")) {
+      return window.location.hash === href.substring(1);
+    }
+    // For other links, check if the path starts with the href
+    return currentPath.startsWith(href);
+  };
 
   return (
     <aside className={sidebarClasses}>
@@ -78,45 +79,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       <div className={styles.sidebarContent}>
-        <div className={styles.sidebarSection}>
-          <h3 className={styles.sidebarSectionTitle}>Main Navigation</h3>
-          <nav className={styles.sidebarNav}>
-            {mainNavigation.map((item) => (
-              <a
-                key={item.name}
-                href={item.href}
-                className={`${styles.sidebarLink} ${
-                  currentPath === item.href ? styles.sidebarLinkActive : ""
-                }`}
-              >
-                <span className={styles.sidebarIcon}>
-                  <item.icon size={18} />
-                </span>
-                <span className={styles.sidebarLabel}>{item.name}</span>
-              </a>
-            ))}
-          </nav>
-        </div>
-
-        <div className={styles.sidebarSection}>
-          <h3 className={styles.sidebarSectionTitle}>Resources</h3>
-          <nav className={styles.sidebarNav}>
-            {resources.map((item) => (
-              <a
-                key={item.name}
-                href={item.href}
-                className={`${styles.sidebarLink} ${
-                  currentPath === item.href ? styles.sidebarLinkActive : ""
-                }`}
-              >
-                <span className={styles.sidebarIcon}>
-                  <item.icon size={18} />
-                </span>
-                <span className={styles.sidebarLabel}>{item.name}</span>
-              </a>
-            ))}
-          </nav>
-        </div>
+        {DEFAULT_SIDEBAR_GROUPS.map((group) => (
+          <div key={group.title} className={styles.sidebarSection}>
+            <h3 className={styles.sidebarSectionTitle}>{group.title}</h3>
+            <nav className={styles.sidebarNav}>
+              {group.items.map((item) => (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  className={`${styles.sidebarLink} ${
+                    isLinkActive(item.href) ? styles.sidebarLinkActive : ""
+                  }`}
+                >
+                  <span className={styles.sidebarIcon}>
+                    {item.icon}
+                  </span>
+                  <span className={styles.sidebarLabel}>{item.label}</span>
+                </a>
+              ))}
+            </nav>
+          </div>
+        ))}
       </div>
     </aside>
   );

@@ -3,15 +3,8 @@ import { FC, useEffect, useState } from "react";
 import styles from "./header.module.css";
 import { Menu, Sun, Moon, Bug, Gamepad2 } from "lucide-react";
 import { HeaderProps, NavItem } from "./types";
+import { navItems } from "@/constants";
 
-const navItems: NavItem[] = [
-  { label: "Home", href: "/" },
-  { label: "Focus Areas", href: "/focus-areas" },
-  { label: "Portfolio", href: "/portfolio" },
-  { label: "Blog", href: "/blog" },
-  { label: "Projects", href: "/projects" },
-  { label: "Contact", href: "/contact" },
-];
 
 const Header: FC<HeaderProps> = ({
   onMenuClick,

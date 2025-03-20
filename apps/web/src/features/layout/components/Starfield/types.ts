@@ -1,5 +1,6 @@
 // components/Layout/Starfield/types.ts
 
+import { Variants } from "framer-motion";
 import React from "react";
 
 // Basic types
@@ -248,6 +249,7 @@ export interface GameState {
 }
 
 // Hero mode types
+// types.ts (in the hero feature folder)
 export interface HeroProps {
   title?: string;
   subtitle?: string;
@@ -260,6 +262,17 @@ export interface HeroProps {
     url: string;
   };
   isLoading?: boolean;
+  enableMouseTracking?: boolean; // Add this prop
+}
+
+export interface HeroAnimations {
+  container: Variants;
+  item: Variants;
+}
+
+export interface CtaConfig {
+  text: string;
+  href: string;
 }
 
 export interface ContainerBounds {

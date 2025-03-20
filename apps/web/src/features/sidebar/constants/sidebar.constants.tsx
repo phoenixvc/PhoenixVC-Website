@@ -1,5 +1,5 @@
 // features/sidebar/constants.ts
-import { Home, BookOpen, Palette, FileText, Code, Briefcase, Mail } from "lucide-react";
+import { Home, Info, BookOpen, Palette, FileText, Code, Briefcase, Mail, Target } from "lucide-react";
 import { SidebarGroup, SidebarItemGroup, SidebarItemLink } from "../types";
 
 // First, define the sidebar links with proper typing
@@ -15,6 +15,20 @@ export const SIDEBAR_LINKS: SidebarItemGroup[] = [
         label: "Home",
         icon: <Home size={20} />,
         href: "/",
+        active: false
+      },
+      {
+        type: "link",
+        label: "About",
+        icon: <Info size={20} />,
+        href: "/#about",
+        active: false
+      },
+      {
+        type: "link",
+        label: "Focus Areas",
+        icon: <Target size={20} />,
+        href: "/#focus-areas",
         active: false
       },
       {
