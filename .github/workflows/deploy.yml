@@ -392,6 +392,3 @@ jobs:
           author: ${{ needs.build_apps.outputs.web_app_author }}
           repository: ${{ needs.build_apps.outputs.web_app_repository }}
           pr_description: ${{ github.event.pull_request.body || 'N/A' }}
-
-          teams_token: ${{ secrets.TEAMS_TOKEN }}
-
