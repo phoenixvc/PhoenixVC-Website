@@ -41,12 +41,38 @@ runs:
       with:
         fetch-depth: 0
 
-    - name: Download Web App Artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: ${{ inputs.artifact-name }}
-        run-id: ${{ inputs.run-id }}
-        path: ${{ inputs.artifact-path }}
+    - name: Download Artifact via GitHub API
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      run: |
+        ARTIFACT_NAME="${{ inputs.artifact-name }}"
+        RUN_ID="${{ inputs.run-id }}"
+        OUTPUT_DIR="${{ inputs.artifact-path }}"
+    
+        mkdir -p "$OUTPUT_DIR"
+    
+        echo "Retrieving artifact download URL for '$ARTIFACT_NAME' from run ID '$RUN_ID'..."
+    
+        ARTIFACT_URL=$(curl -sSL -H "Accept: application/vnd.github.v3+json" \
+          -H "Authorization: Bearer $GITHUB_TOKEN" \
+          "https://api.github.com/repos/${{ github.repository }}/actions/runs/$RUN_ID/artifacts" | \
+          jq -r ".artifacts[] | select(.name==\"$ARTIFACT_NAME\") | .archive_download_url")
+    
+        if [ -z "$ARTIFACT_URL" ]; then
+          echo "❌ Artifact '$ARTIFACT_NAME' not found for run ID '$RUN_ID'."
+          exit 1
+        fi
+    
+        echo "Downloading artifact from URL: $ARTIFACT_URL"
+    
+        curl -sSL -H "Authorization: Bearer $GITHUB_TOKEN" -L "$ARTIFACT_URL" --output artifact.zip
+    
+        echo "Extracting artifact to '$OUTPUT_DIR'..."
+        unzip -q artifact.zip -d "$OUTPUT_DIR"
+        rm artifact.zip
+    
+        echo "✅ Artifact downloaded and extracted successfully."
 
     # Login to Azure
     - name: Azure Login
