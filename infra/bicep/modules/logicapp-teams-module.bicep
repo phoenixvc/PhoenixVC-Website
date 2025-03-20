@@ -29,7 +29,10 @@ var logicAppDefinitionText = '''
             "title": { "type": "string" },
             "color": { "type": "string" },
             "deploymentUrl": { "type": "string" },
-            "approvalUrl": { "type": "string" },
+            "approvalLogicAppUrl": { "type": "string" },
+            "deploymentId": { "type": "string" },
+            "artifactId": { "type": "string" },
+            "runId": { "type": "string" },
             "rollbackUrl": { "type": "string" },
             "version": { "type": "string" },
             "author": { "type": "string" },
@@ -43,7 +46,11 @@ var logicAppDefinitionText = '''
             "environment",
             "branch",
             "message",
-            "deploymentUrl"
+            "deploymentUrl",
+            "approvalLogicAppUrl",
+            "deploymentId",
+            "artifactId",
+            "runId"
           ]
         }
       }
@@ -121,15 +128,19 @@ var logicAppDefinitionText = '''
               ]
             },
             {
-              "@@type": "OpenUri",
-              "name": "Approve Production",
-              "targets": [
-                {
-                  "os": "default",
-                  "uri": "@{coalesce(triggerBody()?['approvalUrl'], '')}"
-                }
-              ],
-              "when": "@{not(empty(triggerBody()?['approvalUrl']))}"
+              "@@type": "HttpPOST",
+              "name": "Approve Production Deployment",
+              "target": "@{triggerBody()?['approvalLogicAppUrl']}",
+              "headers": {
+                "Content-Type": "application/json"
+              },
+              "body": {
+                "deploymentId": "@{triggerBody()?['deploymentId']}",
+                "artifactId": "@{triggerBody()?['artifactId']}",
+                "runId": "@{triggerBody()?['runId']}",
+                "approver": "@{triggerBody()?['author']}",
+                "teamsWebhookUrl": "@{triggerBody()?['teamsWebhookUrl']}"
+              }
             },
             {
               "@@type": "OpenUri",
@@ -145,6 +156,22 @@ var logicAppDefinitionText = '''
         }
       },
       "runAfter": {}
+    },
+    "Return_Response": {
+      "type": "Response",
+      "kind": "Http",
+      "inputs": {
+        "statusCode": 200,
+        "body": {
+          "message": "Teams notification sent successfully"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      },
+      "runAfter": {
+        "Post_to_Teams": ["Succeeded"]
+      }
     }
   },
   "outputs": {}
@@ -165,3 +192,4 @@ resource logicApp 'Microsoft.Logic/workflows@2019-05-01' = {
 
 output logicAppId string = logicApp.id
 output logicAppName string = logicApp.name
+output logicAppUrl string = '${logicApp.properties.accessEndpoint}triggers/manual/invoke?api-version=2020-05-01-preview'
