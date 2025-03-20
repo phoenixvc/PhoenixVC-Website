@@ -87,14 +87,14 @@ runs:
         echo "::add-mask::$TOKEN"
         echo "deployment_token=$TOKEN" >> $GITHUB_OUTPUT
 
-    - name: Generate Deployment ID
-      id: generate_deployment_id
-      shell: bash
+    - name: Get Deployment Information
+      id: get_deployment_info
       run: |
-        TIMESTAMP=$(date +%Y%m%d%H%M%S)
-        DEPLOYMENT_ID="${{ github.run_id }}-${{ inputs.env }}-${TIMESTAMP}"
-        echo "id=${DEPLOYMENT_ID}" >> $GITHUB_OUTPUT
-        echo "Generated deployment ID: ${DEPLOYMENT_ID}"
+        echo "deployment_id=${{ github.event.inputs.deploymentId }}" >> $GITHUB_OUTPUT
+        echo "artifact_id=${{ github.event.inputs.artifactId }}" >> $GITHUB_OUTPUT
+        echo "run_id=${{ github.event.inputs.runID }}" >> $GITHUB_OUTPUT
+        echo "commit_sha=${{ github.sha }}" >> $GITHUB_OUTPUT
+        echo "timestamp=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
 
     - name: Deploy to Azure Static Web Apps
       id: deploy
