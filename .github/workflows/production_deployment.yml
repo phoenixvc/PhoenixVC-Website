@@ -64,13 +64,20 @@ jobs:
           repository: JustAGhosT/PhoenixVC-Modernized
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-
+          
+      - name: Debug Available Artifacts
+        run: gh run list -R JustAGhosT/PhoenixVC-Modernized --limit 10
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
       - name: Download Artifact
         uses: actions/download-artifact@v4
         with:
           name: ${{ github.event.inputs.artifactId }}
           run-id: ${{ github.event.inputs.runId }}
           path: apps/web/dist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
