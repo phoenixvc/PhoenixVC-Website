@@ -42,7 +42,6 @@ jobs:
             echo "Invalid artifact ID format"
             exit 1
           fi
-
           echo "passed=true" >> $GITHUB_OUTPUT
 
   deploy_to_production:
@@ -64,21 +63,28 @@ jobs:
           repository: JustAGhosT/PhoenixVC-Modernized
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-          
+
       - name: Debug Available Artifacts
-        run: gh run list -R JustAGhosT/PhoenixVC-Modernized --limit 30
+        run: |
+          echo "🔍 Listing artifacts for run ID: ${{ github.event.inputs.runID }}"
+          gh api repos/JustAGhosT/PhoenixVC-Modernized/actions/runs/${{ github.event.inputs.runID }}/artifacts --jq ".artifacts[].name"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    
-      - name: Download Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ github.event.inputs.artifactId }}
-          run-id: "${{ github.event.inputs.runID }}"
-          repository: JustAGhosT/PhoenixVC-Modernized
-          path: apps/web/dist
+
+      - name: Download Artifact via GitHub CLI
+        run: |
+          echo "⬇️ Downloading artifact: ${{ github.event.inputs.artifactId }}"
+          gh run download ${{ github.event.inputs.runID }} \
+            --repo JustAGhosT/PhoenixVC-Modernized \
+            --name ${{ github.event.inputs.artifactId }} \
+            --dir apps/web/dist
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify Downloaded Artifact
+        run: |
+          echo "🔍 Checking downloaded files..."
+          ls -lh apps/web/dist
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
