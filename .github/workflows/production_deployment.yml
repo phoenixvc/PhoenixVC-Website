@@ -9,9 +9,6 @@ on:
       artifactId:
         description: 'Artifact ID to deploy to production'
         required: true
-      runId:
-        description: 'Run ID of the staging deployment'
-        required: true
       token:
         description: 'Encoded approval token'
         required: true
@@ -66,7 +63,7 @@ jobs:
           fetch-depth: 0
 
       - name: Download Artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ github.event.inputs.artifactId }}
           path: ./dist
