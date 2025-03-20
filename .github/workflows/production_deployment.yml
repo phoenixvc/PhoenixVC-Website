@@ -132,19 +132,25 @@ jobs:
 
       - name: Verify SWA Deployment
         run: |
+          URL="${{ needs.swa_deploy_production.outputs.production_url }}"
+          if [[ -z "$URL" ]]; then
+            echo "❌ URL is empty. Check your SWA deploy action outputs."
+            exit 1
+          fi
+      
           MAX_RETRIES=10
           COUNT=0
           while [ $COUNT -lt $MAX_RETRIES ]; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ steps.deploy_production_resources.outputs.staticSiteUrl }}")
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL")
             if [ "$STATUS" == "200" ]; then
-              echo "✅ SWA deployment verified successfully!"
+              echo "✅ SWA deployment verified successfully at $URL!"
               exit 0
             fi
-            echo "Waiting for deployment to be available... (Attempt $COUNT/$MAX_RETRIES)"
+            echo "⏳ Waiting for deployment at $URL... (Attempt $COUNT/$MAX_RETRIES)"
             sleep 30
             COUNT=$((COUNT+1))
           done
-          echo "❌ SWA deployment verification failed after $MAX_RETRIES attempts"
+          echo "❌ SWA deployment verification failed at $URL after $MAX_RETRIES attempts"
           exit 1
 
       - name: Record Version
