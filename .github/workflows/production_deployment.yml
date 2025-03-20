@@ -74,7 +74,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ github.event.inputs.artifactId }}
-          run-id: ${{ github.event.inputs.runId }}
+          run-id: ${{ github.event.inputs.runID }}
           path: apps/web/dist
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
