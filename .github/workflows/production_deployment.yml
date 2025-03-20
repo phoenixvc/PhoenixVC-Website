@@ -70,7 +70,7 @@ jobs:
         with:
           name: ${{ github.event.inputs.artifactId }}
           run-id: ${{ github.event.inputs.runId }}
-          path: ./dist
+          path: apps/web/dist
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
