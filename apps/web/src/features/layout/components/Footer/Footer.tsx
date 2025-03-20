@@ -1,7 +1,5 @@
-// components/Layout/Footer/Footer.tsx
 import React from "react";
 import { motion } from "framer-motion";
-import Logo from "@/components/ui/Logo";
 import { SOCIAL_LINKS } from "../../constants";
 import { containerVariants, itemVariants } from "../../animations";
 import styles from "./footer.module.css";
@@ -26,7 +24,8 @@ export const Footer: React.FC<FooterProps> = ({ isDarkMode = true }) => {
           {/* Logo and company description */}
           <motion.div className={styles.logoSection} variants={itemVariants}>
             <div className={styles.logoWrapper}>
-              <Logo />
+              {/* Using styled text to match header */}
+              <span className={styles.logoText}>Phoenix VC</span>
             </div>
             <p className={styles.description}>
               Empowering visionary entrepreneurs and innovative startups to shape the future of technology.
@@ -42,6 +41,7 @@ export const Footer: React.FC<FooterProps> = ({ isDarkMode = true }) => {
                   variants={itemVariants}
                   whileHover={{ scale: 1.1 }}
                   aria-label={link.label}
+                  title={link.label}
                 >
                   <span className={styles.iconWrapper}>
                     {link.icon || link.label.charAt(0)}
@@ -65,7 +65,7 @@ export const Footer: React.FC<FooterProps> = ({ isDarkMode = true }) => {
             </ul>
           </motion.div>
 
-          {/* Resources section - Similar to sidebar resources */}
+          {/* Resources section - With Substack added */}
           <motion.div variants={itemVariants} className={styles.linksSection}>
             <h4 className={styles.sectionTitle}>Resources</h4>
             <ul className={styles.linkList}>
@@ -74,6 +74,16 @@ export const Footer: React.FC<FooterProps> = ({ isDarkMode = true }) => {
               </motion.li>
               <motion.li variants={itemVariants}>
                 <a href="/theme-designer" className={styles.link}>Theme Designer</a>
+              </motion.li>
+              <motion.li variants={itemVariants}>
+                <a
+                  href="https://ebenmare.substack.com/"
+                  className={styles.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Newsletter
+                </a>
               </motion.li>
             </ul>
           </motion.div>

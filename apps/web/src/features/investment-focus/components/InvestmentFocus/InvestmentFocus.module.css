@@ -1,4 +1,4 @@
-/* InvestmentFocus.module.css - IMPROVED */
+/* InvestmentFocus.module.css - REFINED */
 
 /* Base section styling */
 .section {
@@ -17,7 +17,7 @@
   z-index: 1;
 }
 
-/* Add subtle section dividers for dark mode */
+/* Add subtle section dividers for dark mode - reduced glow */
 .section.darkMode::before,
 .section.darkMode::after {
   content: '';
@@ -25,7 +25,8 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(157, 78, 221, 0.3), transparent);
+  background: linear-gradient(90deg, transparent, rgba(157, 78, 221, 0.25), transparent);
+  box-shadow: 0 0 10px rgba(157, 78, 221, 0.2);
 }
 
 .section.darkMode::before {
@@ -62,7 +63,7 @@
   bottom: 0;
 }
 
-/* Focus Areas heading styling - enhanced */
+/* Focus Areas heading styling - enhanced but less pink */
 .heading {
   position: relative;
   font-size: 2.75rem;
@@ -76,14 +77,39 @@
   transition: transform 0.3s ease;
 }
 
-/* Dark mode heading - brighter gradient */
+/* Dark mode heading - more subtle lavender to white gradient */
 .darkMode .heading {
   background-image: linear-gradient(
     to right,
-    #d8a3ff,
-    #f0ccff
+    #c8b6e2,
+    #f8f8ff
   );
-  text-shadow: 0 2px 10px rgba(216, 163, 255, 0.5);
+  text-shadow: 0 2px 10px rgba(200, 182, 226, 0.4);
+  letter-spacing: 0.02em;
+}
+
+/* Add subtle animation to heading in dark mode - reduced intensity */
+.darkMode .heading::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 30%;
+  right: 30%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(200, 182, 226, 0.4), transparent);
+  box-shadow: 0 0 8px rgba(200, 182, 226, 0.3);
+  animation: pulseGlow 4s infinite alternate;
+}
+
+@keyframes pulseGlow {
+  0% {
+    opacity: 0.4;
+    transform: scaleX(0.8);
+  }
+  100% {
+    opacity: 0.7;
+    transform: scaleX(1);
+  }
 }
 
 /* Light mode heading */
@@ -106,7 +132,7 @@
   z-index: 2;
 }
 
-/* Add subtle cosmic dust effect behind the grid in dark mode */
+/* Add more subtle cosmic dust effect behind the grid in dark mode */
 .darkMode .grid::before {
   content: '';
   position: absolute;
@@ -114,10 +140,47 @@
   left: -20px;
   right: -20px;
   bottom: -20px;
-  background-image: radial-gradient(circle at 30% 40%, rgba(157, 78, 221, 0.08) 0%, transparent 70%),
-                    radial-gradient(circle at 70% 60%, rgba(199, 125, 255, 0.08) 0%, transparent 70%);
-  filter: blur(30px);
+  background-image:
+    radial-gradient(circle at 30% 40%, rgba(157, 78, 221, 0.08) 0%, transparent 70%),
+    radial-gradient(circle at 70% 60%, rgba(199, 125, 255, 0.08) 0%, transparent 70%),
+    radial-gradient(circle at 50% 50%, rgba(224, 170, 255, 0.05) 0%, transparent 80%);
+  filter: blur(35px);
   z-index: -1;
+}
+
+/* Add subtle floating animation to grid in dark mode */
+.darkMode .grid {
+  animation: floatEffect 18s ease-in-out infinite;
+}
+
+@keyframes floatEffect {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+/* Add section description styling for better context */
+.description {
+  max-width: 800px;
+  margin: 0 auto 3rem;
+  font-size: 1.1rem;
+  line-height: 1.7;
+  position: relative;
+  z-index: 1;
+}
+
+/* Dark mode description styling - less shadow */
+.darkMode .description {
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* Light mode description styling */
+.lightMode .description {
+  color: rgba(40, 40, 60, 0.95);
 }
 
 /* Responsive grid adjustments */
@@ -131,4 +194,21 @@
   .grid {
     grid-template-columns: repeat(3, 1fr);
   }
+
+  /* Enhanced heading size for larger screens */
+  .heading {
+    font-size: 3rem;
+  }
+}
+
+/* Add subtle hover effect to the entire section */
+.section:hover .darkMode .heading {
+  text-shadow: 0 2px 12px rgba(200, 182, 226, 0.5);
+}
+
+/* Add focus effect for accessibility */
+.section:focus-within .grid {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(157, 78, 221, 0.3);
+  border-radius: 8px;
 }

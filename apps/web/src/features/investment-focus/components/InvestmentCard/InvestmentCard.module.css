@@ -210,7 +210,7 @@
   height: 32px;
 }
 
-/* Card title */
+/* Card title - ENHANCED for better visibility */
 .title {
   font-size: 1.5rem;
   font-weight: 700;
@@ -222,44 +222,60 @@
   -webkit-text-fill-color: transparent;
 }
 
-/* Dark mode title styling - brighter gradient */
+/* Dark mode title styling - brighter gradient with enhanced visibility */
 .card.darkMode .title {
   background-image: linear-gradient(
     to right,
-    #d8a3ff,
-    #f0ccff
+    #e0aaff,
+    #ffffff
   );
-  text-shadow: 0 0 10px rgba(216, 163, 255, 0.4);
+  text-shadow: 0 0 12px rgba(224, 170, 255, 0.5);
+  letter-spacing: 0.02em;
 }
 
-/* Light mode title styling */
+/* Light mode title styling - deeper purple for better contrast */
 .card.lightMode .title {
   background-image: linear-gradient(
     to right,
-    #5a189a,
+    #4a148c,
     #7b2cbf
   );
   text-shadow: 0 1px 3px rgba(90, 24, 154, 0.3);
 }
 
-/* Card description - improved readability */
+/* Card description - IMPROVED readability with enhanced contrast */
 .description {
-  font-size: 0.95rem;
-  line-height: 1.6;
+  font-size: 1rem;
+  line-height: 1.7;
   position: relative;
   z-index: 1;
   margin: 0;
   font-weight: 400;
-  letter-spacing: 0.015em;
+  letter-spacing: 0.02em;
 }
 
-/* Dark mode description styling - brighter for better readability */
+/* Dark mode description styling - significantly improved visibility */
 .card.darkMode .description {
-  color: rgba(240, 240, 255, 0.9);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 
-/* Light mode description styling */
+/* Light mode description styling - deeper color for better contrast */
 .card.lightMode .description {
-  color: rgba(50, 50, 70, 0.95);
+  color: rgba(40, 40, 60, 0.95);
+}
+
+/* Hover effects for text - enhanced interaction */
+.card:hover .title {
+  transform: scale(1.02);
+  transition: transform 0.3s ease;
+}
+
+.card.darkMode:hover .description {
+  color: #ffffff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.card.lightMode:hover .description {
+  color: rgba(30, 30, 50, 1);
 }

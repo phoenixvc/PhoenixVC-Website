@@ -1,9 +1,9 @@
-import { ColorDefinition, ShadeLevel, Theme, ThemeColors, ThemeScheme, ThemeTypography, ThemeSpacing, ThemeBorders, ThemeShadows, ThemeBreakpoints, ThemeTransitions, ThemeZIndex, ThemeVariables, ComponentVariants, ThemeConfig, ColorShades } from "@/theme/types";
+import { ComponentVariants, Theme, ThemeBorders, ThemeBreakpoints, ThemeColors, ThemeConfig, ThemeScheme, ThemeShadows, ThemeSpacing, ThemeTransitions, ThemeTypography, ThemeVariables, ThemeZIndex } from "@/theme/types";
 import ColorUtils from "@/theme/utils/color-utils";
-import { defaultTheme } from "./defaultTheme";
 import { createColor, grayPalette, greenPalette, redPalette } from "./colors";
 import tealPalette from "./colors/teal";
 import yellowPalette from "./colors/yellow";
+import { defaultTheme } from "./default";
 
 // Type assertion for defaultTheme to make its properties accessible
 const typedDefaultTheme = defaultTheme as Omit<Theme, "colors"> & {

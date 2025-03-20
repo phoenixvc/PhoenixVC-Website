@@ -63,14 +63,16 @@
   text-decoration: none;
 }
 
-.logoText {
+.logoText,
+.header .logoText {
   font-size: 1.25rem;
   font-weight: 700;
-  background: linear-gradient(90deg, #fff 30%, #ff6b00 100%); /* Phoenix orange gradient */
+  background: linear-gradient(90deg, #e31bff 0%, #ff6b00 100%); /* Magenta to purple gradient */
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
-  text-shadow: 0 0 15px rgba(255, 107, 0, 0.3); /* Subtle glow effect */
+  text-shadow: 0 0 10px rgba(227, 27, 255, 0.3); /* Subtle glow effect */
+  letter-spacing: 0.5px;
 }
 
 .nav {
@@ -169,12 +171,13 @@
   background-color: rgba(147, 51, 234, 0.08); /* More subtle hover effect */
 }
 
-.lightMode .logoText {
-  background: linear-gradient(90deg, #13141f 30%, #ff6b00 100%);
+.lightMode .logoText,
+.header.lightMode .logoText {
+  background: linear-gradient(90deg, #e31bff 0%, #ff6b00 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  text-shadow: 0 0 15px rgba(255, 107, 0, 0.15); /* Reduced glow */
+  text-shadow: 0 0 8px rgba(227, 27, 255, 0.2); /* Reduced glow for light mode */
 }
 
 .lightMode .navLink {
@@ -366,7 +369,7 @@
   }
 
   .lightMode .logoText {
-    background: linear-gradient(90deg, #13141f 30%, #ff6b00 100%);
+    background: linear-gradient(90deg, #9333ea 30%, #ff6b00 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;

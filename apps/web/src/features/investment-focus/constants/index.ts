@@ -2,23 +2,23 @@ import { FocusArea } from "../types";
 
 export const FOCUS_AREAS: FocusArea[] = [
   {
-    title: "AI & Machine Learning",
-    description: "Supporting breakthrough innovations in artificial intelligence and machine learning applications.",
-    icon: "🤖"
-  },
-  {
     title: "Blockchain Technology",
     description: "Investing in decentralized solutions and Web3 infrastructure.",
-    icon: "⛓️"
+    icon: "🔗"
   },
   {
-    title: "Climate Tech",
-    description: "Backing sustainable solutions for a greener future.",
-    icon: "🌱"
+    title: "Fintech",
+    description: "Contributing to financial inclusion by supporting innovative solutions.",
+    icon: "💰"
   },
   {
-    title: "Healthcare Innovation",
-    description: "Advancing digital health and biotechnology solutions.",
-    icon: "🏥"
+    title: "AI & Machine Learning",
+    description: "Supporting breakthrough innovations in artificial intelligence and machine learning applications.",
+    icon: "🧠"
+  },
+  {
+    title: "ESG",
+    description: "Investing in a sustainable tomorrow.",
+    icon: "🌍"
   }
 ];

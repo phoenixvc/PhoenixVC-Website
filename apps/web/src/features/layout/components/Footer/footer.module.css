@@ -56,6 +56,27 @@
   gap: 3rem;
 }
 
+/* Updated logoText to match the header Phoenix VC style */
+.footer .logoText {
+  font-size: 1.25rem;
+  font-weight: 700;
+  background: linear-gradient(90deg, #e31bff 0%, #ff6b00 100%); /* Magenta to purple gradient */
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 10px rgba(227, 27, 255, 0.3); /* Subtle glow effect */
+  letter-spacing: 0.5px;
+}
+
+/* Light mode version - still using the same brand colors */
+.light .logoText {
+  background: linear-gradient(90deg, #e31bff 0%, #ff6b00 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 8px rgba(227, 27, 255, 0.2); /* Reduced glow for light mode */
+}
+
 @media (min-width: 768px) {
   .gridContainer {
     grid-template-columns: 2fr 1fr 1fr;
@@ -74,6 +95,7 @@
   position: relative;
 }
 
+/* Updated gradient to match the Phoenix VC brand colors */
 .logoWrapper::after {
   content: '';
   position: absolute;
@@ -81,7 +103,7 @@
   left: 0;
   width: 40px;
   height: 2px;
-  background: linear-gradient(90deg, #9333ea, #ff6b00);
+  background: linear-gradient(90deg, #e31bff, #ff6b00);
   border-radius: 1px;
 }
 
@@ -103,6 +125,7 @@
   margin-top: 0.5rem;
 }
 
+/* Updated social icon background to match brand colors */
 .socialIcon {
   width: 36px;
   height: 36px;
@@ -110,26 +133,26 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(138, 43, 226, 0.15);
+  background: rgba(227, 27, 255, 0.15);
   color: rgba(255, 255, 255, 0.9);
   transition: all 0.3s ease;
   text-decoration: none;
 }
 
 .light .socialIcon {
-  background: rgba(138, 43, 226, 0.1);
+  background: rgba(227, 27, 255, 0.1);
   color: rgba(13, 14, 30, 0.8);
 }
 
 .socialIcon:hover {
-  background: rgba(138, 43, 226, 0.3);
+  background: rgba(227, 27, 255, 0.3);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(138, 43, 226, 0.25);
+  box-shadow: 0 4px 12px rgba(227, 27, 255, 0.25);
 }
 
 .light .socialIcon:hover {
-  background: rgba(138, 43, 226, 0.2);
-  box-shadow: 0 4px 12px rgba(138, 43, 226, 0.15);
+  background: rgba(227, 27, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(227, 27, 255, 0.15);
 }
 
 .iconWrapper {
@@ -158,6 +181,7 @@
   color: rgba(13, 14, 30, 0.9);
 }
 
+/* Updated section title underline to match brand colors */
 .sectionTitle::after {
   content: '';
   position: absolute;
@@ -165,7 +189,7 @@
   left: 0;
   width: 24px;
   height: 2px;
-  background: linear-gradient(90deg, #9333ea, #ff6b00);
+  background: linear-gradient(90deg, #e31bff, #ff6b00);
   border-radius: 1px;
 }
 
@@ -201,6 +225,7 @@
   color: rgba(13, 14, 30, 0.95);
 }
 
+/* Updated link hover effect to match brand colors */
 .link::before {
   content: '';
   position: absolute;
@@ -208,7 +233,7 @@
   top: 50%;
   width: 0;
   height: 1px;
-  background: linear-gradient(90deg, #9333ea, #ff6b00);
+  background: linear-gradient(90deg, #e31bff, #ff6b00);
   transition: all 0.2s ease;
   opacity: 0;
   transform: translateY(-50%);
