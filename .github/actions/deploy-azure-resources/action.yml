@@ -66,9 +66,27 @@ runs:
       run: chmod +x ./scripts/deployment/deploy.sh
 
     - name: Run Resource Deployment Script
+      id: deploy
       shell: bash
       run: |
         bash -x ./scripts/deployment/deploy.sh --env ${{ inputs.environment }}
+    
+        # Explicitly retrieve the Static Web App URL after deployment
+        STATIC_SITE_URL=$(az staticwebapp show \
+          --name "${{ inputs.environment }}-${{ inputs.location_code }}-swa-phoenixvc-website" \
+          --resource-group "${{ inputs.environment }}-${{ inputs.location_code }}-rg-phoenixvc-website" \
+          --query "defaultHostname" \
+          --output tsv)
+    
+        if [[ -n "$STATIC_SITE_URL" ]]; then
+          FULL_URL="https://$STATIC_SITE_URL"
+          echo "✅ Static Web App URL: $FULL_URL"
+          echo "staticSiteUrl=$FULL_URL" >> "$GITHUB_OUTPUT"
+        else
+          echo "❌ Failed to retrieve Static Web App URL."
+          echo "staticSiteUrl=" >> "$GITHUB_OUTPUT"
+          exit 1
+        fi
       env:
         ENVIRONMENT: ${{ inputs.environment }}
         RG_NAME: ${{ inputs.environment }}-${{ inputs.location_code }}-rg-phoenixvc-website
