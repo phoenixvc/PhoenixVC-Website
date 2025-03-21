@@ -21,10 +21,17 @@ export interface FooterProps {
   colorScheme?: ThemeName;
 }
 
+// features/layout/types.ts
 export interface MobileMenuProps {
   isOpen: boolean;
   onClose: () => void;
-  colorScheme?: ThemeName;
+  navItems: {
+    path: string;
+    label: string;
+    style?: string; // Make it accept any string
+  }[];
+  className?: string;
+  isDarkMode: boolean;
 }
 
 export interface NavigationProps {

@@ -704,7 +704,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
         ...prev,
         x: x,
         y: y,
-        isClicked: true,
+        isClicked: false,
         clickTime: Date.now()
       }));
       console.log("Mouse position state updated for click");

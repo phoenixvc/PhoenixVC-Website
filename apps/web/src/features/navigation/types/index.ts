@@ -96,13 +96,13 @@ export interface ExtendedNavLinkProps extends Omit<NavigationItemProps, "icon"> 
 /**
  * Props for the MobileMenu component
  */
-export interface MobileMenuProps extends NavigationProps {
-    /** Whether the mobile menu is currently open */
+interface MobileMenuProps {
     isOpen: boolean;
-    /** Handler for closing the mobile menu */
     onClose: () => void;
-    /** Whether to show the mobile indicator */
-    isMobile?: boolean;
-    /** Optional style properties */
-    style?: React.CSSProperties;
-}
+    navItems: {
+      path: string;
+      label: string;
+    }[];
+    className?: string;
+  }
+

@@ -5,6 +5,7 @@ import { Menu, Sun, Moon, Bug, Gamepad2, ChevronDown, User, Palette } from "luci
 import { HeaderProps } from "./types";
 import { navItems } from "@/constants/navigation";
 import { useTheme } from "@/theme";
+import MobileMenu from "@/features/navigation/components/MobileMenu/MobileMenu";
 
 const Header: FC<HeaderProps> = ({
   onMenuClick,
@@ -20,8 +21,10 @@ const Header: FC<HeaderProps> = ({
   const [activePath, setActivePath] = useState("");
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const { themeName, setThemeName } = useTheme();
+  const currentPath = typeof window !== "undefined" ? window.location.pathname : "";
 
   // Available themes with "coming soon" labels
   const availableThemes = [
@@ -100,143 +103,185 @@ const Header: FC<HeaderProps> = ({
     setProfileMenuOpen(false);
   };
 
+  // Handle mobile menu toggle
+  const handleMobileMenuToggle = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  const mobileMenuItems = navItems.map(item => {
+    type ButtonStyle = "default" | "primary" | "secondary";
+    let buttonStyle: ButtonStyle = "default";
+
+    if (item.label === "Get in Touch") {
+      buttonStyle = "primary";
+    } else if (item.label === "Our Focus Areas") {
+      buttonStyle = "secondary";
+    }
+
+    return {
+      path: item.href,
+      label: item.label,
+      style: buttonStyle
+    };
+  });
+
   return (
-    <header
-      className={`${styles.header} ${
-        scrolled ? styles.headerScrolled : ""
-      } ${!isDarkMode ? styles.lightMode : ""}`}
-    >
-      <div className={styles.headerContainer}>
-        <div className={styles.headerLeft}>
-          {(window.innerWidth < 768 || !isSidebarCollapsed) && (
-            <button
-              className={styles.menuButton}
-              onClick={onMenuClick}
-              aria-label="Toggle sidebar"
-            >
-              <Menu size={20} />
-            </button>
-          )}
-
-          {(window.innerWidth < 768 || isSidebarCollapsed) && (
-            <a href="/" className={styles.logoContainer}>
-              <span className={styles.logoText}>Phoenix VC</span>
-            </a>
-          )}
-        </div>
-
-        <nav className={styles.nav}>
-          <ul className={styles.navList}>
-            {navItems.map((item) => (
-              <li key={item.href} className={styles.navItem}>
-                <a
-                  href={item.href}
-                  className={`${styles.navLink} ${
-                    isNavItemActive(item.href) ? styles.activeNavLink : ""
-                  }`}
+    <>
+      <header
+        className={`${styles.header} ${
+          scrolled ? styles.headerScrolled : ""
+        } ${!isDarkMode ? styles.lightMode : ""}`}
+      >
+        <div className={styles.headerContainer}>
+          <div className={styles.headerLeft}>
+            {window.innerWidth < 768 ? (
+              <button
+                className={styles.menuButton}
+                onClick={handleMobileMenuToggle}
+                aria-label="Toggle mobile menu"
+              >
+                <Menu size={20} />
+              </button>
+            ) : (
+              !isSidebarCollapsed && (
+                <button
+                  className={styles.menuButton}
+                  onClick={onMenuClick}
+                  aria-label="Toggle sidebar"
                 >
-                  {item.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
+                  <Menu size={20} />
+                </button>
+              )
+            )}
 
-        <div className={styles.headerControls}>
-          {onGameModeToggle && (
-            <button
-              className={`${styles.controlButton} ${
-                gameMode ? styles.activeControl : ""
-              }`}
-              onClick={onGameModeToggle}
-              aria-label="Toggle game mode"
-              title={gameMode ? "Disable Game Mode" : "Enable Game Mode"}
-            >
-              <Gamepad2 size={18} />
-            </button>
-          )}
-
-          {onDebugModeToggle && (
-            <button
-              className={`${styles.controlButton} ${
-                debugMode ? styles.activeControl : ""
-              }`}
-              onClick={onDebugModeToggle}
-              aria-label="Toggle debug mode"
-              title={debugMode ? "Disable Debug Mode" : "Enable Debug Mode"}
-            >
-              <Bug size={18} />
-            </button>
-          )}
-
-          <button
-            className={styles.themeToggleButton}
-            onClick={onThemeToggle}
-            aria-label="Toggle theme"
-            title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-          >
-            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
-
-          {/* Profile Button with Gradient Background and Icon */}
-          <div className={styles.profileMenuContainer} ref={profileMenuRef}>
-            <button
-              className={`${styles.profileButton} ${profileMenuOpen ? styles.active : ""}`}
-              onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-              aria-label="Profile menu"
-            >
-              <div className={styles.profileImageContainer}>
-                <div className={styles.profileImage}>
-                  <User size={16} className={styles.profileUserIcon} />
-                </div>
-              </div>
-              <ChevronDown size={16} className={`${styles.dropdownIcon} ${profileMenuOpen ? styles.open : ""}`} />
-            </button>
-
-            {/* Profile Dropdown Menu */}
-            {profileMenuOpen && (
-              <div className={styles.profileDropdown}>
-                <div className={styles.profileHeader}>
-                  <div className={styles.profileImageLarge}>
-                    <User size={24} className={styles.profileUserIconLarge} />
-                  </div>
-                  <div className={styles.profileInfo}>
-                    <div className={styles.profileName}>Guest User</div>
-                    <div className={styles.profileEmail}>guest@example.com</div>
-                  </div>
-                </div>
-
-                <div className={styles.dropdownDivider}></div>
-
-                {/* Theme Selection Option */}
-                <div className={styles.dropdownItem} onClick={() => setThemeMenuOpen(!themeMenuOpen)}>
-                  <Palette size={18} className={styles.dropdownItemIcon} />
-                  <span>Theme Selection</span>
-                  <ChevronDown size={16} className={`${styles.dropdownItemChevron} ${themeMenuOpen ? styles.open : ""}`} />
-                </div>
-
-                {/* Theme Selection Submenu */}
-                {themeMenuOpen && (
-                  <div className={styles.themeSubmenu}>
-                    {availableThemes.map(theme => (
-                      <div
-                        key={theme.id}
-                        className={`${styles.themeOption} ${themeName === theme.id ? styles.activeTheme : ""}`}
-                        onClick={() => !theme.comingSoon && handleThemeSelect(theme.id)}
-                      >
-                        <div className={styles.themeColorIndicator} data-theme={theme.id}></div>
-                        <span>{theme.name}</span>
-                        {theme.comingSoon && <span className={styles.comingSoonBadge}>Coming Soon</span>}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+            {(window.innerWidth < 768 || isSidebarCollapsed) && (
+              <a href="/" className={styles.logoContainer}>
+                <span className={styles.logoText}>Phoenix VC</span>
+              </a>
             )}
           </div>
+
+          <nav className={styles.nav}>
+            <ul className={styles.navList}>
+              {navItems.map((item) => (
+                <li key={item.href} className={styles.navItem}>
+                  <a
+                    href={item.href}
+                    className={`${styles.navLink} ${
+                      isNavItemActive(item.href) ? styles.activeNavLink : ""
+                    }`}
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <div className={styles.headerControls}>
+            {onGameModeToggle && (
+              <button
+                className={`${styles.controlButton} ${
+                  gameMode ? styles.activeControl : ""
+                }`}
+                onClick={onGameModeToggle}
+                aria-label="Toggle game mode"
+                title={gameMode ? "Disable Game Mode" : "Enable Game Mode"}
+              >
+                <Gamepad2 size={18} />
+              </button>
+            )}
+
+            {onDebugModeToggle && (
+              <button
+                className={`${styles.controlButton} ${
+                  debugMode ? styles.activeControl : ""
+                }`}
+                onClick={onDebugModeToggle}
+                aria-label="Toggle debug mode"
+                title={debugMode ? "Disable Debug Mode" : "Enable Debug Mode"}
+              >
+                <Bug size={18} />
+              </button>
+            )}
+
+            <button
+              className={styles.themeToggleButton}
+              onClick={onThemeToggle}
+              aria-label="Toggle theme"
+              title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            >
+              {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+
+            {/* Profile Button with Gradient Background and Icon */}
+            <div className={styles.profileMenuContainer} ref={profileMenuRef}>
+              <button
+                className={`${styles.profileButton} ${profileMenuOpen ? styles.active : ""}`}
+                onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+                aria-label="Profile menu"
+              >
+                <div className={styles.profileImageContainer}>
+                  <div className={styles.profileImage}>
+                    <User size={16} className={styles.profileUserIcon} />
+                  </div>
+                </div>
+                <ChevronDown size={16} className={`${styles.dropdownIcon} ${profileMenuOpen ? styles.open : ""}`} />
+              </button>
+
+              {/* Profile Dropdown Menu */}
+              {profileMenuOpen && (
+                <div className={styles.profileDropdown}>
+                  <div className={styles.profileHeader}>
+                    <div className={styles.profileImageLarge}>
+                      <User size={24} className={styles.profileUserIconLarge} />
+                    </div>
+                    <div className={styles.profileInfo}>
+                      <div className={styles.profileName}>Guest User</div>
+                      <div className={styles.profileEmail}>guest@example.com</div>
+                    </div>
+                  </div>
+
+                  <div className={styles.dropdownDivider}></div>
+
+                  {/* Theme Selection Option */}
+                  <div className={styles.dropdownItem} onClick={() => setThemeMenuOpen(!themeMenuOpen)}>
+                    <Palette size={18} className={styles.dropdownItemIcon} />
+                    <span>Theme Selection</span>
+                    <ChevronDown size={16} className={`${styles.dropdownItemChevron} ${themeMenuOpen ? styles.open : ""}`} />
+                  </div>
+
+                  {/* Theme Selection Submenu */}
+                  {themeMenuOpen && (
+                    <div className={styles.themeSubmenu}>
+                      {availableThemes.map(theme => (
+                        <div
+                          key={theme.id}
+                          className={`${styles.themeOption} ${themeName === theme.id ? styles.activeTheme : ""}`}
+                          onClick={() => !theme.comingSoon && handleThemeSelect(theme.id)}
+                        >
+                          <div className={styles.themeColorIndicator} data-theme={theme.id}></div>
+                          <span>{theme.name}</span>
+                          {theme.comingSoon && <span className={styles.comingSoonBadge}>Coming Soon</span>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      <MobileMenu
+        isOpen={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+        navItems={mobileMenuItems}
+        isDarkMode={isDarkMode}
+        className={isDarkMode ? styles.darkMobileMenu : styles.lightMobileMenu}
+      />
+    </>
   );
 };
 
