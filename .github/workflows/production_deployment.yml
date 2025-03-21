@@ -262,38 +262,53 @@ jobs:
           STATIC_WEB_APP_NAME="prod-${{ env.LOCATION_CODE }}-swa-phoenixvc-website"
           DOMAIN="phoenixvc.tech"
   
-          echo "Linking custom domain: $DOMAIN"
+          echo "Checking domain status for $DOMAIN..."
   
-          # Set Custom Domain using correct validation method
-          az staticwebapp hostname set \
+          DOMAIN_STATUS=$(az staticwebapp hostname show \
             --resource-group "$RESOURCE_GROUP" \
             --name "$STATIC_WEB_APP_NAME" \
             --hostname "$DOMAIN" \
-            --validation-method dns-txt-token
+            --query "status" -o tsv)
   
-          echo "Fetching validation token for DNS"
+          echo "Domain status: $DOMAIN_STATUS"
   
-          # Fetch Validation Token
-          VALIDATION_TOKEN=$(az staticwebapp hostname show \
-            --resource-group "$RESOURCE_GROUP" \
-            --name "$STATIC_WEB_APP_NAME" \
-            --hostname "$DOMAIN" \
-            --query "validationToken" -o tsv)
+          if [[ "$DOMAIN_STATUS" != "Ready" ]]; then
+            echo "Linking custom domain: $DOMAIN"
   
-          echo "Validation token retrieved: $VALIDATION_TOKEN"
+            az staticwebapp hostname set \
+              --resource-group "$RESOURCE_GROUP" \
+              --name "$STATIC_WEB_APP_NAME" \
+              --hostname "$DOMAIN" \
+              --validation-method dns-txt-token
   
-          echo "Adding TXT record for domain validation"
+            echo "Fetching validation token..."
+            sleep 30  # Wait briefly for token availability
   
-          # Add TXT Record for validation
-          az network dns record-set txt add-record \
-            --resource-group "$RESOURCE_GROUP" \
-            --zone-name "$DOMAIN" \
-            --record-set-name "asuid" \
-            --value "$VALIDATION_TOKEN"
+            VALIDATION_TOKEN=$(az staticwebapp hostname show \
+              --resource-group "$RESOURCE_GROUP" \
+              --name "$STATIC_WEB_APP_NAME" \
+              --hostname "$DOMAIN" \
+              --query "validationToken" -o tsv)
   
-          echo "Adding CNAME record to Azure Static Web App"
+            if [[ -z "$VALIDATION_TOKEN" ]]; then
+              echo "❌ Validation token retrieval failed."
+              exit 1
+            fi
   
-          # Add CNAME Record to point root domain to SWA
+            echo "Adding TXT record for domain validation"
+            az network dns record-set txt add-record \
+              --resource-group "$RESOURCE_GROUP" \
+              --zone-name "$DOMAIN" \
+              --record-set-name "asuid" \
+              --value "$VALIDATION_TOKEN"
+  
+            echo "✅ TXT record created successfully."
+          else
+            echo "✅ Domain already verified. Skipping TXT validation."
+          fi
+  
+          echo "Adding or updating CNAME record..."
+  
           DEFAULT_HOSTNAME=$(az staticwebapp show \
             --resource-group "$RESOURCE_GROUP" \
             --name "$STATIC_WEB_APP_NAME" \
