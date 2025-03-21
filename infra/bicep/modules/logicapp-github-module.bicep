@@ -18,13 +18,13 @@ param tags object = {}
 //      keyVault: { id: keyVaultId }
 //      secretName: 'githubToken'
 //    }
-@description('Tags for the Logic App')
+@description('GitHub Personal Access Token')
+@secure()
 param githubToken string
 
 //
 // Inline definition for the new Logic App (workflow)
-// This Logic App receives the Teams adaptive card response along with an encoded GitHub token,
-// then invokes the GitHub workflow dispatch endpoint after decoding the token.
+// This Logic App receives POST requests from Teams and triggers a GitHub workflow.
 //
 var logicAppDefinitionText = '''
 {
@@ -40,19 +40,13 @@ var logicAppDefinitionText = '''
       "type": "Request",
       "kind": "Http",
       "inputs": {
+        "method": "POST",
         "schema": {
           "type": "object",
           "properties": {
-            "gitRepository": { "type": "string" },
-            "workflowId": { "type": "string" },
-            "ref": { "type": "string" },
-            "inputs": { "type": "object" },
-            "cardResponse": { "type": "string" },
-            "encodedGitHubToken": { "type": "string" },
             "deploymentId": { "type": "string" },
             "artifactId": { "type": "string" },
             "runId": { "type": "string" },
-            "environment": { "type": "string" },
             "approver": { "type": "string" },
             "teamsWebhookUrl": { "type": "string" }
           },
@@ -60,12 +54,7 @@ var logicAppDefinitionText = '''
             "deploymentId",
             "artifactId",
             "runId",
-            "teamsWebhookUrl",
-            "gitRepository",
-            "workflowId",
-            "ref",
-            "cardResponse",
-            "encodedGitHubToken"
+            "teamsWebhookUrl"
           ]
         }
       }
@@ -81,7 +70,6 @@ var logicAppDefinitionText = '''
       "type": "Http",
       "inputs": {
         "method": "POST",
-        "uri": "https://api.github.com/repos/@{triggerBody()?['gitRepository']}/actions/workflows/@{triggerBody()?['workflowId']}/dispatches",
         "uri": "https://api.github.com/repos/JustAGhosT/PhoenixVC-Modernized/actions/workflows/deploy-production.yml/dispatches",
         "headers": {
           "Authorization": "Bearer @{parameters('githubToken')}",
@@ -93,8 +81,7 @@ var logicAppDefinitionText = '''
           "inputs": {
             "deploymentId": "@{triggerBody()?['deploymentId']}",
             "artifactId": "@{triggerBody()?['artifactId']}",
-            "runId": "@{triggerBody()?['runId']}",
-            "token": "@{base64(parameters('githubToken'))}"
+            "runId": "@{triggerBody()?['runId']}"
           }
         }
       },
@@ -118,7 +105,7 @@ var logicAppDefinitionText = '''
           "sections": [
             {
               "activityTitle": "Production Deployment Started",
-              "text": "The production deployment has been initiated based on approval from **@{triggerBody()?['approver']}**",
+              "text": "The production deployment has been initiated based on approval from **@{coalesce(triggerBody()?['approver'], 'Teams user')}**",
               "facts": [
                 {
                   "name": "Deployment ID",
@@ -131,10 +118,6 @@ var logicAppDefinitionText = '''
                 {
                   "name": "Run ID",
                   "value": "@{triggerBody()?['runId']}"
-                },
-                {
-                  "name": "Approved By",
-                  "value": "@{triggerBody()?['approver']}"
                 }
               ],
               "markdown": true
@@ -177,6 +160,24 @@ var logicAppDefinitionText = '''
       "runAfter": {
         "Trigger_Production_Deployment": ["Failed"]
       }
+    },
+    "Return_Response": {
+      "type": "Response",
+      "kind": "Http",
+      "inputs": {
+        "statusCode": 200,
+        "body": {
+          "message": "Deployment request processed successfully",
+          "deploymentId": "@{triggerBody()?['deploymentId']}",
+          "status": "initiated"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      },
+      "runAfter": {
+        "Send_Teams_Confirmation": ["Succeeded"]
+      }
     }
   },
   "outputs": {}
@@ -208,3 +209,4 @@ resource logicApp 'Microsoft.Logic/workflows@2019-05-01' = {
 
 output logicAppId string = logicApp.id
 output logicAppName string = logicApp.name
+output logicAppUrl string = '${logicApp.properties.accessEndpoint}triggers/manual/invoke?api-version=2020-05-01-preview'

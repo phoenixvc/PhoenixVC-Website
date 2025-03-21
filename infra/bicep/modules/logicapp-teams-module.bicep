@@ -32,7 +32,10 @@ var logicAppDefinitionText = '''
             "title": { "type": "string" },
             "color": { "type": "string" },
             "deploymentUrl": { "type": "string" },
-            "approvalUrl": { "type": "string" },
+            "approvalLogicAppUrl": { "type": "string" },
+            "deploymentId": { "type": "string" },
+            "artifactId": { "type": "string" },
+            "runId": { "type": "string" },
             "rollbackUrl": { "type": "string" },
             "version": { "type": "string" },
             "author": { "type": "string" },
@@ -49,7 +52,11 @@ var logicAppDefinitionText = '''
             "environment",
             "branch",
             "message",
-            "deploymentUrl"
+            "deploymentUrl",
+            "approvalLogicAppUrl",
+            "deploymentId",
+            "artifactId",
+            "runId"
           ]
         }
       }
