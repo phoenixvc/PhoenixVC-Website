@@ -20,6 +20,10 @@ inputs:
   token:
     description: "GitHub token"
     required: true
+  skip_logic_apps:
+    description: "If true, skip retrieving Logic App URLs"
+    required: false
+    default: "false"
 
 outputs:
   staticSiteUrl:
@@ -62,9 +66,27 @@ runs:
       run: chmod +x ./scripts/deployment/deploy.sh
 
     - name: Run Resource Deployment Script
+      id: deploy
       shell: bash
       run: |
         bash -x ./scripts/deployment/deploy.sh --env ${{ inputs.environment }}
+    
+        # Explicitly retrieve the Static Web App URL after deployment
+        STATIC_SITE_URL=$(az staticwebapp show \
+          --name "${{ inputs.environment }}-${{ inputs.location_code }}-swa-phoenixvc-website" \
+          --resource-group "${{ inputs.environment }}-${{ inputs.location_code }}-rg-phoenixvc-website" \
+          --query "defaultHostname" \
+          --output tsv)
+    
+        if [[ -n "$STATIC_SITE_URL" ]]; then
+          FULL_URL="https://$STATIC_SITE_URL"
+          echo "✅ Static Web App URL: $FULL_URL"
+          echo "staticSiteUrl=$FULL_URL" >> "$GITHUB_OUTPUT"
+        else
+          echo "❌ Failed to retrieve Static Web App URL."
+          echo "staticSiteUrl=" >> "$GITHUB_OUTPUT"
+          exit 1
+        fi
       env:
         ENVIRONMENT: ${{ inputs.environment }}
         RG_NAME: ${{ inputs.environment }}-${{ inputs.location_code }}-rg-phoenixvc-website
@@ -73,6 +95,7 @@ runs:
         GITHUB_TOKEN: ${{ inputs.token }}
 
     - name: Retrieve Teams Logic App Trigger URL
+      if: ${{ inputs.skip_logic_apps != 'true' }}
       id: retrieve_logic_url
       shell: bash
       run: |
@@ -95,6 +118,7 @@ runs:
         fi
 
     - name: Retrieve GitHub Logic App Trigger URL
+      if: ${{ inputs.skip_logic_apps != 'true' }}
       id: retrieve_github_logic_url
       shell: bash
       run: |

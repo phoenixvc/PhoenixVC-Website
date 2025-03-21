@@ -8,6 +8,6 @@
     "enableRbacAuthorization": { "value": true },
     "deployBudget": { "value": false },
     "deployKeyVault": { "value": false },
-    "deployLogicApp": { "value": true }
+    "deployLogicApp": { "value": false }
   }
 }

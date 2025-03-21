@@ -1,3 +1,6 @@
+env:
+  LOCATION_CODE: euw
+
 name: Deploy to Production
 
 on:
@@ -9,11 +12,11 @@ on:
       artifactId:
         description: 'Artifact ID to deploy to production'
         required: true
-      runId:
-        description: 'Run ID of the staging deployment'
-        required: true
       token:
         description: 'Encoded approval token'
+        required: true
+      runID:
+        description: 'Run ID'
         required: true
       includeDnsUpdate:
         description: 'Include DNS configuration update'
@@ -30,7 +33,7 @@ jobs:
         id: token_validation
         run: |
           DECODED_TOKEN=$(echo "${{ github.event.inputs.token }}" | base64 -d)
-          if [[ "$DECODED_TOKEN" != "${{ secrets.GITHUB_TOKEN }}" ]]; then
+          if [[ "$DECODED_TOKEN" != "${{ secrets.PROD_DEPLOYMENT_TOKEN }}" ]]; then
             echo "Invalid approval token"
             exit 1
           fi
@@ -38,30 +41,27 @@ jobs:
       - name: Check Deployment and Artifact
         id: validation_check
         run: |
-          if [[ "${{ github.event.inputs.deploymentId }}" != *"${{ github.event.inputs.runId }}"* ]]; then
-            echo "Invalid deployment ID for this run"
-            exit 1
-          fi
-
-          if [[ ! "${{ github.event.inputs.artifactId }}" =~ ^phoenixvc_[0-9]{8}_[a-f0-9]+_[0-9]+$ ]]; then
+          if [[ ! "${{ github.event.inputs.artifactId }}" =~ ^web-dist-[0-9]{8}_[0-9]{6}$ ]]; then
             echo "Invalid artifact ID format"
             exit 1
           fi
-
           echo "passed=true" >> $GITHUB_OUTPUT
 
-  deploy_to_production:
+  # ───────────────────────────────────────────────
+  # ✅ DEPLOY PRODUCTION RESOURCES
+  # ───────────────────────────────────────────────
+  deploy_resources_production:
+    runs-on: ubuntu-latest
     needs: validate_approval
     if: needs.validate_approval.outputs.validation_passed == 'true'
-    runs-on: ubuntu-latest
-    environment:
-      name: production
-      url: ${{ steps.deploy_production.outputs.staticSiteUrl }}
-    timeout-minutes: 30
     outputs:
-      staticSiteUrl: ${{ steps.deploy_production.outputs.staticSiteUrl }}
-      teamsLogicAppUrl: ${{ steps.deploy_production.outputs.teamsLogicAppUrl }}
-      githubLogicAppUrl: ${{ steps.deploy_production.outputs.githubLogicAppUrl }}
+      staticSiteUrl: ${{ steps.deploy_production_resources.outputs.staticSiteUrl }}
+      teamsLogicAppUrl: ${{ steps.deploy_production_resources.outputs.teamsLogicAppUrl }}
+      githubLogicAppUrl: ${{ steps.deploy_production_resources.outputs.githubLogicAppUrl }}
+      encoded_token: ${{ steps.encode_token.outputs.encoded_token }}
+      deployment_id: ${{ steps.get_deployment_info.outputs.deployment_id }}
+      artifact_id: ${{ steps.get_deployment_info.outputs.artifact_id }}
+      run_id: ${{ github.run_id }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -70,19 +70,8 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      - name: Download Artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: ${{ github.event.inputs.artifactId }}
-          path: ./dist
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-
-      - name: Deploy Resources to Production
-        id: deploy_production
+      - name: Deploy Production Resources
+        id: deploy_production_resources
         uses: ./.github/actions/deploy-azure-resources
         with:
           environment: production
@@ -91,53 +80,79 @@ jobs:
           location_code: ${{ env.LOCATION_CODE }}
           repository: JustAGhosT/PhoenixVC-Modernized
           token: ${{ secrets.GITHUB_TOKEN }}
+          skip_logic_apps: true
 
-      - name: Verify Resource Deployment
-        id: verify_resources
+      - name: Get Deployment Information
+        id: get_deployment_info
         run: |
-          # Verify Logic Apps endpoints
-          if [[ -n "${{ steps.deploy_production.outputs.teamsLogicAppUrl }}" ]]; then
-            TEAMS_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ steps.deploy_production.outputs.teamsLogicAppUrl }}")
-            if [ "$TEAMS_STATUS" != "200" ]; then
-              echo "⚠️ Teams Logic App endpoint returned status $TEAMS_STATUS"
-              exit 1
-            fi
-          fi
+          echo "deployment_id=${{ github.event.inputs.deploymentId }}" >> $GITHUB_OUTPUT
+          echo "artifact_id=${{ github.event.inputs.artifactId }}" >> $GITHUB_OUTPUT
+          echo "run_id=${{ github.event.inputs.runID }}" >> $GITHUB_OUTPUT
+          echo "commit_sha=${{ github.sha }}" >> $GITHUB_OUTPUT
+          echo "timestamp=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
 
-          if [[ -n "${{ steps.deploy_production.outputs.githubLogicAppUrl }}" ]]; then
-            GITHUB_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ steps.deploy_production.outputs.githubLogicAppUrl }}")
-            if [ "$GITHUB_STATUS" != "200" ]; then
-              echo "⚠️ GitHub Logic App endpoint returned status $GITHUB_STATUS"
-              exit 1
-            fi
-          fi
+      - name: Encode GitHub Token
+        id: encode_token
+        run: |
+          ENCODED_TOKEN=$(echo -n "${{ secrets.GITHUB_TOKEN }}" | base64)
+          echo "encoded_token=${ENCODED_TOKEN}" >> $GITHUB_OUTPUT
 
-      - name: Deploy to Azure Static Web Apps
-        id: swa_deploy
-        uses: Azure/static-web-apps-deploy@v1
+  # ───────────────────────────────────────────────
+  # ✅ SWA DEPLOYMENT VIA SWA CLI
+  # ───────────────────────────────────────────────
+  swa_deploy_production:
+    runs-on: ubuntu-latest
+    needs: deploy_resources_production
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: ${{ steps.swa_deploy.outputs.deployment_url }}
+    outputs:
+      production_url: ${{ steps.swa_deploy.outputs.deployment_url }}
+      deployment_id: ${{ steps.swa_deploy.outputs.deployment_id }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_PROD }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: "upload"
-          app_location: "./dist"
-          skip_app_build: true
-          production_branch: "main"
+          repository: JustAGhosT/PhoenixVC-Modernized
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Use SWA Deploy Action for Production
+        id: swa_deploy
+        uses: ./.github/actions/swa-deploy
+        with:
+          artifact-name: ${{ needs.deploy_resources_production.outputs.artifact_id }}
+          run-id: ${{ github.event.inputs.runID }}
+          app-name: prod-${{ env.LOCATION_CODE }}-swa-phoenixvc-website
+          resource-group: prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
+          env: production
+          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          deployment_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_PROD }}
 
       - name: Verify SWA Deployment
         run: |
+          URL="${{ needs.deploy_resources_production.outputs.staticSiteUrl }}"
+          
+          if [[ -z "$URL" ]]; then
+            echo "❌ URL is empty. Check your deploy_resources_production outputs."
+            exit 1
+          fi
+          
           MAX_RETRIES=10
           COUNT=0
           while [ $COUNT -lt $MAX_RETRIES ]; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ steps.deploy_production.outputs.staticSiteUrl }}")
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL")
             if [ "$STATUS" == "200" ]; then
-              echo "✅ SWA deployment verified successfully!"
+              echo "✅ SWA deployment verified successfully at $URL!"
               exit 0
             fi
-            echo "Waiting for deployment to be available... (Attempt $COUNT/$MAX_RETRIES)"
+            echo "⏳ Waiting for deployment at $URL... (Attempt $((COUNT + 1))/$MAX_RETRIES)"
             sleep 30
             COUNT=$((COUNT+1))
           done
-          echo "❌ SWA deployment verification failed after $MAX_RETRIES attempts"
+          
+          echo "❌ SWA deployment verification failed at $URL after $MAX_RETRIES attempts"
           exit 1
 
       - name: Record Version
@@ -160,34 +175,34 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Store Deployment Metadata
-        run: |
-          cat << EOF > deployment_metadata.json
-          {
-            "version": "${{ env.DEPLOY_VERSION }}",
-            "deploymentId": "${{ github.event.inputs.deploymentId }}",
-            "artifactId": "${{ github.event.inputs.artifactId }}",
-            "runId": "${{ github.event.inputs.runId }}",
-            "timestamp": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-          }
-          EOF
-
-          az storage blob upload \
-            --account-name ${{ secrets.STORAGE_ACCOUNT_NAME }} \
-            --container-name deployments \
-            --name "prod_${{ env.DEPLOY_VERSION }}.json" \
-            --file deployment_metadata.json
-
-      - name: Create Job Summary
-        run: |
-          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
-          echo "* Static Site: ${{ steps.deploy_production.outputs.staticSiteUrl }}" >> $GITHUB_STEP_SUMMARY
-          echo "* Teams Logic App: ${{ steps.deploy_production.outputs.teamsLogicAppUrl }}" >> $GITHUB_STEP_SUMMARY
-          echo "* GitHub Logic App: ${{ steps.deploy_production.outputs.githubLogicAppUrl }}" >> $GITHUB_STEP_SUMMARY
-
+      #- name: Store Deployment Metadata
+      #  run: |
+      #    cat << EOF > deployment_metadata.json
+      #    {
+      #      "version": "${{ env.DEPLOY_VERSION }}",
+      #      "deploymentId": "${{ github.event.inputs.deploymentId }}",
+      #      "artifactId": "${{ github.event.inputs.artifactId }}",
+      #      "runId": "${{ github.event.inputs.runId }}",
+      #      "timestamp": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+      #    }
+      #    EOF
+      #
+      #    az storage blob upload \
+      #      --account-name ${{ secrets.STORAGE_ACCOUNT_NAME }} \
+      #     --container-name deployments \
+      #     --name "prod_${{ env.DEPLOY_VERSION }}.json" \
+      #     --file deployment_metadata.json
+      #
+      #- name: Create Job Summary
+      #  run: |
+      #    echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+      #    echo "* Static Site: ${{ steps.deploy_production_resources.outputs.staticSiteUrl }}" >> $GITHUB_STEP_SUMMARY
+      #    echo "* Teams Logic App: ${{ needs.deploy_resources_production.outputs.teamsLogicAppUrl }}" >> $GITHUB_STEP_SUMMARY
+      #   echo "* GitHub Logic App: ${{ needs.deploy_resources_production.outputs.githubLogicAppUrl }}" >> $GITHUB_STEP_SUMMARY
+      #
   trigger_dns_update:
-    needs: deploy_to_production
-    if: needs.deploy_to_production.result == 'success' && github.event.inputs.includeDnsUpdate == 'true'
+    needs: swa_deploy_production
+    if: needs.swa_deploy_production.result == 'success' && github.event.inputs.includeDnsUpdate == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Trigger DNS Configuration
@@ -199,8 +214,8 @@ jobs:
             -d '{"ref": "refs/heads/main", "inputs": {"ENVIRONMENT": "prod"}}'
 
   deploy_docs:
-    needs: deploy_to_production
-    if: needs.deploy_to_production.result == 'success'
+    needs: swa_deploy_production
+    if: needs.swa_deploy_production.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -226,8 +241,92 @@ jobs:
           mkdocs build -f docs/mkdocs.yml
           mkdocs gh-deploy --force
 
+  # ───────────────────────────────────────────────
+  # ✅ Configure Custom Domain and DNS
+  # ───────────────────────────────────────────────
+  configure_custom_domain_dns:
+    runs-on: ubuntu-latest
+    needs: swa_deploy_production
+    environment:
+      name: production
+    steps:
+      - name: Azure CLI Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+  
+      - name: Configure Custom Domain & DNS
+        shell: bash
+        run: |
+          RESOURCE_GROUP="prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website"
+          STATIC_WEB_APP_NAME="prod-${{ env.LOCATION_CODE }}-swa-phoenixvc-website"
+          DOMAIN="phoenixvc.tech"
+  
+          echo "Checking domain status for $DOMAIN..."
+  
+          DOMAIN_STATUS=$(az staticwebapp hostname show \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$STATIC_WEB_APP_NAME" \
+            --hostname "$DOMAIN" \
+            --query "status" -o tsv)
+  
+          echo "Domain status: $DOMAIN_STATUS"
+  
+          if [[ "$DOMAIN_STATUS" != "Ready" ]]; then
+            echo "Linking custom domain: $DOMAIN"
+  
+            az staticwebapp hostname set \
+              --resource-group "$RESOURCE_GROUP" \
+              --name "$STATIC_WEB_APP_NAME" \
+              --hostname "$DOMAIN" \
+              --validation-method dns-txt-token
+  
+            echo "Fetching validation token..."
+            sleep 30  # Wait briefly for token availability
+  
+            VALIDATION_TOKEN=$(az staticwebapp hostname show \
+              --resource-group "$RESOURCE_GROUP" \
+              --name "$STATIC_WEB_APP_NAME" \
+              --hostname "$DOMAIN" \
+              --query "validationToken" -o tsv)
+  
+            if [[ -z "$VALIDATION_TOKEN" ]]; then
+              echo "❌ Validation token retrieval failed."
+              exit 1
+            fi
+  
+            echo "Adding TXT record for domain validation"
+            az network dns record-set txt add-record \
+              --resource-group "$RESOURCE_GROUP" \
+              --zone-name "$DOMAIN" \
+              --record-set-name "asuid" \
+              --value "$VALIDATION_TOKEN"
+  
+            echo "✅ TXT record created successfully."
+          else
+            echo "✅ Domain already verified. Skipping TXT validation."
+          fi
+  
+          echo "Adding or updating CNAME record..."
+  
+          DEFAULT_HOSTNAME=$(az staticwebapp show \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$STATIC_WEB_APP_NAME" \
+            --query "defaultHostname" -o tsv)
+  
+          az network dns record-set cname set-record \
+            --resource-group "$RESOURCE_GROUP" \
+            --zone-name "$DOMAIN" \
+            --record-set-name "@" \
+            --cname "$DEFAULT_HOSTNAME"
+  
+          echo "✅ DNS configuration completed successfully."
+
+  # ───────────────────────────────────────────────
+  # ✅ Notification Job
+  # ───────────────────────────────────────────────
   notify_deployment:
-    needs: [deploy_to_production, trigger_dns_update, deploy_docs]
+    needs: [swa_deploy_production, trigger_dns_update, deploy_docs, configure_custom_domain_dns]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -242,16 +341,17 @@ jobs:
         uses: ./.github/actions/teams-notification
         with:
           webhook_url: ${{ secrets.TEAMS_WEBHOOK_URL }}
-          title: ${{ needs.deploy_to_production.result == 'success' && 'Production Deployment Complete' || 'Production Deployment Failed' }}
-          message: ${{ needs.deploy_to_production.result == 'success' && 'The deployment to PRODUCTION has completed successfully.' || 'The deployment to PRODUCTION has failed. Manual intervention required.' }}
+          title: ${{ needs.swa_deploy_production.result == 'success' && 'Production Deployment Complete' || 'Production Deployment Failed' }}
+          message: ${{ needs.swa_deploy_production.result == 'success' && 'The deployment to PRODUCTION has completed successfully.' || 'The deployment to PRODUCTION has failed. Manual intervention required.' }}
           environment: "production"
-          deployment_url: ${{ needs.deploy_to_production.outputs.staticSiteUrl }}
-          logic_app_url: ${{ needs.deploy_to_production.outputs.teamsLogicAppUrl }}
-          github_logic_app_url: ${{ needs.deploy_to_production.outputs.githubLogicAppUrl }}
+          deployment_url: ${{ needs.swa_deploy_production.outputs.production_url }}
+          logic_app_url: ${{ needs.deploy_resources_production.outputs.teamsLogicAppUrl }}
+          github_logic_app_url: ${{ needs.deploy_resources_production.outputs.githubLogicAppUrl }}
           branch: ${{ github.ref }}
           location_code: ${{ env.LOCATION_CODE }}
           resource_group: prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
-          color: ${{ needs.deploy_to_production.result == 'success' && '00A300' || 'FF0000' }}
+          color: ${{ needs.swa_deploy_production.result == 'success' && '00A300' || 'FF0000' }}
           deployment_id: ${{ github.event.inputs.deploymentId }}
           artifact_id: ${{ github.event.inputs.artifactId }}
           run_id: ${{ github.event.inputs.runId }}
+

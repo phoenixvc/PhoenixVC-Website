@@ -7,6 +7,9 @@ param location string = resourceGroup().location
 @description('Tags for the Logic App')
 param tags object = {}
 
+@description('URL for the approval Logic App that will be called when approval is requested')
+param approvalLogicAppUrl string = ''
+
 var logicAppDefinitionText = '''
 {
   "$schema": "https://schema.management.azure.com/schemas/2016-06-01/workflowdefinition.json",
@@ -37,7 +40,10 @@ var logicAppDefinitionText = '''
             "version": { "type": "string" },
             "author": { "type": "string" },
             "repository": { "type": "string" },
-            "pr_description": { "type": "string" }
+            "pr_description": { "type": "string" },
+            "deploymentId": { "type": "string" },
+            "artifactId": { "type": "string" },
+            "runId": { "type": "string" }
           },
           "required": [
             "teamsWebhookUrl",
@@ -128,19 +134,31 @@ var logicAppDefinitionText = '''
               ]
             },
             {
-              "@@type": "HttpPOST",
+              "@@type": "ActionCard",
               "name": "Approve Production Deployment",
-              "target": "@{triggerBody()?['approvalLogicAppUrl']}",
-              "headers": {
-                "Content-Type": "application/json"
-              },
-              "body": {
-                "deploymentId": "@{triggerBody()?['deploymentId']}",
-                "artifactId": "@{triggerBody()?['artifactId']}",
-                "runId": "@{triggerBody()?['runId']}",
-                "approver": "@{triggerBody()?['author']}",
-                "teamsWebhookUrl": "@{triggerBody()?['teamsWebhookUrl']}"
-              }
+              "inputs": [
+                {
+                  "@@type": "TextInput",
+                  "id": "comment",
+                  "title": "Comment",
+                  "isMultiline": false,
+                  "isRequired": false
+                }
+              ],
+              "actions": [
+                {
+                  "@@type": "HttpPOST",
+                  "name": "Approve",
+                  "target": "@{coalesce(triggerBody()?['approvalUrl'], '')}",
+                  "body": {
+                    "deploymentId": "@{coalesce(triggerBody()?['deploymentId'], '')}",
+                    "artifactId": "@{coalesce(triggerBody()?['artifactId'], '')}",
+                    "runId": "@{coalesce(triggerBody()?['runId'], '')}",
+                    "approver": "@{inputs('comment')}",
+                    "teamsWebhookUrl": "@{triggerBody()?['teamsWebhookUrl']}"
+                  }
+                }
+              ]
             },
             {
               "@@type": "OpenUri",

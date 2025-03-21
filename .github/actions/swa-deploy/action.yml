@@ -4,6 +4,9 @@ inputs:
   artifact-name:
     description: "The name of the artifact to download"
     required: true
+  run-id:
+    description: "The run ID from which to download the artifact"
+    required: true
   app-name:
     description: "The SWA app name"
     required: true
@@ -38,11 +41,38 @@ runs:
       with:
         fetch-depth: 0
 
-    - name: Download Web App Artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: ${{ inputs.artifact-name }}
-        path: ${{ inputs.artifact-path }}
+    - name: Download Artifact via GitHub API
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      run: |
+        ARTIFACT_NAME="${{ inputs.artifact-name }}"
+        RUN_ID="${{ inputs.run-id }}"
+        OUTPUT_DIR="${{ inputs.artifact-path }}"
+    
+        mkdir -p "$OUTPUT_DIR"
+    
+        echo "Retrieving artifact download URL for '$ARTIFACT_NAME' from run ID '$RUN_ID'..."
+    
+        ARTIFACT_URL=$(curl -sSL -H "Accept: application/vnd.github.v3+json" \
+          -H "Authorization: Bearer $GITHUB_TOKEN" \
+          "https://api.github.com/repos/${{ github.repository }}/actions/runs/$RUN_ID/artifacts" | \
+          jq -r ".artifacts[] | select(.name==\"$ARTIFACT_NAME\") | .archive_download_url")
+    
+        if [ -z "$ARTIFACT_URL" ]; then
+          echo "❌ Artifact '$ARTIFACT_NAME' not found for run ID '$RUN_ID'."
+          exit 1
+        fi
+    
+        echo "Downloading artifact from URL: $ARTIFACT_URL"
+    
+        curl -sSL -H "Authorization: Bearer $GITHUB_TOKEN" -L "$ARTIFACT_URL" --output artifact.zip
+    
+        echo "Extracting artifact to '$OUTPUT_DIR'..."
+        unzip -q artifact.zip -d "$OUTPUT_DIR"
+        rm artifact.zip
+    
+        echo "✅ Artifact downloaded and extracted successfully."
 
     # Login to Azure
     - name: Azure Login
@@ -65,18 +95,13 @@ runs:
       shell: bash
       run: |
         echo "Preparing configuration..."
-        # Ensure the config directory exists in the artifact
         mkdir -p ${{ inputs.artifact-path }}/.config
-
-        # Copy the config file if it doesn't exist in the artifact
         if [ ! -f "${{ inputs.artifact-path }}/.config/staticwebapp.config.json" ]; then
           echo "Copying staticwebapp.config.json to artifact directory..."
           cp .config/staticwebapp.config.json ${{ inputs.artifact-path }}/.config/
         else
           echo "Config file already exists in artifact directory"
         fi
-
-        # Display the config for verification
         echo "Using configuration:"
         cat ${{ inputs.artifact-path }}/.config/staticwebapp.config.json
 
@@ -84,19 +109,19 @@ runs:
       id: get_token
       shell: bash
       run: |
-        # Get deployment token using Azure CLI
         TOKEN=$(az staticwebapp secrets list --name ${{ inputs.app-name }} --resource-group ${{ inputs.resource-group }} --query "properties.apiKey" -o tsv)
         echo "::add-mask::$TOKEN"
         echo "deployment_token=$TOKEN" >> $GITHUB_OUTPUT
 
-    - name: Generate Deployment ID
-      id: generate_deployment_id
+    - name: Get Deployment Information
+      id: get_deployment_info
       shell: bash
       run: |
-        TIMESTAMP=$(date +%Y%m%d%H%M%S)
-        DEPLOYMENT_ID="${{ github.run_id }}-${{ inputs.env }}-${TIMESTAMP}"
-        echo "id=${DEPLOYMENT_ID}" >> $GITHUB_OUTPUT
-        echo "Generated deployment ID: ${DEPLOYMENT_ID}"
+        echo "deployment_id=${{ github.event.inputs.deploymentId }}" >> $GITHUB_OUTPUT
+        echo "artifact_id=${{ github.event.inputs.artifactId }}" >> $GITHUB_OUTPUT
+        echo "run_id=${{ github.event.inputs.runID }}" >> $GITHUB_OUTPUT
+        echo "commit_sha=${{ github.sha }}" >> $GITHUB_OUTPUT
+        echo "timestamp=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
 
     - name: Deploy to Azure Static Web Apps
       id: deploy
@@ -114,12 +139,10 @@ runs:
         DEPLOYMENT_PROVIDER: "DevOps"
         DEPLOYMENT_ID: ${{ steps.generate_deployment_id.outputs.id }}
 
-    # Get the deployment URL for output
     - name: Get Deployment URL
       id: get_deployment_url
       shell: bash
       run: |
-        # Get the URL from Azure CLI
         URL=$(az staticwebapp show --name ${{ inputs.app-name }} --resource-group ${{ inputs.resource-group }} --query "defaultHostname" -o tsv)
         if [[ -n "$URL" ]]; then
           FULL_URL="https://$URL"

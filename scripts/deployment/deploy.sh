@@ -224,18 +224,7 @@ main() {
     --parameters environment="$ENVIRONMENT" locCode="$LOCATION_CODE"
   )
 
-  if [ "$deployLogicAppVal" = "true" ]; then
-    if [ -z "$GITHUB_TOKEN" ]; then
-      echo "Debug: deployLogicApp is true"
-      echo "Debug: GITHUB_TOKEN length: ${#GITHUB_TOKEN}"
-      echo "❌ GITHUB_TOKEN is required when deployLogicApp is true" >&2
-      exit 1
-    fi
-    if [[ ! $GITHUB_TOKEN =~ ^gh[ps]_[A-Za-z0-9_]{36,255}$ ]]; then
-        echo "⚠️ Warning: GITHUB_TOKEN format doesn't match expected pattern" >&2
-    fi
-    deployment_params+=(--parameters githubToken="$GITHUB_TOKEN")
-  fi
+  deployment_params+=(--parameters githubToken="$GITHUB_TOKEN")
 
   if ! az deployment sub create "${deployment_params[@]}" --query properties.outputs; then
       echo "❌ Deployment failed"
