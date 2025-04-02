@@ -1,5 +1,3 @@
-// src/constants/navigation.ts
-
 import { NavItem } from "@/types";
 import { Home, Info, Target, Briefcase, FileText, Code, Mail, BookOpen, Palette } from "lucide-react";
 
@@ -10,7 +8,6 @@ export const navItems: NavItem[] = [
   { label: "Focus Areas", href: "/#focus", icon: <Target size={20} /> },
   { label: "Portfolio", href: "/#portfolio", icon: <Briefcase size={20} /> },
   { label: "Blog", href: "/blog", icon: <FileText size={20} /> },
-  { label: "Projects", href: "/projects", icon: <Code size={20} /> },
   { label: "Contact", href: "/#contact", icon: <Mail size={20} /> },
 ];
 
