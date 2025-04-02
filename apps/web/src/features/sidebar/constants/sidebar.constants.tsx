@@ -1,4 +1,3 @@
-// features/sidebar/constants.ts
 import { SidebarGroup, SidebarItemGroup, SidebarItemLink } from "../types";
 import { navItems, resourceItems } from "@/constants/navigation";
 
@@ -9,13 +8,15 @@ export const SIDEBAR_LINKS: SidebarItemGroup[] = [
     label: "Navigation",
     title: "Navigation",
     active: false,
-    children: navItems.map(item => ({
-      type: "link",
-      label: item.label,
-      icon: item.icon,
-      href: item.href,
-      active: false
-    })) as SidebarItemLink[]
+    children: navItems
+      .filter(item => item.label !== "Projects")
+      .map(item => ({
+        type: "link",
+        label: item.label,
+        icon: item.icon,
+        href: item.href,
+        active: false
+      })) as SidebarItemLink[]
   },
   {
     type: "group",
