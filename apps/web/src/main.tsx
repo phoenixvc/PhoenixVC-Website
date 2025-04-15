@@ -10,7 +10,7 @@ createRoot(document.getElementById("root")!).render(
       config={{
         defaultThemeName: "classic",
         defaultMode: "dark",
-        useSystem: true,
+        useSystem: false,
         storage: {
           type: "localStorage",
           prefix: "my-app-theme"
