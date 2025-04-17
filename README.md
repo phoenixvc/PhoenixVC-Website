@@ -1,15 +1,15 @@
-📄 `/README.md`  
+📄 `/README.md`
 **Version:** 1.0.4 | Last Updated: 2025-02-15
 
 # Phoenix VC - Website
-**Status:** Production  
-**Maintainer:** Hans Jurgens Smit  
+**Status:** Production
+**Maintainer:** Hans Jurgens Smit
 **Location:** South Africa
 
 > Empowering innovation through strategic investments and visionary partnerships
 
-[![Build Status](https://img.shields.io/github/workflow/status/JustAGhosT/PhoenixVC-Modernized/Deploy%20Azure%20Static%20Web%20App)](https://github.com/JustAGhosT/PhoenixVC-Modernized/actions)
-[![Version](https://img.shields.io/badge/version-v1.0.0-blue)](https://github.com/JustAGhosT/PhoenixVC-Modernized/releases)
+[![Build Status](https://img.shields.io/github/workflow/status/phoenixvc/PhoenixVC-Website/Deploy%20Azure%20Static%20Web%20App)](https://github.com/phoenixvc/PhoenixVC-Website/actions)
+[![Version](https://img.shields.io/badge/version-v1.0.0-blue)](https://github.com/phoenixvc/PhoenixVC-Website/releases)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
 
 Phoenix VC is a premier, proprietary venture capital firm dedicated to identifying and investing in transformative technologies. Our modernized website leverages cutting‐edge cloud technologies—including Azure Static Web Apps, Tailwind CSS, and Bicep templates—to deliver a seamless digital experience.
@@ -83,7 +83,7 @@ Phoenix VC is a premier, proprietary venture capital firm dedicated to identifyi
 
 1. **Clone Repository:**
    ```bash
-   git clone https://github.com/JustAGhosT/PhoenixVC-Modernized.git
+   git clone https://github.com/phoenixvc/PhoenixVC-Website.git
    cd PhoenixVC-Modernized
    ```
 
@@ -130,14 +130,14 @@ npm run deploy:prod
 - **Technical Support:** [support@phoenixvc.za](mailto:support@phoenixvc.za)
 - **Slack Channel:** #phoenixvc-dev
 - **Documentation:** [📚 Docs](docs/README.md)
-- **Issues:** [GitHub Issues](https://github.com/JustAGhosT/PhoenixVC-Modernized/issues)
+- **Issues:** [GitHub Issues](https://github.com/phoenixvc/PhoenixVC-Website/issues)
 
 ## License
 
-**PROPRIETARY SOFTWARE**  
+**PROPRIETARY SOFTWARE**
 © 2024-2025 Phoenix VC. All Rights Reserved.
 
-This software is the confidential and proprietary information of Phoenix VC.  
+This software is the confidential and proprietary information of Phoenix VC.
 Unauthorized reproduction, distribution, or disclosure is strictly prohibited.
 
 ---

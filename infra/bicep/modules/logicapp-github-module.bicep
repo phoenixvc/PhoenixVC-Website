@@ -70,7 +70,7 @@ var logicAppDefinitionText = '''
       "type": "Http",
       "inputs": {
         "method": "POST",
-        "uri": "https://api.github.com/repos/JustAGhosT/PhoenixVC-Modernized/actions/workflows/deploy-production.yml/dispatches",
+        "uri": "https://api.github.com/repos/phoenixvc/PhoenixVC-Website/actions/workflows/deploy-production.yml/dispatches",
         "headers": {
           "Authorization": "Bearer @{parameters('githubToken')}",
           "Accept": "application/vnd.github.v3+json",

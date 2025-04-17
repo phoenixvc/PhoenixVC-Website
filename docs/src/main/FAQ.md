@@ -79,7 +79,7 @@ See our [Compliance Framework](./policies/compliance/policy-framework.md) for de
 Check our [Troubleshooting Guide](./guides/deployment/troubleshooting.md) for common issues and solutions.
 
 ### How do I request a new feature? {: #how-do-i-request-a-new-feature}
-Submit feature requests through our [GitHub repository](https://github.com/JustAGhosT/PhoenixVC-Modernized/issues).
+Submit feature requests through our [GitHub repository](https://github.com/phoenixvc/PhoenixVC-Website/issues).
 
 ---
 

@@ -8,7 +8,7 @@ param locCode string = 'euw'
 param location string = 'westeurope'
 
 // Static site parameters
-param repositoryUrl string = 'https://github.com/JustAGhosT/PhoenixVC-Modernized'
+param repositoryUrl string = 'https://github.com/phoenixvc/PhoenixVC-Website'
 param branch string = 'main'
 param appLocation string = '/'
 param apiLocation string = ''

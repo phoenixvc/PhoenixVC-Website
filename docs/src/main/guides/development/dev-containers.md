@@ -19,7 +19,7 @@ Before you begin, ensure you have the following installed:
 ## Steps to Set Up {: #steps-to-set-up}
 1. Clone the repository:
    ```bash
-   git clone https://github.com/justaghost/PhoenixVC-Modernized.git
+   git clone https://github.com/phoenixvc/PhoenixVC-Website.git
    cd PhoenixVC-Modernized
    ```
 
@@ -58,7 +58,7 @@ If you encounter any issues, try the following:
 
 - Ensure Docker is running.
 - Check the logs for errors: `View > Output > Dev Containers`.
-- Rebuild the container:  
+- Rebuild the container:
   Open the Command Palette and select:
   ```
   Remote-Containers: Rebuild Container

@@ -38,4 +38,4 @@ Learn about our design principles and best practices:
 
 - [Component Status Board](./components/status.md)
 - [Release Notes](./main/meta/CHANGELOG.md)
-- [GitHub Repository](https://github.com/JustAGhosT/PhoenixVC-Modernized)
+- [GitHub Repository](https://github.com/phoenixvc/PhoenixVC-Website)

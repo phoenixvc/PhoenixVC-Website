@@ -66,7 +66,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          repository: JustAGhosT/PhoenixVC-Modernized
+          repository: phoenixvc/PhoenixVC-Website
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
@@ -78,7 +78,7 @@ jobs:
           azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
           location_code: ${{ env.LOCATION_CODE }}
-          repository: JustAGhosT/PhoenixVC-Modernized
+          repository: phoenixvc/PhoenixVC-Website
           token: ${{ secrets.GITHUB_TOKEN }}
           skip_logic_apps: true
 
@@ -114,7 +114,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          repository: JustAGhosT/PhoenixVC-Modernized
+          repository: phoenixvc/PhoenixVC-Website
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
@@ -133,12 +133,12 @@ jobs:
       - name: Verify SWA Deployment
         run: |
           URL="${{ needs.deploy_resources_production.outputs.staticSiteUrl }}"
-          
+
           if [[ -z "$URL" ]]; then
             echo "❌ URL is empty. Check your deploy_resources_production outputs."
             exit 1
           fi
-          
+
           MAX_RETRIES=10
           COUNT=0
           while [ $COUNT -lt $MAX_RETRIES ]; do
@@ -151,7 +151,7 @@ jobs:
             sleep 30
             COUNT=$((COUNT+1))
           done
-          
+
           echo "❌ SWA deployment verification failed at $URL after $MAX_RETRIES attempts"
           exit 1
 
@@ -221,7 +221,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          repository: JustAGhosT/PhoenixVC-Modernized
+          repository: phoenixvc/PhoenixVC-Website
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
@@ -254,72 +254,72 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-  
+
       - name: Configure Custom Domain & DNS
         shell: bash
         run: |
           RESOURCE_GROUP="prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website"
           STATIC_WEB_APP_NAME="prod-${{ env.LOCATION_CODE }}-swa-phoenixvc-website"
           DOMAIN="phoenixvc.tech"
-  
+
           echo "Checking domain status for $DOMAIN..."
-  
+
           DOMAIN_STATUS=$(az staticwebapp hostname show \
             --resource-group "$RESOURCE_GROUP" \
             --name "$STATIC_WEB_APP_NAME" \
             --hostname "$DOMAIN" \
             --query "status" -o tsv)
-  
+
           echo "Domain status: $DOMAIN_STATUS"
-  
+
           if [[ "$DOMAIN_STATUS" != "Ready" ]]; then
             echo "Linking custom domain: $DOMAIN"
-  
+
             az staticwebapp hostname set \
               --resource-group "$RESOURCE_GROUP" \
               --name "$STATIC_WEB_APP_NAME" \
               --hostname "$DOMAIN" \
               --validation-method dns-txt-token
-  
+
             echo "Fetching validation token..."
             sleep 30  # Wait briefly for token availability
-  
+
             VALIDATION_TOKEN=$(az staticwebapp hostname show \
               --resource-group "$RESOURCE_GROUP" \
               --name "$STATIC_WEB_APP_NAME" \
               --hostname "$DOMAIN" \
               --query "validationToken" -o tsv)
-  
+
             if [[ -z "$VALIDATION_TOKEN" ]]; then
               echo "❌ Validation token retrieval failed."
               exit 1
             fi
-  
+
             echo "Adding TXT record for domain validation"
             az network dns record-set txt add-record \
               --resource-group "$RESOURCE_GROUP" \
               --zone-name "$DOMAIN" \
               --record-set-name "asuid" \
               --value "$VALIDATION_TOKEN"
-  
+
             echo "✅ TXT record created successfully."
           else
             echo "✅ Domain already verified. Skipping TXT validation."
           fi
-  
+
           echo "Adding or updating CNAME record..."
-  
+
           DEFAULT_HOSTNAME=$(az staticwebapp show \
             --resource-group "$RESOURCE_GROUP" \
             --name "$STATIC_WEB_APP_NAME" \
             --query "defaultHostname" -o tsv)
-  
+
           az network dns record-set cname set-record \
             --resource-group "$RESOURCE_GROUP" \
             --zone-name "$DOMAIN" \
             --record-set-name "@" \
             --cname "$DEFAULT_HOSTNAME"
-  
+
           echo "✅ DNS configuration completed successfully."
 
   # ───────────────────────────────────────────────
@@ -333,7 +333,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          repository: JustAGhosT/PhoenixVC-Modernized
+          repository: phoenixvc/PhoenixVC-Website
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 

@@ -11,7 +11,7 @@ inputs:
   repository:
     description: "The repository to checkout and setup for deployment."
     required: false
-    default: "JustAGhosT/PhoenixVC-Modernized"
+    default: "phoenixvc/PhoenixVC-Website"
   ref:
     description: "Branch or commit to check out."
     required: false
