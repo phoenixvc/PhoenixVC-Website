@@ -167,7 +167,7 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h3>Debug Controls</h3>
+        <h3>Universal Constants</h3>
 
         {/* Debug Info Section */}
         <div className={styles.debugInfoSection}>

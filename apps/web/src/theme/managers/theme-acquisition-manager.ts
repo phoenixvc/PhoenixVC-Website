@@ -443,7 +443,7 @@ export class ThemeAcquisitionManager {
     LogManager.log(
       this.SERVICE_NAME,
       themeName ? `Cleared theme "${themeName}" from cache${clearRegistry ? " and registry" : ""}` :
-                 `Cleared entire theme cache${clearRegistry ? " and registry" : ""}`,
+        `Cleared entire theme cache${clearRegistry ? " and registry" : ""}`,
       this.isLoggingEnabled()
     );
   }
@@ -595,8 +595,8 @@ export class ThemeAcquisitionManager {
 
     const candidate = obj as Record<string, unknown>;
     return "name" in candidate &&
-          "colors" in candidate &&
-          "config" in candidate;
+      "colors" in candidate &&
+      "config" in candidate;
   }
 
   /**
@@ -604,9 +604,22 @@ export class ThemeAcquisitionManager {
    */
   private async loadLocalTheme(themeName: ThemeName): Promise<ThemeColors | ThemeSchemeInitial | undefined> {
     try {
-      // Add the .js extension to the import path
-      const module = await import(`../themes/${themeName}.js`).catch(() => undefined);
-      return module?.default;
+      // Use Vite's import.meta.glob to get all theme files
+      const themeModules = import.meta.glob("../themes/*.js");
+
+      // Create the path to the theme file
+      const themePath = `../themes/${themeName}.js`;
+
+      // Check if the theme exists in the available modules
+      if (themeModules[themePath]) {
+        // Import the theme dynamically
+        const module = await themeModules[themePath]();
+        return (module as { default?: ThemeColors | ThemeSchemeInitial })?.default || module as ThemeColors | ThemeSchemeInitial;
+      }
+
+      // Theme not found
+      LogManager.log(this.SERVICE_NAME, `Theme not found: ${themeName}`, this.isLoggingEnabled(), { warn: true });
+      return undefined;
     } catch (error) {
       LogManager.log(this.SERVICE_NAME, `Failed to load local theme: ${themeName}`, this.isLoggingEnabled(), { warn: true });
       console.warn(error);
@@ -661,8 +674,8 @@ export class ThemeAcquisitionManager {
 
     // Use DEFAULT_THEME from theme-constants.ts as the fallback
     const effectiveThemeName = themeName ||
-                            (this.themeRegistry?.defaults?.themeName) ||
-                            DEFAULT_THEME;
+      (this.themeRegistry?.defaults?.themeName) ||
+      DEFAULT_THEME;
 
     const result = await this.acquireTheme(effectiveThemeName, {
       allowExternalLoading: config?.allowExternalLoading
@@ -684,9 +697,9 @@ export class ThemeAcquisitionManager {
 
     // Try to get default theme from registry first
     if (this.themeRegistry &&
-        this.themeRegistry.defaults &&
-        this.themeRegistry.defaults.themeName &&
-        this.themeRegistry.themes[this.themeRegistry.defaults.themeName]) {
+      this.themeRegistry.defaults &&
+      this.themeRegistry.defaults.themeName &&
+      this.themeRegistry.themes[this.themeRegistry.defaults.themeName]) {
 
       const registryTheme = this.themeRegistry.themes[this.themeRegistry.defaults.themeName];
       LogManager.log(this.SERVICE_NAME, "Using default theme from registry", this.isLoggingEnabled());
@@ -803,9 +816,9 @@ export class ThemeAcquisitionManager {
     }
   }
 
-    /**
-   * Save a theme to local storage
-   */
+  /**
+ * Save a theme to local storage
+ */
   private async saveToLocalStorage(themeName: ThemeName, theme: ThemeColors): Promise<void> {
     if (!this.config.useLocalStorage) return;
 

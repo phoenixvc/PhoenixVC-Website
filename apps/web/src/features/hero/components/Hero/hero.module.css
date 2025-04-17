@@ -9,9 +9,10 @@
   min-height: 100vh;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-end;
   overflow: hidden;
   background-color: transparent;
+  transition: background-position 0.3s ease-out;
 }
 
 .heroOverlayDark {
@@ -53,6 +54,7 @@
   box-sizing: border-box;
   display: flex;
   justify-content: center;
+  margin-bottom: 2rem;
 }
 
 .heroContentWrapper {
@@ -63,23 +65,34 @@
 }
 
 .heroContentInner {
+  position: relative;
   max-width: 800px;
   width: 100%;
   border-radius: 1rem;
   padding: 2rem;
   text-align: center;
   background-color: transparent; /* overridden by darkInner/lightInner */
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(10px);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .darkInner {
-  background-color: var(--hero-bg-dark);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  background-color: rgba(15, 15, 25, 0.8);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .lightInner {
-  background-color: var(--hero-bg-light);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  background-color: rgba(245, 245, 245, 0.8);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.heroContentInner:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
 }
 
 .heroTitle {
@@ -123,7 +136,9 @@
 }
 
 .heroSecondaryButton {
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 .heroLoading {
@@ -149,6 +164,64 @@
   }
 }
 
+/* Return to stars button */
+.returnToStarsButton {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 2rem;
+  color: white;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition:
+    background-color 0.3s ease,
+    transform 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  z-index: 10;
+}
+
+.returnToStarsButton:hover {
+  background-color: rgba(0, 0, 0, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Scroll indicator enhancements */
+.scrollIndicator {
+  position: absolute;
+  bottom: 2rem;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: rgba(30, 30, 40, 0.5);
+  padding: 0.75rem 1.5rem;
+  border-radius: 2rem;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.scrollIndicator:hover {
+  transform: translateX(-50%) translateY(-5px);
+  background-color: rgba(60, 60, 80, 0.6);
+}
+
+.scrollText {
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: white;
+}
+
 @media (max-width: 768px) {
   .heroTitle {
     font-size: 2.5rem;
@@ -165,6 +238,15 @@
   .heroButton {
     width: 100%;
   }
+  .returnToStarsButton {
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+  }
+  .scrollText {
+    display: none;
+  }
 }
 
 .mouseTrackingEnabled {
@@ -177,7 +259,11 @@
   position: absolute;
   width: 200px; /* Reduced from 300px */
   height: 200px; /* Reduced from 300px */
-  background: radial-gradient(circle, rgba(138, 43, 226, 0.08) 0%, rgba(0, 0, 0, 0) 70%); /* Reduced opacity from 0.15 to 0.08 */
+  background: radial-gradient(
+    circle,
+    rgba(138, 43, 226, 0.08) 0%,
+    rgba(0, 0, 0, 0) 70%
+  ); /* Reduced opacity from 0.15 to 0.08 */
   border-radius: 50%;
   pointer-events: none;
   transform: translate(-50%, -50%);
@@ -192,3 +278,15 @@
   opacity: 0;
 }
 
+.scrollTitle {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease;
+}
+
+.scrollTitle.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
