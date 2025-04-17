@@ -41,9 +41,7 @@ var logicAppDefinitionText = '''
             "author": { "type": "string" },
             "repository": { "type": "string" },
             "pr_description": { "type": "string" },
-            "deploymentId": { "type": "string" },
-            "artifactId": { "type": "string" },
-            "runId": { "type": "string" }
+            "approvalUrl": { "type": "string" }
           },
           "required": [
             "teamsWebhookUrl",
@@ -52,11 +50,7 @@ var logicAppDefinitionText = '''
             "environment",
             "branch",
             "message",
-            "deploymentUrl",
-            "approvalLogicAppUrl",
-            "deploymentId",
-            "artifactId",
-            "runId"
+            "deploymentUrl"
           ]
         }
       }
@@ -104,19 +98,19 @@ var logicAppDefinitionText = '''
                 },
                 {
                   "name": "Version",
-                  "value": "@{triggerBody()?['version']}"
+                  "value": "@{coalesce(triggerBody()?['version'], 'N/A')}"
                 },
                 {
                   "name": "Author",
-                  "value": "@{triggerBody()?['author']}"
+                  "value": "@{coalesce(triggerBody()?['author'], 'N/A')}"
                 },
                 {
                   "name": "Repository",
-                  "value": "@{triggerBody()?['repository']}"
+                  "value": "@{coalesce(triggerBody()?['repository'], 'N/A')}"
                 },
                 {
                   "name": "PR Description",
-                  "value": "@{triggerBody()?['pr_description']}"
+                  "value": "@{coalesce(triggerBody()?['pr_description'], 'N/A')}"
                 }
               ],
               "markdown": true
@@ -154,7 +148,7 @@ var logicAppDefinitionText = '''
                     "deploymentId": "@{coalesce(triggerBody()?['deploymentId'], '')}",
                     "artifactId": "@{coalesce(triggerBody()?['artifactId'], '')}",
                     "runId": "@{coalesce(triggerBody()?['runId'], '')}",
-                    "approver": "@{inputs('comment')}",
+                    "approver": "{{comment.value}}",
                     "teamsWebhookUrl": "@{triggerBody()?['teamsWebhookUrl']}"
                   }
                 }
