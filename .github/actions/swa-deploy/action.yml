@@ -24,8 +24,8 @@ inputs:
     description: "Azure credentials for authentication"
     required: true
   deployment_token:
-    description: "SWA deployment token"
-    required: true
+    description: "SWA deployment token (optional, will be retrieved from Azure if not provided)"
+    required: false
   github_token:
     description: "GitHub token with permissions to access artifacts"
     required: true
@@ -230,18 +230,114 @@ runs:
         echo "Using configuration:"
         cat ${{ inputs.artifact-path }}/.config/staticwebapp.config.json
 
+    # Always retrieve the deployment token dynamically from Azure
     - name: Get SWA Deployment Token
       id: get_token
       shell: bash
       run: |
-        TOKEN="${{ inputs.deployment_token }}"
-        if [ -z "$TOKEN" ]; then
-          echo "Deployment token not provided as input, attempting to retrieve from Azure..."
-          TOKEN=$(az staticwebapp secrets list --name ${{ inputs.app-name }} --resource-group ${{ inputs.resource-group }} --query "properties.apiKey" -o tsv)
-        fi
+        echo "==========================="
+        echo "🔍 DEBUG: Retrieving SWA Deployment Token"
+        echo "==========================="
+
+        # Try multiple methods to get the deployment token
+
+        # Method 1: Use az staticwebapp secrets list
+        echo "Method 1: Using az staticwebapp secrets list..."
+        set +e  # Don't exit on error
+        TOKEN=$(az staticwebapp secrets list --name ${{ inputs.app-name }} --resource-group ${{ inputs.resource-group }} --query "properties.apiKey" -o tsv 2>&1)
+        METHOD1_EXIT_CODE=$?
+        set -e  # Resume exit on error
+
+        if [[ $METHOD1_EXIT_CODE -eq 0 && -n "$TOKEN" && "$TOKEN" != "null" ]]; then
+          echo "✅ Successfully retrieved token using Method 1"
         echo "::add-mask::$TOKEN"
         echo "deployment_token=$TOKEN" >> $GITHUB_OUTPUT
+          echo "==========================="
+          exit 0
+        else
+          echo "⚠️ Method 1 failed: $TOKEN"
+        fi
 
+        # Method 2: Use az rest API call
+        echo "Method 2: Using az rest API call..."
+        SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+        API_VERSION="2019-12-01-preview"
+        URL="https://management.azure.com/subscriptions/$SUBSCRIPTION_ID/resourceGroups/${{ inputs.resource-group }}/providers/Microsoft.Web/staticSites/${{ inputs.app-name }}/listSecrets?api-version=$API_VERSION"
+
+        set +e  # Don't exit on error
+        TOKEN=$(az rest --method post --uri "$URL" --query "properties.apiKey" -o tsv 2>&1)
+        METHOD2_EXIT_CODE=$?
+        set -e  # Resume exit on error
+
+        if [[ $METHOD2_EXIT_CODE -eq 0 && -n "$TOKEN" && "$TOKEN" != "null" ]]; then
+          echo "✅ Successfully retrieved token using Method 2"
+          echo "::add-mask::$TOKEN"
+          echo "deployment_token=$TOKEN" >> $GITHUB_OUTPUT
+          echo "==========================="
+          exit 0
+        else
+          echo "⚠️ Method 2 failed: $TOKEN"
+        fi
+
+        # Method 3: Use az staticwebapp show and extract from response
+        echo "Method 3: Using az staticwebapp show..."
+        set +e  # Don't exit on error
+        SITE_INFO=$(az staticwebapp show --name ${{ inputs.app-name }} --resource-group ${{ inputs.resource-group }} -o json)
+        METHOD3_EXIT_CODE=$?
+        set -e  # Resume exit on error
+
+        if [[ $METHOD3_EXIT_CODE -eq 0 ]]; then
+          echo "Got site info, attempting to retrieve token from site properties..."
+          # Try to extract token from site info (this is a fallback and might not work)
+          TOKEN=$(echo "$SITE_INFO" | jq -r '.properties.apiKey // empty')
+
+          if [[ -n "$TOKEN" && "$TOKEN" != "null" ]]; then
+            echo "✅ Successfully retrieved token using Method 3"
+            echo "::add-mask::$TOKEN"
+            echo "deployment_token=$TOKEN" >> $GITHUB_OUTPUT
+            echo "==========================="
+            exit 0
+          else
+            echo "⚠️ Method 3 failed: Could not extract token from site info"
+          fi
+        else
+          echo "⚠️ Method 3 failed: Could not get site info"
+        fi
+
+        # All methods failed, try to use the deployment token provided as input (if any)
+        if [[ -n "${{ inputs.deployment_token }}" ]]; then
+          echo "✅ Using deployment token provided as input"
+          echo "::add-mask::${{ inputs.deployment_token }}"
+          echo "deployment_token=${{ inputs.deployment_token }}" >> $GITHUB_OUTPUT
+          echo "==========================="
+          exit 0
+        fi
+
+        # All methods failed
+        echo "❌ All methods to retrieve deployment token failed!"
+        echo "==========================="
+        exit 1
+
+    # Debug step to validate token (without revealing it)
+    - name: Validate Deployment Token
+      shell: bash
+      run: |
+        echo "==========================="
+        echo "🔍 DEBUG: Validating Deployment Token"
+        echo "==========================="
+        TOKEN="${{ steps.get_token.outputs.deployment_token }}"
+        if [[ -z "$TOKEN" ]]; then
+          echo "❌ ERROR: Deployment token is empty!"
+          exit 1
+        else
+          TOKEN_LENGTH=${#TOKEN}
+          echo "✅ Deployment token is set (length: $TOKEN_LENGTH characters)"
+          echo "First 4 chars: ${TOKEN:0:4}..."
+          echo "Last 4 chars: ...${TOKEN: -4}"
+        fi
+        echo "==========================="
+
+    # Use the Azure/static-web-apps-deploy action with the dynamically retrieved token
     - name: Deploy to Azure Static Web Apps
       id: deploy
       uses: Azure/static-web-apps-deploy@v1

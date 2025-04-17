@@ -277,15 +277,18 @@ jobs:
       name: staging
       url: ${{ steps.swa_deploy.outputs.deployment_url }}
     outputs:
-        staging_url: ${{ steps.swa_deploy.outputs.deployment_url }}
-        deployment_id: ${{ steps.swa_deploy.outputs.deployment_id }}
+      staging_url: ${{ steps.swa_deploy.outputs.deployment_url }}
+      deployment_id: ${{ steps.swa_deploy.outputs.deployment_id }}
     if: >
-          (github.event_name == 'workflow_dispatch' || needs.check_relevant_changes.outputs.resources_changed == 'true')
+      (github.event_name == 'workflow_dispatch' || needs.check_relevant_changes.outputs.resources_changed == 'true')
     steps:
       - name: Checkout Repository for Staging Resources
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      # Remove any steps that try to use a stored token from secrets
+      # Instead, let the swa-deploy action retrieve the token directly from Azure
 
       - name: Use SWA Deploy Action for Staging
         id: swa_deploy
@@ -297,8 +300,8 @@ jobs:
           resource-group: staging-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
           env: staging
           azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
-          deployment_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}  # Pass the GitHub token with proper permissions
+          # Don't pass any deployment_token here - let the action retrieve it
+          github_token: ${{ github.token }}
 
  # ───────────────────────────────────────────────
  # NOTIFY DEPLOYMENT VIA TEAMS (Combined Notification)
