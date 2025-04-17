@@ -62,7 +62,7 @@ runs:
           echo "✅ AZURE_SUBSCRIPTION_ID: ${{ inputs.azure_subscription_id }}"
         fi
 
-    # New step to check GitHub API for artifacts
+    # Improved step to check GitHub API for artifacts with retry mechanism
     - name: Check GitHub API for Artifacts
       shell: bash
       env:
@@ -79,37 +79,86 @@ runs:
         echo "Current Run ID: $RUN_ID"
         echo "Repository: $REPO"
 
-        # Check if artifacts are available for this run
-        echo "Checking artifacts for run ID: $RUN_ID"
-        ARTIFACTS_RESPONSE=$(curl -sSL -H "Accept: application/vnd.github.v3+json" \
-          -H "Authorization: Bearer $GITHUB_TOKEN" \
-          "https://api.github.com/repos/$REPO/actions/runs/$RUN_ID/artifacts")
+        # Function to check artifacts with proper error handling
+        check_artifacts() {
+          # Use curl with proper error handling
+          echo "Checking artifacts for run ID: $RUN_ID"
 
-        # Check if the API call was successful
-        if [[ $(echo "$ARTIFACTS_RESPONSE" | grep -c "message") -gt 0 ]]; then
-          echo "❌ GitHub API Error: $(echo "$ARTIFACTS_RESPONSE" | grep -o '"message":"[^"]*"')"
-          echo "Full response:"
-          echo "$ARTIFACTS_RESPONSE"
-        else
-          # Extract artifact count and names
-          ARTIFACT_COUNT=$(echo "$ARTIFACTS_RESPONSE" | grep -o '"total_count":[0-9]*' | cut -d ':' -f2)
-          echo "Total artifacts found: $ARTIFACT_COUNT"
+          # Make the API request
+          response=$(curl -s -w "\n%{http_code}" -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$REPO/actions/runs/$RUN_ID/artifacts")
 
-          if [ "$ARTIFACT_COUNT" -gt 0 ]; then
+          # Extract status code (last line) and response body
+          status_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          echo "API Status Code: $status_code"
+
+          # Check for API errors
+          if [[ "$status_code" != "200" ]]; then
+            echo "❌ GitHub API Error: HTTP $status_code"
+            echo "Response body:"
+            echo "$body"
+            return 1
+          fi
+
+          # Check if the response is valid JSON
+          if ! echo "$body" | jq . > /dev/null 2>&1; then
+            echo "❌ Invalid JSON response"
+            echo "$body"
+            return 1
+          fi
+
+          # Parse artifact count
+          artifact_count=$(echo "$body" | jq -r '.total_count')
+          echo "Total artifacts found: $artifact_count"
+
+          if [[ "$artifact_count" -gt 0 ]]; then
             echo "Available artifacts:"
-            echo "$ARTIFACTS_RESPONSE" | grep -o '"name":"[^"]*"' | cut -d '"' -f4
+            echo "$body" | jq -r '.artifacts[] | "- " + .name'
 
             # Check specifically for web-dist artifacts
-            WEB_DIST_ARTIFACTS=$(echo "$ARTIFACTS_RESPONSE" | grep -o '"name":"web-dist[^"]*"' | cut -d '"' -f4)
-            if [ -n "$WEB_DIST_ARTIFACTS" ]; then
+            web_dist_artifacts=$(echo "$body" | jq -r '.artifacts[] | select(.name | startswith("web-dist")) | .name')
+            if [[ -n "$web_dist_artifacts" ]]; then
               echo "Found web-dist artifacts:"
-              echo "$WEB_DIST_ARTIFACTS"
+              echo "$web_dist_artifacts"
+              return 0
             else
               echo "No web-dist artifacts found in this run."
+              return 2
             fi
           else
             echo "No artifacts found for run ID: $RUN_ID"
+            return 2
           fi
+        }
+
+        # Try checking for artifacts with retries
+        MAX_RETRIES=5
+        RETRY_DELAY=10
+        ATTEMPT=1
+        SUCCESS=false
+
+        while [[ $ATTEMPT -le $MAX_RETRIES ]]; do
+          echo "Attempt $ATTEMPT of $MAX_RETRIES to check for artifacts..."
+
+          if check_artifacts; then
+            echo "✅ Successfully found artifacts on attempt $ATTEMPT"
+            SUCCESS=true
+            break
+          else
+            echo "⚠️ Attempt $ATTEMPT failed. Waiting $RETRY_DELAY seconds before retrying..."
+            sleep $RETRY_DELAY
+            ATTEMPT=$((ATTEMPT + 1))
+            # Increase delay for subsequent retries
+            RETRY_DELAY=$((RETRY_DELAY + 5))
+          fi
+        done
+
+        if [[ "$SUCCESS" != "true" ]]; then
+          echo "⚠️ Warning: Could not find artifacts after $MAX_RETRIES attempts."
+          echo "This is not a critical error, continuing with deployment..."
         fi
 
         # Also check the workflow runs to ensure we have the correct run ID
@@ -119,7 +168,13 @@ runs:
           "https://api.github.com/repos/$REPO/actions/runs?per_page=5")
 
         echo "Recent workflow runs:"
-        echo "$RUNS_RESPONSE" | grep -o '"id":[0-9]*,"node_id"' | cut -d ':' -f2 | cut -d ',' -f1
+        if echo "$RUNS_RESPONSE" | jq . > /dev/null 2>&1; then
+          echo "$RUNS_RESPONSE" | jq -r '.workflow_runs[] | "ID: " + (.id | tostring) + ", Status: " + .status + ", Conclusion: " + (.conclusion // "running")'
+        else
+          echo "Could not parse workflow runs response"
+          echo "$RUNS_RESPONSE" | grep -o '"id":[0-9]*' | cut -d ':' -f2
+        fi
+
         echo "==========================="
 
     - name: Check for Deployment Script

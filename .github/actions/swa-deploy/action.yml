@@ -93,7 +93,7 @@ runs:
         fi
         echo "==========================="
 
-    - name: Download Artifact via GitHub API
+    - name: Download Artifact via GitHub API with Retries
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
@@ -101,59 +101,103 @@ runs:
         ARTIFACT_NAME="${{ inputs.artifact-name }}"
         RUN_ID="${{ inputs.run-id }}"
         OUTPUT_DIR="${{ inputs.artifact-path }}"
+        MAX_RETRIES=5
+        RETRY_DELAY=15
+        ATTEMPT=1
+        SUCCESS=false
 
         mkdir -p "$OUTPUT_DIR"
 
-        echo "Retrieving artifact download URL for '$ARTIFACT_NAME' from run ID '$RUN_ID'..."
+        while [[ $ATTEMPT -le $MAX_RETRIES && "$SUCCESS" != "true" ]]; do
+          echo "Attempt $ATTEMPT of $MAX_RETRIES to download artifact..."
+          echo "Retrieving artifact download URL for '$ARTIFACT_NAME' from run ID '$RUN_ID'..."
 
-        ARTIFACTS_RESPONSE=$(curl -sSL -H "Accept: application/vnd.github.v3+json" \
-          -H "Authorization: Bearer $GITHUB_TOKEN" \
-          "https://api.github.com/repos/${{ github.repository }}/actions/runs/$RUN_ID/artifacts")
+          ARTIFACTS_RESPONSE=$(curl -sSL -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/$RUN_ID/artifacts")
 
-        # Check if the API call was successful
-        if [[ $(echo "$ARTIFACTS_RESPONSE" | jq -r 'has("message")') == "true" ]]; then
-          echo "❌ GitHub API Error: $(echo "$ARTIFACTS_RESPONSE" | jq -r '.message')"
-          echo "Full response:"
-          echo "$ARTIFACTS_RESPONSE"
+          # Check if the API call was successful
+          if [[ $(echo "$ARTIFACTS_RESPONSE" | jq -r 'has("message")') == "true" ]]; then
+            echo "❌ GitHub API Error: $(echo "$ARTIFACTS_RESPONSE" | jq -r '.message')"
+            echo "Full response:"
+            echo "$ARTIFACTS_RESPONSE"
+            echo "Retrying in $RETRY_DELAY seconds..."
+            sleep $RETRY_DELAY
+            ATTEMPT=$((ATTEMPT + 1))
+            RETRY_DELAY=$((RETRY_DELAY + 5))
+            continue
+          fi
+
+          # Extract the download URL for the specific artifact
+          ARTIFACT_URL=$(echo "$ARTIFACTS_RESPONSE" | \
+            jq -r ".artifacts[] | select(.name==\"$ARTIFACT_NAME\") | .archive_download_url")
+
+          if [ -z "$ARTIFACT_URL" ] || [ "$ARTIFACT_URL" == "null" ]; then
+            echo "❌ Artifact '$ARTIFACT_NAME' not found for run ID '$RUN_ID'."
+            echo "Available artifacts:"
+            echo "$ARTIFACTS_RESPONSE" | jq -r '.artifacts[] | "- " + .name'
+
+            # Try to use the most recent artifact with a similar name pattern if exact match not found
+            echo "Attempting to find a similar artifact..."
+            SIMILAR_ARTIFACT=$(echo "$ARTIFACTS_RESPONSE" | \
+              jq -r ".artifacts[] | select(.name | startswith(\"web-dist\")) | .name" | head -1)
+
+            if [ -n "$SIMILAR_ARTIFACT" ]; then
+              echo "Found similar artifact: $SIMILAR_ARTIFACT"
+              ARTIFACT_URL=$(echo "$ARTIFACTS_RESPONSE" | \
+                jq -r ".artifacts[] | select(.name==\"$SIMILAR_ARTIFACT\") | .archive_download_url")
+              echo "Using artifact: $SIMILAR_ARTIFACT instead"
+            else
+              echo "No similar artifacts found. Retrying in $RETRY_DELAY seconds..."
+              sleep $RETRY_DELAY
+              ATTEMPT=$((ATTEMPT + 1))
+              RETRY_DELAY=$((RETRY_DELAY + 5))
+              continue
+            fi
+          fi
+
+          echo "Downloading artifact from URL: $ARTIFACT_URL"
+
+          # Download with retry for the actual file download
+          download_success=false
+          download_attempts=0
+          max_download_attempts=3
+
+          while [[ $download_attempts -lt $max_download_attempts && "$download_success" != "true" ]]; do
+            if curl -sSL -H "Authorization: Bearer $GITHUB_TOKEN" -L "$ARTIFACT_URL" --output artifact.zip; then
+              download_success=true
+            else
+              download_attempts=$((download_attempts + 1))
+              echo "Download attempt $download_attempts failed. Retrying..."
+              sleep 5
+            fi
+          done
+
+          if [[ "$download_success" != "true" ]]; then
+            echo "❌ Failed to download artifact after $max_download_attempts attempts"
+            ATTEMPT=$((ATTEMPT + 1))
+            continue
+          fi
+
+          echo "Extracting artifact to '$OUTPUT_DIR'..."
+          if unzip -q artifact.zip -d "$OUTPUT_DIR"; then
+            rm artifact.zip
+            echo "✅ Artifact downloaded and extracted successfully."
+            echo "Contents of artifact directory:"
+            ls -la "$OUTPUT_DIR"
+            SUCCESS=true
+          else
+            echo "❌ Failed to extract artifact"
+            rm -f artifact.zip
+            ATTEMPT=$((ATTEMPT + 1))
+            continue
+          fi
+        done
+
+        if [[ "$SUCCESS" != "true" ]]; then
+          echo "❌ Failed to download and extract artifact after $MAX_RETRIES attempts"
           exit 1
         fi
-
-        # Extract the download URL for the specific artifact
-        ARTIFACT_URL=$(echo "$ARTIFACTS_RESPONSE" | \
-          jq -r ".artifacts[] | select(.name==\"$ARTIFACT_NAME\") | .archive_download_url")
-
-        if [ -z "$ARTIFACT_URL" ] || [ "$ARTIFACT_URL" == "null" ]; then
-          echo "❌ Artifact '$ARTIFACT_NAME' not found for run ID '$RUN_ID'."
-          echo "Available artifacts:"
-          echo "$ARTIFACTS_RESPONSE" | jq -r '.artifacts[] | "- " + .name'
-
-          # Try to use the most recent artifact with a similar name pattern if exact match not found
-          echo "Attempting to find a similar artifact..."
-          SIMILAR_ARTIFACT=$(echo "$ARTIFACTS_RESPONSE" | \
-            jq -r ".artifacts[] | select(.name | startswith(\"web-dist\")) | .name" | head -1)
-
-          if [ -n "$SIMILAR_ARTIFACT" ]; then
-            echo "Found similar artifact: $SIMILAR_ARTIFACT"
-            ARTIFACT_URL=$(echo "$ARTIFACTS_RESPONSE" | \
-              jq -r ".artifacts[] | select(.name==\"$SIMILAR_ARTIFACT\") | .archive_download_url")
-            echo "Using artifact: $SIMILAR_ARTIFACT instead"
-          else
-            echo "No similar artifacts found. Exiting."
-            exit 1
-          fi
-        fi
-
-        echo "Downloading artifact from URL: $ARTIFACT_URL"
-
-        curl -sSL -H "Authorization: Bearer $GITHUB_TOKEN" -L "$ARTIFACT_URL" --output artifact.zip
-
-        echo "Extracting artifact to '$OUTPUT_DIR'..."
-        unzip -q artifact.zip -d "$OUTPUT_DIR"
-        rm artifact.zip
-
-        echo "✅ Artifact downloaded and extracted successfully."
-        echo "Contents of artifact directory:"
-        ls -la "$OUTPUT_DIR"
 
     # Login to Azure
     - name: Azure Login

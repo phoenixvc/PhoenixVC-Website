@@ -232,6 +232,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Add a delay to ensure artifacts are available via the GitHub API
+      - name: Wait for artifacts to be available
+        run: |
+          echo "Waiting for artifacts to be processed and available via GitHub API..."
+          sleep 30
+          echo "Continuing with deployment..."
+
       - name: Deploy Staging Resources
         id: deploy_staging_resources
         uses: ./.github/actions/deploy-azure-resources
@@ -241,7 +248,7 @@ jobs:
           azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
           location_code: ${{ env.LOCATION_CODE }}
           repository: ${{ github.repository }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ github.token }}
 
       - name: Get Deployment Information
         id: get_deployment_info
