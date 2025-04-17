@@ -23,6 +23,7 @@ permissions:
   contents: write
   pages: write
   id-token: write
+  actions: read
 
 concurrency:
   group: ${{ github.workflow }}-staging
@@ -40,7 +41,6 @@ jobs:
         echo "GitHub Event Name: ${{ github.event_name }}"
         echo "Ref: ${{ github.ref }}"
         echo "Base Ref: ${{ github.event.pull_request.base.ref || 'N/A' }}"
-        echo "Include DNS Update: ${{ github.event.inputs.INCLUDE_DNS_UPDATE }}"
         echo "Location Code: ${LOCATION_CODE}"
         echo "Resource Group Name: [env]-${LOCATION_CODE}-rg-phoenixvc-website"
         echo "Static Web App Name: [env]-${LOCATION_CODE}-swa-phoenixvc-website"
@@ -291,6 +291,7 @@ jobs:
           env: staging
           azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
           deployment_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}  # Pass the GitHub token with proper permissions
 
  # ───────────────────────────────────────────────
  # NOTIFY DEPLOYMENT VIA TEAMS (Combined Notification)
