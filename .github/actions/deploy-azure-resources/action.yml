@@ -39,6 +39,19 @@ outputs:
 runs:
   using: "composite"
   steps:
+    - name: Debug Environment Variables
+      shell: bash
+      run: |
+        echo "==========================="
+        echo "🔍 DEBUG: Environment Variables"
+        echo "==========================="
+        echo "Environment: ${{ inputs.environment }}"
+        echo "Location Code: ${{ inputs.location_code }}"
+        echo "Repository: ${{ inputs.repository }}"
+        echo "Current Directory: $(pwd)"
+        echo "Directory Contents: $(ls -la)"
+        echo "==========================="
+
     - name: Validate Azure Subscription ID
       shell: bash
       run: |
@@ -49,12 +62,23 @@ runs:
           echo "✅ AZURE_SUBSCRIPTION_ID: ${{ inputs.azure_subscription_id }}"
         fi
 
-    - name: Checkout Repository
-      uses: actions/checkout@v4
-      with:
-        repository: ${{ inputs.repository }}
-        token: ${{ inputs.token }}
-        fetch-depth: 0
+    - name: Check for Deployment Script
+      shell: bash
+      run: |
+        echo "==========================="
+        echo "🔍 DEBUG: Checking for deployment script"
+        echo "==========================="
+        if [ -f "./scripts/deployment/deploy.sh" ]; then
+          echo "✅ Deployment script found at ./scripts/deployment/deploy.sh"
+          ls -la ./scripts/deployment/
+        else
+          echo "❌ ERROR: Deployment script not found at ./scripts/deployment/deploy.sh"
+          echo "Current directory: $(pwd)"
+          echo "Directory structure:"
+          find . -type f -name "deploy.sh" 2>/dev/null || echo "No deploy.sh found"
+          exit 1
+        fi
+        echo "==========================="
 
     - name: Azure Login
       uses: azure/login@v1
@@ -63,21 +87,60 @@ runs:
 
     - name: Make deploy script executable
       shell: bash
-      run: chmod +x ./scripts/deployment/deploy.sh
+      run: |
+        echo "Making deploy script executable..."
+        chmod +x ./scripts/deployment/deploy.sh
+        echo "File permissions after chmod:"
+        ls -la ./scripts/deployment/deploy.sh
+
+    - name: Debug Before Deployment
+      shell: bash
+      run: |
+        echo "==========================="
+        echo "🔍 DEBUG: Before Deployment"
+        echo "==========================="
+        echo "Command to run: bash -x ./scripts/deployment/deploy.sh --env ${{ inputs.environment }}"
+        echo "Environment variables:"
+        echo "ENVIRONMENT: ${{ inputs.environment }}"
+        echo "RG_NAME: ${{ inputs.environment }}-${{ inputs.location_code }}-rg-phoenixvc-website"
+        echo "SWA_NAME: ${{ inputs.environment }}-${{ inputs.location_code }}-swa-phoenixvc-website"
+        echo "==========================="
 
     - name: Run Resource Deployment Script
       id: deploy
       shell: bash
       run: |
-        bash -x ./scripts/deployment/deploy.sh --env ${{ inputs.environment }}
-    
+        echo "==========================="
+        echo "🔍 DEBUG: Starting Deployment Script"
+        echo "==========================="
+
+        # Run deployment script with error handling
+        set +e  # Don't exit on error to capture output
+        OUTPUT=$(bash -x ./scripts/deployment/deploy.sh --env ${{ inputs.environment }} 2>&1)
+        DEPLOY_EXIT_CODE=$?
+        set -e  # Resume exit on error
+
+        echo "$OUTPUT"
+
+        if [ $DEPLOY_EXIT_CODE -ne 0 ]; then
+          echo "❌ ERROR: Deployment script failed with exit code $DEPLOY_EXIT_CODE"
+          echo "Last 50 lines of output:"
+          echo "$OUTPUT" | tail -n 50
+          echo "==========================="
+          exit $DEPLOY_EXIT_CODE
+        fi
+
+        echo "✅ Deployment script completed successfully"
+        echo "==========================="
+
         # Explicitly retrieve the Static Web App URL after deployment
+        echo "🔍 DEBUG: Retrieving Static Web App URL"
         STATIC_SITE_URL=$(az staticwebapp show \
           --name "${{ inputs.environment }}-${{ inputs.location_code }}-swa-phoenixvc-website" \
           --resource-group "${{ inputs.environment }}-${{ inputs.location_code }}-rg-phoenixvc-website" \
           --query "defaultHostname" \
           --output tsv)
-    
+
         if [[ -n "$STATIC_SITE_URL" ]]; then
           FULL_URL="https://$STATIC_SITE_URL"
           echo "✅ Static Web App URL: $FULL_URL"
@@ -94,6 +157,17 @@ runs:
         AZURE_SUBSCRIPTION_ID: ${{ inputs.azure_subscription_id }}
         GITHUB_TOKEN: ${{ inputs.token }}
 
+    - name: Debug Before Logic App URL Retrieval
+      shell: bash
+      run: |
+        echo "==========================="
+        echo "🔍 DEBUG: Before Logic App URL Retrieval"
+        echo "==========================="
+        echo "Skip Logic Apps: ${{ inputs.skip_logic_apps }}"
+        echo "Teams Logic App Name: ${{ inputs.environment }}-${{ inputs.location_code }}-la-phoenixvc"
+        echo "GitHub Logic App Name: ${{ inputs.environment }}-${{ inputs.location_code }}-la-github"
+        echo "==========================="
+
     - name: Retrieve Teams Logic App Trigger URL
       if: ${{ inputs.skip_logic_apps != 'true' }}
       id: retrieve_logic_url
@@ -105,11 +179,20 @@ runs:
         logicAppName="${{ inputs.environment }}-${{ inputs.location_code }}-la-phoenixvc"
         triggerName="manual"
 
-        echo "Retrieving Teams Logic App URL for: $logicAppName"
+        echo "🔍 DEBUG: Retrieving Teams Logic App URL for: $logicAppName"
         url="https://management.azure.com/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.Logic/workflows/$logicAppName/triggers/$triggerName/listCallbackUrl?api-version=2019-05-01"
         echo "API URL: $url"
-        response=$(az rest --method POST --uri "$url" --query "value" -o tsv)
-        if [[ -n "$response" ]]; then
+
+        # Add error handling for the REST call
+        set +e  # Don't exit on error
+        response=$(az rest --method POST --uri "$url" --query "value" -o tsv 2>&1)
+        REST_EXIT_CODE=$?
+        set -e  # Resume exit on error
+
+        if [ $REST_EXIT_CODE -ne 0 ]; then
+          echo "⚠️ Error retrieving Teams Logic App URL: $response"
+          echo "teamsLogicAppUrl=" >> "$GITHUB_OUTPUT"
+        elif [[ -n "$response" ]]; then
           echo "✅ Retrieved Teams Logic App URL: $response"
           echo "teamsLogicAppUrl=$response" >> "$GITHUB_OUTPUT"
         else
@@ -128,14 +211,34 @@ runs:
         logicAppName="${{ inputs.environment }}-${{ inputs.location_code }}-la-github"
         triggerName="manual"
 
-        echo "Retrieving GitHub Logic App URL for: $logicAppName"
+        echo "🔍 DEBUG: Retrieving GitHub Logic App URL for: $logicAppName"
         url="https://management.azure.com/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.Logic/workflows/$logicAppName/triggers/$triggerName/listCallbackUrl?api-version=2019-05-01"
         echo "API URL: $url"
-        response=$(az rest --method POST --uri "$url" --query "value" -o tsv)
-        if [[ -n "$response" ]]; then
+
+        # Add error handling for the REST call
+        set +e  # Don't exit on error
+        response=$(az rest --method POST --uri "$url" --query "value" -o tsv 2>&1)
+        REST_EXIT_CODE=$?
+        set -e  # Resume exit on error
+
+        if [ $REST_EXIT_CODE -ne 0 ]; then
+          echo "⚠️ Error retrieving GitHub Logic App URL: $response"
+          echo "githubLogicAppUrl=" >> "$GITHUB_OUTPUT"
+        elif [[ -n "$response" ]]; then
           echo "✅ Retrieved GitHub Logic App URL: $response"
           echo "githubLogicAppUrl=$response" >> "$GITHUB_OUTPUT"
         else
           echo "⚠️ GitHub Logic App URL could not be retrieved"
           echo "githubLogicAppUrl=" >> "$GITHUB_OUTPUT"
         fi
+
+    - name: Debug Summary
+      shell: bash
+      run: |
+        echo "==========================="
+        echo "🔍 DEBUG: Deployment Summary"
+        echo "==========================="
+        echo "Environment: ${{ inputs.environment }}"
+        echo "Resource Group: ${{ inputs.environment }}-${{ inputs.location_code }}-rg-phoenixvc-website"
+        echo "Static Web App: ${{ inputs.environment }}-${{ inputs.location_code }}-swa-phoenixvc-website"
+        echo "==========================="
