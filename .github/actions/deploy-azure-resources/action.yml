@@ -62,6 +62,66 @@ runs:
           echo "✅ AZURE_SUBSCRIPTION_ID: ${{ inputs.azure_subscription_id }}"
         fi
 
+    # New step to check GitHub API for artifacts
+    - name: Check GitHub API for Artifacts
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.token }}
+      run: |
+        echo "==========================="
+        echo "🔍 DEBUG: Checking GitHub API for Artifacts"
+        echo "==========================="
+
+        # Get the current run ID
+        RUN_ID="${{ github.run_id }}"
+        REPO="${{ inputs.repository }}"
+
+        echo "Current Run ID: $RUN_ID"
+        echo "Repository: $REPO"
+
+        # Check if artifacts are available for this run
+        echo "Checking artifacts for run ID: $RUN_ID"
+        ARTIFACTS_RESPONSE=$(curl -sSL -H "Accept: application/vnd.github.v3+json" \
+          -H "Authorization: Bearer $GITHUB_TOKEN" \
+          "https://api.github.com/repos/$REPO/actions/runs/$RUN_ID/artifacts")
+
+        # Check if the API call was successful
+        if [[ $(echo "$ARTIFACTS_RESPONSE" | grep -c "message") -gt 0 ]]; then
+          echo "❌ GitHub API Error: $(echo "$ARTIFACTS_RESPONSE" | grep -o '"message":"[^"]*"')"
+          echo "Full response:"
+          echo "$ARTIFACTS_RESPONSE"
+        else
+          # Extract artifact count and names
+          ARTIFACT_COUNT=$(echo "$ARTIFACTS_RESPONSE" | grep -o '"total_count":[0-9]*' | cut -d ':' -f2)
+          echo "Total artifacts found: $ARTIFACT_COUNT"
+
+          if [ "$ARTIFACT_COUNT" -gt 0 ]; then
+            echo "Available artifacts:"
+            echo "$ARTIFACTS_RESPONSE" | grep -o '"name":"[^"]*"' | cut -d '"' -f4
+
+            # Check specifically for web-dist artifacts
+            WEB_DIST_ARTIFACTS=$(echo "$ARTIFACTS_RESPONSE" | grep -o '"name":"web-dist[^"]*"' | cut -d '"' -f4)
+            if [ -n "$WEB_DIST_ARTIFACTS" ]; then
+              echo "Found web-dist artifacts:"
+              echo "$WEB_DIST_ARTIFACTS"
+            else
+              echo "No web-dist artifacts found in this run."
+            fi
+          else
+            echo "No artifacts found for run ID: $RUN_ID"
+          fi
+        fi
+
+        # Also check the workflow runs to ensure we have the correct run ID
+        echo "Checking workflow runs for repository: $REPO"
+        RUNS_RESPONSE=$(curl -sSL -H "Accept: application/vnd.github.v3+json" \
+          -H "Authorization: Bearer $GITHUB_TOKEN" \
+          "https://api.github.com/repos/$REPO/actions/runs?per_page=5")
+
+        echo "Recent workflow runs:"
+        echo "$RUNS_RESPONSE" | grep -o '"id":[0-9]*,"node_id"' | cut -d ':' -f2 | cut -d ',' -f1
+        echo "==========================="
+
     - name: Check for Deployment Script
       shell: bash
       run: |
