@@ -102,7 +102,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          repository: phoenixvc/PhoenixVC-Website
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
@@ -164,7 +163,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          repository: phoenixvc/PhoenixVC-Website
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
@@ -256,7 +254,6 @@ jobs:
       - name: Checkout Repository for Staging Resources
         uses: actions/checkout@v4
         with:
-          repository: phoenixvc/PhoenixVC-Website
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
@@ -268,9 +265,8 @@ jobs:
           azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
           location_code: ${{ env.LOCATION_CODE }}
-          repository: phoenixvc/PhoenixVC-Website
+          repository: ${{ github.repository }}
           token: ${{ secrets.PROD_DEPLOYMENT_TOKEN }}
-
       - name: Get Deployment Information
         id: get_deployment_info
         run: |
@@ -301,13 +297,12 @@ jobs:
         staging_url: ${{ steps.swa_deploy.outputs.deployment_url }}
         deployment_id: ${{ steps.swa_deploy.outputs.deployment_id }}
     if: >
-      github.event.inputs.APPROVAL_STATE != 'true' &&
-      (github.event_name == 'workflow_dispatch' || needs.check_relevant_changes.outputs.resources_changed == 'true')
+          github.event.inputs.APPROVAL_STATE != 'true' &&
+          (github.event_name == 'workflow_dispatch' || needs.check_relevant_changes.outputs.resources_changed == 'true')
     steps:
       - name: Checkout Repository for Staging Resources
         uses: actions/checkout@v4
         with:
-          repository: phoenixvc/PhoenixVC-Website
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
@@ -348,7 +343,6 @@ jobs:
       - name: Checkout Repository for Notification
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository }}
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
