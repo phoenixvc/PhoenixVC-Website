@@ -165,12 +165,14 @@ jobs:
         run: echo "timestamp=$(date +'%Y%m%d_%H%M%S')" >> $GITHUB_OUTPUT
 
       - name: Build Web App
+        id: build_web
         uses: ./.github/actions/build-vite
         with:
           app-name: 'web'
           environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
 
       - name: Build Design System
+        id: build_design
         uses: ./.github/actions/build-vite
         with:
           app-name: 'design-system'
@@ -230,7 +232,6 @@ jobs:
       githubLogicAppUrl: ${{ steps.deploy_staging_resources.outputs.githubLogicAppUrl }}
       encoded_token: ${{ steps.encode_token.outputs.encoded_token }}
       deployment_id: ${{ steps.get_deployment_info.outputs.deployment_id }}
-      artifact_id: ${{ steps.build_apps.outputs.web_artifact_id }}
       run_id: ${{ github.run_id }}
 
     steps:
@@ -249,6 +250,7 @@ jobs:
           location_code: ${{ env.LOCATION_CODE }}
           repository: ${{ github.repository }}
           token: ${{ secrets.PROD_DEPLOYMENT_TOKEN }}
+
       - name: Get Deployment Information
         id: get_deployment_info
         run: |
@@ -305,7 +307,7 @@ jobs:
     runs-on: ubuntu-latest
     # For staging, notify if success OR if failure and SEND_STAGING_FAILED is true.
     # For production, always notify regardless of outcome.
-    needs: [deploy_resources_staging, swa_deploy_staging, check_relevant_changes]
+    needs: [build_apps, deploy_resources_staging, swa_deploy_staging, check_relevant_changes]
     if: always()
     steps:
       - name: Log Required Variables
@@ -336,11 +338,8 @@ jobs:
           fi
 
       - name: Notify Staging via Teams
+        if: (needs.check_relevant_changes.outputs.resources_changed == 'true' || github.event_name == 'workflow_dispatch') && (needs.swa_deploy_staging.result == 'success' || github.event.inputs.SEND_STAGING_FAILED == 'true')
         uses: ./.github/actions/teams-notification
-        if: >
-          (needs.check_relevant_changes.outputs.resources_changed == 'true' || github.event_name == 'workflow_dispatch') &&
-          (needs.swa_deploy_staging.result == 'success' || github.event.inputs.SEND_STAGING_FAILED == 'true')
-          uses: ./.github/actions/teams-notification
         with:
           webhook_url: "https://phoenixvc568.webhook.office.com/webhookb2/17b0291f-b70b-4bdd-9266-f212ae03a2bd@7edf4423-ccb3-4275-bc80-64dae3ef0148/IncomingWebhook/3174ffcca3804d34ae923ba2e131f82e/a41dbcc0-67a6-4a23-bdec-b780dcebefa9/V2MOPWeKY7ywC8-iGptxHlSIZpwHVxw2FLAOAMU2N0hmM1"
           title: "Staging Deployment Complete"
