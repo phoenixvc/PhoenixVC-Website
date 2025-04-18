@@ -70,13 +70,10 @@ var logicAppDefinitionText = '''
       },
       "runAfter": {}
     },
-    "Try_Post_to_Teams": {
-      "type": "Scope",
-      "actions": {
-        "Post_to_Teams": {
-          "type": "Http",
-          "inputs": {
-            "method": "POST",
+    "Post_to_Teams": {
+      "type": "Http",
+      "inputs": {
+        "method": "POST",
             "uri": "@{triggerBody()?['teamsWebhookUrl']}",
         "headers": {
           "Content-Type": "application/json"
@@ -181,41 +178,48 @@ var logicAppDefinitionText = '''
               ]
             }
           },
-          "runAfter": {}
-        }
-      },
       "runAfter": {
         "Initialize_Error_Variable": ["Succeeded"]
+      }
       },
-      "catch": [
-        {
-          "if": {
-            "actions": {
+    "Check_for_Errors": {
+      "type": "If",
+      "actions": {
               "Set_Error_Message": {
                 "type": "SetVariable",
                 "inputs": {
                   "name": "ErrorMessage",
-                  "value": "@{outputs('Try_Post_to_Teams')[0]['error']['message']}"
+            "value": "@{actions('Post_to_Teams')['error']['message']}"
                 },
                 "runAfter": {}
               }
             },
-            "expression": {
-              "and": [
-                {
-                  "greater": [
-                    "@length(outputs('Try_Post_to_Teams'))",
-                    0
-                  ]
-                }
-              ]
+      "else": {
+        "actions": {
+          "Set_Success_Message": {
+            "type": "SetVariable",
+            "inputs": {
+              "name": "ErrorMessage",
+              "value": ""
             },
-            "type": "If"
-          },
-          "type": "Scope"
+            "runAfter": {}
+          }
         }
+            },
+      "expression": {
+        "and": [
+          {
+            "equals": [
+              "@actions('Post_to_Teams')['status']",
+              "Failed"
+            ]
+          }
       ]
     },
+      "runAfter": {
+        "Post_to_Teams": ["Succeeded", "Failed", "TimedOut", "Skipped"]
+      }
+        },
     "Return_Response": {
       "type": "Response",
       "kind": "Http",
@@ -227,11 +231,11 @@ var logicAppDefinitionText = '''
         },
         "headers": {
           "Content-Type": "application/json"
-        }
+      }
       },
       "runAfter": {
-        "Try_Post_to_Teams": ["Succeeded", "Failed", "TimedOut", "Skipped"]
-      }
+        "Check_for_Errors": ["Succeeded"]
+}
     }
   },
   "outputs": {}
