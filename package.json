@@ -31,12 +31,18 @@
     "func:new": "cd apps/api && func new --name sendContactEmail --template \"HTTP trigger\" --language typescript",
     "api": "cd apps/api && func start",
     "api:build": "cd apps/api && npm run build",
-    "api:deploy": "TODO: cd apps/api && func azure functionapp publish phoenixvc-api"
+    "api:deploy": "TODO: cd apps/api && func azure functionapp publish phoenixvc-api",
+    "test:teamswebhook": "cd tests\\teams-webhook && powershell -ExecutionPolicy Bypass -File test-teams-webhook.ps1",
+    "test:teamswebhook:simple": "cd tests\\teams-webhook && powershell -ExecutionPolicy Bypass -File test-teams-webhook.ps1 -SimpleTest",
+    "test:teamswebhook:messagecard": "cd tests\\teams-webhook && powershell -ExecutionPolicy Bypass -File test-teams-webhook.ps1 -PayloadFile messagecard-payload.json",
+    "test:teamswebhook:bash": "cd tests/teams-webhook && bash test-teams-webhook.sh"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.0.3",
     "@commitlint/config-conventional": "^19.0.3",
     "@eslint/js": "^9.0.0",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
     "@typescript-eslint/eslint-plugin": "^8.24.0",
     "@typescript-eslint/parser": "^8.24.0",
     "@vitejs/plugin-react": "^4.3.4",

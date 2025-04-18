@@ -67,27 +67,27 @@ const Layout = ({ children }: LayoutProps) => {
   const toggleSidebar = () => {
     if (isMobile) {
       // On mobile, toggle open/closed
-      setIsSidebarOpen(prev => !prev);
-      setSidebarWidth(prev => (prev === 0 ? 220 : 0));
+      setIsSidebarOpen((prev: boolean) => !prev);
+      setSidebarWidth((prev: number) => (prev === 0 ? 220 : 0));
     } else {
       // On desktop, toggle between collapsed and full
-      setIsCollapsed(prev => !prev);
+      setIsCollapsed((prev: boolean): boolean => !prev);
       setSidebarWidth(isCollapsed ? 220 : 60);
     }
   };
 
   const toggleTheme = () => {
-    setIsDarkMode(prev => !prev);
+    setIsDarkMode((prev: boolean): boolean => !prev);
   };
 
   // Separate function for sidebar collapse (used by sidebar component)
   const toggleCollapse = () => {
-    setIsCollapsed(prev => !prev);
+    setIsCollapsed((prev: boolean): boolean => !prev);
   };
 
   // Toggle game mode
   const toggleGameMode = () => {
-    setGameMode(prev => !prev);
+    setGameMode((prev: boolean): boolean => !prev);
   };
 
   // Toggle debug mode

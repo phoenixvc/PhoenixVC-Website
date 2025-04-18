@@ -57,117 +57,164 @@ var logicAppDefinitionText = '''
     }
   },
   "actions": {
-    "Post_to_Teams": {
-      "type": "Http",
+    "Initialize_Error_Variable": {
+      "type": "InitializeVariable",
       "inputs": {
-        "method": "POST",
-        "uri": "@{triggerBody()?['teamsWebhookUrl']}",
-        "headers": {
-          "Content-Type": "application/json"
-        },
-        "body": {
-          "@@type": "MessageCard",
-          "@@context": "http://schema.org/extensions",
-          "text": "Deployment Notification",
-          "summary": "@{coalesce(triggerBody()?['title'], 'Deployment Notification')}",
-          "themeColor": "@{if(empty(triggerBody()?['color']), '0076D7', replace(triggerBody()?['color'], '#', ''))}",
-          "sections": [
-            {
-              "activityTitle": "@{coalesce(triggerBody()?['title'], 'Deployment Notification')}",
-              "activitySubtitle": "The PhoenixVC Website deployment to the **@{toUpper(triggerBody()?['environment'])}** environment has completed successfully. Please review the deployment and take any necessary actions.",
-              "facts": [
-                {
-                  "name": "Status",
-                  "value": "Deployment Complete"
-                },
-                {
-                  "name": "Environment",
-                  "value": "@{triggerBody()?['environment']}"
-                },
-                {
-                  "name": "Location",
-                  "value": "@{triggerBody()?['locationCode']}"
-                },
-                {
-                  "name": "Resource Group",
-                  "value": "@{triggerBody()?['resourceGroup']}"
-                },
-                {
-                  "name": "Branch",
-                  "value": "@{triggerBody()?['branch']}"
-                },
-                {
-                  "name": "Version",
-                  "value": "@{coalesce(triggerBody()?['version'], 'N/A')}"
-                },
-                {
-                  "name": "Author",
-                  "value": "@{coalesce(triggerBody()?['author'], 'N/A')}"
-                },
-                {
-                  "name": "Repository",
-                  "value": "@{coalesce(triggerBody()?['repository'], 'N/A')}"
-                },
-                {
-                  "name": "PR Description",
-                  "value": "@{coalesce(triggerBody()?['pr_description'], 'N/A')}"
-                }
-              ],
-              "markdown": true
-            }
-          ],
-          "potentialAction": [
-            {
-              "@@type": "OpenUri",
-              "name": "View Deployment",
-              "targets": [
-                {
-                  "os": "default",
-                  "uri": "@{triggerBody()?['deploymentUrl']}"
-                }
-              ]
-            },
-            {
-              "@@type": "ActionCard",
-              "name": "Approve Production Deployment",
-              "inputs": [
-                {
-                  "@@type": "TextInput",
-                  "id": "comment",
-                  "title": "Comment",
-                  "isMultiline": false,
-                  "isRequired": false
-                }
-              ],
-              "actions": [
-                {
-                  "@@type": "HttpPOST",
-                  "name": "Approve",
-                  "target": "@{coalesce(triggerBody()?['approvalUrl'], '')}",
-                  "body": {
-                    "deploymentId": "@{coalesce(triggerBody()?['deploymentId'], '')}",
-                    "artifactId": "@{coalesce(triggerBody()?['artifactId'], '')}",
-                    "runId": "@{coalesce(triggerBody()?['runId'], '')}",
-                    "approver": "{{comment.value}}",
-                    "teamsWebhookUrl": "@{triggerBody()?['teamsWebhookUrl']}"
-                  }
-                }
-              ]
-            },
-            {
-              "@@type": "OpenUri",
-              "name": "Rollback Deployment",
-              "targets": [
-                {
-                  "os": "default",
-                  "uri": "@{coalesce(triggerBody()?['rollbackUrl'], '#')}"
-                }
-              ]
-            }
-          ]
-        }
+        "variables": [
+          {
+            "name": "ErrorMessage",
+            "type": "string",
+            "value": ""
+          }
+        ]
       },
       "runAfter": {}
+    },
+    "Try_Post_to_Teams": {
+      "type": "Scope",
+      "actions": {
+        "Post_to_Teams": {
+          "type": "Http",
+          "inputs": {
+            "method": "POST",
+            "uri": "@{triggerBody()?['teamsWebhookUrl']}",
+        "headers": {
+          "Content-Type": "application/json"
+            },
+            "body": {
+              "@type": "MessageCard",
+              "@context": "http://schema.org/extensions",
+              "summary": "@{coalesce(triggerBody()?['title'], 'Deployment Notification')}",
+              "themeColor": "@{if(empty(triggerBody()?['color']), '0076D7', replace(triggerBody()?['color'], '#', ''))}",
+              "title": "@{coalesce(triggerBody()?['title'], 'Deployment Notification')}",
+              "text": "The PhoenixVC Website deployment to the **@{toUpper(triggerBody()?['environment'])}** environment has completed successfully. Please review the deployment and take any necessary actions.",
+              "sections": [
+                {
+                  "facts": [
+                    {
+                      "name": "Status",
+                      "value": "Deployment Complete"
+      },
+                    {
+                      "name": "Environment",
+                      "value": "@{triggerBody()?['environment']}"
+  },
+                    {
+                      "name": "Location",
+                      "value": "@{triggerBody()?['locationCode']}"
+                    },
+                    {
+                      "name": "Resource Group",
+                      "value": "@{triggerBody()?['resourceGroup']}"
+                    },
+                    {
+                      "name": "Branch",
+                      "value": "@{triggerBody()?['branch']}"
+                    },
+                    {
+                      "name": "Version",
+                      "value": "@{coalesce(triggerBody()?['version'], 'N/A')}"
+                    },
+                    {
+                      "name": "Author",
+                      "value": "@{coalesce(triggerBody()?['author'], 'N/A')}"
+                    },
+                    {
+                      "name": "Repository",
+                      "value": "@{coalesce(triggerBody()?['repository'], 'N/A')}"
+                    },
+                    {
+                      "name": "PR Description",
+                      "value": "@{coalesce(triggerBody()?['pr_description'], 'N/A')}"
+}
+                  ]
+                }
+              ],
+              "potentialAction": [
+                {
+                  "@type": "OpenUri",
+                  "name": "View Deployment",
+                  "targets": [
+                    {
+                      "os": "default",
+                      "uri": "@{triggerBody()?['deploymentUrl']}"
+                    }
+                  ]
+                },
+                {
+                  "@type": "ActionCard",
+                  "name": "Approve Production Deployment",
+                  "inputs": [
+                    {
+                      "@type": "TextInput",
+                      "id": "comment",
+                      "title": "Comment",
+                      "isMultiline": false,
+                      "isRequired": false
+                    }
+                  ],
+                  "actions": [
+                    {
+                      "@type": "HttpPOST",
+                      "name": "Approve",
+                      "target": "@{coalesce(triggerBody()?['approvalUrl'], '')}",
+                      "body": {
+                        "deploymentId": "@{coalesce(triggerBody()?['deploymentId'], '')}",
+                        "artifactId": "@{coalesce(triggerBody()?['artifactId'], '')}",
+                        "runId": "@{coalesce(triggerBody()?['runId'], '')}",
+                        "approver": "{{comment.value}}",
+                        "teamsWebhookUrl": "@{triggerBody()?['teamsWebhookUrl']}"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "@type": "OpenUri",
+                  "name": "Rollback Deployment",
+                  "targets": [
+                    {
+                      "os": "default",
+                      "uri": "@{coalesce(triggerBody()?['rollbackUrl'], '#')}"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          "runAfter": {}
+        }
+      },
+      "runAfter": {
+        "Initialize_Error_Variable": ["Succeeded"]
+      },
+      "catch": [
+        {
+          "if": {
+            "actions": {
+              "Set_Error_Message": {
+                "type": "SetVariable",
+                "inputs": {
+                  "name": "ErrorMessage",
+                  "value": "@{outputs('Try_Post_to_Teams')[0]['error']['message']}"
+                },
+                "runAfter": {}
+              }
+            },
+            "expression": {
+              "and": [
+                {
+                  "greater": [
+                    "@length(outputs('Try_Post_to_Teams'))",
+                    0
+                  ]
+                }
+              ]
+            },
+            "type": "If"
+          },
+          "type": "Scope"
+        }
+      ]
     },
     "Return_Response": {
       "type": "Response",
@@ -175,14 +222,15 @@ var logicAppDefinitionText = '''
       "inputs": {
         "statusCode": 200,
         "body": {
-          "message": "Teams notification sent successfully"
+          "message": "Teams notification processing complete",
+          "error": "@variables('ErrorMessage')"
         },
         "headers": {
           "Content-Type": "application/json"
         }
       },
       "runAfter": {
-        "Post_to_Teams": ["Succeeded"]
+        "Try_Post_to_Teams": ["Succeeded", "Failed", "TimedOut", "Skipped"]
       }
     }
   },

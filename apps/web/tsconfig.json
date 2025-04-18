@@ -6,10 +6,12 @@
       "@/*": ["src/*"]
     },
     "jsx": "react-jsx",
+    "types": ["react", "react-dom"],
+    "typeRoots": ["./node_modules/@types", "./src/types"]
   },
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }
   ],
-  "include": ["src/**/*", "vite.config.ts", "**/*.config.js", "**/*.config.ts", "vite.config.d.ts"]
+  "include": ["src/**/*", "vite.config.ts", "**/*.config.js", "**/*.config.ts", "vite.config.d.ts", "src/types/*.d.ts"]
 }

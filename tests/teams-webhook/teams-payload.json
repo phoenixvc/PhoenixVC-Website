@@ -1,0 +1,67 @@
+{
+  "teamsWebhookUrl": "https://phoenixvc568.webhook.office.com/webhookb2/17b0291f-b70b-4bdd-9266-f212ae03a2bd@7edf4423-ccb3-4275-bc80-64dae3ef0148/IncomingWebhook/3174ffcca3804d34ae923ba2e131f82e/a41dbcc0-67a6-4a23-bdec-b780dcebefa9/V2MOPWeKY7ywC8-iGptxHlSIZpwHVxw2FLAOAMU2N0hmM1",
+  "type": "message",
+  "attachments": [
+    {
+      "contentType": "application/vnd.microsoft.card.adaptive",
+      "content": {
+        "type": "AdaptiveCard",
+        "body": [
+          {
+            "type": "TextBlock",
+            "size": "Medium",
+            "weight": "Bolder",
+            "text": "Deployment Notification"
+          },
+          {
+            "type": "TextBlock",
+            "text": "The PhoenixVC Website deployment to the **STAGING** environment has completed successfully.",
+            "wrap": true
+          },
+          {
+            "type": "FactSet",
+            "facts": [
+              {
+                "title": "Status",
+                "value": "Deployment Complete"
+              },
+              {
+                "title": "Environment",
+                "value": "staging"
+              },
+              {
+                "title": "Location",
+                "value": "euw"
+              },
+              {
+                "title": "Resource Group",
+                "value": "staging-euw-rg-phoenixvc-website"
+              },
+              {
+                "title": "Branch",
+                "value": "main"
+              },
+              {
+                "title": "Version",
+                "value": "1.0.0-test"
+              },
+              {
+                "title": "Author",
+                "value": "Test User"
+              }
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "type": "Action.OpenUrl",
+            "title": "View Deployment",
+            "url": "https://example.com"
+          }
+        ],
+        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+        "version": "1.2"
+      }
+    }
+  ]
+}
