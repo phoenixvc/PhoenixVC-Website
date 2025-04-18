@@ -112,9 +112,9 @@ The Starfield component is the foundational visual element of the Phoenix VC web
 - **Star Systems** = Subcategories within each galaxy
   - Visual: Central star with orbiting planets (content pages)
   - Navigation: Interactive solar system view for each category
-  - Example: "Fintech_Star" shows a sun-like star with "Digital_Banking.html" as an orbiting planet
-  - Example: "Blockchain_Star" shows a star with "Cryptocurrency.html" as an orbiting planet
-  - Example: "AI_ML_Star" shows a star with "Data_Analytics.html" as an orbiting planet
+  - Example: "Fintech_Star" shows a sun-like star with "Digital_Banking.html" as an orbiting planet (specific pages are Phase 4, mostly for SEO)
+  - Example: "Blockchain_Star" shows a star with "Cryptocurrency.html" as an orbiting planet (specific pages are Phase 4, mostly for SEO)
+  - Example: "AI_ML_Star" shows a star with "Data_Analytics.html" as an orbiting planet (specific pages are Phase 4, mostly for SEO)
 
 ### Planet Level (Individual Pages)
 
