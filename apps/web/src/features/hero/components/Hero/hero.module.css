@@ -164,7 +164,6 @@
   }
 }
 
-/* Return to stars button */
 .returnToStarsButton {
   position: absolute;
   top: 1rem;
@@ -190,28 +189,31 @@
   transform: translateY(-2px);
 }
 
-/* Scroll indicator enhancements */
 .scrollIndicator {
   position: absolute;
   bottom: 2rem;
+  left: 50%; /* Ensure it's centered */
   transform: translateX(-50%);
   z-index: 20;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-  cursor: pointer;
+  cursor: pointer; /* Ensure cursor shows it's clickable */
   transition: all 0.3s ease;
   background-color: rgba(30, 30, 40, 0.5);
   padding: 0.75rem 1.5rem;
   border-radius: 2rem;
   backdrop-filter: blur(4px);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2); /* Add shadow for better visibility */
 }
 
 .scrollIndicator:hover {
   transform: translateX(-50%) translateY(-5px);
-  background-color: rgba(60, 60, 80, 0.6);
+  background-color: rgba(60, 60, 80, 0.8); /* Make hover state more noticeable */
+  border: 1px solid rgba(255, 255, 255, 0.3); /* Brighter border on hover */
+  box-shadow: 0 5px 20px rgba(138, 43, 226, 0.3); /* Add colored shadow on hover */
 }
 
 .scrollText {
@@ -273,7 +275,6 @@
   transition: opacity 0.1s ease; /* Smooth transition */
 }
 
-/* Add a class for when mouse is at the border */
 .mouseTrackingEnabled.mouseBorder::after {
   opacity: 0;
 }

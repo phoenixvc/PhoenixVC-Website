@@ -1,10 +1,10 @@
-import { FC, memo, useRef, useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { HeroProps } from "@/features/layout/components/Starfield/types";
+import { useSectionObserver } from "@/hooks/useSectionObserver";
+import { AnimatePresence, motion } from "framer-motion";
+import { FC, memo, useEffect, useRef, useState } from "react";
 import { heroAnimations } from "../../animations";
 import { DEFAULT_HERO_CONTENT } from "../../constants";
 import styles from "./hero.module.css";
-import { useSectionObserver } from "@/hooks/useSectionObserver";
-import { HeroProps } from "@/features/layout/components/Starfield/types";
 
 interface ExtendedHeroProps extends HeroProps {
   isDarkMode: boolean;
@@ -31,39 +31,10 @@ const Hero: FC<ExtendedHeroProps> = memo(
     const containerRef = useRef<HTMLDivElement>(null);
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const [isMouseNearBorder, setIsMouseNearBorder] = useState(false);
-    const [showHeroContent, setShowHeroContent] = useState(false);
+
+    const [showHeroContent, setShowHeroContent] = useState(true);
     const [showScrollIndicator, setShowScrollIndicator] = useState(true);
     const [scrollPosition, setScrollPosition] = useState(0);
-
-    // Initial visibility check
-    useEffect(() => {
-      const initialScroll = window.scrollY;
-      if (initialScroll > 50) {
-        setShowHeroContent(true);
-        setShowScrollIndicator(false);
-      }
-    }, []);
-
-    // Consolidated scroll handler
-    useEffect(() => {
-      const handleScroll = () => {
-        const currentScrollPosition = window.scrollY;
-        setScrollPosition(currentScrollPosition);
-
-        // Lower threshold to show hero content sooner
-        if (currentScrollPosition > 50) {
-          setShowHeroContent(true);
-          setShowScrollIndicator(false);
-        } else {
-          setShowHeroContent(false);
-          setShowScrollIndicator(true);
-        }
-      };
-
-      window.addEventListener("scroll", handleScroll);
-      handleScroll(); // Initial check
-      return () => window.removeEventListener("scroll", handleScroll);
-    }, []);
 
     // Mouse tracking effect
     useEffect(() => {
@@ -97,6 +68,24 @@ const Hero: FC<ExtendedHeroProps> = memo(
       };
     }, [enableMouseTracking]);
 
+    useEffect(() => {
+      const handleScroll = () => {
+        const currentScrollPosition = window.scrollY;
+        setScrollPosition(currentScrollPosition);
+
+        // Hide scroll indicator when scrolled down
+        if (currentScrollPosition > 10) {
+      setShowScrollIndicator(false);
+        } else {
+          setShowScrollIndicator(true);
+        }
+      };
+
+      window.addEventListener("scroll", handleScroll);
+      handleScroll(); // Initial check
+      return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
+
     const getThemeStyles = () => {
       const textColor = isDarkMode ? "text-white" : "text-gray-900";
       const gradientColors = accentColor
@@ -118,19 +107,21 @@ const Hero: FC<ExtendedHeroProps> = memo(
 
     // Handler for scroll indicator click
     const scrollToContent = () => {
+      // Hide scroll indicator
+      setShowScrollIndicator(false);
+
+      // Scroll down to show hero content
       window.scrollTo({
-        top: window.innerHeight * 0.8, // Scroll to 80% of viewport height
+        top: window.innerHeight * 0.3,
         behavior: "smooth",
       });
     };
-
     return (
       <section
         className={styles.heroSection}
         ref={sectionRef}
         aria-label="hero section"
         style={{
-          // Optional parallax effect on the section itself
           backgroundPosition: `center ${scrollPosition * 0.05}px`,
         }}
       >
@@ -261,9 +252,10 @@ const Hero: FC<ExtendedHeroProps> = memo(
             </div>
           )}
         </div>
+
         <AnimatePresence>
           {showScrollIndicator && (
-            <motion.div
+            <motion.button
               className={styles.scrollIndicator}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1, y: [0, 10, 0] }}
@@ -273,8 +265,6 @@ const Hero: FC<ExtendedHeroProps> = memo(
                 y: { repeat: Infinity, duration: 1.5 },
               }}
               onClick={scrollToContent}
-              role="button"
-              tabIndex={0}
               aria-label="Scroll to explore content"
             >
               <svg
@@ -294,7 +284,7 @@ const Hero: FC<ExtendedHeroProps> = memo(
                 />
               </svg>
               <span className={styles.scrollText}>SCROLL TO EXPLORE</span>
-            </motion.div>
+            </motion.button>
           )}
         </AnimatePresence>
       </section>
