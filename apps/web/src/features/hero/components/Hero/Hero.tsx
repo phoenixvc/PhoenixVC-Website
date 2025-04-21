@@ -32,7 +32,7 @@ const Hero: FC<ExtendedHeroProps> = memo(
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const [isMouseNearBorder, setIsMouseNearBorder] = useState(false);
 
-    const [showHeroContent, setShowHeroContent] = useState(true);
+    const [showHeroContent, setShowHeroContent] = useState(false);
     const [showScrollIndicator, setShowScrollIndicator] = useState(true);
     const [scrollPosition, setScrollPosition] = useState(0);
 
@@ -73,10 +73,12 @@ const Hero: FC<ExtendedHeroProps> = memo(
         const currentScrollPosition = window.scrollY;
         setScrollPosition(currentScrollPosition);
 
-        // Hide scroll indicator when scrolled down
+        // Show hero content when scrolled down, hide when at top
         if (currentScrollPosition > 10) {
-      setShowScrollIndicator(false);
+          setShowHeroContent(true);
+          setShowScrollIndicator(false);
         } else {
+          setShowHeroContent(false);
           setShowScrollIndicator(true);
         }
       };
@@ -264,6 +266,7 @@ const Hero: FC<ExtendedHeroProps> = memo(
                 opacity: { duration: 0.5 },
                 y: { repeat: Infinity, duration: 1.5 },
               }}
+              /* No inline styles needed - using CSS for positioning */
               onClick={scrollToContent}
               aria-label="Scroll to explore content"
             >

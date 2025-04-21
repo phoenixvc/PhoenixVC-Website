@@ -1,5 +1,5 @@
 import { checkAddClick, checkCollisions, drawGameUI } from "../../gameState";
-import { BurstParticle, ClickBurst, CollisionEffect, CollisionParticle, EmployeeStar, GameState, Star } from "../../types";
+import { BurstParticle, ClickBurst, CollisionEffect, CollisionParticle, GameState, Planet, Star } from "../../types";
 import { AnimationProps, AnimationRefs } from "./types";
 
 export function processParticleEffects(
@@ -9,7 +9,7 @@ export function processParticleEffects(
     props: AnimationProps,
     refs: AnimationRefs,
     currentStars: Star[],
-    currentEmployeeStars: EmployeeStar[],
+    currentPlanets: Planet[],
     currentGameState: GameState,
     shouldSkipHeavyOperations: boolean
   ): void {
@@ -142,7 +142,7 @@ export function processParticleEffects(
       // Check for collisions between stars and employee stars
       checkCollisions(
         currentStars,
-        currentEmployeeStars,
+        currentPlanets,
         currentGameState,
         (newGameState: GameState) => {
           // Only update game state periodically

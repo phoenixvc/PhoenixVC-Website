@@ -4,7 +4,7 @@
   top: 0;
   left: 0;
   width: 100%;
-  z-index: 50;
+  z-index: 1000 !important; /* High z-index to ensure it's above the starfield */
   transition: all 0.3s ease;
   height: 70px;
   background-color: rgba(13, 14, 30, 0.85); /* Darker, more saturated with less opacity */
@@ -12,6 +12,7 @@
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(99, 123, 255, 0.1); /* Subtle blue glow border */
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Stronger shadow for depth */
+  pointer-events: auto !important; /* Ensure it captures mouse events */
 }
 
 /* Transparent header when scrolled */
@@ -203,7 +204,7 @@
     top: 0;
     left: 0;
     width: 100%;
-    z-index: 50;
+    z-index: 1000 !important; /* High z-index to ensure it's above the starfield */
     transition: all 0.3s ease;
     height: 70px;
     background-color: rgba(13, 14, 30, 0.85); /* Darker, more saturated with less opacity */
@@ -211,6 +212,7 @@
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid rgba(99, 123, 255, 0.1); /* Subtle blue glow border */
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Stronger shadow for depth */
+    pointer-events: auto !important; /* Ensure it captures mouse events */
   }
 
   /* Transparent header when scrolled */
@@ -440,6 +442,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  z-index: 1000 !important; /* High z-index to ensure it's above the starfield */
+  pointer-events: auto !important; /* Ensure it captures mouse events */
 }
 
 .controlButton {
@@ -453,6 +457,8 @@
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
+  z-index: 1000 !important; /* High z-index to ensure it's above the starfield */
+  pointer-events: auto !important; /* Ensure it captures mouse events */
 }
 
 .controlButton:hover {
@@ -481,6 +487,8 @@
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
+  z-index: 1000 !important; /* High z-index to ensure it's above the starfield */
+  pointer-events: auto !important; /* Ensure it captures mouse events */
 }
 
 .themeToggleButton:hover {

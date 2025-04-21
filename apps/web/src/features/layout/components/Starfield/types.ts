@@ -2,6 +2,7 @@
 
 import { Variants } from "framer-motion";
 import React from "react";
+import { Camera, CosmicNavigationState } from "./cosmos/types";
 
 // Basic types
 export interface Point {
@@ -63,7 +64,7 @@ export interface Pulsation {
   direction: number;
 }
 
-export interface EmployeeStar {
+export interface Planet {
   employee: EmployeeData;
   x: number;
   y: number;
@@ -73,7 +74,6 @@ export interface EmployeeStar {
   rotationSpeed: number;
   orbitRadius: number;
   orbitSpeed: number;
-  orbitCenter: Point;
   satellites?: Satellite[];
   isHovered?: boolean;
   isSelected?: boolean;
@@ -94,6 +94,11 @@ export interface EmployeeStar {
   originalVy?: number;
   originalOrbitSpeed?: number;
   isMovementPaused: boolean;
+  orbitCenter: {
+    x: number;
+    y: number;
+  };
+  orbitParentId?: string;
 }
 
 export interface HoverInfo {
@@ -314,6 +319,9 @@ export interface DebugSettings {
   lineConnectionDistance: number;
   lineOpacity: number;
   sidebarWidth: number;
+  repulsionRadius: number;
+  repulsionForce: number;
+  repulsionEnabled: boolean; 
 }
 
 export interface UseDebugControlsProps {
@@ -338,16 +346,16 @@ export interface AnimationLoopProps {
   dimensions: { width: number; height: number };
   stars: Star[];
   blackHoles: BlackHole[];
-  employeeStars: EmployeeStar[];
+  planets: Planet[];
   mousePosition: MousePosition;
   enableFlowEffect: boolean;
   enableBlackHole: boolean;
   enableMouseInteraction: boolean;
-  enableEmployeeStars: boolean;
+  enablePlanets: boolean;
   flowStrength: number;
   gravitationalPull: number;
   particleSpeed: number;
-  employeeStarSize: number;
+  planetSize: number;
   employeeDisplayStyle: "initials" | "avatar" | "both";
   heroMode: boolean;
   centerPosition: { x: number; y: number };
@@ -383,15 +391,15 @@ export interface AnimationLoopProps {
   animationSpeed?: number;
   starsRef?: React.MutableRefObject<Star[]>;
   blackHolesRef?: React.MutableRefObject<BlackHole[]>;
-  employeeStarsRef?: React.MutableRefObject<EmployeeStar[]>;
+  planetsRef?: React.MutableRefObject<Planet[]>;
   ensureStarsExist?: () => void;
 }
 
-export interface InteractiveStarfieldProps {
+export interface StarfieldProps {
   enableFlowEffect?: boolean;
   enableBlackHole?: boolean;
   enableMouseInteraction?: boolean;
-  enableEmployeeStars?: boolean;
+  enablePlanets?: boolean;
   starDensity?: number;
   colorScheme?: string;
   starSize?: number;
@@ -401,7 +409,7 @@ export interface InteractiveStarfieldProps {
   flowStrength?: number;
   gravitationalPull?: number;
   particleSpeed?: number;
-  employeeStarSize?: number;
+  planetSize?: number;
   employeeDisplayStyle?: "initials" | "avatar" | "both";
   blackHoleSize?: number;
   heroMode?: boolean;
@@ -429,12 +437,18 @@ export interface InteractiveStarfieldProps {
     mouseEffectRadius: number,
     timestamp?: number
   ) => void;
+
+  enableCosmicNavigation?: boolean;
+  navigationState?: CosmicNavigationState;
+  camera?: Camera;
+  setCamera?: (camera: Camera) => void;
+  hoveredObjectId?: string | null;
 }
 
 // Global declarations
 declare global {
   interface Window {
-    employeeStars?: EmployeeStar[];
+    planets?: Planet[];
     starfieldAPI?: {
       applyForce: (x: number, y: number, radius: number, force: number) => number;
       getStarsCount: () => number;

@@ -1,33 +1,52 @@
 // components/Layout/Starfield/hooks/animation/types.ts
 import { MutableRefObject, SetStateAction } from "react";
+import { Camera, CosmicNavigationState } from "../../cosmos/types";
 import {
   BlackHole,
-  BurstParticle,
   ClickBurst,
   CollisionEffect,
-  CollisionParticle,
-  EmployeeStar,
+  EmployeeData,
   GameState,
   HoverInfo,
   MousePosition,
+  Planet,
   Star
 } from "../../types";
 
+// Add this interface for debug settings
+export interface DebugSettings {
+  isDebugMode: boolean;
+    flowStrength: number;
+    gravitationalPull: number;
+    particleSpeed: number;
+    mouseEffectRadius: number;
+  lineConnectionDistance: number;
+  lineOpacity: number;
+  maxVelocity?: number;
+  animationSpeed?: number;
+  employeeOrbitSpeed?: number;
+  verboseLogs?: boolean;
+}
+
 export interface AnimationProps {
+    mousePosition: { x: number; y: number; lastX: number; lastY: number; speedX: number; speedY: number; isClicked: boolean; clickTime: number; isOnScreen: boolean; };
+    hoverInfo: { employee: EmployeeData | null; x: number; y: number; show: boolean; }; // Updated to match HoverInfo type
+    gameState: {};
+    starSize: number;
     canvasRef: MutableRefObject<HTMLCanvasElement | null>;
     starsRef?: MutableRefObject<Star[]>; // Make optional to match AnimationLoopProps
     blackHolesRef?: MutableRefObject<BlackHole[]>;
-    employeeStarsRef?: MutableRefObject<EmployeeStar[]>;
+    planetsRef?: MutableRefObject<Planet[]>;
     frameCountRef?: MutableRefObject<number>;
     dimensions: { width: number; height: number };
     enableFlowEffect: boolean;
     enableBlackHole: boolean;
     enableMouseInteraction: boolean;
-    enableEmployeeStars: boolean;
+    enablePlanets: boolean;
     flowStrength: number;
     gravitationalPull: number;
     particleSpeed: number;
-    employeeStarSize: number;
+    planetSize: number;
     employeeDisplayStyle: "initials" | "avatar" | "both";
     heroMode: boolean;
     centerPosition?: { x: number; y: number };
@@ -58,11 +77,17 @@ export interface AnimationProps {
     ) => void;
     clickBurstsRef?: MutableRefObject<ClickBurst[]>;
     updateFpsData?: (fps: number, timestamp: number) => void;
+    enableCosmicNavigation?: boolean;
+    camera?: Camera;
+    setCamera?: (camera: Camera) => void;
+    navigationState?: CosmicNavigationState;
+    hoveredObjectId?: string | null;
+    debugSettings?: DebugSettings; // Add debug settings
 }
 
 export interface AnimationRefs {
     animationRef: MutableRefObject<number>;
-    lastTimeRef: MutableRefObject<number>;
+    lastTimeRef: MutableRefObject<number | null>;
     collisionEffectsRef: MutableRefObject<CollisionEffect[]>;
     pendingCollisionEffectsRef: MutableRefObject<CollisionEffect[]>;
     fpsValues: MutableRefObject<number[]>;
@@ -73,8 +98,8 @@ export interface AnimationRefs {
     frameSkipRef: MutableRefObject<number>;
     lastFrameTimeRef: MutableRefObject<number>;
     animationWatchdogRef: MutableRefObject<number | null>;
-    animationErrorCountRef: MutableRefObject<number>;
-    mousePositionRef: MutableRefObject<MousePosition>;
-    hoverInfoRef: MutableRefObject<HoverInfo>;
-    gameStateRef: MutableRefObject<GameState>;
-  }
+    mousePositionRef: React.MutableRefObject<MousePosition>;
+    hoverInfoRef: React.MutableRefObject<HoverInfo>;
+    gameStateRef: React.MutableRefObject<GameState>; // Changed from unknown to GameState
+    animationErrorCountRef: React.MutableRefObject<number>;
+}

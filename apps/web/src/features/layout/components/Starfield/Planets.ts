@@ -1,27 +1,30 @@
-// components/Layout/Starfield/employeeStars.ts
+// apps/web/src/features/layout/components/Starfield/Planets.ts
+// components/Layout/Starfield/planets.ts
 
-import { EmployeeData, EmployeeStar, HoverInfo, Satellite } from "./types";
+import { getObjectById, SUNS } from "./cosmos/cosmicHierarchy";
+import { worldToScreen } from "./cosmos/cosmicNavigation";
+import { Camera } from "./cosmos/types";
+import { drawPlanet } from "./starRendering";
+import { EmployeeData, HoverInfo, Planet, Satellite } from "./types";
 import { calculateCenter } from "./utils";
-import { createSoftenedColor } from "./starUtils";
-import { drawEmployeeStar } from "./starRendering";
 
 // Initialize employee stars
-export const initEmployeeStars = (
+export const initPlanets = (
   width: number,
   height: number,
-  enableEmployeeStars: boolean,
+  enablePlanets: boolean,
   employees: EmployeeData[],
   sidebarWidth: number,
   centerOffsetX: number,
   centerOffsetY: number,
-  employeeStarSize: number,
+  planetSize: number,
   useSimpleRendering: boolean = false
-): EmployeeStar[] => {
-  if (!enableEmployeeStars || !employees || employees.length === 0) return [];
+): Planet[] => {
+  if (!enablePlanets || !employees || employees.length === 0) return [];
 
   console.log("Initializing employee stars:", employees.length);
 
-  const employeeStars: EmployeeStar[] = [];
+  const planets: Planet[] = [];
   const { centerX, centerY } = calculateCenter(
     width, height, sidebarWidth, centerOffsetX, centerOffsetY
   );
@@ -52,7 +55,7 @@ export const initEmployeeStars = (
         const distance = 20 + Math.random() * 15;
         const speed = 0.005 + Math.random() * 0.01; // Increased speed for better visibility
         const eccentricity = 0.1 + Math.random() * 0.2;
-        const size = (0.8 + Math.random() * 1.2) * employeeStarSize;
+        const size = (0.8 + Math.random() * 1.2) * planetSize;
 
         // Ensure valid color format with proper hex values
         const color = employee.color ?
@@ -117,7 +120,7 @@ export const initEmployeeStars = (
       direction: 1
     };
 
-    const employeeStar = {
+    const planet = {
       employee,
       x,
       y,
@@ -127,6 +130,8 @@ export const initEmployeeStars = (
       rotationSpeed: 0.001 + (Math.random() * 0.001),
       orbitRadius,
       orbitSpeed,
+      // will be overwritten each frame, but initialize to the right spot:
+      orbitParentId: "team-sun-system", // Assign to the binary star system
       orbitCenter: {
         x: centerX,
         y: centerY
@@ -141,23 +146,31 @@ export const initEmployeeStars = (
       pulsation,
       useSimpleRendering,
       verticalFactor // Add vertical factor for orbit shaping
-    } as EmployeeStar;
+    } as Planet;
 
-    employeeStars.push(employeeStar);
+    planets.push(planet);
   });
 
-  if (employeeStars.length >= 2) {
+  // Instead of hardcoding "team-sun-system"
+  planets.forEach(planet => {
+    // Get a random sun ID from your cosmic hierarchy
+    const suns = SUNS; // Import this from cosmicHierarchy.ts
+    const randomSunIndex = Math.floor(Math.random() * suns.length);
+    planet.orbitParentId = suns[randomSunIndex].id;
+  });
+
+  if (planets.length >= 2) {
     // Make first employee a bright comet with wide, vertically stretched orbit
-    employeeStars[0].pathType = "comet";
-    employeeStars[0].trailLength = 280;
-    employeeStars[0].pathEccentricity = 0.7;
-    employeeStars[0].orbitRadius = Math.min(width, height) * 0.35;
-    employeeStars[0].orbitSpeed = 0.0001;
-    employeeStars[0].glowIntensity = 2.5;
-    employeeStars[0].verticalFactor = 2.2; // Significant vertical stretch
+    planets[0].pathType = "comet";
+    planets[0].trailLength = 280;
+    planets[0].pathEccentricity = 0.7;
+    planets[0].orbitRadius = Math.min(width, height) * 0.35;
+    planets[0].orbitSpeed = 0.0001;
+    planets[0].glowIntensity = 2.5;
+    planets[0].verticalFactor = 2.2; // Significant vertical stretch
 
     // Make sure all comets have trails and proper speeds
-    employeeStars.forEach(star => {
+    planets.forEach(star => {
       if (star.pathType === "comet") {
         star.trailLength = star.trailLength || 180;
         star.orbitSpeed = 0.0001;
@@ -173,31 +186,31 @@ export const initEmployeeStars = (
     });
   }
 
-  return employeeStars;
+  return planets;
 };
 
 export const checkEmployeeHover = (
   mouseX: number,
   mouseY: number,
-  employeeStars: EmployeeStar[],
-  employeeStarSize: number,
+  planets: Planet[],
+  planetSize: number,
   currentHoverInfo: HoverInfo,
   setHoverInfo: (info: HoverInfo) => void
 ): boolean => {
-  if (!employeeStars || !employeeStars.length) return false;
+  if (!planets || !planets.length) return false;
 
   let hoveredStar = null;
   let closestDistance = Infinity;
 
   // Find the closest star to the mouse
-  for (const empStar of employeeStars) {
+  for (const empStar of planets) {
     const dist = Math.sqrt(
       Math.pow(mouseX - empStar.x, 2) +
       Math.pow(mouseY - empStar.y, 2)
     );
 
     // Increased hover radius for better detection
-    const hoverRadius = 30 * employeeStarSize; // Increased from 25 to 30
+    const hoverRadius = 30 * planetSize; // Increased from 25 to 30
 
     if (dist < hoverRadius && dist < closestDistance) {
       closestDistance = dist;
@@ -262,19 +275,35 @@ export const checkEmployeeHover = (
 };
 
 // Update employee stars animation
-export const updateEmployeeStars = (
+export const updatePlanets = (
   ctx: CanvasRenderingContext2D,
-  employeeStars: EmployeeStar[],
+  planets: Planet[],
   deltaTime: number,
-  employeeStarSize: number,
-  employeeDisplayStyle: "initials" | "avatar" | "both"
+  planetSize: number,
+  employeeDisplayStyle: "initials" | "avatar" | "both",
+  camera: Camera // New parameter for camera
 ): void => {
-  if (!ctx || !employeeStars || !employeeStars.length) return;
+  if (!ctx || !planets || !planets.length) return;
 
   const cappedDeltaTime = Math.min(deltaTime, 100);
 
-  employeeStars.forEach(empStar => {
+  planets.forEach(empStar => {
+    /* ---------- NEW: recalc orbit centre every frame ---------- */
+    if (empStar.orbitParentId) {
+      const parent = getObjectById(empStar.orbitParentId);
+      if (parent) {
+        empStar.orbitCenter = worldToScreen(
+          parent.position.x,
+          parent.position.y,
+          camera,
+          ctx.canvas.width,
+          ctx.canvas.height
+        );
+      }
+    }
+    /* ------------------------------------------------------------ */
+
     // Draw the star regardless of movement state
-    drawEmployeeStar(ctx, empStar, cappedDeltaTime, employeeStarSize, employeeDisplayStyle);
+    drawPlanet(ctx, empStar, cappedDeltaTime, planetSize, employeeDisplayStyle);
   });
 };

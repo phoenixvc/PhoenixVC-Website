@@ -1,11 +1,11 @@
 // components/Layout/Layout.tsx
-import React, { useState, useEffect, useRef } from "react";
-import { Footer } from "./Footer/Footer";
-import styles from "./layout.module.css";
 import { Sidebar } from "@/features/sidebar/components/Sidebar";
+import React, { useEffect, useRef, useState } from "react";
+import { Footer } from "./Footer/Footer";
 import Header from "./Header/Header";
-import InteractiveStarfield, { StarfieldRef } from "./Starfield/InteractiveStarfield";
-import { MousePosition, Star } from "./Starfield/types";
+import styles from "./layout.module.css";
+import Starfield, { StarfieldRef } from "./Starfield/Starfield";
+import { CosmicNavigationState, Star } from "./Starfield/types";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -20,6 +20,11 @@ const Layout = ({ children }: LayoutProps) => {
   const [gameMode, setGameMode] = useState(false);
   // Disable debug mode by default
   const [debugMode, setDebugMode] = useState(false);
+  // Cosmic navigation state
+  const [cosmicNavigation, setCosmicNavigation] = useState<CosmicNavigationState>({
+    currentLevel: "universe",
+    isTransitioning: false
+  });
 
   // Create a ref to the starfield component
   const starfieldRef = useRef<StarfieldRef>(null);
@@ -107,6 +112,12 @@ const Layout = ({ children }: LayoutProps) => {
     }
   };
 
+  // Handle cosmic navigation
+  const handleCosmicNavigation = (state: CosmicNavigationState) => {
+    setCosmicNavigation(state);
+    console.log("Navigation updated:", state);
+  };
+
   const customDebugInfo = (
     ctx: CanvasRenderingContext2D,
     width: number,
@@ -152,29 +163,30 @@ const Layout = ({ children }: LayoutProps) => {
         isDarkMode ? styles.darkMode : styles.lightMode
       } ${styles.starfieldContainer}`}
     >
-      <InteractiveStarfield
+      {/* Always use Starfield, remove conditional rendering */}
+      <Starfield
         key={`starfield-${isDarkMode}-${sidebarWidth}-${gameMode}`}
-        sidebarWidth={sidebarWidth}
-        isDarkMode={isDarkMode}
-        enableFlowEffect={true}
-        enableBlackHole={true}
-        enableMouseInteraction={true}
-        enableEmployeeStars={true}
-        starDensity={1.8}
-        starSize={1.5}
-        particleSpeed={0.05}
-        flowStrength={0.01}
-        gravitationalPull={0.05}
-        mouseEffectRadius={220}
-        mouseEffectColor="rgba(138, 43, 226, 0.15)"
-        blackHoleSize={1.5}
-        gameMode={gameMode}
-        maxVelocity={0.5}
-        debugMode={debugMode}
-        animationSpeed={1.0}
-        drawDebugInfo={customDebugInfo}
-      />
-
+          ref={starfieldRef}
+          sidebarWidth={sidebarWidth}
+          isDarkMode={isDarkMode}
+          enableFlowEffect={true}
+          enableBlackHole={true}
+          enableMouseInteraction={true}
+          enablePlanets={true}
+          starDensity={1.8}
+          starSize={1.5}
+          particleSpeed={0.05}
+          flowStrength={0.01}
+          gravitationalPull={0.05}
+          mouseEffectRadius={220}
+          mouseEffectColor="rgba(138, 43, 226, 0.15)"
+          blackHoleSize={1.5}
+          gameMode={gameMode}
+          maxVelocity={0.5}
+          debugMode={debugMode}
+          animationSpeed={1.0}
+          drawDebugInfo={customDebugInfo}
+        />
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => isMobile && setIsSidebarOpen(false)}
@@ -213,7 +225,9 @@ const Layout = ({ children }: LayoutProps) => {
         <main className={`${styles.mainContent} ${isDarkMode ? styles.darkMain : styles.lightMain}`}>
           {React.Children.map(children, (child) =>
             React.isValidElement(child)
-              ? React.cloneElement(child as React.ReactElement<{ isDarkMode: boolean }>, { isDarkMode })
+              ? React.cloneElement(child as React.ReactElement<{ isDarkMode: boolean }>, {
+                  isDarkMode
+                })
               : child
           )}
         </main>

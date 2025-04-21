@@ -1,23 +1,23 @@
 // components/Layout/Starfield/starRendering.ts
 
-import { EmployeeStar } from "./types";
-import { hexToRgb, createSoftenedColor, calculatePulsation, updateStarPosition } from "./starUtils";
 import {
-  drawStarGlow,
-  drawStarTrail,
-  drawSatellites,
-  drawHoverEffects,
-  drawStarFlares,
-  drawNebulaEffects,
-  drawConnections
+    drawConnections,
+    drawHoverEffects,
+    drawNebulaEffects,
+    drawSatellites,
+    drawStarFlares,
+    drawStarGlow,
+    drawStarTrail
 } from "./starEffects";
+import { calculatePulsation, createSoftenedColor, hexToRgb, updateStarPosition } from "./starUtils";
+import { Planet } from "./types";
 
 // Draw an employee star with its satellites
-export const drawEmployeeStar = (
+export const drawPlanet = (
   ctx: CanvasRenderingContext2D,
-  empStar: EmployeeStar,
+  empStar: Planet,
   deltaTime: number,
-  employeeStarSize: number,
+  planetSize: number,
   employeeDisplayStyle: "initials" | "avatar" | "both"
 ): void => {
   if (!ctx || !empStar) return;
@@ -35,14 +35,14 @@ export const drawEmployeeStar = (
 
   // Calculate pulsation effect
   const scaleFactor = calculatePulsation(empStar);
-  const starSize = 20 * employeeStarSize * scaleFactor;
+  const starSize = 20 * planetSize * scaleFactor;
 
   // Draw nebula effects for important stars
   drawNebulaEffects(ctx, empStar, starSize, softRgb);
 
   // Draw comet trail if applicable
   if (empStar.pathType === "comet") {
-    drawStarTrail(ctx, empStar, starSize, softRgb, employeeStarSize, scaleFactor);
+    drawStarTrail(ctx, empStar, starSize, softRgb, planetSize, scaleFactor);
   }
 
   // Draw random star flares
@@ -72,15 +72,15 @@ export const drawEmployeeStar = (
   drawEmployeeIdentifier(ctx, empStar, starSize, employeeDisplayStyle);
 
   // Draw connections to related stars
-  if ((empStar.isHovered || empStar.isSelected) && window.employeeStars) {
-    drawConnections(ctx, empStar, window.employeeStars, softRgb);
+  if ((empStar.isHovered || empStar.isSelected) && window.planets) {
+    drawConnections(ctx, empStar, window.planets, softRgb);
   }
 };
 
 // Draw employee identifier (initials or avatar)
 function drawEmployeeIdentifier(
   ctx: CanvasRenderingContext2D,
-  empStar: EmployeeStar,
+  empStar: Planet,
   starSize: number,
   employeeDisplayStyle: "initials" | "avatar" | "both"
 ): void {

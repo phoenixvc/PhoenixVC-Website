@@ -1,6 +1,6 @@
 // components/Layout/Starfield/starUtils.ts
 
-import { EmployeeStar } from "./types";
+import { Planet } from "./types";
 
 // Helper function to convert hex color to RGB
 export function hexToRgb(hex: string): { r: number, g: number, b: number } {
@@ -55,7 +55,7 @@ export function hexToRgb(hex: string): { r: number, g: number, b: number } {
   };
 
   // Calculate star pulsation
-  export function calculatePulsation(empStar: EmployeeStar): number {
+  export function calculatePulsation(empStar: Planet): number {
     let scaleFactor = 1;
     if (!empStar.useSimpleRendering && empStar.pulsation) {
       if (!empStar.pulsation.enabled) {
@@ -75,10 +75,12 @@ export function hexToRgb(hex: string): { r: number, g: number, b: number } {
     return scaleFactor;
   }
 
-  // Update star position
-  export function updateStarPosition(empStar: EmployeeStar, deltaTime: number): void {
+  export function updateStarPosition(empStar: Planet, deltaTime: number): void {
     const fixedDelta = empStar.useSimpleRendering ? 0.2 : 0.5;
     const directionMultiplier = empStar.orbitalDirection === "clockwise" ? 1 : -1;
+
+    const ox = empStar.orbitCenter?.x ?? 0;
+    const oy = empStar.orbitCenter?.y ?? 0;
 
     if (empStar.useSimpleRendering) {
       empStar.angle += directionMultiplier * 0.00005 * fixedDelta;
@@ -93,14 +95,14 @@ export function hexToRgb(hex: string): { r: number, g: number, b: number } {
     const b = empStar.orbitRadius * (1 - empStar.pathEccentricity) * verticalFactor;
 
     if (empStar.useSimpleRendering) {
-      empStar.x = empStar.orbitCenter.x + a * Math.cos(empStar.angle);
-      empStar.y = empStar.orbitCenter.y + b * Math.sin(empStar.angle);
+      empStar.x = ox + a * Math.cos(empStar.angle);
+      empStar.y = oy + b * Math.sin(empStar.angle);
     } else {
       const tiltRadians = empStar.pathTilt * (Math.PI / 180);
       const baseX = a * Math.cos(empStar.angle);
       const baseY = b * Math.sin(empStar.angle);
 
-      empStar.x = empStar.orbitCenter.x + baseX;
-      empStar.y = empStar.orbitCenter.y + baseY * Math.cos(tiltRadians);
+      empStar.x = ox + baseX;
+      empStar.y = oy + baseY * Math.cos(tiltRadians);
     }
   }

@@ -1,0 +1,73 @@
+import React, { useState } from "react";
+import Layout from "@/features/layout/components/Layout";
+import CosmicStarfield from "@/features/layout/components/Starfield/CosmicStarfield";
+import { CosmicNavigationState } from "@/features/layout/components/Starfield/types";
+import styles from "@/styles/CosmicDemo.module.css";
+// Type assertion to fix the 'styles is of type unknown' error
+const typedStyles = styles as Record<string, string>;
+
+const CosmicDemo: React.FC = () => {
+  const [navigationState, setNavigationState] = useState<CosmicNavigationState>({
+    currentLevel: "universe",
+    isTransitioning: false
+  });
+
+  const handleNavigation = (state: CosmicNavigationState) => {
+    setNavigationState(state);
+  };
+
+  return (
+    <Layout>
+      <div className={typedStyles.cosmicDemoContainer}>
+        <div className={typedStyles.cosmicInfo}>
+          <h1>Cosmic Navigation System</h1>
+          <p>
+            Explore the Phoenix VC website through our cosmic navigation system. Click on galaxies,
+            star systems, and special objects to navigate through the cosmic hierarchy.
+          </p>
+
+          <div className={typedStyles.navigationStatus}>
+            <h2>Current Navigation State</h2>
+            <div className={typedStyles.statusItem}>
+              <span className={typedStyles.statusLabel}>Level:</span>
+              <span className={typedStyles.statusValue}>{navigationState.currentLevel}</span>
+            </div>
+
+            {navigationState.currentGalaxyId && (
+              <div className={typedStyles.statusItem}>
+                <span className={typedStyles.statusLabel}>Galaxy:</span>
+                <span className={typedStyles.statusValue}>{navigationState.currentGalaxyId}</span>
+              </div>
+            )}
+
+            {navigationState.currentStarSystemId && (
+              <div className={typedStyles.statusItem}>
+                <span className={typedStyles.statusLabel}>Star System:</span>
+                <span className={typedStyles.statusValue}>{navigationState.currentStarSystemId}</span>
+              </div>
+            )}
+
+            {navigationState.currentSpecialObjectId && (
+              <div className={typedStyles.statusItem}>
+                <span className={typedStyles.statusLabel}>Special Object:</span>
+                <span className={typedStyles.statusValue}>{navigationState.currentSpecialObjectId}</span>
+              </div>
+            )}
+          </div>
+
+          <div className={typedStyles.instructions}>
+            <h2>Instructions</h2>
+            <ul>
+              <li>Click on a galaxy to zoom in and see its star systems</li>
+              <li>Click on a star system to zoom in and see its details</li>
+              <li>Click on empty space to zoom out to the previous level</li>
+              <li>Hover over objects to see their names</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </Layout>
+  );
+};
+
+export default CosmicDemo;

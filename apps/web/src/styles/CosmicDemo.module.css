@@ -1,0 +1,171 @@
+.cosmicDemoContainer {
+  position: relative;
+  width: 100%;
+  min-height: calc(100vh - 200px);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.cosmicInfo {
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: 1rem;
+  padding: 2rem;
+  max-width: 800px;
+  width: 100%;
+  color: white;
+  box-shadow: 0 0 20px rgba(138, 43, 226, 0.3);
+  border: 1px solid rgba(138, 43, 226, 0.2);
+  backdrop-filter: blur(10px);
+  z-index: 20;
+}
+
+.cosmicInfo h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: #a855f7;
+  text-align: center;
+}
+
+.cosmicInfo p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.navigationStatus {
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(138, 43, 226, 0.3);
+}
+
+.navigationStatus h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #a855f7;
+}
+
+.statusItem {
+  display: flex;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 0.25rem;
+}
+
+.statusLabel {
+  font-weight: bold;
+  width: 120px;
+  color: #d8b4fe;
+}
+
+.statusValue {
+  flex: 1;
+  color: white;
+}
+
+.instructions {
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  border: 1px solid rgba(138, 43, 226, 0.3);
+}
+
+.instructions h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #a855f7;
+}
+
+.instructions ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.instructions li {
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 0.25rem;
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.instructions li::before {
+  content: "✨";
+  position: absolute;
+  left: 0.5rem;
+  color: #a855f7;
+}
+
+/* Light mode styles */
+:global(.lightMode) .cosmicInfo {
+  background-color: rgba(255, 255, 255, 0.8);
+  color: #333;
+  box-shadow: 0 0 20px rgba(138, 43, 226, 0.2);
+}
+
+:global(.lightMode) .cosmicInfo h1 {
+  color: #7e22ce;
+}
+
+:global(.lightMode) .navigationStatus,
+:global(.lightMode) .instructions {
+  background-color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(138, 43, 226, 0.2);
+}
+
+:global(.lightMode) .navigationStatus h2,
+:global(.lightMode) .instructions h2 {
+  color: #7e22ce;
+}
+
+:global(.lightMode) .statusItem {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+:global(.lightMode) .statusLabel {
+  color: #7e22ce;
+}
+
+:global(.lightMode) .statusValue {
+  color: #333;
+}
+
+:global(.lightMode) .instructions li {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+:global(.lightMode) .instructions li::before {
+  color: #7e22ce;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .cosmicInfo {
+    padding: 1.5rem;
+  }
+
+  .cosmicInfo h1 {
+    font-size: 2rem;
+  }
+
+  .cosmicInfo p {
+    font-size: 1rem;
+  }
+
+  .navigationStatus h2,
+  .instructions h2 {
+    font-size: 1.25rem;
+  }
+
+  .statusLabel {
+    width: 100px;
+  }
+}

@@ -1,9 +1,9 @@
 // hooks/useStarInitialization.ts
-import { useState, useRef, useCallback, useMemo } from "react";
-import { Star, BlackHole, EmployeeStar, DebugSettings } from "../types";
+import { useCallback, useRef, useState } from "react";
 import { initBlackHoles } from "../blackHoles";
-import { initEmployeeStars } from "../employeeStars";
 import { DEFAULT_BLACK_HOLES, DEFAULT_EMPLOYEES, getColorPalette } from "../constants";
+import { initPlanets } from "../planets";
+import { BlackHole, DebugSettings, Planet, Star } from "../types";
 
 interface StarInitializationProps {
   canvasRef: React.RefObject<HTMLCanvasElement>;
@@ -17,8 +17,8 @@ interface StarInitializationProps {
   enableBlackHole: boolean;
   blackHoleSize: number;
   particleSpeed: number;
-  enableEmployeeStars: boolean;
-  employeeStarSize: number;
+  enablePlanets: boolean;
+  planetSize: number;
   debugSettings: DebugSettings;
   cancelAnimation: () => void;
 }
@@ -35,22 +35,22 @@ export const useStarInitialization = ({
   enableBlackHole,
   blackHoleSize,
   particleSpeed,
-  enableEmployeeStars,
-  employeeStarSize,
+  enablePlanets,
+  planetSize,
   debugSettings,
   cancelAnimation
 }: StarInitializationProps) => {
   // Store stars in refs to prevent re-renders
   const starsRef = useRef<Star[]>([]);
   const blackHolesRef = useRef<BlackHole[]>([]);
-  const employeeStarsRef = useRef<EmployeeStar[]>([]);
+  const planetsRef = useRef<Planet[]>([]);
   const isStarsInitializedRef = useRef(false);
   const isInitializedRef = useRef(false);
 
   // State for UI updates only - not used for animation calculations
   const [stars, setStars] = useState<Star[]>([]);
   const [blackHoles, setBlackHoles] = useState<BlackHole[]>([]);
-  const [employeeStars, setEmployeeStars] = useState<EmployeeStar[]>([]);
+  const [planets, setPlanets] = useState<Planet[]>([]);
 
   // Custom function to initialize stars with lower initial velocities - memoized
   const initializeStarsWithLowVelocity = useCallback((
@@ -163,19 +163,19 @@ export const useStarInitialization = ({
     );
 
     // Initialize employee stars with extremely slow orbit speeds
-    const newEmployeeStars = initEmployeeStars(
+    const newPlanets = initPlanets(
       width,
       height,
-      enableEmployeeStars,
+      enablePlanets,
       DEFAULT_EMPLOYEES,
       sidebarWidth,
       centerOffsetX,
       centerOffsetY,
-      employeeStarSize
+      planetSize
     );
 
     // Modify employee stars to have extremely slow orbit speeds
-    const modifiedEmployeeStars = newEmployeeStars.map(empStar => ({
+    const modifiedPlanets = newPlanets.map(empStar => ({
       ...empStar,
       orbitSpeed: debugSettings.employeeOrbitSpeed, // Use debug setting
       pulsation: {
@@ -193,12 +193,12 @@ export const useStarInitialization = ({
     // Update refs first
     starsRef.current = [...newStars];
     blackHolesRef.current = newBlackHoles;
-    employeeStarsRef.current = modifiedEmployeeStars;
+    planetsRef.current = modifiedPlanets;
 
     // Then update state (for UI updates only)
     setStars(newStars);
     setBlackHoles(newBlackHoles);
-    setEmployeeStars(modifiedEmployeeStars);
+    setPlanets(modifiedPlanets);
 
     console.log(`Initialized with ${newStars.length} stars`);
     isStarsInitializedRef.current = true;
@@ -212,8 +212,8 @@ export const useStarInitialization = ({
     enableBlackHole,
     blackHoleSize,
     particleSpeed,
-    enableEmployeeStars,
-    employeeStarSize,
+    enablePlanets,
+    planetSize,
     initializeStarsWithLowVelocity,
     debugSettings.employeeOrbitSpeed,
     canvasRef,
@@ -337,8 +337,8 @@ export const useStarInitialization = ({
     starsRef,
     blackHoles,
     blackHolesRef,
-    employeeStars,
-    employeeStarsRef,
+    planets,
+    planetsRef,
     initializeElements,
     ensureStarsExist,
     resetStars,

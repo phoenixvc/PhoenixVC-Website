@@ -1,6 +1,24 @@
-// hooks/useDebugControls.ts
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { DebugSettings, MousePosition, Star, UseDebugControlsProps } from "../types";
+
+const STORAGE_KEY = "starfieldDebugSettings";
+
+function loadSaved(): Partial<DebugSettings> | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function save(settings: DebugSettings) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+  } catch {
+    /* silent‑fail – quota, private‑mode, etc. */
+  }
+}
 
 export const useDebugControls = ({
   initialDebugMode,
@@ -16,88 +34,81 @@ export const useDebugControls = ({
   initialLineOpacity = 0.15,
   sidebarWidth = 0
 }: Omit<UseDebugControlsProps, "resetStarsCallback">) => {
+  /* ---------- bootstrap ---------- */
+  const saved = loadSaved();
+
   const [debugSettings, setDebugSettings] = useState<DebugSettings>({
-    isDebugMode: initialDebugMode,
-    animationSpeed: initialAnimationSpeed,
-    maxVelocity: initialMaxVelocity,
-    flowStrength: initialFlowStrength,
-    gravitationalPull: initialGravitationalPull,
-    particleSpeed: initialParticleSpeed,
-    starSize: initialStarSize,
-    employeeOrbitSpeed: initialEmployeeOrbitSpeed,
-    mouseEffectRadius: initialMouseEffectRadius,
-    lineConnectionDistance: initialLineConnectionDistance,
-    lineOpacity: initialLineOpacity,
-    sidebarWidth: sidebarWidth
+    isDebugMode: saved?.isDebugMode ?? initialDebugMode,
+    animationSpeed: saved?.animationSpeed ?? initialAnimationSpeed,
+    maxVelocity:     saved?.maxVelocity ?? initialMaxVelocity,
+    flowStrength:    saved?.flowStrength ?? initialFlowStrength,
+    gravitationalPull: saved?.gravitationalPull ?? initialGravitationalPull,
+    particleSpeed:   saved?.particleSpeed ?? initialParticleSpeed,
+    starSize:        saved?.starSize ?? initialStarSize,
+    employeeOrbitSpeed: saved?.employeeOrbitSpeed ?? initialEmployeeOrbitSpeed,
+    mouseEffectRadius:  saved?.mouseEffectRadius ?? initialMouseEffectRadius,
+    lineConnectionDistance: saved?.lineConnectionDistance ?? initialLineConnectionDistance,
+    lineOpacity:     saved?.lineOpacity ?? initialLineOpacity,
+    repulsionEnabled: saved?.repulsionEnabled ?? true,
+    repulsionRadius: saved?.repulsionRadius ?? 300,
+    repulsionForce:  saved?.repulsionForce  ?? 100,
+    sidebarWidth
   });
 
-  // Track initial debug mode changes from props
+  /* re‑persist whenever anything changes */
+  useEffect(() => { save(debugSettings); }, [debugSettings]);
+
+  /* sync external prop → state when dev toggles the debug flag */
   useEffect(() => {
-    console.log(`initialDebugMode changed to: ${initialDebugMode}`);
-    setDebugSettings(prev => ({
-      ...prev,
-      isDebugMode: initialDebugMode
-    }));
+    setDebugSettings(prev => ({ ...prev, isDebugMode: initialDebugMode }));
   }, [initialDebugMode]);
 
-  // Function to update a specific debug setting
   const updateDebugSetting = useCallback(<K extends keyof DebugSettings>(
     key: K,
     value: DebugSettings[K]
   ) => {
-    console.log(`Updating debug setting in hook: ${String(key)} = ${value}`);
-    setDebugSettings(prev => ({
-      ...prev,
-      [key]: value
-    }));
+    setDebugSettings(prev => ({ ...prev, [key]: value }));
   }, []);
 
-  // Debug info drawing function
-  const drawDebugInfo = useCallback((
-    ctx: CanvasRenderingContext2D,
-    width: number,
-    height: number,
-    mousePosition: MousePosition,
-    stars: Star[],
-    mouseEffectRadius: number,
-    timestamp?: number
-  ) => {
-    // Only draw if debug mode is enabled
-    if (!debugSettings.isDebugMode) return;
+  /* -------------- debug HUD drawing -------------- */
+  const drawDebugInfo = useCallback(
+    (
+      ctx: CanvasRenderingContext2D,
+      width: number,
+      height: number,
+      mousePosition: MousePosition,
+      stars: Star[],
+      mouseEffectRadius: number,
+      timestamp?: number
+    ) => {
+      if (!debugSettings.isDebugMode) return;
 
-    // Save context state
-    ctx.save();
+      ctx.save();
+      ctx.fillStyle = "rgba(255,255,255,0.8)";
+      ctx.font = "12px monospace";
 
-    // Set text properties
-    ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-    ctx.font = "12px monospace";
+      const lines = [
+        `Stars: ${stars.length}`,
+        `FPS: ${timestamp ? (1000 / timestamp).toFixed(1) : "—"}`,
+        `Mouse: ${Math.round(mousePosition.x)},${Math.round(mousePosition.y)}`,
+        `Effect Radius: ${mouseEffectRadius}`,
+        `Repulse R/F: ${debugSettings.repulsionRadius}/${debugSettings.repulsionForce}`,
+        `AnimSpeed: ${debugSettings.animationSpeed.toFixed(2)}x`,
+        `MaxVel: ${debugSettings.maxVelocity.toFixed(2)}`
+      ];
 
-    // Draw debug information
-    ctx.fillText(`Stars: ${stars.length}`, 10, 20);
-    ctx.fillText(`FPS: ${calculateFPS(timestamp)}`, 10, 40);
-    ctx.fillText(`Mouse: ${Math.round(mousePosition?.x || 0)}, ${Math.round(mousePosition?.y || 0)}`, 10, 60);
-    ctx.fillText(`Effect Radius: ${mouseEffectRadius}px`, 10, 80);
-    ctx.fillText(`Animation Speed: ${debugSettings.animationSpeed.toFixed(2)}x`, 10, 100);
-    ctx.fillText(`Max Velocity: ${debugSettings.maxVelocity.toFixed(2)}`, 10, 120);
+      lines.forEach((txt, i) => ctx.fillText(txt, 10, 20 + i * 18));
 
-    // Draw mouse effect radius if mouse is on screen
-    if (mousePosition?.isOnScreen) {
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
-      ctx.beginPath();
-      ctx.arc(mousePosition.x, mousePosition.y, mouseEffectRadius, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-
-    // Restore context state
-    ctx.restore();
-  }, [debugSettings.isDebugMode, debugSettings.animationSpeed, debugSettings.maxVelocity]);
-
-  // Helper function to calculate FPS
-  const calculateFPS = (timestamp?: number): string => {
-    if (!timestamp) return "N/A";
-    // FPS calculation logic here
-    return "60"; // Placeholder
-  };
+      if (mousePosition.isOnScreen) {
+        ctx.strokeStyle = "rgba(255,255,255,0.3)";
+        ctx.beginPath();
+        ctx.arc(mousePosition.x, mousePosition.y, mouseEffectRadius, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.restore();
+    },
+    [debugSettings]
+  );
 
   return { debugSettings, updateDebugSetting, drawDebugInfo };
 };

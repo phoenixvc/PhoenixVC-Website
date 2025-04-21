@@ -47,25 +47,6 @@ export const DEFAULT_EMPLOYEES: EmployeeData[] = [
     skills: ["Leadership", "Strategy", "Vision", "Management"],
     relatedEmployees: ["ym"], // Related to Yolandi (spouse/CTO)
     product: "The whole shebang!"
-  },
-  {
-    id: "ym",
-    name: "Yolandi Mare",
-    initials: "YM",
-    position: "CTO",
-    mass: 150,
-    color: "#4ade80", // Green
-    image: "themes/YolandE.png",
-    fullName: "Yolandi Mare",
-    speed: 0.00005,
-    title: "Solver of Problems",
-    department: "Product",
-    experience: 10,
-    expertise: "Product Development, Technical Leadership",
-    projects: ["Product Roadmap", "Technical Strategy"],
-    skills: ["Product", "Technology", "Innovation", "Leadership"],
-    relatedEmployees: ["em", "js"], // Related to Eben (spouse/CEO) and Jurie (technical team)
-    product: "The vowels in team."
   }
 ];
 

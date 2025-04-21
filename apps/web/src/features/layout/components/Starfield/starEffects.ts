@@ -1,13 +1,13 @@
 // components/Layout/Starfield/starEffects.ts
 
-import { EmployeeData, EmployeeStar } from "./types";
 import { hexToRgb } from "./starUtils";
+import { EmployeeData, Planet } from "./types";
 
 // Draw star glow and core
 // Draw star glow and core
 export function drawStarGlow(
     ctx: CanvasRenderingContext2D,
-    empStar: EmployeeStar,
+    empStar: Planet,
     starSize: number,
     softRgb: {r: number, g: number, b: number}
   ): void {
@@ -86,10 +86,10 @@ export function drawStarGlow(
 // Draw comet trail
 export function drawStarTrail(
   ctx: CanvasRenderingContext2D,
-  empStar: EmployeeStar,
+  empStar: Planet,
   starSize: number,
   softRgb: {r: number, g: number, b: number},
-  employeeStarSize: number,
+  planetSize: number,
   scaleFactor: number
 ): void {
   const trailLength = empStar.trailLength || 180;
@@ -114,8 +114,8 @@ export function drawStarTrail(
   const perpDy = normalizedDx;
 
   // Wider trail for better visibility with wobble effect
-  const startWidth = 15 * employeeStarSize * scaleFactor;
-  const endWidth = 1 * employeeStarSize * scaleFactor;
+  const startWidth = 15 * planetSize * scaleFactor;
+  const endWidth = 1 * planetSize * scaleFactor;
 
   // Create curved trail path with wobble
   ctx.moveTo(empStar.x + perpDx * startWidth/2, empStar.y + perpDy * startWidth/2);
@@ -173,7 +173,7 @@ export function drawStarTrail(
   ctx.beginPath();
   ctx.moveTo(empStar.x, empStar.y);
   ctx.lineTo(trailEndX, trailEndY);
-  ctx.lineWidth = 3 * employeeStarSize * scaleFactor;
+  ctx.lineWidth = 3 * planetSize * scaleFactor;
   ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, 0.6)`; // Reduced opacity
   ctx.stroke();
 
@@ -233,7 +233,7 @@ export function drawStarTrail(
 // Draw satellites
 export function drawSatellites(
     ctx: CanvasRenderingContext2D,
-    empStar: EmployeeStar,
+    empStar: Planet,
     scaleFactor: number,
     softRgb: {r: number, g: number, b: number},
     deltaTime: number
@@ -351,7 +351,7 @@ export function drawSatellites(
 // Draw hover/select effects
 export function drawHoverEffects(
     ctx: CanvasRenderingContext2D,
-    empStar: EmployeeStar,
+    empStar: Planet,
     starSize: number,
     softRgb: {r: number, g: number, b: number}
   ): void {
@@ -365,7 +365,7 @@ export function drawHoverEffects(
         ctx.font = "14px Arial";
         ctx.fillStyle = "white";
         ctx.textAlign = "center";
-        // Fix: Use starSize instead of employeeStarSize
+        // Fix: Use starSize instead of planetSize
         ctx.fillText("Click for details", empStar.x, empStar.y - starSize * 5);
         ctx.restore();
       }
@@ -461,7 +461,7 @@ export function drawHoverEffects(
   // Draw star flares
   export function drawStarFlares(
     ctx: CanvasRenderingContext2D,
-    empStar: EmployeeStar,
+    empStar: Planet,
     starSize: number,
     softRgb: {r: number, g: number, b: number}
   ): void {
@@ -502,7 +502,7 @@ export function drawHoverEffects(
   // Draw nebula effects
   export function drawNebulaEffects(
     ctx: CanvasRenderingContext2D,
-    empStar: EmployeeStar,
+    empStar: Planet,
     starSize: number,
     softRgb: {r: number, g: number, b: number}
   ): void {
@@ -535,11 +535,11 @@ export function drawHoverEffects(
   // Draw connections between related stars
   export function drawConnections(
     ctx: CanvasRenderingContext2D,
-    empStar: EmployeeStar,
-    allStars: EmployeeStar[],
+    empStar: Planet,
+    allStars: Planet[],
     softRgb: {r: number, g: number, b: number}
   ): void {
-    const relatedStars = findRelatedEmployeeStars(empStar, allStars);
+    const relatedStars = findRelatedPlanets(empStar, allStars);
 
     if (relatedStars.length > 0) {
       ctx.save();
@@ -582,7 +582,7 @@ export function drawHoverEffects(
   }
 
   // Helper function to find related stars
-  export function findRelatedEmployeeStars(empStar: EmployeeStar, allStars: EmployeeStar[]): EmployeeStar[] {
+  export function findRelatedPlanets(empStar: Planet, allStars: Planet[]): Planet[] {
     if (!empStar || !empStar.employee || !empStar.employee.relatedIds || !allStars) {
       return [];
     }

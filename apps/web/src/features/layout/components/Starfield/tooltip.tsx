@@ -1,8 +1,8 @@
-import React, { FC, useEffect, useState, useRef } from "react";
-import styles from "./employeeTooltip.module.css";
+import React, { FC, useEffect, useRef, useState } from "react";
+import styles from "./tooltip.module.css";
 import { EmployeeData } from "./types";
 
-interface EmployeeTooltipProps {
+interface TooltipProps {
   employee: EmployeeData;
   x: number;
   y: number;
@@ -12,7 +12,7 @@ interface EmployeeTooltipProps {
   onUnpin?: () => void;
 }
 
-const EmployeeTooltip: FC<EmployeeTooltipProps> = ({
+const Tooltip: FC<TooltipProps> = ({
   employee,
   x,
   y,
@@ -187,4 +187,4 @@ const EmployeeTooltip: FC<EmployeeTooltipProps> = ({
   );
 };
 
-export default EmployeeTooltip;
+export default Tooltip;

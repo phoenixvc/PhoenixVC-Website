@@ -12,4 +12,5 @@ export interface NavItem {
     onGameModeToggle: () => void;
     debugMode?: boolean;
     onDebugModeToggle?: () => void;
+  // Removed useCosmicStarfield and onStarfieldModeToggle props
   }

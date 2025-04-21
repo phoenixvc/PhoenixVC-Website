@@ -24,7 +24,17 @@
   flex-grow: 1;
   transition: margin-left 0.3s ease;
   position: relative;
-  z-index: 1; /* Above the starfield */
+  z-index: 10; /* Higher z-index to be above the starfield */
+  pointer-events: auto; /* Allow pointer events */
+}
+
+/* Ensure the debug controls are always clickable */
+.contentWrapper .debugControls,
+.contentWrapper .debugIndicator,
+.contentWrapper .debugControls button,
+.contentWrapper .debugControls input {
+  pointer-events: auto !important;
+  z-index: 999999 !important;
 }
 
 .mainContent {
@@ -32,7 +42,17 @@
   padding: 0px 0;
   width: 100%;
   position: relative;
-  z-index: 1;
+  z-index: 10; /* Higher z-index to be above the starfield */
+  pointer-events: auto; /* Allow pointer events */
+}
+
+/* Ensure the debug controls are always clickable */
+.mainContent .debugControls,
+.mainContent .debugIndicator,
+.mainContent .debugControls button,
+.mainContent .debugControls input {
+  pointer-events: auto !important;
+  z-index: 999999 !important;
 }
 
 .sidebarOverlay {

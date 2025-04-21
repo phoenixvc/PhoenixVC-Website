@@ -1,5 +1,5 @@
 // components/Layout/Starfield/gameState.ts
-import { Star, EmployeeStar, GameState, GameScore } from "./types";
+import { GameState, Planet, Star } from "./types";
 
 // Initialize game state
 export const initGameState = (): GameState => {
@@ -18,12 +18,12 @@ export const initGameState = (): GameState => {
 // Check for collisions between stars and employee stars
 export const checkCollisions = (
   stars: Star[],
-  employeeStars: EmployeeStar[],
+  planets: Planet[],
   gameState: GameState,
   setGameState: (state: GameState) => void,
   createCollisionEffect?: (x: number, y: number, color: string, score: number) => void
 ): void => {
-  if (!stars.length || !employeeStars.length) return;
+  if (!stars.length || !planets.length) return;
 
   let scoreAdded = false;
   const newCollisions = [...gameState.collisions];
@@ -33,7 +33,7 @@ export const checkCollisions = (
   stars.forEach((star, starIndex) => {
     if (!star.isActive) return; // Skip inactive stars
 
-    employeeStars.forEach(empStar => {
+    planets.forEach(empStar => {
       const dist = Math.sqrt(
         Math.pow(star.x - empStar.x, 2) +
         Math.pow(star.y - empStar.y, 2)

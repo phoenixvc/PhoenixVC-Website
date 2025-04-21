@@ -1,7 +1,8 @@
 // components/Layout/Header/Header.tsx
 import { FC, useEffect, useState, useRef } from "react";
 import styles from "./header.module.css";
-import { Menu, Sun, Moon, Bug, Gamepad2, ChevronDown, User, Palette } from "lucide-react";
+// Temporarily remove Lucide icons due to compatibility issues
+// import { Menu, Sun, Moon, Bug, Gamepad2, ChevronDown, User, Palette, Stars } from "lucide-react";
 import { HeaderProps } from "./types";
 import { navItems } from "@/constants/navigation";
 import { useTheme } from "@/theme";
@@ -15,6 +16,7 @@ const Header: FC<HeaderProps> = ({
   onGameModeToggle,
   debugMode = false,
   onDebugModeToggle,
+  // Remove useCosmicStarfield and onStarfieldModeToggle props
 }) => {
   const [scrolled, setScrolled] = useState(false);
   const [activePath, setActivePath] = useState("");
@@ -114,7 +116,7 @@ const Header: FC<HeaderProps> = ({
               onClick={onMenuClick}
               aria-label="Toggle sidebar"
             >
-              <Menu size={20} />
+              ☰
             </button>
           )}
 
@@ -152,7 +154,7 @@ const Header: FC<HeaderProps> = ({
               aria-label="Toggle game mode"
               title={gameMode ? "Disable Game Mode" : "Enable Game Mode"}
             >
-              <Gamepad2 size={18} />
+              🎮
             </button>
           )}
 
@@ -165,17 +167,18 @@ const Header: FC<HeaderProps> = ({
               aria-label="Toggle debug mode"
               title={debugMode ? "Disable Debug Mode" : "Enable Debug Mode"}
             >
-              <Bug size={18} />
+              🐞
             </button>
           )}
 
+          {/* Remove the starfield mode toggle button */}
           <button
             className={styles.themeToggleButton}
             onClick={onThemeToggle}
             aria-label="Toggle theme"
             title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
           >
-            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+            {isDarkMode ? "☀️" : "🌙"}
           </button>
 
           {/* Profile Button with Gradient Background and Icon */}
@@ -187,10 +190,10 @@ const Header: FC<HeaderProps> = ({
             >
               <div className={styles.profileImageContainer}>
                 <div className={styles.profileImage}>
-                  <User size={16} className={styles.profileUserIcon} />
+                  <span className={styles.profileUserIcon}>👤</span>
                 </div>
               </div>
-              <ChevronDown size={16} className={`${styles.dropdownIcon} ${profileMenuOpen ? styles.open : ""}`} />
+              <span className={`${styles.dropdownIcon} ${profileMenuOpen ? styles.open : ""}`}>▼</span>
             </button>
 
             {/* Profile Dropdown Menu */}
@@ -198,7 +201,7 @@ const Header: FC<HeaderProps> = ({
               <div className={styles.profileDropdown}>
                 <div className={styles.profileHeader}>
                   <div className={styles.profileImageLarge}>
-                    <User size={24} className={styles.profileUserIconLarge} />
+                    <span className={styles.profileUserIconLarge}>👤</span>
                   </div>
                   <div className={styles.profileInfo}>
                     <div className={styles.profileName}>Guest User</div>
@@ -210,9 +213,9 @@ const Header: FC<HeaderProps> = ({
 
                 {/* Theme Selection Option */}
                 <div className={styles.dropdownItem} onClick={() => setThemeMenuOpen(!themeMenuOpen)}>
-                  <Palette size={18} className={styles.dropdownItemIcon} />
+                  <span className={styles.dropdownItemIcon}>🎨</span>
                   <span>Theme Selection</span>
-                  <ChevronDown size={16} className={`${styles.dropdownItemChevron} ${themeMenuOpen ? styles.open : ""}`} />
+                  <span className={`${styles.dropdownItemChevron} ${themeMenuOpen ? styles.open : ""}`}>▼</span>
                 </div>
 
                 {/* Theme Selection Submenu */}

@@ -262,7 +262,7 @@
 .debugIndicator,
 .debugControls {
   position: absolute;
-  z-index: 9999 !important; /* Extremely high z-index to ensure it's on top */
+  z-index: 99999 !important; /* Extremely high z-index to ensure it's on top */
   pointer-events: auto !important; /* Ensure it captures mouse events */
 }
 
@@ -276,7 +276,16 @@
 .debugControls button,
 .debugControls input {
   pointer-events: auto !important;
-  z-index: 1000 !important;
+  z-index: 99999 !important;
+}
+
+/* Override any other styles that might interfere */
+.debugControls input[type="range"],
+.debugControls input[type="checkbox"],
+.debugControls button {
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: 999999 !important;
 }
 
 .debugIndicator {
@@ -338,4 +347,514 @@
 
 .debugControls button:hover {
   background-color: #666666;
+}
+
+/* Cosmic Starfield Styles */
+.cosmicStarfieldContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 50; /* Higher z-index but lower than header */
+}
+
+.cosmicStarfieldCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 51; /* Higher than container */
+  pointer-events: auto; /* Capture pointer events by default */
+  cursor: pointer;
+}
+
+/* Galaxy-specific styles */
+.focusAreasGalaxy {
+  --galaxy-color: #60a5fa; /* Blue-green nebula effects */
+}
+
+.portfolioGalaxy {
+  --galaxy-color: #f59e0b; /* Golden/amber star clusters */
+}
+
+.informationGalaxy {
+  --galaxy-color: #a855f7; /* Purple-pink cosmic clouds */
+}
+
+/* Navigation UI */
+.cosmicNavigation {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 20px;
+  z-index: 1000 !important; /* High z-index but lower than header */
+  pointer-events: auto !important;
+}
+
+.cosmicNavButton {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cosmicNavButton:hover {
+  background-color: rgba(255, 255, 255, 0.4);
+  transform: scale(1.1);
+}
+
+.cosmicNavButton.active {
+  background-color: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+/* Transition effects */
+.fadeIn {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.fadeOut {
+  animation: fadeOut 0.5s ease-in-out;
+}
+
+.zoomIn {
+  animation: zoomIn 0.5s ease-in-out;
+}
+
+.zoomOut {
+  animation: zoomOut 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes zoomIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes zoomOut {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(1.2); opacity: 0; }
+}
+
+/* Object labels */
+.cosmicObjectLabel {
+  position: absolute;
+  color: white;
+  font-size: 14px;
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.cosmicObjectLabel.hover {
+  font-size: 16px;
+  font-weight: bold;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+/* Simple Debug Controls */
+.simpleDebugControls {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+  width: 250px;
+  z-index: 9999;
+  pointer-events: auto;
+}
+
+.simpleDebugControls h3 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  text-align: center;
+  color: #8a2be2;
+}
+
+.simpleDebugControls div {
+  margin-bottom: 10px;
+}
+
+.simpleDebugControls label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.simpleDebugControls input[type="range"] {
+  width: 100%;
+  margin-bottom: 5px;
+}
+
+.simpleDebugControls button {
+  background-color: #8a2be2;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 5px;
+  width: 100%;
+}
+
+.simpleDebugControls button:hover {
+  background-color: #9d3eff;
+}
+
+/* Scroll to Explore Button */
+.scrollToExploreContainer {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000 !important; /* High z-index but lower than header */
+  pointer-events: none;
+}
+
+.scrollToExploreButton {
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 30px;
+  padding: 12px 24px;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+  pointer-events: auto;
+  animation: pulse 2s infinite;
+}
+
+.scrollToExploreButton:hover {
+  background-color: rgba(0, 0, 0, 0.8);
+  transform: translateY(3px);
+  animation: none;
+}
+
+.scrollToExploreButton svg {
+  animation: bounce 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+  }
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(5px);
+  }
+  60% {
+    transform: translateY(3px);
+  }
+}
+
+/* Zoom Buttons */
+.zoomButtonsContainer {
+  position: fixed;
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+  width: 200px;
+  z-index: 1000 !important; /* High z-index but lower than header */
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+}
+
+.zoomButtonsContainer h3 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  text-align: center;
+  color: #8a2be2;
+  text-shadow: 0 0 5px rgba(138, 43, 226, 0.5);
+}
+
+.zoomButton {
+  background-color: rgba(138, 43, 226, 0.7);
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 10px rgba(138, 43, 226, 0.3);
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.zoomButton:hover {
+  background-color: rgba(157, 62, 255, 0.9);
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(138, 43, 226, 0.5);
+}
+
+.zoomButton:active {
+  transform: scale(0.98);
+}
+/* Add to starfield.module.css */
+.directZoomButtons {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 10;
+}
+
+.zoomButton {
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.zoomButton:hover {
+  background: rgba(0, 0, 0, 0.7);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.scrollToExplore {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: white;
+  z-index: 10;
+  animation: fadeInOut 2s infinite;
+}
+
+.scrollText {
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.scrollArrow {
+  font-size: 20px;
+  animation: bounce 2s infinite;
+}
+
+.cosmicNavigation {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  z-index: 10;
+}
+
+.backButton {
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.backButton:hover {
+  background: rgba(0, 0, 0, 0.7);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.locationName {
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+@keyframes fadeInOut {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-10px); }
+  60% { transform: translateY(-5px); }
+}
+
+.starfieldCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.starfieldContainer {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.starfieldOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Direct zoom buttons */
+.directZoomButtons {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 3;
+}
+
+.zoomButton {
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.zoomButton:hover {
+  background-color: rgba(0, 0, 0, 0.8);
+  transform: scale(1.05);
+}
+
+/* Mobile specific styles */
+.mobileZoomButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  right: 10px;
+  left: auto;
+  bottom: 10px;
+  transform: none;
+}
+
+.mobileCosmicStream {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  background-color: rgba(0, 0, 0, 0.9);
+  z-index: 10;
+  padding: 20px;
+}
+
+.cosmicStreamItem {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cosmicStreamItem:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.cosmicStreamIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 15px;
+  flex-shrink: 0;
+}
+
+.cosmicStreamContent {
+  flex: 1;
+}
+
+.cosmicStreamContent h3 {
+  margin: 0 0 5px 0;
+  color: white;
+  font-size: 16px;
+}
+
+.cosmicStreamContent p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+}
+
+/* Media queries for responsive design */
+@media (max-width: 768px) {
+  .starfieldContainer {
+    height: 50vh;
+  }
+
+  /* For mobile, the universe collapses into a linear stream */
+  .mobileCosmicStream {
+    top: 50vh;
+    height: 50vh;
+  }
 }

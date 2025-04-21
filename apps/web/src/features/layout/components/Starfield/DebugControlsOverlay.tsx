@@ -1,5 +1,5 @@
 // components/Layout/Starfield/DebugControlsOverlay.tsx
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styles from "./debugControls.module.css";
 
 // Import the DebugSettings type from your types file
@@ -19,6 +19,7 @@ interface DebugControlsProps {
   setMousePosition?: (position: MousePosition) => void;
   // Add isDarkMode prop
   isDarkMode?: boolean;
+  onEmployeeOrbitSpeedChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
@@ -31,7 +32,8 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
   fps = 0,
   timestamp,
   setMousePosition,
-  isDarkMode = true // Default to dark mode if not specified
+  isDarkMode = true,
+  onEmployeeOrbitSpeedChange
 }) => {
   // FPS tracking
   const fpsValues = useRef<number[]>([]);
@@ -81,6 +83,10 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
 
   const handleEmployeeOrbitSpeedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updateDebugSetting("employeeOrbitSpeed", Number(e.target.value));
+
+    if (onEmployeeOrbitSpeedChange) {
+      onEmployeeOrbitSpeedChange(e);
+    }
   };
 
   const handleLineConnectionDistanceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -115,28 +121,22 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
 
   // Handle repulsion test
   const handleRepulsionTest = () => {
-    console.log("Test Repulsion button clicked");
-
-    // Get canvas dimensions
-    const canvasWidth = window.innerWidth;
+    const canvasWidth  = window.innerWidth;
     const canvasHeight = window.innerHeight;
-    const centerX = canvasWidth / 2;
-    const centerY = canvasHeight / 2;
+    const cx = canvasWidth / 2;
+    const cy = canvasHeight / 2;
 
-    console.log(`Center coordinates: (${centerX}, ${centerY})`);
-
-    // Use the starfieldAPI directly
     if (window.starfieldAPI) {
-      console.log("Using starfieldAPI from Test Repulsion button");
-      const affectedStars = window.starfieldAPI.applyForce(centerX, centerY, 300, 100);
-      console.log(`Applied force to ${affectedStars} stars from button`);
-
-      // Create an explosion effect
-      window.starfieldAPI.createExplosion(centerX, centerY);
-    } else {
-      console.error("starfieldAPI not available from Test Repulsion button");
+      window.starfieldAPI.applyForce(
+        cx,
+        cy,
+        debugSettings.repulsionRadius,
+        debugSettings.repulsionForce
+      );
+      window.starfieldAPI.createExplosion(cx, cy);
     }
   };
+
 
   // Calculate max velocity of any star
   const maxVelocity = stars.length > 0
@@ -150,10 +150,11 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
   const debugControlsClass = `${styles.debugControls} ${!isDarkMode ? styles.debugControlsLight : ""}`;
 
   return (
-    <div className={styles.debugOverlayContainer}>
+    <div className={styles.debugOverlayContainer} onClick={(e) => e.stopPropagation()}>
       <div
         className={styles.debugIndicator}
         style={{ left: `${sidebarWidth + 10}px`, top: "80px" }}
+        onClick={(e) => e.stopPropagation()}
       >
         Debug Mode
       </div>
@@ -166,6 +167,9 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
           overflowY: "auto"
         }}
         onClick={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+        onMouseUp={(e) => e.stopPropagation()}
+        onMouseMove={(e) => e.stopPropagation()}
       >
         <h3>Universal Constants</h3>
 
@@ -193,7 +197,12 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
               max="3"
               step="0.1"
               value={debugSettings.animationSpeed}
-              onChange={handleAnimationSpeedChange}
+              onChange={(e) => {
+                e.stopPropagation();
+                handleAnimationSpeedChange(e);
+              }}
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
             />
           </div>
 
@@ -205,7 +214,12 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
               max="2"
               step="0.1"
               value={debugSettings.maxVelocity}
-              onChange={handleMaxVelocityChange}
+              onChange={(e) => {
+                e.stopPropagation();
+                handleMaxVelocityChange(e);
+              }}
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
             />
           </div>
 
@@ -217,7 +231,12 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
               max="0.2"
               step="0.01"
               value={debugSettings.flowStrength}
-              onChange={handleFlowStrengthChange}
+              onChange={(e) => {
+                e.stopPropagation();
+                handleFlowStrengthChange(e);
+              }}
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
             />
           </div>
 
@@ -229,7 +248,12 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
               max="0.2"
               step="0.01"
               value={debugSettings.gravitationalPull}
-              onChange={handleGravitationalPullChange}
+              onChange={(e) => {
+                e.stopPropagation();
+                handleGravitationalPullChange(e);
+              }}
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
             />
           </div>
 
@@ -241,7 +265,65 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
               max="300"
               step="10"
               value={debugSettings.mouseEffectRadius}
-              onChange={handleMouseEffectRadiusChange}
+              onChange={(e) => {
+                e.stopPropagation();
+                handleMouseEffectRadiusChange(e);
+              }}
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+            />
+          </div>
+
+          {/* ——— Repulsion On/Off Toggle ——— */}
+          <div className={styles.controlRow}>
+            <label>
+              <input
+                type="checkbox"
+                checked={debugSettings.repulsionEnabled}
+                onChange={(e) => {
+                  e.stopPropagation();
+                  updateDebugSetting("repulsionEnabled", e.target.checked);
+                }}
+              />
+              Enable Repulsion Effect
+            </label>
+          </div>
+
+          {/* Repulsion Radius */}
+          <div>
+            <label>
+              Repulsion Radius: {debugSettings.repulsionRadius.toFixed(0)}px
+            </label>
+            <input
+              type="range"
+              min="50"
+              max="600"
+              step="10"
+              value={debugSettings.repulsionRadius}
+              onChange={(e) => {
+                e.stopPropagation();
+                updateDebugSetting("repulsionRadius", Number(e.target.value));
+              }}
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+
+          {/* Repulsion Force */}
+          <div>
+            <label>
+              RepulsionForce: {debugSettings.repulsionForce.toFixed(0)}
+            </label>
+            <input
+              type="range"
+              min="10"
+              max="500"
+              step="10"
+              value={debugSettings.repulsionForce}
+              onChange={(e) => {
+                e.stopPropagation();
+                updateDebugSetting("repulsionForce", Number(e.target.value));
+              }}
+              onClick={(e) => e.stopPropagation()}
             />
           </div>
 
@@ -253,7 +335,12 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
               max="0.001"
               step="0.00001"
               value={debugSettings.employeeOrbitSpeed}
-              onChange={handleEmployeeOrbitSpeedChange}
+              onChange={(e) => {
+                e.stopPropagation();
+                handleEmployeeOrbitSpeedChange(e);
+              }}
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
             />
           </div>
 
@@ -265,7 +352,12 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
               max="300"
               step="10"
               value={debugSettings.lineConnectionDistance}
-              onChange={handleLineConnectionDistanceChange}
+              onChange={(e) => {
+                e.stopPropagation();
+                handleLineConnectionDistanceChange(e);
+              }}
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
             />
           </div>
 
@@ -277,29 +369,48 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
               max="0.5"
               step="0.05"
               value={debugSettings.lineOpacity}
-              onChange={handleLineOpacityChange}
+              onChange={(e) => {
+                e.stopPropagation();
+                handleLineOpacityChange(e);
+              }}
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
             />
           </div>
         </div>
 
         <div className={styles.debugButtons}>
-          <button onClick={resetStars}>Reset Stars</button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              resetStars();
+            }}
+          >
+            Reset Stars
+          </button>
           {setMousePosition && (
             <button
-              onClick={handleTestMouseEffect}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleTestMouseEffect();
+              }}
               className={styles.testButton}
             >
               Test Mouse Effect
             </button>
           )}
           <button
-            onClick={handleCloseDebug}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleCloseDebug();
+            }}
             className={styles.closeButton}
           >
             Close Debug
           </button>
           <button
-            onClick={handleRepulsionTest}
+            onClick={e => { e.stopPropagation(); handleRepulsionTest(); }}
+            disabled={!debugSettings.repulsionEnabled}
             className={styles.actionButton}
           >
             Test Repulsion

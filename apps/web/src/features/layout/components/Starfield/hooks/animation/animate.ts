@@ -1,38 +1,33 @@
 // components/Layout/Starfield/hooks/animation/animate.ts
 import { SetStateAction } from "react";
+import { drawBlackHole } from "../../blackHoles";
+import { drawConnections, drawStars, updateStarActivity, updateStarPositions } from "../../stars";
 import {
   BlackHole,
-  ClickBurst, // Updated from BurstParticle to ClickBurst
-  BurstParticle,
-  CollisionEffect,
-  CollisionParticle,
-  EmployeeStar,
   GameState,
   HoverInfo,
   MousePosition,
+  Planet,
   Star
 } from "../../types";
-import { checkEmployeeHover, updateEmployeeStars } from "../../employeeStars";
-import { drawConnections, drawStars, updateStarActivity, updateStarPositions } from "../../stars";
-import { drawBlackHole } from "../../blackHoles";
-import { checkAddClick, checkCollisions, drawGameUI } from "../../gameState";
-import { AnimationProps, AnimationRefs } from "./types";
 import { processParticleEffects } from "./processParticleEffects";
+import { AnimationProps, AnimationRefs } from "./types";
+// Import cosmic rendering functions
+import { lerpCamera } from "../../cosmos/camera";
+import { renderCosmicHierarchy } from "../../cosmos/renderCosmicHierarchy";
+import { Camera, CosmicNavigationState } from "../../cosmos/types";
+// Import cosmic hierarchy data
+import { GALAXIES, SPECIAL_COSMIC_OBJECTS } from "../../cosmos/cosmicHierarchy";
+import { checkEmployeeHover, updatePlanets } from "../../Planets";
+import { drawCosmicNavigation } from "./drawCosmicNavigation";
 
 export const animate = (timestamp: number, props: AnimationProps, refs: AnimationRefs): void => {
   try {
+    if (props.debugSettings?.verboseLogs) {
+      console.log("frame:", timestamp, "stars:", props.starsRef?.current.length ?? 0);
+    }
 
-    console.log("Animation frame running", {
-        timestamp,
-        starsCount: props.starsRef?.current?.length || 0,
-        canvasWidth: props.canvasRef.current?.width,
-        canvasHeight: props.canvasRef.current?.height,
-        isAnimating: refs.isAnimatingRef.current,
-        isRestarting: refs.isRestartingRef.current,
-        debugMode: props.debugMode
-      });
-
-    // If we're in the middle of a restart, skip this frame
+    // If we"re in the middle of a restart, skip this frame
     if (refs.isRestartingRef.current) {
       console.log("Skipping animation frame during restart");
       refs.animationRef.current = window.requestAnimationFrame(
@@ -106,7 +101,7 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
         props.ensureStarsExist();
       }
 
-      // Continue animation loop but don't try to draw anything
+      // Continue animation loop but don"t try to draw anything
       if (refs.isAnimatingRef.current || refs.isRestartingRef.current) {
         refs.animationRef.current = window.requestAnimationFrame(
           (nextTimestamp) => animate(nextTimestamp, props, refs)
@@ -120,9 +115,11 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
 
     // Get current values from refs
     const currentBlackHoles: BlackHole[] = props.blackHolesRef?.current ? [...props.blackHolesRef.current] : [];
-    const currentEmployeeStars: EmployeeStar[] = props.employeeStarsRef?.current ? [...props.employeeStarsRef.current] : [];
+    const currentPlanets: Planet[] = props.planetsRef?.current ? [...props.planetsRef.current] : [];
+
+    // Fixed: Make sure isClicked is false by default
     const currentMousePosition: MousePosition = refs.mousePositionRef.current ?
-    { ...refs.mousePositionRef.current } :
+        { ...refs.mousePositionRef.current } :
     {
       x: canvas.width / 2,
       y: canvas.height / 2,
@@ -130,10 +127,11 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       lastY: canvas.height / 2,
       speedX: 0,
       speedY: 0,
-      isClicked: false,
+      isClicked: false, // Ensure this is false by default
       clickTime: 0,
-      isOnScreen: true // Force to true for testing
+      isOnScreen: true // Changed to true to ensure visibility
     };
+
     console.log("Current mouse position in animation:", {
         x: currentMousePosition.x,
         y: currentMousePosition.y,
@@ -144,10 +142,28 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
     const currentHoverInfo: HoverInfo = { ...refs.hoverInfoRef.current };
     const currentGameState: GameState = { ...refs.gameStateRef.current };
 
-    if (props.enableEmployeeStars && props.enableMouseInteraction) {
+    // NEW: Get cosmic navigation state and camera if available
+    const currentCamera: Camera | undefined = props.camera ? { ...props.camera } : undefined;
+    const currentNavigationState: CosmicNavigationState | undefined = props.navigationState ?
+      { ...props.navigationState } : undefined;
+    const currentHoveredObjectId: string | null = props.hoveredObjectId || null;
+
+    // NEW: Apply camera lerp if camera is available
+    if (
+      props.enableCosmicNavigation &&
+      currentCamera?.target &&              // ← must have a target to lerp to
+      props.setCamera
+    ) {
+      const updatedCamera = lerpCamera(currentCamera, 0.08);
+      if (updatedCamera !== currentCamera) {
+        props.setCamera(updatedCamera);
+      }
+    }
+
+    if (props.enablePlanets && props.enableMouseInteraction) {
       // Create a wrapper function that matches the expected type
       const updateHoverInfoIfChanged = (newInfo: SetStateAction<HoverInfo>): void => {
-        // If newInfo is a function, we can't directly compare it
+        // If newInfo is a function, we can"t directly compare it
         if (typeof newInfo === "function") {
           props.setHoverInfo(newInfo);
           return;
@@ -168,8 +184,8 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       checkEmployeeHover(
         currentMousePosition.x,
         currentMousePosition.y,
-        currentEmployeeStars,
-        props.employeeStarSize,
+        currentPlanets,
+        props.planetSize,
         currentHoverInfo,
         updateHoverInfoIfChanged
       );
@@ -212,22 +228,61 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       });
     }
 
-    // Draw employee stars if enabled
-    if (props.enableEmployeeStars) {
-      updateEmployeeStars(
-        ctx,
-        currentEmployeeStars,
-        deltaTime,
-        props.employeeStarSize,
-        props.employeeDisplayStyle
-      );
-    }
+    updatePlanets(
+      ctx,
+      currentPlanets,
+      deltaTime,
+      props.planetSize,
+      props.employeeDisplayStyle,
+      currentCamera! // Pass the camera
+    );
 
     // Draw mouse effects
     drawMouseEffects(ctx, currentMousePosition, props, deltaTime);
 
+    // Draw cosmic navigation if enabled
+    if (props.enableCosmicNavigation && props.navigationState && props.camera) {
+      drawCosmicNavigation(
+        ctx,
+        canvas.width,
+        canvas.height,
+        props.navigationState,
+        props.camera,
+        timestamp,
+        props.hoveredObjectId || null,
+        props.isDarkMode
+      );
+    }
+
+    // NEW: Draw cosmic objects if navigation is enabled
+    if (
+      props.enableCosmicNavigation &&
+      currentCamera?.target &&              // ← must have a target to lerp to
+      currentNavigationState
+    ) {
+      // Draw cosmic objects at 30fps for performance
+      if (props.frameCountRef && props.frameCountRef.current % 2 === 0) {
+        renderCosmicHierarchy(
+          ctx,
+          canvas.width,
+          canvas.height,
+          currentNavigationState,
+          currentCamera,
+          timestamp * (props.animationSpeed || 1),
+          currentHoveredObjectId,
+          props.starSize || 1,
+          props.isDarkMode || true
+        );
+
+        // Debug log to verify cosmic objects are being rendered
+        console.log("Rendering cosmic hierarchy with",
+          Object.keys(GALAXIES).length, "galaxies and",
+          Object.keys(SPECIAL_COSMIC_OBJECTS).length, "special objects");
+      }
+    }
+
     // Process particles and effects
-    processParticleEffects(ctx, timestamp, deltaTime, props, refs, currentStars, currentEmployeeStars, currentGameState, shouldSkipHeavyOperations);
+    processParticleEffects(ctx, timestamp, deltaTime, props, refs, currentStars, currentPlanets, currentGameState, shouldSkipHeavyOperations);
 
     // Draw debug information if debug mode is enabled
     if (props.debugMode && !shouldSkipHeavyOperations) {
@@ -272,6 +327,14 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
           ctx.lineWidth = 1;
           ctx.stroke();
         }
+
+        // NEW: Draw camera info if cosmic navigation is enabled
+        if (props.enableCosmicNavigation && currentCamera) {
+          ctx.font = "12px Arial";
+          ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+          ctx.fillText(`Camera: x=${currentCamera.cx.toFixed(2)}, y=${currentCamera.cy.toFixed(2)}, zoom=${currentCamera.zoom.toFixed(2)}`, 10, canvas.height - 60);
+          ctx.fillText(`Navigation: ${currentNavigationState?.currentLevel || "universe"}`, 10, canvas.height - 40);
+        }
       }
 
       updateStarActivity(currentStars);
@@ -279,7 +342,7 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
     // Update star positions in the ref - consolidate this to one place
     if (props.starsRef && props.starsRef.current && props.starsRef.current.length > 0) {
       try {
-        // Only update positions, don't replace the entire array
+        // Only update positions, don"t replace the entire array
         // Use a safer approach with bounds checking
         const minLength = Math.min(currentStars.length, props.starsRef.current.length);
         for (let i = 0; i < minLength; i++) {
@@ -419,4 +482,3 @@ function drawMouseEffects(
       ctx.fill();
     }
   }
-

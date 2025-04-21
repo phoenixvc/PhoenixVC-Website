@@ -1,5 +1,5 @@
 // components/Layout/Starfield/renderer.ts
-import { BlackHole, CenterPosition, ContainerBounds, EmployeeStar, Explosion, MousePosition, Star } from "./types";
+import { BlackHole, CenterPosition, ContainerBounds, Explosion, MousePosition, Planet, Star } from "./types";
 import { calculateCenter } from "./utils";
 
 // Draw a single star
@@ -50,11 +50,11 @@ export const drawBlackHole = (
 };
 
 // Draw an employee star with its satellites
-// export const drawEmployeeStar = (
+// export const drawPlanet = (
 //     ctx: CanvasRenderingContext2D,
-//     empStar: EmployeeStar,
+//     empStar: Planet,
 //     deltaTime: number,
-//     employeeStarSize: number,
+//     planetSize: number,
 //     employeeDisplayStyle: "initials" | "avatar" | "both"
 //   ): void => {
 //     // Update position based on orbit
@@ -74,7 +74,7 @@ export const drawBlackHole = (
 //       ctx.fill();
 //     });
 
-//     const starSize = 12 * employeeStarSize;
+//     const starSize = 12 * planetSize;
 //     const baseColor = empStar.employee.color || "#ffffff";
 
 //     // Draw employee star with glow effect
@@ -125,7 +125,7 @@ export const drawBlackHole = (
 //         ctx.drawImage(img, empStar.x - imgSize/2, empStar.y - imgSize/2, imgSize, imgSize);
 //       } else {
 //         // If image not loaded, draw initials as fallback
-//         ctx.font = `bold ${Math.floor(10 * employeeStarSize)}px Arial`;
+//         ctx.font = `bold ${Math.floor(10 * planetSize)}px Arial`;
 //         ctx.fillStyle = "#ffffff";
 //         ctx.textAlign = "center";
 //         ctx.textBaseline = "middle";
@@ -151,14 +151,14 @@ export const drawBlackHole = (
 //       ctx.restore();
 
 //       // Draw name below
-//       ctx.font = `bold ${Math.floor(8 * employeeStarSize)}px Arial`;
+//       ctx.font = `bold ${Math.floor(8 * planetSize)}px Arial`;
 //       ctx.fillStyle = "#ffffff";
 //       ctx.textAlign = "center";
 //       ctx.textBaseline = "middle";
 //       ctx.fillText(empStar.employee.name, empStar.x, empStar.y + starSize * 0.5);
 //     } else {
 //       // Default: just draw initials
-//       ctx.font = `bold ${Math.floor(10 * employeeStarSize)}px Arial`;
+//       ctx.font = `bold ${Math.floor(10 * planetSize)}px Arial`;
 //       ctx.fillStyle = "#ffffff";
 //       ctx.textAlign = "center";
 //       ctx.textBaseline = "middle";
@@ -195,10 +195,10 @@ export const updateStar = (
   star: Star,
   canvas: HTMLCanvasElement,
   blackHoles: BlackHole[],
-  employeeStars: EmployeeStar[],
+  planets: Planet[],
   mouseRef: MousePosition,
   enableBlackHole: boolean,
-  enableEmployeeStars: boolean,
+  enablePlanets: boolean,
   enableFlowEffect: boolean,
   enableMouseInteraction: boolean,
   gravitationalPull: number,
@@ -240,8 +240,8 @@ export const updateStar = (
   }
 
   // Apply gravitational pull toward employee stars
-  if (enableEmployeeStars) {
-    for (const empStar of employeeStars) {
+  if (enablePlanets) {
+    for (const empStar of planets) {
       const dx = empStar.x - star.x;
       const dy = empStar.y - star.y;
       const distSq = dx * dx + dy * dy;
