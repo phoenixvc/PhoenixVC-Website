@@ -1,9 +1,10 @@
 // features/contact/components/ContactForm/ContactForm.tsx
-import { FC, memo, useState, useCallback } from "react";
+import { FC, memo, useState, useCallback, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { contactAnimations } from "../../animations";
 import styles from "./ContactForm.module.css";
 import type { ContactFormData, ContactIntent } from "../../types";
+import { logger } from "@/utils/logger";
 
 const INTENT_OPTIONS: { value: ContactIntent; label: string }[] = [
   { value: "general", label: "General Inquiry" },
@@ -34,6 +35,15 @@ const ContactForm: FC<ContactFormProps> = memo(({
     message: "",
     intent: "general",
   });
+
+  // Honeypot spam protection - if this field is filled, it's likely a bot
+  const [honeypot, setHoneypot] = useState("");
+  // Track form render time - bots submit too quickly
+  const formLoadTimeRef = useRef<number>(Date.now());
+
+  useEffect(() => {
+    formLoadTimeRef.current = Date.now();
+  }, []);
 
   const [errors, setErrors] = useState<Partial<Record<keyof ContactFormData, string>>>({});
   const [touched, setTouched] = useState<Partial<Record<keyof ContactFormData, boolean>>>({});
@@ -91,6 +101,24 @@ const ContactForm: FC<ContactFormProps> = memo(({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Spam protection checks
+    const timeSinceLoad = Date.now() - formLoadTimeRef.current;
+    const MIN_SUBMIT_TIME_MS = 2000; // 2 seconds minimum
+
+    // Check honeypot - if filled, it's likely a bot
+    if (honeypot) {
+      logger.warn("[ContactForm] Honeypot triggered - likely spam submission");
+      // Silently fail - don't reveal to bots that we detected them
+      return;
+    }
+
+    // Check if form was submitted too quickly (bots tend to fill forms instantly)
+    if (timeSinceLoad < MIN_SUBMIT_TIME_MS) {
+      logger.warn("[ContactForm] Form submitted too quickly - likely spam");
+      // Silently fail
+      return;
+    }
+
     if (validateForm()) {
       onSubmit(formData);
     }
@@ -100,6 +128,29 @@ const ContactForm: FC<ContactFormProps> = memo(({
     <motion.div variants={contactAnimations.item}>
       <div className={`${styles.card} ${isDarkMode ? styles.dark : ""}`}>
         <form className={styles.form} onSubmit={handleSubmit}>
+          {/* Honeypot field - hidden from users but visible to bots */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              left: "-9999px",
+              opacity: 0,
+              height: 0,
+              overflow: "hidden",
+            }}
+          >
+            <label htmlFor="website-url">Website (leave empty)</label>
+            <input
+              type="text"
+              id="website-url"
+              name="website"
+              tabIndex={-1}
+              autoComplete="off"
+              value={honeypot}
+              onChange={(e) => setHoneypot(e.target.value)}
+            />
+          </div>
+
           <div className={styles.inputGrid}>
             <div className={styles.inputWrapper}>
               <label htmlFor="contact-name" className={styles.label}>
