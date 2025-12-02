@@ -77,8 +77,9 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
 
     refs.lastTimeRef.current = timestamp;
 
-    // Performance optimization: Skip some frames if needed
-    refs.frameSkipRef.current = (refs.frameSkipRef.current + 1) % 2;
+    // Performance optimization: Skip heavy operations less frequently to reduce flicker
+    // Changed from every 2 frames to every 4 frames for smoother appearance
+    refs.frameSkipRef.current = (refs.frameSkipRef.current + 1) % 4;
     const shouldSkipHeavyOperations = refs.frameSkipRef.current !== 0;
 
     // Increment frame counter
@@ -132,12 +133,7 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       isOnScreen: true // Changed to true to ensure visibility
     };
 
-    console.log("Current mouse position in animation:", {
-        x: currentMousePosition.x,
-        y: currentMousePosition.y,
-        isOnScreen: currentMousePosition.isOnScreen,
-        isClicked: currentMousePosition.isClicked
-      });
+    // Debug logging removed for performance - re-enable if needed for debugging
 
     const currentHoverInfo: HoverInfo = { ...refs.hoverInfoRef.current };
     const currentGameState: GameState = { ...refs.gameStateRef.current };
@@ -274,10 +270,7 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
           props.isDarkMode || true
         );
 
-        // Debug log to verify cosmic objects are being rendered
-        console.log("Rendering cosmic hierarchy with",
-          Object.keys(GALAXIES).length, "galaxies and",
-          Object.keys(SPECIAL_COSMIC_OBJECTS).length, "special objects");
+        // Debug logging removed for performance
       }
     }
 

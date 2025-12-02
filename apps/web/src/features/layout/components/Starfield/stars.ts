@@ -92,10 +92,10 @@ export function updateStarPositions(
   for (let i = 0; i < stars.length; i++) {
     const star = stars[i];
 
-    // Apply flow effect if enabled
+    // Apply flow effect if enabled (reduced intensity to minimize flicker)
     if (enableFlowEffect) {
-      star.vx += (Math.random() - 0.5) * flowStrength * normalizedDelta * timeScale;
-      star.vy += (Math.random() - 0.5) * flowStrength * normalizedDelta * timeScale;
+      star.vx += (Math.random() - 0.5) * flowStrength * normalizedDelta * timeScale * 0.3;
+      star.vy += (Math.random() - 0.5) * flowStrength * normalizedDelta * timeScale * 0.3;
     }
 
     // Apply black hole gravitational pull
@@ -139,9 +139,9 @@ export function updateStarPositions(
       star.vy = (star.vy / speed) * effectiveMaxVelocity * GLOBAL_SPEED_MULTIPLIER;
     }
 
-    // Apply damping
-    star.vx *= 0.995;
-    star.vy *= 0.995;
+    // Apply stronger damping to reduce jitter and flicker
+    star.vx *= 0.98;
+    star.vy *= 0.98;
 
     // Update position with global speed multiplier
     star.x += star.vx * normalizedDelta * animationSpeed * GLOBAL_SPEED_MULTIPLIER;

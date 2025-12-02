@@ -125,6 +125,51 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
     }
   }, [themes, components, themeManagerReady]);
 
+  // Effect to load stored theme settings from localStorage on mount
+  useEffect(() => {
+    if (!themeManagerReady) return;
+
+    // Small delay to ensure ThemeStateManager's async initialization has completed
+    const timeoutId = setTimeout(() => {
+      try {
+        // Get the state manager's current state which includes localStorage values
+        const stateManager = ThemeStateManager.getInstance();
+        const storedState = stateManager.getState();
+
+        console.log("[ThemeProvider] Loading stored theme settings:", storedState);
+
+        // Update React state with stored values if they differ
+        setState(prev => {
+          const updates: Partial<ThemeState> = {};
+
+          if (storedState.themeName && storedState.themeName !== prev.themeName) {
+            updates.themeName = storedState.themeName;
+          }
+
+          if (storedState.mode && storedState.mode !== prev.mode) {
+            updates.mode = storedState.mode;
+          }
+
+          if (storedState.useSystem !== undefined && storedState.useSystem !== prev.useSystem) {
+            updates.useSystem = storedState.useSystem;
+          }
+
+          // Only update if there are actual changes
+          if (Object.keys(updates).length > 0) {
+            console.log("[ThemeProvider] Applying stored settings:", updates);
+            return { ...prev, ...updates, initialized: false }; // Reset initialized to trigger re-init with new settings
+          }
+
+          return prev;
+        });
+      } catch (error) {
+        console.error("[ThemeProvider] Failed to load stored theme settings:", error);
+      }
+    }, 50); // Small delay for async initialization to complete
+
+    return () => clearTimeout(timeoutId);
+  }, [themeManagerReady]);
+
   // Effect to sync system mode with theme state - only when manager is ready
   useEffect(() => {
     if (!themeManagerReady) return;
