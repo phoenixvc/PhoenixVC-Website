@@ -18,7 +18,6 @@ export const resourceItems: NavItem[] = [
 ];
 
 export const socialLinks = [
-  { href: "#", label: "LinkedIn", icon: "linkedin" },
-  { href: "#", label: "Twitter", icon: "twitter" },
-  { href: "#", label: "Medium", icon: "medium" },
+  { href: "https://www.linkedin.com/company/101922781/", label: "LinkedIn", icon: "linkedin" },
+  { href: "https://ebenmare.substack.com/", label: "Substack", icon: "substack" },
 ];

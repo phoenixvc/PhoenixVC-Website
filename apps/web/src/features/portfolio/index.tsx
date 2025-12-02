@@ -1,7 +1,8 @@
 // /features/portfolio/index.tsx
+import { useState } from "react";
 import { useTheme } from "@/theme";
 import { motion } from "framer-motion";
-import { ExternalLink, Github, Cpu, Network, BookOpen, Shield, FileText, Key, Car, Users, Vault } from "lucide-react";
+import { ExternalLink, Github, Cpu, Network, BookOpen, Shield, FileText, Key, Car, Users, Vault, Eye, EyeOff } from "lucide-react";
 import styles from "./Portfolio.module.css";
 
 interface Project {
@@ -130,6 +131,17 @@ const animations = {
 export const Portfolio = () => {
   const { themeMode } = useTheme();
   const isDarkMode = themeMode === "dark";
+  const [showComingSoon, setShowComingSoon] = useState(true);
+
+  // Determine if a project is "coming soon" (no public links available)
+  const isComingSoon = (project: Project) => !project.website && !project.github && !project.docs;
+
+  // Filter projects based on toggle state
+  const visibleProjects = showComingSoon
+    ? projects
+    : projects.filter(project => !isComingSoon(project));
+
+  const comingSoonCount = projects.filter(isComingSoon).length;
 
   return (
     <section className={`${styles.portfolioSection} ${isDarkMode ? styles.dark : styles.light}`}>
@@ -150,11 +162,25 @@ export const Portfolio = () => {
             <p className={styles.subtitle}>
               Pioneering the future through innovative projects and cutting-edge technology initiatives.
             </p>
+            {comingSoonCount > 0 && (
+              <button
+                className={styles.toggleButton}
+                onClick={() => setShowComingSoon(!showComingSoon)}
+                aria-label={showComingSoon ? "Hide coming soon projects" : "Show coming soon projects"}
+              >
+                {showComingSoon ? <EyeOff size={18} /> : <Eye size={18} />}
+                <span>
+                  {showComingSoon
+                    ? `Hide Coming Soon (${comingSoonCount})`
+                    : `Show Coming Soon (${comingSoonCount})`}
+                </span>
+              </button>
+            )}
           </motion.div>
 
           {/* Projects Grid */}
           <motion.div className={styles.projectsGrid} variants={animations.item}>
-            {projects.map((project, index) => (
+            {visibleProjects.map((project, index) => (
               <motion.div
                 key={index}
                 className={styles.projectCard}
@@ -221,6 +247,11 @@ export const Portfolio = () => {
                       <Github size={18} />
                       GitHub
                     </a>
+                  )}
+                  {isComingSoon(project) && (
+                    <div className={styles.comingSoonBadge}>
+                      Coming Soon
+                    </div>
                   )}
                 </div>
               </motion.div>

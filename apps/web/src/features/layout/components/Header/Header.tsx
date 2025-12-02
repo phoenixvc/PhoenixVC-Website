@@ -85,18 +85,17 @@ const Header: FC<HeaderProps> = ({
 
   // Function to determine if a nav item is active
   const isNavItemActive = (href: string) => {
-    // Home page - only active when exactly on "/"
+    // Home page - only active when exactly on "/" (not empty string)
     if (href === "/") {
-      return activePath === "/" || activePath === "";
+      return activePath === "/";
     }
     // For hash links on homepage (like /#focus-areas, /#contact)
     if (href.startsWith("/#")) {
       return activePath === href;
     }
-    // For other pages - must be exact match or a subpath
-    // This prevents "/about" from highlighting when on "/"
+    // For other pages - must be exact match only (no subpath matching)
     if (href.startsWith("/") && !href.includes("#")) {
-      return activePath === href || activePath.startsWith(href + "/");
+      return activePath === href;
     }
     return false;
   };
