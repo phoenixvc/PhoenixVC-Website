@@ -186,7 +186,7 @@ export const DEFAULT_EMPLOYEES: EmployeeData[] = [
     projects: ["Staking Rewards", "Treasury Management"],
     skills: ["DeFi", "Blockchain", "Staking", "Crypto", "Web3"],
     relatedEmployees: ["cognitivemesh", "airkey"],
-    product: "https://www.veritasvault.app"
+    product: "https://veritasvault.net"
   }
 ];
 
