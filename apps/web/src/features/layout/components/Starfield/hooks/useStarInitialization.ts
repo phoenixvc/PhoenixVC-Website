@@ -5,6 +5,10 @@ import { DEFAULT_BLACK_HOLES, DEFAULT_EMPLOYEES, getColorPalette } from "../cons
 import { initPlanets } from "../Planets";
 import { BlackHole, DebugSettings, Planet, Star } from "../types";
 
+// Default values for planet/employee star properties (matching Starfield.tsx defaults)
+const DEFAULT_ENABLE_PLANETS = true;
+const DEFAULT_PLANET_SIZE = 1.0;
+
 interface StarInitializationProps {
   canvasRef: React.RefObject<HTMLCanvasElement>;
   dimensionsRef: React.MutableRefObject<{ width: number; height: number }>;
@@ -17,9 +21,18 @@ interface StarInitializationProps {
   enableBlackHole: boolean;
   blackHoleSize: number;
   particleSpeed: number;
-  // Support both old (enableEmployeeStars) and new (enablePlanets) naming
+  /**
+   * Enable planet/employee star rendering.
+   * @preferred Use `enablePlanets` (new naming convention)
+   * @deprecated `enableEmployeeStars` is supported for backward compatibility
+   */
   enablePlanets?: boolean;
   enableEmployeeStars?: boolean;
+  /**
+   * Size multiplier for planets/employee stars.
+   * @preferred Use `planetSize` (new naming convention)
+   * @deprecated `employeeStarSize` is supported for backward compatibility
+   */
   planetSize?: number;
   employeeStarSize?: number;
   debugSettings: DebugSettings;
@@ -38,7 +51,7 @@ export const useStarInitialization = ({
   enableBlackHole,
   blackHoleSize,
   particleSpeed,
-  // Support both old and new naming - default to new naming if both provided
+  // Preferred: enablePlanets/planetSize; Deprecated: enableEmployeeStars/employeeStarSize
   enablePlanets,
   enableEmployeeStars,
   planetSize,
@@ -46,9 +59,9 @@ export const useStarInitialization = ({
   debugSettings,
   cancelAnimation
 }: StarInitializationProps) => {
-  // Resolve naming: prefer new names but fallback to old names
-  const effectiveEnablePlanets = enablePlanets ?? enableEmployeeStars ?? true;
-  const effectivePlanetSize = planetSize ?? employeeStarSize ?? 1.0;
+  // Resolve naming: prefer new names (enablePlanets/planetSize) but fallback to deprecated names
+  const effectiveEnablePlanets = enablePlanets ?? enableEmployeeStars ?? DEFAULT_ENABLE_PLANETS;
+  const effectivePlanetSize = planetSize ?? employeeStarSize ?? DEFAULT_PLANET_SIZE;
 
   // Store stars in refs to prevent re-renders
   const starsRef = useRef<Star[]>([]);
