@@ -7,46 +7,186 @@ import { BlackHoleData, EmployeeData } from "./types";
     { x: 0.8, y: 0.7, radius: 30, color: "#8A2BE2" },
   ];
 
-// Default employees data with more detailed information
+// Default projects data displayed as orbital elements (using EmployeeData interface for compatibility)
+// Main projects - larger, more prominent stars with weight based on status
 export const DEFAULT_EMPLOYEES: EmployeeData[] = [
+  // Main flagship project - Alpha status, heaviest
   {
-    id: "js",
-    name: "Jurie Smit",
-    initials: "JS",
-    position: "Software Architect",
-    mass: 300,
-    color: "#60a5fa", // Blue
-    image: "themes/Jor.png",
-    fullName: "Jurie Smit",
-    speed: 0.0003,
-    title: "Software Architect",
-    bio: "Jurie is a software architect with a passion for building scalable and maintainable systems. He enjoys working with the latest technologies and mentoring junior developers.",
-    department: "Engineering",
-    experience: 18,
-    expertise: "System Design, Cloud Architecture",
-    projects: ["Core Platform", "API Gateway", "Microservices"],
-    skills: ["Architecture", "Cloud", "DevOps", "Mentoring"],
-    relatedEmployees: ["ym"], // Related to Yolandi (CTO)
-    product: "Website"
+    id: "mystira",
+    name: "Mystira",
+    initials: "MY",
+    position: "Interactive Storytelling",
+    mass: 500, // Heaviest - flagship Alpha project
+    color: "#9c27b0", // Purple - for alpha status
+    image: "/themes/mystira-icon.png",
+    fullName: "Mystira",
+    speed: 0.00025,
+    title: "Interactive Storytelling Platform (Alpha)",
+    bio: "Mystira brings the wonder of storytelling to life for children, parents, and group leaders alike. Each story is grounded in child development research, fostering emotional growth and meaningful connections.",
+    department: "Education",
+    experience: 0,
+    expertise: "Storytelling, Child Development, Education",
+    projects: ["Interactive Adventures", "Family Playtime", "Group Sessions"],
+    skills: ["Storytelling", "Children", "Interactive", "Education"],
+    relatedEmployees: ["phoenixrooivalk", "cognitivemesh"],
+    product: "https://mystira.app"
+  },
+  // Pre-alpha/Seeding projects - smaller
+  {
+    id: "phoenixrooivalk",
+    name: "Phoenix Rooivalk",
+    initials: "PR",
+    position: "Counter-Drone Platform",
+    mass: 200, // Smaller - pre-alpha/seeding
+    color: "#795548", // Brown - for pre-alpha/seeding
+    image: "/themes/rooivalk-icon.png",
+    fullName: "Phoenix Rooivalk",
+    speed: 0.0002,
+    title: "AI-Powered Counter-Drone Platform (Pre-Alpha)",
+    bio: "Phoenix Rooivalk is a sophisticated counter-drone platform leveraging advanced AI for real-time drone detection, classification, and neutralization. Named after the South African Rooivalk attack helicopter.",
+    department: "Defense",
+    experience: 0,
+    expertise: "AI, Machine Learning, Defense Systems",
+    projects: ["Drone Detection", "Threat Assessment", "Airspace Protection"],
+    skills: ["Counter-Drone", "AI", "Defense", "Security"],
+    relatedEmployees: ["mystira", "cognitivemesh"],
+    product: "https://phoenixrooivalk.com"
   },
   {
-    id: "em",
-    name: "Eben Mare",
-    initials: "EM",
-    position: "CEO",
-    mass: 300,
-    color: "#f87171", // Red
-    image: "themes/Noster.png",
-    fullName: "Eben Mare",
-    speed: 0.0001,
-    title: "CEO",
-    department: "Executive",
-    experience: 20,
-    expertise: "Business Strategy, Leadership",
-    projects: ["Company Vision", "Growth Strategy"],
-    skills: ["Leadership", "Strategy", "Vision", "Management"],
-    relatedEmployees: ["ym"], // Related to Yolandi (spouse/CTO)
-    product: "The whole shebang!"
+    id: "cognitivemesh",
+    name: "Cognitive Mesh",
+    initials: "CM",
+    position: "AI Framework",
+    mass: 150, // Medium - pre-alpha/seeding
+    color: "#795548", // Brown - for pre-alpha/seeding
+    image: "/themes/cognitivemesh-icon.png",
+    fullName: "Cognitive Mesh",
+    speed: 0.00022,
+    title: "Enterprise AI Transformation Framework (Pre-Alpha)",
+    bio: "Cognitive Mesh is an enterprise-grade AI transformation framework designed to orchestrate multi-agent cognitive systems with institutional-grade security and NIST compliance controls.",
+    department: "Enterprise",
+    experience: 0,
+    expertise: "Multi-Agent AI, Enterprise Security, Governance",
+    projects: ["AI Orchestration", "Security Compliance", "Zero-Trust Architecture"],
+    skills: ["Multi-Agent", "Enterprise", "Security", "Governance"],
+    relatedEmployees: ["mystira", "phoenixrooivalk"],
+    product: "https://github.com/justaghost/cognitive-mesh"
+  },
+  // Smaller secondary/supporting projects
+  {
+    id: "phoenixvc-website",
+    name: "PhoenixVC Website",
+    initials: "PW",
+    position: "Corporate Website",
+    mass: 100, // Small - supporting infrastructure
+    color: "#6b7280", // Gray - supporting project
+    fullName: "PhoenixVC Website",
+    speed: 0.00015,
+    title: "Corporate Website",
+    bio: "The official Phoenix VC corporate website built with modern web technologies.",
+    department: "Infrastructure",
+    experience: 0,
+    expertise: "React, TypeScript, Azure",
+    projects: ["Web Development"],
+    skills: ["React", "TypeScript", "Azure"],
+    relatedEmployees: ["mystira"],
+    product: "https://phoenixvc.tech"
+  },
+  {
+    id: "design-system",
+    name: "Design System",
+    initials: "DS",
+    position: "Component Library",
+    mass: 80, // Smallest - internal tooling
+    color: "#6b7280", // Gray - supporting project
+    fullName: "Phoenix Design System",
+    speed: 0.00018,
+    title: "Component Library",
+    bio: "Shared design system and component library for Phoenix projects.",
+    department: "Infrastructure",
+    experience: 0,
+    expertise: "React Components, Design Tokens",
+    projects: ["UI Components"],
+    skills: ["Design", "Components", "Tokens"],
+    relatedEmployees: ["phoenixvc-website"],
+    product: ""
+  },
+  // Portfolio companies - early stage and growth investments
+  {
+    id: "airkey",
+    name: "Airkey",
+    initials: "AK",
+    position: "Access Management",
+    mass: 150, // Medium - early stage investment
+    color: "#e67e22", // Orange - early stage
+    fullName: "Airkey Ltd",
+    speed: 0.00019,
+    title: "Digital Access Management (Early Stage)",
+    bio: "Airkey Ltd provides innovative digital access management solutions that enable secure, keyless entry systems for commercial and residential properties.",
+    department: "Security",
+    experience: 0,
+    expertise: "Access Control, IoT, Mobile Security",
+    projects: ["Keyless Entry", "Smart Access"],
+    skills: ["Access Control", "Security", "IoT", "Mobile"],
+    relatedEmployees: ["hop", "chaufher"],
+    product: ""
+  },
+  {
+    id: "hop",
+    name: "Hop",
+    initials: "HP",
+    position: "Transportation Tech",
+    mass: 150, // Medium - early stage investment
+    color: "#e67e22", // Orange - early stage
+    fullName: "Hop Pty Ltd",
+    speed: 0.00017,
+    title: "Innovative Transportation Technology (Early Stage)",
+    bio: "Hop Pty Ltd is revolutionizing urban mobility with innovative transportation technology solutions that connect commuters with efficient, sustainable transport options.",
+    department: "Mobility",
+    experience: 0,
+    expertise: "Transportation, Urban Mobility, Route Optimization",
+    projects: ["Smart Mobility", "Route Planning"],
+    skills: ["Transportation", "Mobility", "Smart City", "Sustainability"],
+    relatedEmployees: ["airkey", "chaufher"],
+    product: ""
+  },
+  {
+    id: "chaufher",
+    name: "Chaufher",
+    initials: "CH",
+    position: "Women's Transportation",
+    mass: 180, // Larger - growth stage investment
+    color: "#e74c3c", // Red - growth stage
+    fullName: "Chaufher Pty Ltd",
+    speed: 0.00016,
+    title: "Women-Focused Transportation (Growth Stage)",
+    bio: "Chaufher Pty Ltd is a women-focused transportation service designed to provide safe, reliable rides for women, by women.",
+    department: "Mobility",
+    experience: 0,
+    expertise: "Transportation, Safety, Ride-Sharing",
+    projects: ["Safe Rides", "Women's Transport"],
+    skills: ["Transportation", "Safety", "Women-Focused", "Ride-Sharing"],
+    relatedEmployees: ["airkey", "hop"],
+    product: ""
+  },
+  {
+    id: "veritasvault",
+    name: "VeritasVault",
+    initials: "VV",
+    position: "DeFi Platform",
+    mass: 80, // Smallest - pre-alpha/concept stage
+    color: "#795548", // Brown - for pre-alpha
+    fullName: "VeritasVault",
+    speed: 0.00020,
+    title: "DeFi Staking Platform (Pre-Alpha)",
+    bio: "VeritasVault is a decentralized finance platform offering transparent, treasury-backed staking rewards with auto-compounding yields.",
+    department: "Blockchain",
+    experience: 0,
+    expertise: "DeFi, Staking, Smart Contracts",
+    projects: ["Staking Rewards", "Treasury Management"],
+    skills: ["DeFi", "Blockchain", "Staking", "Crypto", "Web3"],
+    relatedEmployees: ["cognitivemesh", "airkey"],
+    product: "https://veritasvault.net"
   }
 ];
 

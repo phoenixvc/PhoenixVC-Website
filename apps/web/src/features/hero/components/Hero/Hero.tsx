@@ -32,7 +32,7 @@ const Hero: FC<ExtendedHeroProps> = memo(
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const [isMouseNearBorder, setIsMouseNearBorder] = useState(false);
 
-    const [showHeroContent, setShowHeroContent] = useState(false);
+    const [showHeroContent, setShowHeroContent] = useState(true); // Show by default
     const [showScrollIndicator, setShowScrollIndicator] = useState(true);
     const [scrollPosition, setScrollPosition] = useState(0);
 
@@ -73,12 +73,10 @@ const Hero: FC<ExtendedHeroProps> = memo(
         const currentScrollPosition = window.scrollY;
         setScrollPosition(currentScrollPosition);
 
-        // Show hero content when scrolled down, hide when at top
-        if (currentScrollPosition > 10) {
-          setShowHeroContent(true);
+        // Hide scroll indicator after scrolling, keep content visible
+        if (currentScrollPosition > 50) {
           setShowScrollIndicator(false);
         } else {
-          setShowHeroContent(false);
           setShowScrollIndicator(true);
         }
       };
@@ -107,16 +105,22 @@ const Hero: FC<ExtendedHeroProps> = memo(
       window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
-    // Handler for scroll indicator click
+    // Handler for scroll indicator click - scroll to next section
     const scrollToContent = () => {
       // Hide scroll indicator
       setShowScrollIndicator(false);
 
-      // Scroll down to show hero content
-      window.scrollTo({
-        top: window.innerHeight * 0.3,
-        behavior: "smooth",
-      });
+      // Try to scroll to the focus-areas section, fallback to scrolling past the hero
+      const focusSection = document.getElementById("focus-areas");
+      if (focusSection) {
+        focusSection.scrollIntoView({ behavior: "smooth" });
+      } else {
+        // Fallback: scroll past the hero section
+        window.scrollTo({
+          top: window.innerHeight,
+          behavior: "smooth",
+        });
+      }
     };
     return (
       <section
