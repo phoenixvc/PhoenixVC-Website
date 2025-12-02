@@ -3,7 +3,15 @@ import { FC, memo, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { contactAnimations } from "../../animations";
 import styles from "./ContactForm.module.css";
-import type { ContactFormData } from "../../types";
+import type { ContactFormData, ContactIntent } from "../../types";
+
+const INTENT_OPTIONS: { value: ContactIntent; label: string }[] = [
+  { value: "general", label: "General Inquiry" },
+  { value: "investment", label: "Investment Opportunity" },
+  { value: "partnership", label: "Partnership Discussion" },
+  { value: "media", label: "Media & Press" },
+  { value: "other", label: "Other" },
+];
 
 interface ContactFormProps {
   onSubmit: (data: ContactFormData) => void;
@@ -24,6 +32,7 @@ const ContactForm: FC<ContactFormProps> = memo(({
     subject: "",
     company: "",
     message: "",
+    intent: "general",
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof ContactFormData, string>>>({});
@@ -44,7 +53,7 @@ const ContactForm: FC<ContactFormProps> = memo(({
     }
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
@@ -55,7 +64,7 @@ const ContactForm: FC<ContactFormProps> = memo(({
     }
   };
 
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setTouched((prev) => ({ ...prev, [name]: true }));
 
@@ -143,21 +152,44 @@ const ContactForm: FC<ContactFormProps> = memo(({
             </div>
           </div>
 
-          <div className={styles.inputWrapper}>
-            <label htmlFor="contact-company" className={styles.label}>
-              Company
-            </label>
-            <input
-              id="contact-company"
-              type="text"
-              name="company"
-              placeholder="Company (Optional)"
-              className={styles.input}
-              value={formData.company}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              disabled={isLoading || isSuccess}
-            />
+          <div className={styles.inputGrid}>
+            <div className={styles.inputWrapper}>
+              <label htmlFor="contact-company" className={styles.label}>
+                Company
+              </label>
+              <input
+                id="contact-company"
+                type="text"
+                name="company"
+                placeholder="Company (Optional)"
+                className={styles.input}
+                value={formData.company}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                disabled={isLoading || isSuccess}
+              />
+            </div>
+
+            <div className={styles.inputWrapper}>
+              <label htmlFor="contact-intent" className={styles.label}>
+                How can we help?
+              </label>
+              <select
+                id="contact-intent"
+                name="intent"
+                className={styles.select}
+                value={formData.intent}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                disabled={isLoading || isSuccess}
+              >
+                {INTENT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div className={styles.inputWrapper}>
