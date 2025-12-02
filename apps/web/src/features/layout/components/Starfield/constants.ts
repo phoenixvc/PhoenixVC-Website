@@ -7,46 +7,67 @@ import { BlackHoleData, EmployeeData } from "./types";
     { x: 0.8, y: 0.7, radius: 30, color: "#8A2BE2" },
   ];
 
-// Default employees data with more detailed information
+// Default projects data displayed as orbital elements (using EmployeeData interface for compatibility)
 export const DEFAULT_EMPLOYEES: EmployeeData[] = [
   {
-    id: "js",
-    name: "Jurie Smit",
-    initials: "JS",
-    position: "Software Architect",
+    id: "mystira",
+    name: "Mystira",
+    initials: "MY",
+    position: "Interactive Storytelling",
     mass: 300,
-    color: "#60a5fa", // Blue
-    image: "themes/Jor.png",
-    fullName: "Jurie Smit",
+    color: "#10b981", // Green - for live status
+    image: "/themes/mystira-icon.png",
+    fullName: "Mystira",
     speed: 0.0003,
-    title: "Software Architect",
-    bio: "Jurie is a software architect with a passion for building scalable and maintainable systems. He enjoys working with the latest technologies and mentoring junior developers.",
-    department: "Engineering",
-    experience: 18,
-    expertise: "System Design, Cloud Architecture",
-    projects: ["Core Platform", "API Gateway", "Microservices"],
-    skills: ["Architecture", "Cloud", "DevOps", "Mentoring"],
-    relatedEmployees: ["ym"], // Related to Yolandi (CTO)
-    product: "Website"
+    title: "Interactive Storytelling Platform",
+    bio: "Mystira brings the wonder of storytelling to life for children, parents, and group leaders alike. Each story is grounded in child development research, fostering emotional growth and meaningful connections.",
+    department: "Education",
+    experience: 0,
+    expertise: "Storytelling, Child Development, Education",
+    projects: ["Interactive Adventures", "Family Playtime", "Group Sessions"],
+    skills: ["Storytelling", "Children", "Interactive", "Education"],
+    relatedEmployees: ["phoenixrooivalk", "cognitivemesh"],
+    product: "https://mystira.app"
   },
   {
-    id: "em",
-    name: "Eben Mare",
-    initials: "EM",
-    position: "CEO",
+    id: "phoenixrooivalk",
+    name: "Phoenix Rooivalk",
+    initials: "PR",
+    position: "Counter-Drone Platform",
     mass: 300,
-    color: "#f87171", // Red
-    image: "themes/Noster.png",
-    fullName: "Eben Mare",
-    speed: 0.0001,
-    title: "CEO",
-    department: "Executive",
-    experience: 20,
-    expertise: "Business Strategy, Leadership",
-    projects: ["Company Vision", "Growth Strategy"],
-    skills: ["Leadership", "Strategy", "Vision", "Management"],
-    relatedEmployees: ["ym"], // Related to Yolandi (spouse/CTO)
-    product: "The whole shebang!"
+    color: "#f87171", // Red - for defense/security
+    image: "/themes/rooivalk-icon.png",
+    fullName: "Phoenix Rooivalk",
+    speed: 0.0002,
+    title: "AI-Powered Counter-Drone Platform",
+    bio: "Phoenix Rooivalk is a sophisticated counter-drone platform leveraging advanced AI for real-time drone detection, classification, and neutralization. Named after the South African Rooivalk attack helicopter.",
+    department: "Defense",
+    experience: 0,
+    expertise: "AI, Machine Learning, Defense Systems",
+    projects: ["Drone Detection", "Threat Assessment", "Airspace Protection"],
+    skills: ["Counter-Drone", "AI", "Defense", "Security"],
+    relatedEmployees: ["mystira", "cognitivemesh"],
+    product: "https://phoenixrooivalk.com"
+  },
+  {
+    id: "cognitivemesh",
+    name: "Cognitive Mesh",
+    initials: "CM",
+    position: "AI Framework",
+    mass: 300,
+    color: "#60a5fa", // Blue - for enterprise
+    image: "/themes/cognitivemesh-icon.png",
+    fullName: "Cognitive Mesh",
+    speed: 0.00025,
+    title: "Enterprise AI Transformation Framework",
+    bio: "Cognitive Mesh is an enterprise-grade AI transformation framework designed to orchestrate multi-agent cognitive systems with institutional-grade security and NIST compliance controls.",
+    department: "Enterprise",
+    experience: 0,
+    expertise: "Multi-Agent AI, Enterprise Security, Governance",
+    projects: ["AI Orchestration", "Security Compliance", "Zero-Trust Architecture"],
+    skills: ["Multi-Agent", "Enterprise", "Security", "Governance"],
+    relatedEmployees: ["mystira", "phoenixrooivalk"],
+    product: "https://github.com/justaghost/cognitive-mesh"
   }
 ];
 

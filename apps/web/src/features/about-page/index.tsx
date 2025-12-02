@@ -2,8 +2,36 @@
 import { FC, memo } from "react";
 import { motion } from "framer-motion";
 import { useTheme } from "@/theme";
-import { ArrowRight, Award, Globe, Shield, Zap, Target, Users, Leaf } from "lucide-react";
+import { ArrowRight, Award, Globe, Shield, Zap, Target, Users, Leaf, Linkedin } from "lucide-react";
 import styles from "./AboutPage.module.css";
+
+interface TeamMember {
+  name: string;
+  role: string;
+  bio: string;
+  image?: string;
+  linkedin?: string;
+  expertise: string[];
+}
+
+const teamMembers: TeamMember[] = [
+  {
+    name: "Eben Maré",
+    role: "CEO",
+    bio: "Eben brings over 20 years of experience in business strategy and leadership. With a passion for identifying transformative opportunities, he guides Phoenix VC's vision and strategic direction.",
+    image: "/themes/Noster.png",
+    linkedin: "https://www.linkedin.com/in/ebenmare/",
+    expertise: ["Business Strategy", "Leadership", "Vision", "Management"],
+  },
+  {
+    name: "Jurie Smit",
+    role: "Software Architect",
+    bio: "Jurie is a software architect with 18 years of experience building scalable and maintainable systems. He enjoys working with the latest technologies and mentoring developers to build exceptional products.",
+    image: "/themes/Jor.png",
+    linkedin: "https://www.linkedin.com/in/juriesmit/",
+    expertise: ["System Design", "Cloud Architecture", "DevOps", "Mentoring"],
+  },
+];
 
 const aboutAnimations = {
   container: {
@@ -149,6 +177,54 @@ const AboutPage: FC = memo(() => {
               effect that goes beyond financial gains and contributes to a more equitable and
               sustainable future.
             </p>
+          </motion.div>
+
+          {/* Team Section */}
+          <motion.div className={styles.teamSection} variants={aboutAnimations.item}>
+            <div className={styles.teamHeader}>
+              <Users size={36} />
+              <h2 className={styles.sectionTitle}>Our Team</h2>
+            </div>
+            <p className={styles.teamIntro}>
+              Meet the people driving innovation and shaping the future at Phoenix VC.
+            </p>
+            <div className={styles.teamGrid}>
+              {teamMembers.map((member, index) => (
+                <motion.div
+                  key={index}
+                  className={styles.teamCard}
+                  variants={aboutAnimations.valueCard}
+                  whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                >
+                  {member.image && (
+                    <div className={styles.teamImageContainer}>
+                      <img src={member.image} alt={member.name} className={styles.teamImage} />
+                    </div>
+                  )}
+                  <h3 className={styles.teamName}>{member.name}</h3>
+                  <p className={styles.teamRole}>{member.role}</p>
+                  <p className={styles.teamBio}>{member.bio}</p>
+                  <div className={styles.expertiseTags}>
+                    {member.expertise.map((skill, skillIndex) => (
+                      <span key={skillIndex} className={styles.expertiseTag}>
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                  {member.linkedin && (
+                    <a
+                      href={member.linkedin}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.linkedinLink}
+                    >
+                      <Linkedin size={20} />
+                      Connect on LinkedIn
+                    </a>
+                  )}
+                </motion.div>
+              ))}
+            </div>
           </motion.div>
 
           {/* Vision Section */}

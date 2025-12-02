@@ -8,7 +8,6 @@ import { About } from "./features/about";
 import { Blog } from "./features/blog";
 import { Portfolio } from "./features/portfolio";
 import { AboutPage } from "./features/about-page";
-import { GenAIProjects } from "./features/genai-projects";
 
 const App = () => {
   console.log("App rendered");
@@ -47,12 +46,6 @@ const App = () => {
         <Route path="/about" element={
           <Layout>
             <AboutPage />
-          </Layout>
-        } />
-
-        <Route path="/projects/genai" element={
-          <Layout>
-            <GenAIProjects />
           </Layout>
         } />
       </Routes>

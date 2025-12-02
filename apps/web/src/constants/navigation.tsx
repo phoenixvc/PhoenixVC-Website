@@ -1,5 +1,5 @@
 import { NavItem } from "@/types";
-import { Home, Info, Target, Briefcase, FileText, Mail, BookOpen, Palette, Cpu } from "lucide-react";
+import { Home, Info, Target, Briefcase, FileText, Mail, BookOpen, Palette } from "lucide-react";
 
 // Main navigation items used in both header and sidebar
 export const navItems: NavItem[] = [
@@ -7,7 +7,6 @@ export const navItems: NavItem[] = [
   { label: "About", href: "/about", icon: <Info size={20} /> },
   { label: "Focus Areas", href: "/#focus-areas", icon: <Target size={20} /> },
   { label: "Portfolio", href: "/portfolio", icon: <Briefcase size={20} /> },
-  { label: "GenAI Projects", href: "/projects/genai", icon: <Cpu size={20} /> },
   { label: "Blog", href: "/blog", icon: <FileText size={20} /> },
   { label: "Contact", href: "/#contact", icon: <Mail size={20} /> },
 ];
