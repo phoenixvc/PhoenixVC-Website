@@ -18,7 +18,7 @@ export * from "./types";
 
 // Export utility functions
 export * from "./blackHoles";
-export * from "./planets";
+export * from "./Planets";
 export * from "./stars";
 
 const root = ReactDOM.createRoot(

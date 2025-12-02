@@ -49,11 +49,21 @@ param logicAppGitHubName string = '${environment}-${locCode}-la-github'
 param githubToken string
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Azure Communication Services Email parameters
+// ─────────────────────────────────────────────────────────────────────────────
+@description('Whether to deploy Azure Communication Services Email')
+param deployAcsEmail bool = false
+
+@description('Contact email recipient address')
+param contactEmailRecipient string = 'eben@phoenixvc.tech'
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Resource naming variables
 // ─────────────────────────────────────────────────────────────────────────────
 var resourceGroupName = '${environment}-${locCode}-rg-phoenixvc-website'
 var staticSiteName = '${environment}-${locCode}-swa-phoenixvc-website'
 var budgetName = '${environment}-${locCode}-rg-phoenixvc-budget'
+var acsName = '${environment}-${locCode}-acs-phoenixvc'
 
 // Force 'main' branch for production environment
 var effectiveBranch = (environment == 'prod') ? 'main' : branch
@@ -155,6 +165,19 @@ module logicAppGitHubModule './modules/logicapp-github-module.bicep' = if (deplo
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Azure Communication Services Email Module (Resource Group scope)
+// ─────────────────────────────────────────────────────────────────────────────
+module acsEmailModule './modules/acs-email-module.bicep' = if (deployAcsEmail) {
+  name: 'acsEmailDeployment'
+  scope: rg
+  params: {
+    acsName: acsName
+    location: location
+    tags: commonTags
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Outputs
 // ─────────────────────────────────────────────────────────────────────────────
 output staticSiteName string = staticSite.outputs.staticSiteName
@@ -171,3 +194,9 @@ output logicAppId string = deployLogicApp ? logicAppModule.outputs.logicAppId : 
 // Output new GitHub-invoker logic app details if deployed
 output logicAppGitHubName string = deployLogicApp ? logicAppGitHubModule.outputs.logicAppName : 'Logic App GitHub Invoker not deployed'
 output logicAppGitHubId string = deployLogicApp ? logicAppGitHubModule.outputs.logicAppId : 'N/A'
+
+// Output ACS Email details if deployed
+output acsName string = deployAcsEmail ? acsEmailModule.outputs.acsName : 'ACS Email not deployed'
+output acsEndpoint string = deployAcsEmail ? acsEmailModule.outputs.acsEndpoint : 'N/A'
+output acsEmailSender string = deployAcsEmail ? acsEmailModule.outputs.senderAddress : 'N/A'
+output contactEmailRecipient string = contactEmailRecipient

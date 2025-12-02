@@ -1,4 +1,5 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
+import { EmailClient } from "@azure/communication-email";
 import * as nodemailer from "nodemailer";
 
 interface ContactFormData {
@@ -6,6 +7,7 @@ interface ContactFormData {
   email: string;
   subject: string;
   message: string;
+  company?: string;
 }
 
 // Define a type for the raw data to avoid using 'any'
@@ -14,8 +16,12 @@ interface RawContactData {
   email?: string;
   message?: string;
   subject?: string;
+  company?: string;
   [key: string]: unknown;
 }
+
+// Default recipient email
+const DEFAULT_RECIPIENT_EMAIL = "eben@phoenixvc.tech";
 
 async function httpTrigger(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   context.log("HTTP trigger function processed a request.");
@@ -42,48 +48,26 @@ async function httpTrigger(request: HttpRequest, context: InvocationContext): Pr
     };
   }
 
+  // Get recipient email from environment or use default
+  const recipientEmail = process.env.RECIPIENT_EMAIL || DEFAULT_RECIPIENT_EMAIL;
+
+  // Check if ACS connection string is available
+  const acsConnectionString = process.env.ACS_CONNECTION_STRING;
+
   try {
-    // Create a transporter with your email service credentials
-    const transporter = nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE || "gmail", // e.g., "gmail", "outlook", etc.
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
-
-    // Set up email data
-    const mailOptions = {
-      from: `"Phoenix VC Contact Form" <${process.env.EMAIL_USER}>`,
-      to: process.env.RECIPIENT_EMAIL,
-      replyTo: formData.email,
-      subject: `Contact Form: ${formData.subject || "New message"}`,
-      text: `
-        Name: ${formData.name}
-        Email: ${formData.email}
-
-        Message:
-        ${formData.message}
-      `,
-      html: `
-        <h3>New Contact Form Submission</h3>
-        <p><strong>Name:</strong> ${formData.name}</p>
-        <p><strong>Email:</strong> ${formData.email}</p>
-        <p><strong>Subject:</strong> ${formData.subject || "Not provided"}</p>
-        <p><strong>Message:</strong></p>
-        <p>${formData.message.replace(/\n/g, "<br>")}</p>
-      `
-    };
-
-    // Send the email
-    await transporter.sendMail(mailOptions);
+    if (acsConnectionString) {
+      // Use Azure Communication Services Email
+      await sendWithACS(formData, recipientEmail, acsConnectionString, context);
+    } else {
+      // Fall back to nodemailer
+      await sendWithNodemailer(formData, recipientEmail, context);
+    }
 
     return {
       status: 200,
       jsonBody: { message: "Email sent successfully" }
     };
   } catch (error) {
-    // Use context.log instead of context.log.error
     context.log(`Error sending email: ${error instanceof Error ? error.message : "Unknown error"}`);
 
     return {
@@ -96,17 +80,119 @@ async function httpTrigger(request: HttpRequest, context: InvocationContext): Pr
   }
 }
 
+// Send email using Azure Communication Services
+async function sendWithACS(
+  formData: ContactFormData,
+  recipientEmail: string,
+  connectionString: string,
+  context: InvocationContext
+): Promise<void> {
+  context.log("Sending email via Azure Communication Services...");
+
+  const emailClient = new EmailClient(connectionString);
+  const senderAddress = process.env.ACS_SENDER_ADDRESS || "DoNotReply@phoenixvc.tech";
+
+  const emailMessage = {
+    senderAddress: senderAddress,
+    content: {
+      subject: `Contact Form: ${formData.subject || "New message from Phoenix VC Website"}`,
+      plainText: `
+Name: ${formData.name}
+Email: ${formData.email}
+${formData.company ? `Company: ${formData.company}` : ""}
+
+Message:
+${formData.message}
+      `.trim(),
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: linear-gradient(135deg, #e31bff 0%, #a31bff 100%); padding: 20px; text-align: center;">
+            <h2 style="color: white; margin: 0;">Phoenix VC Contact Form</h2>
+          </div>
+          <div style="padding: 20px; background: #f9f9f9;">
+            <h3 style="color: #333; margin-top: 0;">New Contact Form Submission</h3>
+            <p><strong>Name:</strong> ${formData.name}</p>
+            <p><strong>Email:</strong> <a href="mailto:${formData.email}">${formData.email}</a></p>
+            ${formData.company ? `<p><strong>Company:</strong> ${formData.company}</p>` : ""}
+            <p><strong>Subject:</strong> ${formData.subject || "Not provided"}</p>
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+            <p><strong>Message:</strong></p>
+            <p style="white-space: pre-wrap; background: white; padding: 15px; border-radius: 8px; border: 1px solid #eee;">${formData.message.replace(/\n/g, "<br>")}</p>
+          </div>
+          <div style="padding: 15px; text-align: center; background: #333; color: #999; font-size: 12px;">
+            <p style="margin: 0;">This email was sent from the Phoenix VC website contact form.</p>
+          </div>
+        </div>
+      `
+    },
+    recipients: {
+      to: [{ address: recipientEmail }]
+    },
+    replyTo: [{ address: formData.email }]
+  };
+
+  const poller = await emailClient.beginSend(emailMessage);
+  const result = await poller.pollUntilDone();
+
+  if (result.status !== "Succeeded") {
+    throw new Error(`Email send failed with status: ${result.status}`);
+  }
+
+  context.log("Email sent successfully via ACS");
+}
+
+// Send email using nodemailer (fallback)
+async function sendWithNodemailer(
+  formData: ContactFormData,
+  recipientEmail: string,
+  context: InvocationContext
+): Promise<void> {
+  context.log("Sending email via nodemailer...");
+
+  const transporter = nodemailer.createTransport({
+    service: process.env.EMAIL_SERVICE || "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    }
+  });
+
+  const mailOptions = {
+    from: `"Phoenix VC Contact Form" <${process.env.EMAIL_USER}>`,
+    to: recipientEmail,
+    replyTo: formData.email,
+    subject: `Contact Form: ${formData.subject || "New message"}`,
+    text: `
+Name: ${formData.name}
+Email: ${formData.email}
+${formData.company ? `Company: ${formData.company}` : ""}
+
+Message:
+${formData.message}
+    `.trim(),
+    html: `
+      <h3>New Contact Form Submission</h3>
+      <p><strong>Name:</strong> ${formData.name}</p>
+      <p><strong>Email:</strong> ${formData.email}</p>
+      ${formData.company ? `<p><strong>Company:</strong> ${formData.company}</p>` : ""}
+      <p><strong>Subject:</strong> ${formData.subject || "Not provided"}</p>
+      <p><strong>Message:</strong></p>
+      <p>${formData.message.replace(/\n/g, "<br>")}</p>
+    `
+  };
+
+  await transporter.sendMail(mailOptions);
+  context.log("Email sent successfully via nodemailer");
+}
+
 // Helper function to validate and type cast the data
 function validateContactFormData(data: unknown): ContactFormData | null {
-  // First check if data is an object
   if (typeof data !== "object" || data === null) {
     return null;
   }
 
-  // Cast to our intermediate type for property checking
   const contactData = data as RawContactData;
 
-  // Check required properties and their types
   if (
     typeof contactData.name !== "string" ||
     typeof contactData.email !== "string" ||
@@ -115,18 +201,18 @@ function validateContactFormData(data: unknown): ContactFormData | null {
     return null;
   }
 
-  // Return properly typed data
   return {
     name: contactData.name,
     email: contactData.email,
     message: contactData.message,
-    subject: typeof contactData.subject === "string" ? contactData.subject : ""
+    subject: typeof contactData.subject === "string" ? contactData.subject : "",
+    company: typeof contactData.company === "string" ? contactData.company : undefined
   };
 }
 
 // Register the function with Azure Functions
 app.http("contactForm", {
   methods: ["POST"],
-  authLevel: "anonymous", // Change this according to your security requirements
+  authLevel: "anonymous",
   handler: httpTrigger
 });

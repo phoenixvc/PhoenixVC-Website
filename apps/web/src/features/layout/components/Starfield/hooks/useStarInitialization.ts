@@ -2,7 +2,7 @@
 import { useCallback, useRef, useState } from "react";
 import { initBlackHoles } from "../blackHoles";
 import { DEFAULT_BLACK_HOLES, DEFAULT_EMPLOYEES, getColorPalette } from "../constants";
-import { initPlanets } from "../planets";
+import { initPlanets } from "../Planets";
 import { BlackHole, DebugSettings, Planet, Star } from "../types";
 
 interface StarInitializationProps {

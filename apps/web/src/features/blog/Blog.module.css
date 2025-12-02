@@ -1,10 +1,8 @@
 /* /features/blog/Blog.module.css */
 .blogSection {
-    padding: 6rem 0;
+    padding: 8rem 0 4rem;
     position: relative;
-    min-height: 80vh;
-    display: flex;
-    align-items: center;
+    min-height: 100vh;
   }
 
   .dark {
@@ -261,5 +259,136 @@
 
     .comingSoonText {
       font-size: 1.75rem;
+    }
+  }
+
+  /* Intro Text */
+  .introText {
+    font-size: 1.15rem;
+    line-height: 1.7;
+    max-width: 700px;
+    margin: 0 auto 3rem;
+    opacity: 0.9;
+  }
+
+  /* Posts Grid */
+  .postsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+  }
+
+  .postCard {
+    background: rgba(20, 18, 40, 0.4);
+    border: 1px solid rgba(227, 27, 255, 0.2);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+  }
+
+  .light .postCard {
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(227, 27, 255, 0.15);
+  }
+
+  .postCard:hover {
+    border-color: rgba(227, 27, 255, 0.4);
+    box-shadow: 0 10px 30px -10px rgba(227, 27, 255, 0.2);
+    transform: translateY(-4px);
+  }
+
+  /* Team Section */
+  .teamSection {
+    background: rgba(227, 27, 255, 0.08);
+    border-radius: 1.25rem;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    border: 1px solid rgba(227, 27, 255, 0.15);
+  }
+
+  .light .teamSection {
+    background: rgba(227, 27, 255, 0.05);
+  }
+
+  .teamHeading {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: #e31bff;
+  }
+
+  .light .teamHeading {
+    color: #a31bff;
+  }
+
+  .teamLinks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+  }
+
+  .teamLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1.5rem;
+    background: linear-gradient(135deg, rgba(227, 27, 255, 0.15), rgba(163, 27, 255, 0.15));
+    border: 1px solid rgba(227, 27, 255, 0.3);
+    border-radius: 0.75rem;
+    color: #e31bff;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  .light .teamLink {
+    color: #a31bff;
+  }
+
+  .teamLink:hover {
+    background: linear-gradient(135deg, rgba(227, 27, 255, 0.25), rgba(163, 27, 255, 0.25));
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(227, 27, 255, 0.2);
+  }
+
+  .substackIcon {
+    font-size: 1.25rem;
+  }
+
+  /* Substack Embed Styling */
+  :global(.substack-post-embed) {
+    text-align: left;
+  }
+
+  :global(.substack-post-embed) p {
+    margin-bottom: 0.5rem;
+  }
+
+  :global(.substack-post-embed) a {
+    color: #e31bff;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  :global(.substack-post-embed) a:hover {
+    color: #ff6b00;
+    text-decoration: underline;
+  }
+
+  @media (max-width: 768px) {
+    .postsGrid {
+      grid-template-columns: 1fr;
+    }
+
+    .teamLinks {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .teamLink {
+      justify-content: center;
     }
   }

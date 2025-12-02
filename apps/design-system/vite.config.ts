@@ -9,7 +9,13 @@ export default defineConfig({
     dts({
       insertTypesEntry: true,
       include: ["src/**/*.{ts,tsx}"],
-      exclude: ["src/**/*.stories.{ts,tsx}", "src/**/*.test.{ts,tsx}"],
+      exclude: [
+        "src/**/*.stories.{ts,tsx}",
+        "src/**/*.test.{ts,tsx}",
+        "src/App.tsx",
+        "src/decision-form-pillars.tsx",
+        "src/decision-form-style.tsx",
+      ],
     }),
   ],
   css: {
