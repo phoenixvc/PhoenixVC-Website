@@ -17,20 +17,24 @@
     <meta name="twitter:title" content="Phoenix VC | Dynamic Design">
     <meta name="twitter:description" content="Phoenix VC - Strategic investments and partnerships empowering innovation and shaping the future of technology.">
 
-    <!-- Favicon --><!-- SVG favicon with dark/light mode support -->
+    <!-- Favicon -->
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-
-    <!-- Fallback favicon for browsers that don't support SVG -->
     <link rel="icon" href="/favicon.ico">
 
+    <!-- Preconnect to external domains for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <!-- Google Fonts (Outfit) -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts (Outfit) with non-blocking load -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    </noscript>
 
-    <!-- ScrollReveal Library -->
-    <script src="https://unpkg.com/scrollreveal"></script>
+    <!-- ScrollReveal Library - loaded async for performance -->
+    <script src="https://unpkg.com/scrollreveal" defer></script>
 
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://unpkg.com; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://unpkg.com; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:;">
   </head>
   <body>
     <div id="root"></div>

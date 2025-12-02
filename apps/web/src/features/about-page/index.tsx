@@ -198,7 +198,14 @@ const AboutPage: FC = memo(() => {
                 >
                   {member.image && (
                     <div className={styles.teamImageContainer}>
-                      <img src={member.image} alt={member.name} className={styles.teamImage} />
+                      <img
+                        src={member.image}
+                        alt={member.name}
+                        className={styles.teamImage}
+                        width={120}
+                        height={120}
+                        loading="lazy"
+                      />
                     </div>
                   )}
                   <h3 className={styles.teamName}>{member.name}</h3>

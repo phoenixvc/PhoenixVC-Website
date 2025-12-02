@@ -205,6 +205,9 @@ const About: FC<AboutProps> = memo(({ isDarkMode }) => {
                   src={isDarkMode ? "/LOGO_V3_Primary_darkbg.png" : "/LOGO_V3_Primary_lightbg.png"}
                   alt="Phoenix VC Logo"
                   className={styles.logoImage}
+                  width={400}
+                  height={400}
+                  loading="lazy"
                   style={{ opacity: videoLoaded ? 0.9 : 1, transition: "opacity 0.3s ease" }}
                 />
 
@@ -215,7 +218,7 @@ const About: FC<AboutProps> = memo(({ isDarkMode }) => {
                     className={styles.phoenixVideo}
                     muted
                     playsInline
-                    preload="auto"
+                    preload="metadata"
                   >
                     <source
                       src={isDarkMode ? "/PhoenixVC_to_Phoenix.mp4" : "/Phoenix_to_PhoenixVC.mp4"}
