@@ -6,6 +6,7 @@ import Header from "./Header/Header";
 import styles from "./layout.module.css";
 import Starfield, { StarfieldRef } from "./Starfield/Starfield";
 import { CosmicNavigationState, Star } from "./Starfield/types";
+import { logger } from "@/utils/logger";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -97,7 +98,7 @@ const Layout = ({ children }: LayoutProps) => {
 
   // Toggle debug mode
   const toggleDebugMode = () => {
-    console.log("Debug mode toggle clicked in Layout, current value:", debugMode);
+    logger.debug("Debug mode toggle clicked in Layout, current value:", debugMode);
     const newDebugMode = !debugMode;
 
     // Update local state
@@ -105,17 +106,17 @@ const Layout = ({ children }: LayoutProps) => {
 
     // Update the starfield component's debug mode
     if (starfieldRef.current) {
-      console.log("Updating starfield debug mode to:", newDebugMode);
+      logger.debug("Updating starfield debug mode to:", newDebugMode);
       starfieldRef.current.updateDebugSetting("isDebugMode", newDebugMode);
     } else {
-      console.warn("Starfield ref is not available");
+      logger.warn("Starfield ref is not available");
     }
   };
 
   // Handle cosmic navigation
   const handleCosmicNavigation = (state: CosmicNavigationState) => {
     setCosmicNavigation(state);
-    console.log("Navigation updated:", state);
+    logger.debug("Navigation updated:", state);
   };
 
   const customDebugInfo = (

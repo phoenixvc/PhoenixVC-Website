@@ -8,6 +8,7 @@ import { useSectionObserver } from "@/hooks/useSectionObserver";
 import { FC, useState } from "react";
 import { FocusArea } from "../../types";
 import { X } from "lucide-react";
+import { logger } from "@/utils/logger";
 
 interface InvestmentFocusProps {
   isDarkMode?: boolean;
@@ -38,7 +39,7 @@ export const InvestmentFocus: FC<InvestmentFocusProps> = ({ isDarkMode = true })
 
   // Use our observer hook and log when the section becomes visible
   const sectionRef = useSectionObserver("focus-areas", (id) => {
-    console.log(`[Focus] Section "${id}" is now visible`);
+    logger.debug(`[Focus] Section "${id}" is now visible`);
   });
 
   const handleCardClick = (area: FocusArea) => {

@@ -5,6 +5,7 @@ import { FC, memo, useEffect, useRef, useState } from "react";
 import { heroAnimations } from "../../animations";
 import { DEFAULT_HERO_CONTENT } from "../../constants";
 import styles from "./hero.module.css";
+import { logger } from "@/utils/logger";
 
 interface ExtendedHeroProps extends HeroProps {
   isDarkMode: boolean;
@@ -26,7 +27,7 @@ const Hero: FC<ExtendedHeroProps> = memo(
     enableMouseTracking = false,
   }) => {
     const sectionRef = useSectionObserver("home", (id) => {
-      console.log(`[Home] Section "${id}" is now visible`);
+      logger.debug(`[Home] Section "${id}" is now visible`);
     });
     const containerRef = useRef<HTMLDivElement>(null);
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
