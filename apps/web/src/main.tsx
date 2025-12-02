@@ -4,8 +4,12 @@ import App from "./App.tsx";
 import { ThemeProvider } from "@/theme";
 import "./theme/theme.css";
 import { logger } from "@/utils/logger";
+import { initWebVitals } from "@/utils/performance";
 
 logger.debug("Index file is running");
+
+// Initialize Core Web Vitals monitoring
+initWebVitals();
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider
