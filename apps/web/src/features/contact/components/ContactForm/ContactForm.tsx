@@ -14,6 +14,15 @@ const INTENT_OPTIONS: { value: ContactIntent; label: string }[] = [
   { value: "other", label: "Other" },
 ];
 
+// Dynamic placeholders based on selected intent
+const INTENT_PLACEHOLDERS: Record<ContactIntent, string> = {
+  general: "How can we help you today?",
+  investment: "Tell us about your company, stage, funding needs, and what makes your solution unique...",
+  partnership: "Describe your company and the partnership opportunity you'd like to explore...",
+  media: "Share details about your media inquiry, publication, or interview request...",
+  other: "Please describe what you'd like to discuss...",
+};
+
 interface ContactFormProps {
   onSubmit: (data: ContactFormData) => void;
   isLoading: boolean;
@@ -250,7 +259,7 @@ const ContactForm: FC<ContactFormProps> = memo(({
             <textarea
               id="contact-message"
               name="message"
-              placeholder="Your Message"
+              placeholder={INTENT_PLACEHOLDERS[formData.intent]}
               className={`${styles.textarea} ${errors.message && touched.message ? styles.inputError : ""}`}
               rows={5}
               value={formData.message}

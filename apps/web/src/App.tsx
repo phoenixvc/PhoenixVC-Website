@@ -7,23 +7,16 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useTheme } from "@/theme";
 import { About } from "./features/about";
 import { ErrorBoundary, NotFound } from "./features/error";
+import { PageSkeleton } from "@/components/ui/Skeleton";
 
 // Lazy load route-based components for code splitting
 const Blog = lazy(() => import("./features/blog").then(m => ({ default: m.Blog })));
 const Portfolio = lazy(() => import("./features/portfolio").then(m => ({ default: m.Portfolio })));
 const AboutPage = lazy(() => import("./features/about-page").then(m => ({ default: m.AboutPage })));
 
-// Loading fallback component
-const PageLoader = () => (
-  <div style={{
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    minHeight: "50vh",
-    color: "var(--color-text-secondary)"
-  }}>
-    Loading...
-  </div>
+// Loading fallback component using skeleton
+const PageLoader = ({ isDarkMode = false }: { isDarkMode?: boolean }) => (
+  <PageSkeleton isDarkMode={isDarkMode} />
 );
 
 const App = () => {
@@ -50,7 +43,7 @@ const App = () => {
 
         <Route path="/blog" element={
           <Layout>
-            <Suspense fallback={<PageLoader />}>
+            <Suspense fallback={<PageLoader isDarkMode={isDarkMode} />}>
               <Blog />
             </Suspense>
           </Layout>
@@ -58,7 +51,7 @@ const App = () => {
 
         <Route path="/portfolio" element={
           <Layout>
-            <Suspense fallback={<PageLoader />}>
+            <Suspense fallback={<PageLoader isDarkMode={isDarkMode} />}>
               <Portfolio />
             </Suspense>
           </Layout>
@@ -66,7 +59,7 @@ const App = () => {
 
           <Route path="/about" element={
             <Layout>
-              <Suspense fallback={<PageLoader />}>
+              <Suspense fallback={<PageLoader isDarkMode={isDarkMode} />}>
                 <AboutPage />
               </Suspense>
             </Layout>
