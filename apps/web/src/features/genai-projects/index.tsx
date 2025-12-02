@@ -2,7 +2,7 @@
 import { FC, memo } from "react";
 import { motion } from "framer-motion";
 import { useTheme } from "@/theme";
-import { ExternalLink, Github, Cpu, Network, BookOpen, Shield } from "lucide-react";
+import { ExternalLink, Github, Cpu, Network, BookOpen, Shield, FileText } from "lucide-react";
 import styles from "./GenAIProjects.module.css";
 
 const animations = {
@@ -47,6 +47,7 @@ interface Project {
   icon: React.ReactNode;
   website?: string;
   github?: string;
+  docs?: string;
   status: "live" | "development" | "beta";
   tags: string[];
 }
@@ -66,6 +67,8 @@ const projects: Project[] = [
     description: "AI-powered counter-drone defense platform",
     longDescription: "Phoenix Rooivalk is a sophisticated counter-drone platform that leverages advanced AI and machine learning for real-time drone detection, classification, and neutralization. Named after the South African Rooivalk attack helicopter, it provides comprehensive airspace protection with automated threat assessment and response capabilities.",
     icon: <Shield size={32} />,
+    website: "https://phoenixrooivalk.com/",
+    docs: "https://docs.phoenixrooivalk.com/",
     github: "https://github.com/JustAGhosT/PhoenixRooivalk",
     status: "development",
     tags: ["Counter-Drone", "AI", "Defense", "Security"],
@@ -158,7 +161,18 @@ const GenAIProjects: FC = memo(() => {
                       className={styles.actionButton}
                     >
                       <ExternalLink size={18} />
-                      Visit Website
+                      Website
+                    </a>
+                  )}
+                  {project.docs && (
+                    <a
+                      href={project.docs}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`${styles.actionButton} ${styles.docsButton}`}
+                    >
+                      <FileText size={18} />
+                      Docs
                     </a>
                   )}
                   {project.github && (
@@ -169,7 +183,7 @@ const GenAIProjects: FC = memo(() => {
                       className={`${styles.actionButton} ${styles.githubButton}`}
                     >
                       <Github size={18} />
-                      View on GitHub
+                      GitHub
                     </a>
                   )}
                 </div>
