@@ -92,6 +92,42 @@
   }
 }
 
+/* Input wrapper for label + input + error */
+.inputWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Form labels */
+.label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+  transition: color 0.2s ease;
+}
+
+:root:not(.dark) .label {
+  color: rgba(20, 18, 40, 0.8);
+}
+
+/* Required indicator */
+.required {
+  color: rgba(255, 100, 100, 0.9);
+  font-weight: 600;
+}
+
+/* Error state for inputs */
+.inputError {
+  border-color: rgba(255, 100, 100, 0.7) !important;
+  box-shadow: 0 0 0 3px rgba(255, 100, 100, 0.15) !important;
+}
+
+.inputError:focus {
+  border-color: rgba(255, 100, 100, 0.9) !important;
+  box-shadow: 0 0 0 3px rgba(255, 100, 100, 0.25) !important;
+}
+
 /* Form inputs with cosmic styling - more transparent */
 .input, .textarea {
   width: 100%;

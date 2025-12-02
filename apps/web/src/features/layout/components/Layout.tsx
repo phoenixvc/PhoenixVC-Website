@@ -164,6 +164,11 @@ const Layout = ({ children }: LayoutProps) => {
         isDarkMode ? styles.darkMode : styles.lightMode
       } ${styles.starfieldContainer}`}
     >
+      {/* Skip to content link for accessibility */}
+      <a href="#main-content" className={styles.skipToContent}>
+        Skip to main content
+      </a>
+
       {/* Always use Starfield, remove conditional rendering */}
       <Starfield
         key={`starfield-${isDarkMode}-${sidebarWidth}-${gameMode}`}
@@ -223,7 +228,7 @@ const Layout = ({ children }: LayoutProps) => {
           onDebugModeToggle={toggleDebugMode}
         />
 
-        <main className={`${styles.mainContent} ${isDarkMode ? styles.darkMain : styles.lightMain}`}>
+        <main id="main-content" className={`${styles.mainContent} ${isDarkMode ? styles.darkMain : styles.lightMain}`} role="main">
           {React.Children.map(children, (child) =>
             React.isValidElement(child)
               ? React.cloneElement(child as React.ReactElement<{ isDarkMode: boolean }>, {
