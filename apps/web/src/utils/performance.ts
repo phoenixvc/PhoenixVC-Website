@@ -60,7 +60,8 @@ const defaultReporter: ReportCallback = (metric) => {
 };
 
 // Send metrics to an analytics endpoint
-const createEndpointReporter = (endpoint: string, sampleRate = 1): ReportCallback => {
+// Default sample rate of 10% to reduce noise in production
+const createEndpointReporter = (endpoint: string, sampleRate = 0.1): ReportCallback => {
   // Determine if this session should be sampled
   const shouldSample = Math.random() < sampleRate;
 

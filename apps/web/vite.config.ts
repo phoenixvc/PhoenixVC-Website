@@ -27,23 +27,15 @@ export default defineConfig({
     },
   },
   build: {
+    // Increase chunk size warning limit since we have a large app
+    chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
-        manualChunks(id) {
-          if (id.includes("node_modules")) {
-            if (id.includes("react-dom") || id.includes("/react/")) {
-              return "vendor-react";
-            }
-            if (id.includes("framer-motion")) {
-              return "vendor-motion";
-            }
-            if (id.includes("react-router")) {
-              return "vendor-router";
-            }
-            if (id.includes("lucide-react")) {
-              return "vendor-icons";
-            }
-          }
+        // Use manual chunks to split vendor code
+        manualChunks: {
+          "vendor-react": ["react", "react-dom", "react/jsx-runtime"],
+          "vendor-router": ["react-router", "react-router-dom"],
+          "vendor-motion": ["framer-motion"],
         },
       },
     },
