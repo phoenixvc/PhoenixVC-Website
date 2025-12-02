@@ -2,7 +2,7 @@
 import { FC, memo } from "react";
 import { motion } from "framer-motion";
 import { useTheme } from "@/theme";
-import { ExternalLink, Github, Cpu, Brain, Network, Sparkles } from "lucide-react";
+import { ExternalLink, Github, Cpu, Brain, Network, Sparkles, BookOpen, Shield } from "lucide-react";
 import styles from "./GenAIProjects.module.css";
 
 const animations = {
@@ -54,21 +54,21 @@ interface Project {
 const projects: Project[] = [
   {
     name: "Mystira",
-    description: "Advanced AI-powered platform for intelligent automation",
-    longDescription: "Mystira is an innovative AI platform that combines cutting-edge machine learning with intuitive user interfaces to deliver powerful automation solutions for enterprise workflows.",
-    icon: <Sparkles size={32} />,
+    description: "Interactive storytelling adventures for children and families",
+    longDescription: "Mystira brings the wonder of storytelling to life for children, parents, and group leaders alike. It transforms shared playtime into immersive, interactive adventures filled with imagination, cooperation, and creativity. Each Mystira story is grounded in child development research, fostering emotional growth, problem-solving skills, and meaningful connections.",
+    icon: <BookOpen size={32} />,
     website: "https://mystira.app",
     status: "live",
-    tags: ["AI", "Automation", "Enterprise", "ML"],
+    tags: ["Storytelling", "Children", "Interactive", "Education"],
   },
   {
     name: "Phoenix Rooivalk",
-    description: "Next-generation GenAI development framework",
-    longDescription: "Phoenix Rooivalk provides developers with a comprehensive toolkit for building, deploying, and managing generative AI applications with enterprise-grade security and scalability.",
-    icon: <Brain size={32} />,
-    website: "https://phoenixrooivalk.com",
-    status: "beta",
-    tags: ["GenAI", "Framework", "Development", "SDK"],
+    description: "AI-powered counter-drone defense platform",
+    longDescription: "Phoenix Rooivalk is a sophisticated counter-drone platform that leverages advanced AI and machine learning for real-time drone detection, classification, and neutralization. Named after the South African Rooivalk attack helicopter, it provides comprehensive airspace protection with automated threat assessment and response capabilities.",
+    icon: <Shield size={32} />,
+    github: "https://github.com/JustAGhosT/PhoenixRooivalk",
+    status: "development",
+    tags: ["Counter-Drone", "AI", "Defense", "Security"],
   },
   {
     name: "Cognitive Mesh",
