@@ -1,0 +1,16 @@
+# robots.txt for Phoenix VC
+# https://phoenixvc.tech
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://phoenixvc.tech/sitemap.xml
+
+# Disallow admin/internal paths (if any)
+Disallow: /api/
+Disallow: /_next/
+Disallow: /static/
+
+# Crawl delay (optional, be nice to servers)
+Crawl-delay: 1

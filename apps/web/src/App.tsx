@@ -6,6 +6,7 @@ import { Contact } from "@/features/contact";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useTheme } from "@/theme";
 import { About } from "./features/about";
+import { ErrorBoundary, NotFound } from "./features/error";
 
 // Lazy load route-based components for code splitting
 const Blog = lazy(() => import("./features/blog").then(m => ({ default: m.Blog })));
@@ -30,9 +31,10 @@ const App = () => {
   const isDarkMode = themeMode === "dark";
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={
+    <ErrorBoundary>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={
           <Layout>
             <Hero
               title="Shaping Tomorrow's Technology"
@@ -62,15 +64,23 @@ const App = () => {
           </Layout>
         } />
 
-        <Route path="/about" element={
-          <Layout>
-            <Suspense fallback={<PageLoader />}>
-              <AboutPage />
-            </Suspense>
-          </Layout>
-        } />
-      </Routes>
-    </BrowserRouter>
+          <Route path="/about" element={
+            <Layout>
+              <Suspense fallback={<PageLoader />}>
+                <AboutPage />
+              </Suspense>
+            </Layout>
+          } />
+
+          {/* 404 Not Found - must be last */}
+          <Route path="*" element={
+            <Layout>
+              <NotFound />
+            </Layout>
+          } />
+        </Routes>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 };
 
