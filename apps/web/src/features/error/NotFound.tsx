@@ -4,25 +4,32 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Home, ArrowLeft } from "lucide-react";
 import { useTheme } from "@/theme";
+import { useReducedMotion } from "@/hooks";
 import styles from "./NotFound.module.css";
 
 const NotFound: FC = memo(() => {
   const { themeMode } = useTheme();
   const isDarkMode = themeMode === "dark";
+  const prefersReducedMotion = useReducedMotion();
+
+  // Disable animations when user prefers reduced motion
+  const contentAnimation = prefersReducedMotion
+    ? { initial: {}, animate: {}, transition: {} }
+    : { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.6 } };
+
+  const headingAnimation = prefersReducedMotion
+    ? { initial: {}, animate: {}, transition: {} }
+    : { initial: { scale: 0.5 }, animate: { scale: 1 }, transition: { duration: 0.5, delay: 0.2 } };
 
   return (
     <section className={`${styles.container} ${isDarkMode ? styles.dark : styles.light}`}>
       <motion.div
         className={styles.content}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        {...contentAnimation}
       >
         <motion.h1
           className={styles.errorCode}
-          initial={{ scale: 0.5 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+          {...headingAnimation}
         >
           404
         </motion.h1>
