@@ -42,14 +42,14 @@
 .sidebarLogo {
   font-size: 1.25rem;
   font-weight: 600;
-  background: linear-gradient(90deg, #e31bff 0%, #ff6b00 100%); /* Matching Phoenix gradient */
+  background: linear-gradient(90deg, #9333ea 0%, #ff6b00 100%); /* Matching Phoenix gradient */
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-shadow: 0 0 10px rgba(227, 27, 255, 0.3); /* Subtle glow effect */
+  text-shadow: 0 0 10px rgba(147, 51, 234, 0.3); /* Subtle glow effect */
   letter-spacing: 0.5px;
 }
 
@@ -72,11 +72,11 @@
 }
 
 .lightMode .sidebarLogo {
-  background: linear-gradient(90deg, #e31bff 0%, #ff6b00 100%);
+  background: linear-gradient(90deg, #9333ea 0%, #ff6b00 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  text-shadow: 0 0 8px rgba(227, 27, 255, 0.2); /* Reduced glow for light mode */
+  text-shadow: 0 0 8px rgba(147, 51, 234, 0.2); /* Reduced glow for light mode */
 }
 
 .lightMode .sidebarToggle {

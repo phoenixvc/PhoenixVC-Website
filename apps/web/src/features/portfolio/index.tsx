@@ -1,7 +1,7 @@
 // /features/portfolio/index.tsx
 import { useTheme } from "@/theme";
 import { motion } from "framer-motion";
-import { ExternalLink, Github, Cpu, Network, BookOpen, Shield, FileText } from "lucide-react";
+import { ExternalLink, Github, Cpu, Network, BookOpen, Shield, FileText, Key, Car, Users } from "lucide-react";
 import styles from "./Portfolio.module.css";
 
 interface Project {
@@ -12,7 +12,7 @@ interface Project {
   website?: string;
   github?: string;
   docs?: string;
-  status: "live" | "development" | "beta" | "alpha" | "pre-alpha";
+  status: "live" | "development" | "beta" | "alpha" | "pre-alpha" | "early-stage" | "growth";
   tags: string[];
 }
 
@@ -46,6 +46,30 @@ const projects: Project[] = [
     status: "pre-alpha",
     tags: ["Multi-Agent", "Enterprise", "Security", "Governance", "Azure", ".NET"],
   },
+  {
+    name: "Airkey",
+    description: "Digital access management solutions",
+    longDescription: "Airkey Ltd provides innovative digital access management solutions that enable secure, keyless entry systems for commercial and residential properties. Using advanced cryptography and mobile technology, Airkey transforms how organizations manage physical access control.",
+    icon: <Key size={32} />,
+    status: "early-stage",
+    tags: ["Access Control", "Security", "IoT", "Mobile"],
+  },
+  {
+    name: "Hop",
+    description: "Innovative transportation technology",
+    longDescription: "Hop Pty Ltd is revolutionizing urban mobility with innovative transportation technology solutions. Their platform connects commuters with efficient, sustainable transport options while optimizing route planning and reducing congestion.",
+    icon: <Car size={32} />,
+    status: "early-stage",
+    tags: ["Transportation", "Mobility", "Smart City", "Sustainability"],
+  },
+  {
+    name: "Chaufher",
+    description: "Women-focused transportation service",
+    longDescription: "Chaufher Pty Ltd is a women-focused transportation service designed to provide safe, reliable rides for women, by women. The platform prioritizes passenger safety with vetted drivers and specialized features tailored to women's transportation needs.",
+    icon: <Users size={32} />,
+    status: "growth",
+    tags: ["Transportation", "Safety", "Women-Focused", "Ride-Sharing"],
+  },
 ];
 
 const statusColors: Record<Project["status"], { bg: string; text: string; label: string }> = {
@@ -53,6 +77,8 @@ const statusColors: Record<Project["status"], { bg: string; text: string; label:
   beta: { bg: "rgba(255, 152, 0, 0.2)", text: "#ff9800", label: "Beta" },
   alpha: { bg: "rgba(156, 39, 176, 0.2)", text: "#9c27b0", label: "Alpha" },
   "pre-alpha": { bg: "rgba(121, 85, 72, 0.2)", text: "#795548", label: "Pre-Alpha / Seeding" },
+  "early-stage": { bg: "rgba(230, 126, 34, 0.2)", text: "#e67e22", label: "Early Stage" },
+  growth: { bg: "rgba(231, 76, 60, 0.2)", text: "#e74c3c", label: "Growth Stage" },
   development: { bg: "rgba(33, 150, 243, 0.2)", text: "#2196f3", label: "In Development" },
 };
 

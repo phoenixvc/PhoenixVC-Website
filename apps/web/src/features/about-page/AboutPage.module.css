@@ -36,7 +36,7 @@
   font-size: 3.5rem;
   font-weight: 800;
   margin-bottom: 1.5rem;
-  background-image: linear-gradient(90deg, #e31bff 0%, #a31bff 100%);
+  background-image: linear-gradient(90deg, #9333ea 0%, #7c3aed 100%);
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
@@ -46,7 +46,7 @@
 .divider {
   width: 100px;
   height: 4px;
-  background: linear-gradient(90deg, #e31bff 0%, #a31bff 100%);
+  background: linear-gradient(90deg, #9333ea 0%, #7c3aed 100%);
   margin: 0 auto 1.5rem;
   border-radius: 2px;
   position: relative;
@@ -59,7 +59,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, #e31bff 0%, #a31bff 100%);
+  background: linear-gradient(90deg, #9333ea 0%, #7c3aed 100%);
   filter: blur(8px);
   opacity: 0.5;
 }
@@ -297,7 +297,7 @@
   font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
-  background-image: linear-gradient(90deg, #e31bff 0%, #ff6b00 100%);
+  background-image: linear-gradient(90deg, #9333ea 0%, #ff6b00 100%);
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
@@ -401,7 +401,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 1rem 2rem;
-  background: linear-gradient(135deg, #e31bff 0%, #a31bff 100%);
+  background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
   color: white;
   font-weight: 600;
   font-size: 1rem;

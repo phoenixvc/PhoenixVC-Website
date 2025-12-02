@@ -110,6 +110,64 @@ export const DEFAULT_EMPLOYEES: EmployeeData[] = [
     skills: ["Design", "Components", "Tokens"],
     relatedEmployees: ["phoenixvc-website"],
     product: ""
+  },
+  // Portfolio companies - early stage and growth investments
+  {
+    id: "airkey",
+    name: "Airkey",
+    initials: "AK",
+    position: "Access Management",
+    mass: 150, // Medium - early stage investment
+    color: "#e67e22", // Orange - early stage
+    fullName: "Airkey Ltd",
+    speed: 0.00019,
+    title: "Digital Access Management (Early Stage)",
+    bio: "Airkey Ltd provides innovative digital access management solutions that enable secure, keyless entry systems for commercial and residential properties.",
+    department: "Security",
+    experience: 0,
+    expertise: "Access Control, IoT, Mobile Security",
+    projects: ["Keyless Entry", "Smart Access"],
+    skills: ["Access Control", "Security", "IoT", "Mobile"],
+    relatedEmployees: ["hop", "chaufher"],
+    product: ""
+  },
+  {
+    id: "hop",
+    name: "Hop",
+    initials: "HP",
+    position: "Transportation Tech",
+    mass: 150, // Medium - early stage investment
+    color: "#e67e22", // Orange - early stage
+    fullName: "Hop Pty Ltd",
+    speed: 0.00017,
+    title: "Innovative Transportation Technology (Early Stage)",
+    bio: "Hop Pty Ltd is revolutionizing urban mobility with innovative transportation technology solutions that connect commuters with efficient, sustainable transport options.",
+    department: "Mobility",
+    experience: 0,
+    expertise: "Transportation, Urban Mobility, Route Optimization",
+    projects: ["Smart Mobility", "Route Planning"],
+    skills: ["Transportation", "Mobility", "Smart City", "Sustainability"],
+    relatedEmployees: ["airkey", "chaufher"],
+    product: ""
+  },
+  {
+    id: "chaufher",
+    name: "Chaufher",
+    initials: "CH",
+    position: "Women's Transportation",
+    mass: 180, // Larger - growth stage investment
+    color: "#e74c3c", // Red - growth stage
+    fullName: "Chaufher Pty Ltd",
+    speed: 0.00016,
+    title: "Women-Focused Transportation (Growth Stage)",
+    bio: "Chaufher Pty Ltd is a women-focused transportation service designed to provide safe, reliable rides for women, by women.",
+    department: "Mobility",
+    experience: 0,
+    expertise: "Transportation, Safety, Ride-Sharing",
+    projects: ["Safe Rides", "Women's Transport"],
+    skills: ["Transportation", "Safety", "Women-Focused", "Ride-Sharing"],
+    relatedEmployees: ["airkey", "hop"],
+    product: ""
   }
 ];
 
