@@ -57,7 +57,7 @@ export const DEFAULT_EMPLOYEES: EmployeeData[] = [
     name: "Cognitive Mesh",
     initials: "CM",
     position: "AI Framework",
-    mass: 200, // Smaller - pre-alpha/seeding
+    mass: 150, // Medium - pre-alpha/seeding
     color: "#795548", // Brown - for pre-alpha/seeding
     image: "/themes/cognitivemesh-icon.png",
     fullName: "Cognitive Mesh",

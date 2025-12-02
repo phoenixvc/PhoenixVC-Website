@@ -37,6 +37,26 @@ export const baseColors = {
   },
 } as const;
 
+// Brand colors - centralized heading and accent colors
+export const brandColors = {
+  // Primary heading gradient colors (used for section titles)
+  heading: {
+    primary: "#9333ea",   // Purple - main heading color
+    secondary: "#7c3aed", // Violet - secondary heading color
+    gradient: "linear-gradient(90deg, #9333ea 0%, #7c3aed 100%)",
+  },
+  // Status colors for portfolio items
+  status: {
+    alpha: "#9c27b0",
+    preAlpha: "#795548",
+    earlyStage: "#e67e22",
+    growth: "#e74c3c",
+    live: "#4caf50",
+    beta: "#ff9800",
+    development: "#2196f3",
+  },
+} as const;
+
 // Semantic colors
 export const semanticColors = {
   success: "#2E7D32",
