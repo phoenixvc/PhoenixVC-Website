@@ -436,3 +436,14 @@ textarea.dark,
   0%, 100% { opacity: 0.05; }
   50% { opacity: 0.15; }
 }
+
+/* Honeypot field - hidden from real users, visible to bots */
+.honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+}

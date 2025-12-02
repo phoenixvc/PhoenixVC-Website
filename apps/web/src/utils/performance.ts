@@ -230,18 +230,7 @@ const observeINP = (callback: ReportCallback): void => {
           maxINP = entry.duration;
         }
       });
-
-      // Report on page visibility change or unload
-      if (!reported && maxINP > 0) {
-        const metric: WebVitalsMetric = {
-          name: "INP",
-          value: maxINP,
-          rating: getRating("INP", maxINP),
-          delta: maxINP,
-          id: `inp-${Date.now()}`,
-        };
-        callback(metric);
-      }
+      // Don't report here - only report final value on visibility change
     });
 
     // Observe event timing entries

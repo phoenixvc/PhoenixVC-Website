@@ -138,23 +138,16 @@ const ContactForm: FC<ContactFormProps> = memo(({
       <div className={`${styles.card} ${isDarkMode ? styles.dark : ""}`}>
         <form className={styles.form} onSubmit={handleSubmit}>
           {/* Honeypot field - hidden from users but visible to bots */}
-          <div
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              left: "-9999px",
-              opacity: 0,
-              height: 0,
-              overflow: "hidden",
-            }}
-          >
-            <label htmlFor="website-url">Website (leave empty)</label>
+          <div className={styles.honeypot} aria-hidden="true">
+            <label htmlFor="contact-website">
+              Please leave this field empty
+            </label>
             <input
               type="text"
-              id="website-url"
+              id="contact-website"
               name="website"
               tabIndex={-1}
-              autoComplete="off"
+              autoComplete="new-password"
               value={honeypot}
               onChange={(e) => setHoneypot(e.target.value)}
             />

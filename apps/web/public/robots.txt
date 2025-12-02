@@ -7,10 +7,9 @@ Allow: /
 # Sitemap location
 Sitemap: https://phoenixvc.tech/sitemap.xml
 
-# Disallow admin/internal paths (if any)
+# Disallow paths that shouldn't be indexed
 Disallow: /api/
-Disallow: /_next/
-Disallow: /static/
+Disallow: /assets/
 
 # Crawl delay (optional, be nice to servers)
 Crawl-delay: 1
