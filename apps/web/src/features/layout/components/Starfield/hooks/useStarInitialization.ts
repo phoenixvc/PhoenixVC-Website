@@ -17,8 +17,11 @@ interface StarInitializationProps {
   enableBlackHole: boolean;
   blackHoleSize: number;
   particleSpeed: number;
-  enablePlanets: boolean;
-  planetSize: number;
+  // Support both old (enableEmployeeStars) and new (enablePlanets) naming
+  enablePlanets?: boolean;
+  enableEmployeeStars?: boolean;
+  planetSize?: number;
+  employeeStarSize?: number;
   debugSettings: DebugSettings;
   cancelAnimation: () => void;
 }
@@ -35,11 +38,18 @@ export const useStarInitialization = ({
   enableBlackHole,
   blackHoleSize,
   particleSpeed,
+  // Support both old and new naming - default to new naming if both provided
   enablePlanets,
+  enableEmployeeStars,
   planetSize,
+  employeeStarSize,
   debugSettings,
   cancelAnimation
 }: StarInitializationProps) => {
+  // Resolve naming: prefer new names but fallback to old names
+  const effectiveEnablePlanets = enablePlanets ?? enableEmployeeStars ?? true;
+  const effectivePlanetSize = planetSize ?? employeeStarSize ?? 1.0;
+
   // Store stars in refs to prevent re-renders
   const starsRef = useRef<Star[]>([]);
   const blackHolesRef = useRef<BlackHole[]>([]);
@@ -166,12 +176,12 @@ export const useStarInitialization = ({
     const newPlanets = initPlanets(
       width,
       height,
-      enablePlanets,
+      effectiveEnablePlanets,
       DEFAULT_EMPLOYEES,
       sidebarWidth,
       centerOffsetX,
       centerOffsetY,
-      planetSize
+      effectivePlanetSize
     );
 
     // Modify employee stars to have extremely slow orbit speeds
@@ -212,8 +222,8 @@ export const useStarInitialization = ({
     enableBlackHole,
     blackHoleSize,
     particleSpeed,
-    enablePlanets,
-    planetSize,
+    effectiveEnablePlanets,
+    effectivePlanetSize,
     initializeStarsWithLowVelocity,
     debugSettings.employeeOrbitSpeed,
     canvasRef,
@@ -339,6 +349,9 @@ export const useStarInitialization = ({
     blackHolesRef,
     planets,
     planetsRef,
+    // Aliases for backward compatibility with old naming (employeeStars)
+    employeeStars: planets,
+    employeeStarsRef: planetsRef,
     initializeElements,
     ensureStarsExist,
     resetStars,

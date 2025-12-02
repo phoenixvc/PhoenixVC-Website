@@ -400,6 +400,8 @@ export interface StarfieldProps {
   enableBlackHole?: boolean;
   enableMouseInteraction?: boolean;
   enablePlanets?: boolean;
+  // Alias for backward compatibility
+  enableEmployeeStars?: boolean;
   starDensity?: number;
   colorScheme?: string;
   starSize?: number;
@@ -410,6 +412,8 @@ export interface StarfieldProps {
   gravitationalPull?: number;
   particleSpeed?: number;
   planetSize?: number;
+  // Alias for backward compatibility
+  employeeStarSize?: number;
   employeeDisplayStyle?: "initials" | "avatar" | "both";
   blackHoleSize?: number;
   heroMode?: boolean;
@@ -444,6 +448,10 @@ export interface StarfieldProps {
   setCamera?: (camera: Camera) => void;
   hoveredObjectId?: string | null;
 }
+
+// Type aliases for backward compatibility
+export type EmployeeStar = Planet;
+export type InteractiveStarfieldProps = StarfieldProps;
 
 // Global declarations
 declare global {
