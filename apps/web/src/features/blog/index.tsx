@@ -42,7 +42,7 @@ export const Blog = () => {
 
     return () => {
       // Cleanup script on unmount
-      const existingScript = document.querySelector('script[src="https://substack.com/embedjs/embed.js"]');
+      const existingScript = document.querySelector("script[src=\"https://substack.com/embedjs/embed.js\"]");
       if (existingScript) {
         existingScript.remove();
       }

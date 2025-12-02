@@ -2,7 +2,7 @@
 import { FC, memo } from "react";
 import { motion } from "framer-motion";
 import { useTheme } from "@/theme";
-import { ExternalLink, Github, Cpu, Brain, Network, Sparkles, BookOpen, Shield } from "lucide-react";
+import { ExternalLink, Github, Cpu, Network, BookOpen, Shield } from "lucide-react";
 import styles from "./GenAIProjects.module.css";
 
 const animations = {
