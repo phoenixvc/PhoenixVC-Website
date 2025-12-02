@@ -1,40 +1,43 @@
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
-import { drillDown, pickObject } from "./cosmos/cosmicNavigation";
-import { Camera, CosmicNavigationState } from "./cosmos/types";
-import DebugControlsOverlay from "./DebugControlsOverlay";
+import { useRef, useEffect, useState, FC, useMemo, useCallback, forwardRef, useImperativeHandle } from "react";
+import styles from "./starfield.module.css";
+import { initBlackHoles } from "./blackHoles";
+import { initEmployeeStars } from "./employeeStars";
+import { DEFAULT_BLACK_HOLES, DEFAULT_EMPLOYEES, getColorPalette } from "./constants";
+import {
+  EmployeeData,
+  HoverInfo,
+  Star,
+  BlackHole,
+  EmployeeStar,
+  GameState,
+  Burst,
+  CollisionEffect,
+  InteractiveStarfieldProps,
+  MousePosition,
+  DebugSettings
+} from "./types";
+import EmployeeTooltip from "./employeeTooltip";
 import { fetchIpAddress, getHighScoresForIP, initGameState, saveScore } from "./gameState";
+import ScoreOverlay from "./scoreOverlay";
 import { useAnimationLoop } from "./hooks/useAnimationLoop";
-import { useDebugControls } from "./hooks/useDebugControls";
 import { useMouseInteraction } from "./hooks/useMouseInteraction";
 import { useParticleEffects } from "./hooks/useParticleEffects";
+import { useDebugControls } from "./hooks/useDebugControls";
+import DebugControlsOverlay from "./DebugControlsOverlay";
 import { useStarInitialization } from "./hooks/useStarInitialization";
-import ScoreOverlay from "./scoreOverlay";
-import styles from "./starfield.module.css";
 import { applyClickForce, createClickExplosion } from "./stars";
-import Tooltip from "./tooltip";
-import {
-  DebugSettings,
-  EmployeeData,
-  GameState,
-  HoverInfo,
-  MousePosition,
-  StarfieldProps
-} from "./types";
 
 // Define the ref type
 export type StarfieldRef = {
   updateDebugSetting: <K extends keyof DebugSettings>(key: K, value: DebugSettings[K]) => void;
 };
 
-// Only modifying the relevant part of the component to ensure cosmic navigation is enabled
-// This should be added to the component props section
-
-const Starfield = forwardRef<StarfieldRef, StarfieldProps>(({
+// Convert to forwardRef
+const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>(({
   enableFlowEffect = false,
   enableBlackHole = true,
   enableMouseInteraction = true,
-  enablePlanets = true,
-  enableCosmicNavigation = true, // Enable cosmic navigation by default
+  enableEmployeeStars = true,
   starDensity = 1.0,
   colorScheme = "white",
   starSize = 1.0,
@@ -44,7 +47,7 @@ const Starfield = forwardRef<StarfieldRef, StarfieldProps>(({
   flowStrength = 0.01,
   gravitationalPull = 0.05,
   particleSpeed = 0.00001,
-  planetSize = 1.0,
+  employeeStarSize = 1.0,
   employeeDisplayStyle = "initials",
   blackHoleSize = 1.0,
   heroMode = false,
@@ -59,19 +62,8 @@ const Starfield = forwardRef<StarfieldRef, StarfieldProps>(({
   debugMode = false,
   maxVelocity = 0.5,
   animationSpeed = 1.0,
-  drawDebugInfo: externalDrawDebugInfo,
-  // Add default navigation state and camera if not provided
-  navigationState = {
-    currentLevel: "universe",
-    isTransitioning: false
-  },
-  camera = {
-    cx: 0.5,
-    cy: 0.5,
-    zoom: 1
-  }
+  drawDebugInfo: externalDrawDebugInfo
 }, ref) => {
-  // Rest of the component remains unchanged
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const dimensionsRef = useRef({ width: 0, height: 0 });
   const containerBoundsRef = useRef({ left: 0, right: 0, top: 0, bottom: 0, width: 0, height: 0 });
@@ -86,13 +78,6 @@ const Starfield = forwardRef<StarfieldRef, StarfieldProps>(({
     cancelAnimation: () => {},
     restartAnimation: () => {}
   });
-
-  const [internalCamera, setCamera] = useState<Camera>({ cx: 0.5, cy: 0.5, zoom: 1 });
-  const [internalNavigationState, setNavigationState] = useState<CosmicNavigationState>({
-    currentLevel: "universe",
-    isTransitioning: false
-  });
-  const [hoveredObjectId, setHoveredObjectId] = useState<string | null>(null);
 
   // FPS tracking state
   const [currentFps, setCurrentFps] = useState<number>(0);
@@ -131,49 +116,6 @@ const Starfield = forwardRef<StarfieldRef, StarfieldProps>(({
   const [gameState, setGameState] = useState<GameState>(initGameState());
   const prevModeRef = useRef<boolean>(false);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    // Type assertion to tell TypeScript that canvas is not null
-    const nonNullCanvas = canvas as HTMLCanvasElement;
-
-    function handleMove(ev: MouseEvent) {
-      if (!internalCamera) return;
-      const pick = pickObject(
-        ev.clientX, ev.clientY,
-        internalCamera,
-        nonNullCanvas.width, nonNullCanvas.height
-      );
-      setHoveredObjectId(pick ? pick.id : null);
-    }
-
-    function handleClick(ev: MouseEvent) {
-      if (!internalCamera) return;
-      const clicked = pickObject(
-        ev.clientX, ev.clientY,
-        internalCamera,
-        nonNullCanvas.width, nonNullCanvas.height
-      );
-      if (!clicked) return;
-
-      const { nav, cam } = drillDown(
-        internalNavigationState,
-        internalCamera,
-        clicked
-      );
-      setNavigationState(nav);
-      setCamera(cam);
-    }
-
-    nonNullCanvas.addEventListener("mousemove", handleMove);
-    nonNullCanvas.addEventListener("click", handleClick);
-    return () => {
-      nonNullCanvas.removeEventListener("mousemove", handleMove);
-      nonNullCanvas.removeEventListener("click", handleClick);
-    };
-  }, [canvasRef, internalCamera, internalNavigationState]);
-
   // Use debug controls hook
   const {
     debugSettings,
@@ -204,7 +146,7 @@ const Starfield = forwardRef<StarfieldRef, StarfieldProps>(({
 
   // Track debug mode changes
   useEffect(() => {
-    console.log("Debug mode in Starfield:", debugSettings.isDebugMode);
+    console.log("Debug mode in InteractiveStarfield:", debugSettings.isDebugMode);
   }, [debugSettings.isDebugMode]);
 
   const {
@@ -222,8 +164,8 @@ const Starfield = forwardRef<StarfieldRef, StarfieldProps>(({
     starsRef,
     blackHoles,
     blackHolesRef,
-    planets,
-    planetsRef,
+    employeeStars,
+    employeeStarsRef,
     initializeElements,
     ensureStarsExist,
     resetStars,
@@ -240,8 +182,8 @@ const Starfield = forwardRef<StarfieldRef, StarfieldProps>(({
     enableBlackHole,
     blackHoleSize,
     particleSpeed,
-    enablePlanets,
-    planetSize,
+    enableEmployeeStars,
+    employeeStarSize,
     debugSettings,
     cancelAnimation: () => cancelAnimationRef.current()
   });
@@ -267,61 +209,6 @@ const Starfield = forwardRef<StarfieldRef, StarfieldProps>(({
     gameState,
     setGameState
   );
-
-// In Starfield.tsx, add this effect to animate the camera
-useEffect(() => {
-  // Skip if no camera or no target
-  if (!internalCamera || !internalCamera.target) return;
-
-  // Animation frame function
-  const animateCamera = () => {
-    // Make sure target still exists (TypeScript safety check)
-    if (!internalCamera.target) return;
-
-    // Calculate distance to target
-    const dCx = internalCamera.target.cx - internalCamera.cx;
-    const dCy = internalCamera.target.cy - internalCamera.cy;
-    const dZoom = internalCamera.target.zoom - internalCamera.zoom;
-
-    // Check if we're close enough to target
-    const distanceSquared = dCx * dCx + dCy * dCy + dZoom * dZoom;
-    if (distanceSquared < 0.0001) {
-      // We've reached the target, stop animation
-      setCamera({
-        cx: internalCamera.target.cx,
-        cy: internalCamera.target.cy,
-        zoom: internalCamera.target.zoom
-      });
-
-      // Mark navigation as no longer transitioning
-      if (internalNavigationState.isTransitioning) {
-        setNavigationState({
-          ...internalNavigationState,
-          isTransitioning: false
-        });
-      }
-      return;
-    }
-
-    // Smoothly interpolate camera position (lerp)
-    const t = 0.05; // Adjust for faster/slower animation
-    setCamera({
-      cx: internalCamera.cx + dCx * t,
-      cy: internalCamera.cy + dCy * t,
-      zoom: internalCamera.zoom + dZoom * t,
-      target: internalCamera.target // Preserve the target for continued animation
-    });
-
-    // Continue animation
-    requestAnimationFrame(animateCamera);
-  };
-
-  // Start animation
-  const animationId = requestAnimationFrame(animateCamera);
-
-  // Cleanup
-  return () => cancelAnimationFrame(animationId);
-}, [internalCamera, internalNavigationState, setCamera, setNavigationState]);
 
   useEffect(() => {
     // Update the ref with the latest state
@@ -582,7 +469,7 @@ useEffect(() => {
     }
   }, [initialMousePosition, setMousePosition]);
 
-  // Add this to your Starfield component
+  // Add this to your InteractiveStarfield component
   useEffect(() => {
     // Test function to simulate mouse movement
     const simulateMouseMovement = () => {
@@ -652,100 +539,84 @@ useEffect(() => {
     return simulateMouseMovement();
   }, [setMousePosition]); // Only depend on setMousePosition to avoid re-creating listeners
 
-// Memoize animation loop parameters to prevent unnecessary re-renders
-const animationParams = useMemo(() => ({
-  canvasRef,
-  dimensions: dimensionsRef.current,
-  stars: starsRef.current,
-  blackHoles: blackHolesRef.current,
-  planets: planetsRef.current,
-  mousePosition,
-  enableFlowEffect,
-  enableBlackHole,
-  enableMouseInteraction,
-  enablePlanets,
-  flowStrength: debugSettings.flowStrength,
-  gravitationalPull: debugSettings.gravitationalPull,
-  particleSpeed: debugSettings.particleSpeed,
-  planetSize,
-  employeeDisplayStyle,
-  heroMode,
-  centerPosition: centerPositionRef.current,
-  hoverInfo,
-  setHoverInfo,
-  colorScheme,
-  lineConnectionDistance: debugSettings.lineConnectionDistance,
-  lineOpacity: debugSettings.lineOpacity,
-  mouseEffectRadius: debugSettings.mouseEffectRadius,
-  mouseEffectColor,
-  clickBursts,
-  setClickBursts,
-  clickBurstsRef,
-  gameMode,
-  gameState,
-  setGameState,
-  collisionEffects,
-  setCollisionEffects,
-  createCollisionEffect,
-  isDarkMode,
-  frameCountRef,
-  debugMode: debugSettings.isDebugMode,
-  drawDebugInfo: customDrawDebugInfo,
-  maxVelocity: debugSettings.maxVelocity,
-  animationSpeed: debugSettings.animationSpeed,
-  starsRef,
-  blackHolesRef,
-  planetsRef,
-  ensureStarsExist,
-  updateFpsData,
-  fpsValuesRef,
-  starSize,
-
-  // cosmic‑navigation plumbing
-  enableCosmicNavigation,
-  camera: internalCamera,
-  navigationState: internalNavigationState,
-  setCamera,
-  setNavigationState,
-  hoveredObjectId,
-
-  debugSettings,
-}), [
-  mousePosition,
-  enableFlowEffect,
-  enableBlackHole,
-  enableMouseInteraction,
-  enablePlanets,
-  heroMode,
-  hoverInfo,
-  gameMode,
-  gameState,
-  customDrawDebugInfo,
-  debugSettings.isDebugMode,
-  debugSettings.maxVelocity,
-  debugSettings.animationSpeed,
-  debugSettings.flowStrength,
-  debugSettings.gravitationalPull,
-  debugSettings.mouseEffectRadius,
-  debugSettings.lineConnectionDistance,
-  debugSettings.lineOpacity,
-  colorScheme,
-  planetSize,
-  employeeDisplayStyle,
-  mouseEffectColor,
-  clickBursts,
-  collisionEffects,
-  starsRef,
-  blackHolesRef,
-  planetsRef,
-  ensureStarsExist,
-  updateFpsData,
-  internalCamera,
-  internalNavigationState,
-  enableCosmicNavigation,
-  hoveredObjectId,
-  debugSettings // ← re‑memo when sliders move
-]);
+  // Memoize animation loop parameters to prevent unnecessary re-renders
+  const animationParams = useMemo(() => ({
+    canvasRef,
+    dimensions: dimensionsRef.current,
+    stars: starsRef.current,
+    blackHoles: blackHolesRef.current,
+    employeeStars: employeeStarsRef.current,
+    mousePosition,
+    enableFlowEffect,
+    enableBlackHole,
+    enableMouseInteraction,
+    enableEmployeeStars,
+    flowStrength: debugSettings.flowStrength,
+    gravitationalPull: debugSettings.gravitationalPull,
+    particleSpeed: debugSettings.particleSpeed,
+    employeeStarSize,
+    employeeDisplayStyle,
+    heroMode,
+    centerPosition: centerPositionRef.current,
+    hoverInfo,
+    setHoverInfo,
+    colorScheme,
+    lineConnectionDistance: debugSettings.lineConnectionDistance,
+    lineOpacity: debugSettings.lineOpacity,
+    mouseEffectRadius: debugSettings.mouseEffectRadius,
+    mouseEffectColor,
+    clickBursts,
+    setClickBursts,
+    clickBurstsRef,
+    gameMode,
+    gameState,
+    setGameState,
+    collisionEffects,
+    setCollisionEffects,
+    createCollisionEffect,
+    isDarkMode,
+    frameCountRef,
+    debugMode: debugSettings.isDebugMode,
+    drawDebugInfo: customDrawDebugInfo,
+    maxVelocity: debugSettings.maxVelocity,
+    animationSpeed: debugSettings.animationSpeed,
+    starsRef,
+    blackHolesRef,
+    employeeStarsRef,
+    ensureStarsExist,
+    updateFpsData, // Add the FPS update callback
+    fpsValuesRef // Add the FPS values ref
+  }), [
+    mousePosition,
+    enableFlowEffect,
+    enableBlackHole,
+    enableMouseInteraction,
+    enableEmployeeStars,
+    heroMode,
+    hoverInfo,
+    gameMode,
+    gameState,
+    customDrawDebugInfo,
+    debugSettings.isDebugMode,
+    debugSettings.maxVelocity,
+    debugSettings.animationSpeed,
+    debugSettings.flowStrength,
+    debugSettings.gravitationalPull,
+    debugSettings.mouseEffectRadius,
+    debugSettings.lineConnectionDistance,
+    debugSettings.lineOpacity,
+    colorScheme,
+    employeeStarSize,
+    employeeDisplayStyle,
+    mouseEffectColor,
+    clickBursts,
+    collisionEffects,
+    starsRef,
+    blackHolesRef,
+    employeeStarsRef,
+    ensureStarsExist,
+    updateFpsData
+  ]);
 
   // Use the animation loop with memoized parameters - ONLY CALL THIS ONCE
   const { cancelAnimation, restartAnimation } = useAnimationLoop(animationParams);
@@ -772,13 +643,13 @@ const animationParams = useMemo(() => ({
     updateDebugSetting("employeeOrbitSpeed", newSpeed);
 
     // Update employee stars with new orbit speed
-    if (planetsRef.current.length > 0) {
-      const updatedPlanets = planetsRef.current.map(empStar => ({
+    if (employeeStarsRef.current.length > 0) {
+      const updatedEmployeeStars = employeeStarsRef.current.map(empStar => ({
         ...empStar,
         orbitSpeed: newSpeed
       }));
 
-      planetsRef.current = updatedPlanets;
+      employeeStarsRef.current = updatedEmployeeStars;
     }
   };
 
@@ -808,15 +679,37 @@ const animationParams = useMemo(() => ({
 
   // Update the click handler to use this unified function:
   const handleCanvasClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!debugSettings.repulsionEnabled) return;
+    if (!canvasRef.current) {
+      console.error("Click handler called but canvas ref is null");
+      return;
+    }
 
-    // … compute x,y …
-    applyStarfieldRepulsion(
-      event.clientX, event.clientY,
-      debugSettings.repulsionRadius,
-      debugSettings.repulsionForce
-    );
-  }, [debugSettings.repulsionEnabled, debugSettings.repulsionRadius, debugSettings.repulsionForce, applyStarfieldRepulsion]);
+    // Get click coordinates relative to canvas
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    console.log(`Canvas clicked at canvas coordinates: (${x}, ${y})`);
+    console.log(`Original click event coordinates: (${event.clientX}, ${event.clientY})`);
+    console.log(`Canvas rect: left=${rect.left}, top=${rect.top}, width=${rect.width}, height=${rect.height}`);
+
+    // Use the unified function
+    const affectedStars = applyStarfieldRepulsion(x, y);
+
+    // const containerRef = useRef<HTMLDivElement>(null);
+
+    // Update mouse position state
+    if (setMousePosition) {
+      setMousePosition(prev => ({
+        ...prev,
+        x: x,
+        y: y,
+        isClicked: false,
+        clickTime: Date.now()
+      }));
+      console.log("Mouse position state updated for click");
+    }
+  }, [canvasRef, setMousePosition, applyStarfieldRepulsion]);
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -834,12 +727,8 @@ const animationParams = useMemo(() => ({
 
         console.log(`Converted to canvas coordinates: (${x}, ${y})`);
 
-        applyStarfieldRepulsion(
-          x,
-          y,
-          debugSettings.repulsionRadius,
-          debugSettings.repulsionForce
-        );
+        // Call our unified function
+        applyStarfieldRepulsion(x, y);
       };
 
       canvas.addEventListener("click", clickHandler);
@@ -883,14 +772,11 @@ const animationParams = useMemo(() => ({
             cursor: "pointer",
             background: "transparent"
           }}
-          onClick={e => {
-            if (!debugSettings.repulsionEnabled) return;
-            const x = e.clientX, y = e.clientY;
-            applyStarfieldRepulsion(
-              x, y,
-              debugSettings.repulsionRadius,
-              debugSettings.repulsionForce
-            );
+          onClick={(e) => {
+            const x = e.clientX;
+            const y = e.clientY;
+            console.log(`Overlay clicked at: (${x}, ${y})`);
+            applyStarfieldRepulsion(x, y);
 
             // Also update mouse position state
             if (setMousePosition) {
@@ -919,12 +805,11 @@ const animationParams = useMemo(() => ({
           timestamp={timestamp}
           setMousePosition={setMousePosition}
           isDarkMode={isDarkMode}
-          onEmployeeOrbitSpeedChange={handleEmployeeOrbitSpeedChange}
         />
       )}
 
       {pinnedEmployee && (
-        <Tooltip
+        <EmployeeTooltip
           employee={pinnedEmployee}
           x={pinnedPosition.x}
           y={pinnedPosition.y}
@@ -935,7 +820,7 @@ const animationParams = useMemo(() => ({
       )}
 
       {hoverInfo.show && hoverInfo.employee && !pinnedEmployee && (
-        <Tooltip
+        <EmployeeTooltip
           employee={hoverInfo.employee}
           x={hoverInfo.x}
           y={hoverInfo.y}
@@ -956,5 +841,4 @@ const animationParams = useMemo(() => ({
   );
 });
 
-export default Starfield;
-
+export default InteractiveStarfield;
