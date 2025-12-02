@@ -168,6 +168,25 @@ export const DEFAULT_EMPLOYEES: EmployeeData[] = [
     skills: ["Transportation", "Safety", "Women-Focused", "Ride-Sharing"],
     relatedEmployees: ["airkey", "hop"],
     product: ""
+  },
+  {
+    id: "veritasvault",
+    name: "VeritasVault",
+    initials: "VV",
+    position: "DeFi Platform",
+    mass: 80, // Smallest - pre-alpha/concept stage
+    color: "#795548", // Brown - for pre-alpha
+    fullName: "VeritasVault",
+    speed: 0.00020,
+    title: "DeFi Staking Platform (Pre-Alpha)",
+    bio: "VeritasVault is a decentralized finance platform offering transparent, treasury-backed staking rewards with auto-compounding yields.",
+    department: "Blockchain",
+    experience: 0,
+    expertise: "DeFi, Staking, Smart Contracts",
+    projects: ["Staking Rewards", "Treasury Management"],
+    skills: ["DeFi", "Blockchain", "Staking", "Crypto", "Web3"],
+    relatedEmployees: ["cognitivemesh", "airkey"],
+    product: "https://www.veritasvault.app"
   }
 ];
 

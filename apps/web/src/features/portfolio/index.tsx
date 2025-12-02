@@ -1,7 +1,7 @@
 // /features/portfolio/index.tsx
 import { useTheme } from "@/theme";
 import { motion } from "framer-motion";
-import { ExternalLink, Github, Cpu, Network, BookOpen, Shield, FileText, Key, Car, Users } from "lucide-react";
+import { ExternalLink, Github, Cpu, Network, BookOpen, Shield, FileText, Key, Car, Users, Vault } from "lucide-react";
 import styles from "./Portfolio.module.css";
 
 interface Project {
@@ -69,6 +69,15 @@ const projects: Project[] = [
     icon: <Users size={32} />,
     status: "growth",
     tags: ["Transportation", "Safety", "Women-Focused", "Ride-Sharing"],
+  },
+  {
+    name: "VeritasVault",
+    description: "DeFi staking and treasury-backed rewards platform",
+    longDescription: "VeritasVault is a decentralized finance platform offering transparent, treasury-backed staking rewards with auto-compounding yields. The platform enables users to earn real yield through depositing, staking, and voting mechanisms with no lock-ups and instant withdrawals.",
+    icon: <Vault size={32} />,
+    website: "https://www.veritasvault.app",
+    status: "pre-alpha",
+    tags: ["DeFi", "Blockchain", "Staking", "Crypto", "Web3"],
   },
 ];
 
