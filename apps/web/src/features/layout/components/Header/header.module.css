@@ -7,11 +7,11 @@
   z-index: 1000 !important; /* High z-index to ensure it's above the starfield */
   transition: all 0.3s ease;
   height: 70px;
-  background-color: rgba(13, 14, 30, 0.85); /* Darker, more saturated with less opacity */
+  background-color: rgba(13, 14, 30, 0.92); /* Increased opacity for better text visibility */
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(99, 123, 255, 0.1); /* Subtle blue glow border */
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Stronger shadow for depth */
+  border-bottom: 1px solid rgba(99, 123, 255, 0.15); /* Slightly more visible border */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25); /* Stronger shadow for depth */
   pointer-events: auto !important; /* Ensure it captures mouse events */
 }
 
@@ -62,6 +62,13 @@
   display: flex;
   align-items: center;
   text-decoration: none;
+  gap: 0.5rem;
+}
+
+.logoImage {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
 }
 
 .logoText,
@@ -148,11 +155,11 @@
   background-color: rgba(147, 51, 234, 0.2); /* Phoenix purple glow on hover */
 }
 
-/* Light mode header styles - UPDATED FOR LIGHTER APPEARANCE */
+/* Light mode header styles - UPDATED FOR BETTER TEXT VISIBILITY */
 .header.lightMode {
-  background-color: rgba(252, 253, 255, 0.8); /* Much lighter, almost white background */
-  border-bottom: 1px solid rgba(99, 123, 255, 0.08);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); /* Lighter shadow */
+  background-color: rgba(252, 253, 255, 0.95); /* Higher opacity for better text contrast */
+  border-bottom: 1px solid rgba(99, 123, 255, 0.12);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); /* Slightly stronger shadow */
 }
 
 .headerScrolled.lightMode {
@@ -182,16 +189,17 @@
 }
 
 .lightMode .navLink {
-  color: rgba(13, 14, 30, 0.7); /* Lighter text */
+  color: rgba(13, 14, 30, 0.85); /* Improved contrast for better visibility */
 }
 
 .lightMode .navLink:hover {
-  color: rgba(13, 14, 30, 0.9);
+  color: rgba(13, 14, 30, 1);
   text-shadow: none;
 }
 
 .lightMode .activeNavLink {
   color: #13141f;
+  font-weight: 600;
 }
 
 .lightMode .activeNavLink::after {

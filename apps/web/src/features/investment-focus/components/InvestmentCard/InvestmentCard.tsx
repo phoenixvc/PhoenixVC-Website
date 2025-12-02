@@ -7,14 +7,19 @@ interface InvestmentCardProps {
   area: FocusArea;
   index: number;
   isDarkMode: boolean;
+  onClick?: () => void;
 }
 
-const InvestmentCard: React.FC<InvestmentCardProps> = ({ area, index, isDarkMode }) => {
+const InvestmentCard: React.FC<InvestmentCardProps> = ({ area, index, isDarkMode, onClick }) => {
   return (
     <motion.div
       className={`${styles.card} ${isDarkMode ? styles.darkMode : styles.lightMode}`}
       variants={investmentFocusAnimations.card}
       custom={index}
+      onClick={onClick}
+      whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
+      whileTap={{ scale: 0.98 }}
+      style={{ cursor: onClick ? "pointer" : "default" }}
     >
       {/* Card Icon */}
       <motion.div

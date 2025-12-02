@@ -212,3 +212,168 @@
   box-shadow: 0 0 0 2px rgba(157, 78, 221, 0.3);
   border-radius: 8px;
 }
+
+/* Modal Overlay */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+}
+
+/* Modal Container */
+.modal {
+  position: relative;
+  max-width: 550px;
+  width: 100%;
+  border-radius: 1.25rem;
+  padding: 2.5rem;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal.darkMode {
+  background: linear-gradient(145deg, rgba(20, 18, 40, 0.98), rgba(30, 28, 60, 0.98));
+  border: 1px solid rgba(227, 27, 255, 0.2);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 30px rgba(227, 27, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.modal.lightMode {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(250, 245, 255, 0.98));
+  border: 1px solid rgba(163, 27, 255, 0.15);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 30px rgba(163, 27, 255, 0.1);
+  color: rgba(20, 18, 40, 0.9);
+}
+
+/* Close Button */
+.closeButton {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.lightMode .closeButton {
+  color: rgba(20, 18, 40, 0.7);
+}
+
+.closeButton:hover {
+  background-color: rgba(227, 27, 255, 0.1);
+  color: #e31bff;
+}
+
+/* Modal Icon */
+.modalIcon {
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+/* Modal Title */
+.modalTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  text-align: center;
+  background: linear-gradient(90deg, #e31bff 0%, #ff6b00 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* Modal Description */
+.modalDescription {
+  font-size: 1rem;
+  line-height: 1.7;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+/* Highlights Section */
+.highlightsSection {
+  margin-bottom: 1.5rem;
+}
+
+.highlightsTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  text-align: center;
+  color: #e31bff;
+}
+
+.lightMode .highlightsTitle {
+  color: #a31bff;
+}
+
+.highlightsTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.highlightTag {
+  padding: 0.35rem 0.85rem;
+  background: rgba(227, 27, 255, 0.1);
+  border: 1px solid rgba(227, 27, 255, 0.2);
+  border-radius: 2rem;
+  font-size: 0.85rem;
+  color: #e31bff;
+}
+
+.lightMode .highlightTag {
+  background: rgba(163, 27, 255, 0.08);
+  border-color: rgba(163, 27, 255, 0.15);
+  color: #a31bff;
+}
+
+/* Modal CTA */
+.modalCta {
+  display: block;
+  width: 100%;
+  padding: 1rem;
+  background: linear-gradient(135deg, #e31bff 0%, #a31bff 100%);
+  color: white;
+  text-align: center;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(227, 27, 255, 0.3);
+}
+
+.modalCta:hover {
+  box-shadow: 0 6px 20px rgba(227, 27, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .modal {
+    padding: 1.5rem;
+  }
+
+  .modalTitle {
+    font-size: 1.5rem;
+  }
+
+  .modalIcon {
+    font-size: 2.5rem;
+  }
+}

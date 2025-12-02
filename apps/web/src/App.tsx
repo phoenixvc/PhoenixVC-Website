@@ -7,6 +7,8 @@ import { useTheme } from "@/theme"; // Import useTheme hook
 import { About } from "./features/about";
 import { Blog } from "./features/blog";
 import { Portfolio } from "./features/portfolio";
+import { AboutPage } from "./features/about-page";
+import { GenAIProjects } from "./features/genai-projects";
 
 const App = () => {
   console.log("App rendered");
@@ -39,6 +41,18 @@ const App = () => {
         <Route path="/portfolio" element={
           <Layout>
             <Portfolio />
+          </Layout>
+        } />
+
+        <Route path="/about" element={
+          <Layout>
+            <AboutPage />
+          </Layout>
+        } />
+
+        <Route path="/projects/genai" element={
+          <Layout>
+            <GenAIProjects />
           </Layout>
         } />
       </Routes>

@@ -85,15 +85,20 @@ const Header: FC<HeaderProps> = ({
 
   // Function to determine if a nav item is active
   const isNavItemActive = (href: string) => {
+    // Home page - only active when exactly on "/"
     if (href === "/") {
-      return activePath === "/";
+      return activePath === "/" || activePath === "";
     }
-    // For hash links on homepage
+    // For hash links on homepage (like /#focus-areas, /#contact)
     if (href.startsWith("/#")) {
       return activePath === href;
     }
-    // For other pages
-    return activePath.startsWith(href) && !activePath.includes("#");
+    // For other pages - must be exact match or a subpath
+    // This prevents "/about" from highlighting when on "/"
+    if (href.startsWith("/") && !href.includes("#")) {
+      return activePath === href || activePath.startsWith(href + "/");
+    }
+    return false;
   };
 
   const handleThemeSelect = (themeId: string) => {
@@ -122,6 +127,11 @@ const Header: FC<HeaderProps> = ({
 
           {(window.innerWidth < 768 || isSidebarCollapsed) && (
             <a href="/" className={styles.logoContainer}>
+              <img
+                src={isDarkMode ? "/LOGO_V3_Primary_darkbg_icononly.png" : "/LOGO_V3_Primary_lightbg_icononly.png"}
+                alt="Phoenix VC"
+                className={styles.logoImage}
+              />
               <span className={styles.logoText}>Phoenix VC</span>
             </a>
           )}

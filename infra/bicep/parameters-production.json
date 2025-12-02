@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
-  "contentVersion": "1.1.0.0",
+  "contentVersion": "1.2.0.0",
   "parameters": {
     "environment": { "value": "prod" },
     "locCode": { "value": "euw" },
@@ -8,6 +8,8 @@
     "enableRbacAuthorization": { "value": true },
     "deployBudget": { "value": false },
     "deployKeyVault": { "value": false },
-    "deployLogicApp": { "value": false }
+    "deployLogicApp": { "value": false },
+    "deployAcsEmail": { "value": true },
+    "contactEmailRecipient": { "value": "eben@phoenixvc.tech" }
   }
 }
