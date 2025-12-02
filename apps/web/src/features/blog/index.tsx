@@ -2,6 +2,7 @@
 import { useTheme } from "@/theme";
 import { useEffect, useState, FormEvent } from "react";
 import { Linkedin } from "lucide-react";
+import { SEO } from "@/components/SEO";
 import styles from "./Blog.module.css";
 
 interface SubstackPost {
@@ -70,10 +71,16 @@ export const Blog = () => {
   }, []);
 
   return (
-    <section className={`${styles.blogSection} ${isDarkMode ? styles.dark : styles.light}`}>
-      <div className={styles.container}>
-        <div className={styles.cosmicBackground}>
-          <h1 className={styles.sectionHeading}>Our Blog</h1>
+    <>
+      <SEO
+        title="Blog"
+        description="Insights on venture capital, blockchain technology, fintech, and emerging trends from the Phoenix VC team and partners."
+        keywords="venture capital blog, fintech insights, blockchain analysis, startup investing"
+      />
+      <section className={`${styles.blogSection} ${isDarkMode ? styles.dark : styles.light}`}>
+        <div className={styles.container}>
+          <div className={styles.cosmicBackground}>
+            <h1 className={styles.sectionHeading}>Our Blog</h1>
           <div className={styles.divider}></div>
 
           <p className={styles.introText}>
@@ -156,8 +163,9 @@ export const Blog = () => {
             )}
           </div>
         </div>
-      </div>
-    </section>
+        </div>
+      </section>
+    </>
   );
 };
 

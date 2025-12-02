@@ -3,6 +3,7 @@ import { FC, memo } from "react";
 import { motion } from "framer-motion";
 import { useTheme } from "@/theme";
 import { ArrowRight, Award, Globe, Shield, Zap, Target, Users, Leaf, Linkedin } from "lucide-react";
+import { SEO } from "@/components/SEO";
 import styles from "./AboutPage.module.css";
 
 interface TeamMember {
@@ -96,9 +97,15 @@ const AboutPage: FC = memo(() => {
   const isDarkMode = themeMode === "dark";
 
   return (
-    <section className={`${styles.section} ${isDarkMode ? styles.darkMode : styles.lightMode}`}>
-      <div className={styles.container}>
-        <motion.div
+    <>
+      <SEO
+        title="About Us"
+        description="Learn about Phoenix VC, our mission, values, and the team behind our venture capital investments in transformative technology."
+        keywords="about phoenix vc, venture capital team, investment philosophy, technology investors"
+      />
+      <section className={`${styles.section} ${isDarkMode ? styles.darkMode : styles.lightMode}`}>
+        <div className={styles.container}>
+          <motion.div
           className={styles.content}
           initial="hidden"
           animate="visible"
@@ -258,9 +265,10 @@ const AboutPage: FC = memo(() => {
               Get in Touch <ArrowRight size={18} className={styles.ctaIcon} />
             </motion.a>
           </motion.div>
-        </motion.div>
-      </div>
-    </section>
+          </motion.div>
+        </div>
+      </section>
+    </>
   );
 });
 

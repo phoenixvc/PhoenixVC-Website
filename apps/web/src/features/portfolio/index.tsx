@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useTheme } from "@/theme";
 import { motion } from "framer-motion";
 import { ExternalLink, Github, Cpu, Network, BookOpen, Shield, FileText, Key, Car, Users, Vault, Eye, EyeOff } from "lucide-react";
+import { SEO } from "@/components/SEO";
 import styles from "./Portfolio.module.css";
 
 interface Project {
@@ -144,9 +145,15 @@ export const Portfolio = () => {
   const comingSoonCount = projects.filter(isComingSoon).length;
 
   return (
-    <section className={`${styles.portfolioSection} ${isDarkMode ? styles.dark : styles.light}`}>
-      <div className={styles.container}>
-        <motion.div
+    <>
+      <SEO
+        title="Portfolio"
+        description="Explore Phoenix VC's portfolio of innovative technology companies across AI, fintech, blockchain, and emerging technologies."
+        keywords="venture capital portfolio, tech investments, startup portfolio, AI companies, fintech investments"
+      />
+      <section className={`${styles.portfolioSection} ${isDarkMode ? styles.dark : styles.light}`}>
+        <div className={styles.container}>
+          <motion.div
           className={styles.content}
           initial="hidden"
           animate="visible"
@@ -274,9 +281,10 @@ export const Portfolio = () => {
               Get in Touch
             </motion.a>
           </motion.div>
-        </motion.div>
-      </div>
-    </section>
+          </motion.div>
+        </div>
+      </section>
+    </>
   );
 };
 
