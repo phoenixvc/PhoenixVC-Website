@@ -12,7 +12,7 @@ interface Project {
   website?: string;
   github?: string;
   docs?: string;
-  status: "live" | "development" | "beta";
+  status: "live" | "development" | "beta" | "alpha" | "pre-alpha";
   tags: string[];
 }
 
@@ -23,7 +23,7 @@ const projects: Project[] = [
     longDescription: "Mystira brings the wonder of storytelling to life for children, parents, and group leaders alike. It transforms shared playtime into immersive, interactive adventures filled with imagination, cooperation, and creativity. Each Mystira story is grounded in child development research, fostering emotional growth, problem-solving skills, and meaningful connections.",
     icon: <BookOpen size={32} />,
     website: "https://mystira.app",
-    status: "live",
+    status: "alpha",
     tags: ["Storytelling", "Children", "Interactive", "Education"],
   },
   {
@@ -34,7 +34,7 @@ const projects: Project[] = [
     website: "https://phoenixrooivalk.com/",
     docs: "https://docs.phoenixrooivalk.com/",
     github: "https://github.com/JustAGhosT/PhoenixRooivalk",
-    status: "development",
+    status: "pre-alpha",
     tags: ["Counter-Drone", "AI", "Defense", "Security"],
   },
   {
@@ -43,14 +43,16 @@ const projects: Project[] = [
     longDescription: "Cognitive Mesh is an enterprise-grade AI transformation framework designed to orchestrate multi-agent cognitive systems with institutional-grade security and compliance controls. It features a five-layer hexagonal architecture enabling organizations to build, deploy, and manage advanced AI capabilities with comprehensive governance, NIST AI Risk Management Framework compliance, and Zero-Trust security architecture.",
     icon: <Network size={32} />,
     github: "https://github.com/justaghost/cognitive-mesh",
-    status: "development",
+    status: "pre-alpha",
     tags: ["Multi-Agent", "Enterprise", "Security", "Governance", "Azure", ".NET"],
   },
 ];
 
-const statusColors = {
+const statusColors: Record<Project["status"], { bg: string; text: string; label: string }> = {
   live: { bg: "rgba(76, 175, 80, 0.2)", text: "#4caf50", label: "Live" },
   beta: { bg: "rgba(255, 152, 0, 0.2)", text: "#ff9800", label: "Beta" },
+  alpha: { bg: "rgba(156, 39, 176, 0.2)", text: "#9c27b0", label: "Alpha" },
+  "pre-alpha": { bg: "rgba(121, 85, 72, 0.2)", text: "#795548", label: "Pre-Alpha / Seeding" },
   development: { bg: "rgba(33, 150, 243, 0.2)", text: "#2196f3", label: "In Development" },
 };
 

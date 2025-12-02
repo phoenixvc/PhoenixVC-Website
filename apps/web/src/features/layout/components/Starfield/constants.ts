@@ -8,18 +8,20 @@ import { BlackHoleData, EmployeeData } from "./types";
   ];
 
 // Default projects data displayed as orbital elements (using EmployeeData interface for compatibility)
+// Main projects - larger, more prominent stars with weight based on status
 export const DEFAULT_EMPLOYEES: EmployeeData[] = [
+  // Main flagship project - Alpha status, heaviest
   {
     id: "mystira",
     name: "Mystira",
     initials: "MY",
     position: "Interactive Storytelling",
-    mass: 300,
-    color: "#10b981", // Green - for live status
+    mass: 500, // Heaviest - flagship Alpha project
+    color: "#9c27b0", // Purple - for alpha status
     image: "/themes/mystira-icon.png",
     fullName: "Mystira",
-    speed: 0.0003,
-    title: "Interactive Storytelling Platform",
+    speed: 0.00025,
+    title: "Interactive Storytelling Platform (Alpha)",
     bio: "Mystira brings the wonder of storytelling to life for children, parents, and group leaders alike. Each story is grounded in child development research, fostering emotional growth and meaningful connections.",
     department: "Education",
     experience: 0,
@@ -29,17 +31,18 @@ export const DEFAULT_EMPLOYEES: EmployeeData[] = [
     relatedEmployees: ["phoenixrooivalk", "cognitivemesh"],
     product: "https://mystira.app"
   },
+  // Pre-alpha/Seeding projects - smaller
   {
     id: "phoenixrooivalk",
     name: "Phoenix Rooivalk",
     initials: "PR",
     position: "Counter-Drone Platform",
-    mass: 300,
-    color: "#f87171", // Red - for defense/security
+    mass: 200, // Smaller - pre-alpha/seeding
+    color: "#795548", // Brown - for pre-alpha/seeding
     image: "/themes/rooivalk-icon.png",
     fullName: "Phoenix Rooivalk",
     speed: 0.0002,
-    title: "AI-Powered Counter-Drone Platform",
+    title: "AI-Powered Counter-Drone Platform (Pre-Alpha)",
     bio: "Phoenix Rooivalk is a sophisticated counter-drone platform leveraging advanced AI for real-time drone detection, classification, and neutralization. Named after the South African Rooivalk attack helicopter.",
     department: "Defense",
     experience: 0,
@@ -54,12 +57,12 @@ export const DEFAULT_EMPLOYEES: EmployeeData[] = [
     name: "Cognitive Mesh",
     initials: "CM",
     position: "AI Framework",
-    mass: 300,
-    color: "#60a5fa", // Blue - for enterprise
+    mass: 200, // Smaller - pre-alpha/seeding
+    color: "#795548", // Brown - for pre-alpha/seeding
     image: "/themes/cognitivemesh-icon.png",
     fullName: "Cognitive Mesh",
-    speed: 0.00025,
-    title: "Enterprise AI Transformation Framework",
+    speed: 0.00022,
+    title: "Enterprise AI Transformation Framework (Pre-Alpha)",
     bio: "Cognitive Mesh is an enterprise-grade AI transformation framework designed to orchestrate multi-agent cognitive systems with institutional-grade security and NIST compliance controls.",
     department: "Enterprise",
     experience: 0,
@@ -68,6 +71,45 @@ export const DEFAULT_EMPLOYEES: EmployeeData[] = [
     skills: ["Multi-Agent", "Enterprise", "Security", "Governance"],
     relatedEmployees: ["mystira", "phoenixrooivalk"],
     product: "https://github.com/justaghost/cognitive-mesh"
+  },
+  // Smaller secondary/supporting projects
+  {
+    id: "phoenixvc-website",
+    name: "PhoenixVC Website",
+    initials: "PW",
+    position: "Corporate Website",
+    mass: 100, // Small - supporting infrastructure
+    color: "#6b7280", // Gray - supporting project
+    fullName: "PhoenixVC Website",
+    speed: 0.00015,
+    title: "Corporate Website",
+    bio: "The official Phoenix VC corporate website built with modern web technologies.",
+    department: "Infrastructure",
+    experience: 0,
+    expertise: "React, TypeScript, Azure",
+    projects: ["Web Development"],
+    skills: ["React", "TypeScript", "Azure"],
+    relatedEmployees: ["mystira"],
+    product: "https://phoenixvc.tech"
+  },
+  {
+    id: "design-system",
+    name: "Design System",
+    initials: "DS",
+    position: "Component Library",
+    mass: 80, // Smallest - internal tooling
+    color: "#6b7280", // Gray - supporting project
+    fullName: "Phoenix Design System",
+    speed: 0.00018,
+    title: "Component Library",
+    bio: "Shared design system and component library for Phoenix projects.",
+    department: "Infrastructure",
+    experience: 0,
+    expertise: "React Components, Design Tokens",
+    projects: ["UI Components"],
+    skills: ["Design", "Components", "Tokens"],
+    relatedEmployees: ["phoenixvc-website"],
+    product: ""
   }
 ];
 
