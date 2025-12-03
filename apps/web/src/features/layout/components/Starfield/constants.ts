@@ -190,6 +190,9 @@ export const DEFAULT_EMPLOYEES: EmployeeData[] = [
   }
 ];
 
+// Alias for clearer terminology - portfolio items displayed as comets
+export const DEFAULT_PORTFOLIO_COMETS = DEFAULT_EMPLOYEES;
+
 // Alternative black hole configurations for multiple black holes
 export const MULTIPLE_BLACK_HOLES: BlackHoleData[] = [
   {
