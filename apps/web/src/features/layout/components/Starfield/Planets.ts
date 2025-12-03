@@ -276,6 +276,14 @@ export const checkPlanetHover = (
   return false;
 };
 
+// Helper function to normalize hex color (ensure it has # prefix and is 6 chars)
+const normalizeHexColor = (color: string): string => {
+  if (!color) return "#f39c12";
+  // Remove # if present for consistent handling
+  const hex = color.startsWith("#") ? color.slice(1) : color;
+  return `#${hex}`;
+};
+
 // Helper function to draw a sun at the orbital center
 const drawSunAtCenter = (
   ctx: CanvasRenderingContext2D,
@@ -284,11 +292,19 @@ const drawSunAtCenter = (
   sunColor: string,
   sunSize: number
 ): void => {
+  // Normalize the color to ensure consistent format
+  const normalizedColor = normalizeHexColor(sunColor);
+  // Get hex without # for alpha concatenation
+  const hexWithoutHash = normalizedColor.slice(1);
+  
+  // Save the current context state
+  ctx.save();
+  
   // Draw outer glow
   const glowGradient = ctx.createRadialGradient(x, y, 0, x, y, sunSize * 3);
-  glowGradient.addColorStop(0, `${sunColor}A0`);
-  glowGradient.addColorStop(0.5, `${sunColor}40`);
-  glowGradient.addColorStop(1, `${sunColor}00`);
+  glowGradient.addColorStop(0, `#${hexWithoutHash}A0`);
+  glowGradient.addColorStop(0.5, `#${hexWithoutHash}40`);
+  glowGradient.addColorStop(1, `#${hexWithoutHash}00`);
   
   ctx.beginPath();
   ctx.arc(x, y, sunSize * 3, 0, Math.PI * 2);
@@ -299,14 +315,17 @@ const drawSunAtCenter = (
   // Draw inner core
   const coreGradient = ctx.createRadialGradient(x, y, 0, x, y, sunSize);
   coreGradient.addColorStop(0, "#ffffff");
-  coreGradient.addColorStop(0.3, sunColor);
-  coreGradient.addColorStop(1, `${sunColor}80`);
+  coreGradient.addColorStop(0.3, normalizedColor);
+  coreGradient.addColorStop(1, `#${hexWithoutHash}80`);
   
   ctx.beginPath();
   ctx.arc(x, y, sunSize, 0, Math.PI * 2);
   ctx.fillStyle = coreGradient;
   ctx.globalAlpha = 1;
   ctx.fill();
+  
+  // Restore the previous context state
+  ctx.restore();
 };
 
 // Update portfolio items (comets/planets) animation
