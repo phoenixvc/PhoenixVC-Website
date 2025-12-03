@@ -249,7 +249,8 @@ export const updateStar = (
 
       if (dist > 10 && dist < 200) {
         // Use nullish coalescing to provide a default mass value if undefined
-        const employeeMass = empStar.employee.mass ?? 100; // Default mass of 100 if undefined
+        // Note: Planet type uses 'project' property, not 'employee'
+        const employeeMass = empStar.project?.mass ?? 100; // Default mass of 100 if undefined
         const force = (employeeMass / distSq) * gravitationalPull * 0.005;
         ax += dx / dist * force;
         ay += dy / dist * force;
