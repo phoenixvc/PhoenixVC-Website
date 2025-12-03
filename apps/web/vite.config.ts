@@ -26,4 +26,18 @@ export default defineConfig({
       allow: [".."], // Allows access to parent directories (needed for workspaces)
     },
   },
+  build: {
+    // Increase chunk size warning limit since we have a large app
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        // Use manual chunks to split vendor code
+        manualChunks: {
+          "vendor-react": ["react", "react-dom", "react/jsx-runtime"],
+          "vendor-router": ["react-router", "react-router-dom"],
+          "vendor-motion": ["framer-motion"],
+        },
+      },
+    },
+  },
 });

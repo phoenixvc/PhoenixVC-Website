@@ -70,10 +70,10 @@ export const Footer: React.FC<FooterProps> = ({ isDarkMode = true }) => {
             <h4 className={styles.sectionTitle}>Resources</h4>
             <ul className={styles.linkList}>
               <motion.li variants={itemVariants}>
-                <a href="/documentation" className={styles.link}>Documentation</a>
+                <a href="/blog" className={styles.link}>Blog</a>
               </motion.li>
               <motion.li variants={itemVariants}>
-                <a href="/theme-designer" className={styles.link}>Theme Designer</a>
+                <a href="/about" className={styles.link}>About Us</a>
               </motion.li>
               <motion.li variants={itemVariants}>
                 <a

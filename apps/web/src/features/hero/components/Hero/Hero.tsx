@@ -5,6 +5,7 @@ import { FC, memo, useEffect, useRef, useState } from "react";
 import { heroAnimations } from "../../animations";
 import { DEFAULT_HERO_CONTENT } from "../../constants";
 import styles from "./hero.module.css";
+import { logger } from "@/utils/logger";
 
 interface ExtendedHeroProps extends HeroProps {
   isDarkMode: boolean;
@@ -26,7 +27,7 @@ const Hero: FC<ExtendedHeroProps> = memo(
     enableMouseTracking = false,
   }) => {
     const sectionRef = useSectionObserver("home", (id) => {
-      console.log(`[Home] Section "${id}" is now visible`);
+      logger.debug(`[Home] Section "${id}" is now visible`);
     });
     const containerRef = useRef<HTMLDivElement>(null);
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -34,6 +35,7 @@ const Hero: FC<ExtendedHeroProps> = memo(
 
     const [showHeroContent, setShowHeroContent] = useState(true); // Show by default
     const [showScrollIndicator, setShowScrollIndicator] = useState(true);
+    const [showReturnToStars, setShowReturnToStars] = useState(false); // Hide at top of page
     const [scrollPosition, setScrollPosition] = useState(0);
 
     // Mouse tracking effect
@@ -73,11 +75,13 @@ const Hero: FC<ExtendedHeroProps> = memo(
         const currentScrollPosition = window.scrollY;
         setScrollPosition(currentScrollPosition);
 
-        // Hide scroll indicator after scrolling, keep content visible
+        // Hide scroll indicator after scrolling, show return button instead
         if (currentScrollPosition > 50) {
           setShowScrollIndicator(false);
+          setShowReturnToStars(true);
         } else {
           setShowScrollIndicator(true);
+          setShowReturnToStars(false);
         }
       };
 
@@ -175,35 +179,40 @@ const Hero: FC<ExtendedHeroProps> = memo(
                         damping: 15,
                       }}
                     >
-                      {/* Return to Stars button */}
-                      <motion.button
-                        className={styles.returnToStarsButton}
-                        onClick={handleReturnToStars}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.8 }}
-                        aria-label="Return to stars view"
-                      >
-                        <svg
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                          className={
-                            isDarkMode ? "text-white" : "text-gray-800"
-                          }
-                        >
-                          <path
-                            d="M18 15l-6-6-6 6"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                        <span>Return to Stars</span>
-                      </motion.button>
+                      {/* Return to Stars button - only shows after scrolling */}
+                      <AnimatePresence>
+                        {showReturnToStars && (
+                          <motion.button
+                            className={styles.returnToStarsButton}
+                            onClick={handleReturnToStars}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            aria-label="Return to stars view"
+                          >
+                            <svg
+                              width="20"
+                              height="20"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                              className={
+                                isDarkMode ? "text-white" : "text-gray-800"
+                              }
+                            >
+                              <path
+                                d="M18 15l-6-6-6 6"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                            <span>Return to Stars</span>
+                          </motion.button>
+                        )}
+                      </AnimatePresence>
 
                       <motion.h1
                         className={`${styles.heroTitle} bg-gradient-to-r ${gradientColors} bg-clip-text text-transparent`}

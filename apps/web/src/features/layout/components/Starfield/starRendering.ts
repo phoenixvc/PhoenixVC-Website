@@ -1,4 +1,5 @@
 // components/Layout/Starfield/starRendering.ts
+// Rendering functions for portfolio comets/planets in the starfield
 
 import {
     drawConnections,
@@ -12,7 +13,7 @@ import {
 import { calculatePulsation, createSoftenedColor, hexToRgb, updateStarPosition } from "./starUtils";
 import { Planet } from "./types";
 
-// Draw an employee star with its satellites
+// Draw a portfolio comet/planet with its satellites
 export const drawPlanet = (
   ctx: CanvasRenderingContext2D,
   empStar: Planet,

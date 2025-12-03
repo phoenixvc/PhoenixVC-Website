@@ -33,6 +33,7 @@ import { ThemeCacheService } from "../services/theme-cache-service";
 import { createThemeRegistry } from "../registry/theme-registry";
 import { createComponentRegistry } from "../registry/component-theme-registry";
 import { ThemeStateManager } from "../core";
+import { logger } from "@/utils/logger";
 
 const defaultState: ThemeState = {
   name: "Default Theme",
@@ -82,9 +83,9 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
 
       // Mark as ready
       setThemeManagerReady(true);
-      console.log("[ThemeProvider] Successfully connected state manager to theme core");
+      logger.debug("[ThemeProvider] Successfully connected state manager to theme core");
     } catch (error) {
-      console.error("[ThemeProvider] Failed to initialize state manager:", error);
+      logger.error("[ThemeProvider] Failed to initialize state manager:", error);
       setError(error instanceof Error ? error : new Error("Failed to initialize state manager"));
     }
   }, []);
@@ -103,7 +104,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
         });
       } else {
         // Fall back to the old initialize method if needed
-        console.warn("[ThemeProvider] Using legacy initialization method. Please update ThemeCore.");
+        logger.warn("[ThemeProvider] Using legacy initialization method. Please update ThemeCore.");
 
         // Register themes from the registry with the component registry manager
         if (themes && themes.themes) {
@@ -118,9 +119,9 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
       // Register default components if needed
       registerDefaultComponents();
 
-      console.log("[ThemeProvider] Successfully initialized theme system with registries");
+      logger.debug("[ThemeProvider] Successfully initialized theme system with registries");
     } catch (error) {
-      console.error("[ThemeProvider] Failed to initialize theme system:", error);
+      logger.error("[ThemeProvider] Failed to initialize theme system:", error);
       setError(error instanceof Error ? error : new Error("Failed to initialize theme system"));
     }
   }, [themes, components, themeManagerReady]);
@@ -136,7 +137,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
         const stateManager = ThemeStateManager.getInstance();
         const storedState = stateManager.getState();
 
-        console.log("[ThemeProvider] Loading stored theme settings:", storedState);
+        logger.debug("[ThemeProvider] Loading stored theme settings:", storedState);
 
         // Update React state with stored values if they differ
         setState(prev => {
@@ -156,14 +157,14 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
 
           // Only update if there are actual changes
           if (Object.keys(updates).length > 0) {
-            console.log("[ThemeProvider] Applying stored settings:", updates);
+            logger.debug("[ThemeProvider] Applying stored settings:", updates);
             return { ...prev, ...updates, initialized: false }; // Reset initialized to trigger re-init with new settings
           }
 
           return prev;
         });
       } catch (error) {
-        console.error("[ThemeProvider] Failed to load stored theme settings:", error);
+        logger.error("[ThemeProvider] Failed to load stored theme settings:", error);
       }
     }, 50); // Small delay for async initialization to complete
 
@@ -199,8 +200,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
 
     const initializeTheme = async () => {
       try {
-        console.log("[ThemeProvider] Starting theme initialization...");
-        console.log("[ThemeProvider] Current state:", state);
+        logger.debug("[ThemeProvider] Starting theme initialization...");
 
         setLoadingTheme(true);
 
@@ -208,11 +208,11 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
         let themeData = null;
         if (themes && themes.themes && themes.themes[state.themeName]) {
           themeData = themes.themes[state.themeName];
-          console.log("[ThemeProvider] Using theme from registry:", themeData);
+          logger.debug("[ThemeProvider] Using theme from registry");
         } else {
           // Fall back to acquisition manager if not in registry
           const theme = await ThemeAcquisitionManager.getInstance().acquireTheme(state.themeName);
-          console.log("[ThemeProvider] Loaded theme from acquisition manager:", theme.data);
+          logger.debug("[ThemeProvider] Loaded theme from acquisition manager");
 
           if (theme.status === "success" && theme.data) {
             themeData = theme.data;
@@ -221,10 +221,10 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
 
         if (themeData) {
           const semantics = generateSchemeSemantics(themeData, state.mode);
-          console.log("[ThemeProvider] Generated semantics:", semantics);
+          logger.debug("[ThemeProvider] Generated semantics");
 
           const variables = generateThemeVariables(themeData, state.mode);
-          console.log("[ThemeProvider] Generated variables:", variables);
+          logger.debug("[ThemeProvider] Generated variables");
 
           applyCssVariables(variables.computed);
 
@@ -233,7 +233,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
           throw new Error(`Theme "${state.themeName}" not found in registry or acquisition failed`);
         }
       } catch (err) {
-        console.error("[ThemeProvider] Theme initialization failed:", err);
+        logger.error("[ThemeProvider] Theme initialization failed:", err);
         setError(err instanceof Error ? err : new Error("Theme initialization failed"));
       } finally {
         setLoadingTheme(false);
@@ -272,7 +272,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
     }
 
     if (!themeManagerReady) {
-      console.warn("[ThemeProvider] Cannot set theme classes because theme manager is not ready yet");
+      logger.warn("[ThemeProvider] Cannot set theme classes because theme manager is not ready yet");
       // Update state directly as a fallback
       setState(prev => ({
         ...prev,
@@ -321,7 +321,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
         }
       })
       .catch(err => {
-        console.error(`Failed to load theme "${themeName}":`, err);
+        logger.error(`Failed to load theme "${themeName}":`, err);
         setError(err instanceof Error ? err : new Error(`Failed to load theme "${themeName}"`));
       })
       .finally(() => {
@@ -340,7 +340,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
 
     // If theme manager is not ready, update state directly as fallback
     if (!themeManagerReady) {
-      console.warn("[ThemeProvider] Theme manager not ready, updating mode directly in state");
+      logger.warn("[ThemeProvider] Theme manager not ready, updating mode directly in state");
       setState(prev => ({
         ...prev,
         mode,
@@ -383,7 +383,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
         }
       })
       .catch(err => {
-        console.error(`Failed to set mode "${mode}":`, err);
+        logger.error(`Failed to set mode "${mode}":`, err);
         // Fall back to direct state update on error
         setState(prev => ({
           ...prev,
@@ -431,7 +431,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
         }
       })
       .catch(err => {
-        console.error(`Failed to set use system mode "${useSystem}":`, err);
+        logger.error(`Failed to set use system mode "${useSystem}":`, err);
       });
   }, [setUseSystemModeContext, systemMode, state.themeName, state.mode, onThemeChange, setMode]);
 
@@ -477,7 +477,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
         await ThemeAcquisitionManager.getInstance().acquireTheme(themeName);
       }
     } catch (err) {
-      console.error(`[ThemeProvider] Failed to preload theme "${themeName}":`, err);
+      logger.error(`[ThemeProvider] Failed to preload theme "${themeName}":`, err);
       throw err;
     }
   }, [themes]);
@@ -546,7 +546,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
         });
       }
     } catch (err) {
-      console.error("Failed to reset theme:", err);
+      logger.error("Failed to reset theme:", err);
     }
   }, [state.themeName, state.mode, onThemeChange, themes]);
 

@@ -8,6 +8,7 @@ import { DEFAULT_CONTACT_CONTENT } from "../../constants";
 import styles from "./Contact.module.css";
 import type { ContactFormData, ContactState } from "../../types";
 import { useSectionObserver } from "@/hooks/useSectionObserver";
+import { logger } from "@/utils/logger";
 
 // Add isDarkMode to the component props
 interface ContactProps {
@@ -22,7 +23,7 @@ const Contact: FC<ContactProps> = memo(({ isDarkMode }) => {
   });
 
   const sectionRef = useSectionObserver("contact", (id) => {
-    console.log(`[Contact] Section "${id}" is now visible`);
+    logger.debug(`[Contact] Section "${id}" is now visible`);
   });
 
   const handleSubmit = useCallback(async (data: ContactFormData) => {
@@ -49,10 +50,10 @@ const Contact: FC<ContactProps> = memo(({ isDarkMode }) => {
 
       // Success!
       setState(prev => ({ ...prev, success: true }));
-      console.log("Form submitted successfully:", data);
+      logger.info("Form submitted successfully:", data);
 
     } catch (error) {
-      console.error("Error submitting form:", error);
+      logger.error("Error submitting form:", error);
       setState((prev) => ({
         ...prev,
         error: error instanceof Error ? error.message : "Failed to submit form. Please try again.",

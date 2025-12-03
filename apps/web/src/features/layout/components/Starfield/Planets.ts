@@ -1,5 +1,5 @@
 // apps/web/src/features/layout/components/Starfield/Planets.ts
-// components/Layout/Starfield/planets.ts
+// Orbital rendering system for portfolio items (comets/planets)
 
 import { getObjectById, SUNS } from "./cosmos/cosmicHierarchy";
 import { worldToScreen } from "./cosmos/cosmicNavigation";
@@ -8,34 +8,34 @@ import { drawPlanet } from "./starRendering";
 import { EmployeeData, HoverInfo, Planet, Satellite } from "./types";
 import { calculateCenter } from "./utils";
 
-// Initialize employee stars
+// Initialize portfolio items as orbiting comets/planets
 export const initPlanets = (
   width: number,
   height: number,
   enablePlanets: boolean,
-  employees: EmployeeData[],
+  portfolioItems: EmployeeData[],
   sidebarWidth: number,
   centerOffsetX: number,
   centerOffsetY: number,
   planetSize: number,
   useSimpleRendering: boolean = false
 ): Planet[] => {
-  if (!enablePlanets || !employees || employees.length === 0) return [];
+  if (!enablePlanets || !portfolioItems || portfolioItems.length === 0) return [];
 
-  console.log("Initializing employee stars:", employees.length);
+  console.log("Initializing portfolio comets:", portfolioItems.length);
 
   const planets: Planet[] = [];
   const { centerX, centerY } = calculateCenter(
     width, height, sidebarWidth, centerOffsetX, centerOffsetY
   );
 
-  employees.forEach((employee, index) => {
-    const totalEmployees = employees.length;
-    const angleStep = (Math.PI * 2) / totalEmployees;
+  portfolioItems.forEach((item, index) => {
+    const totalItems = portfolioItems.length;
+    const angleStep = (Math.PI * 2) / totalItems;
     const baseAngle = index * angleStep;
 
     const orbitRadius = Math.min(width, height) * 0.25 + (index * 40);
-    const orbitSpeed = employee.speed || (0.0005 + (0.0002 * (index % 3)));
+    const orbitSpeed = item.speed || (0.0005 + (0.0002 * (index % 3)));
 
     const x = centerX + Math.cos(baseAngle) * orbitRadius;
     const y = centerY + Math.sin(baseAngle) * orbitRadius;
@@ -47,7 +47,7 @@ export const initPlanets = (
 
     if (!useSimpleRendering) {
       // Create satellites
-      const satelliteCount = 3 + Math.floor((employee.mass || 100) / 40);
+      const satelliteCount = 3 + Math.floor((item.mass || 100) / 40);
 
       for (let i = 0; i < satelliteCount; i++) {
         // Distribute satellites more evenly around the star
@@ -58,8 +58,8 @@ export const initPlanets = (
         const size = (0.8 + Math.random() * 1.2) * planetSize;
 
         // Ensure valid color format with proper hex values
-        const color = employee.color ?
-          `${employee.color}${Math.floor(Math.random() * 70 + 80).toString(16).padStart(2, "0")}` :
+        const color = item.color ?
+          `${item.color}${Math.floor(Math.random() * 70 + 80).toString(16).padStart(2, "0")}` :
           "rgba(255, 255, 255, 0.8)";
 
         satellites.push({
@@ -120,8 +120,9 @@ export const initPlanets = (
       direction: 1
     };
 
+    // Create the orbital body (comet/planet) - 'employee' field kept for backward compatibility
     const planet = {
-      employee,
+      employee: item, // The portfolio item data
       x,
       y,
       vx,
@@ -160,7 +161,7 @@ export const initPlanets = (
   });
 
   if (planets.length >= 2) {
-    // Make first employee a bright comet with wide, vertically stretched orbit
+    // Make first portfolio item a bright comet with wide, vertically stretched orbit
     planets[0].pathType = "comet";
     planets[0].trailLength = 280;
     planets[0].pathEccentricity = 0.7;
@@ -274,22 +275,22 @@ export const checkEmployeeHover = (
   return false;
 };
 
-// Update employee stars animation
+// Update portfolio items (comets/planets) animation
 export const updatePlanets = (
   ctx: CanvasRenderingContext2D,
   planets: Planet[],
   deltaTime: number,
   planetSize: number,
   employeeDisplayStyle: "initials" | "avatar" | "both",
-  camera: Camera // New parameter for camera
+  camera?: Camera // Optional camera for cosmic navigation
 ): void => {
   if (!ctx || !planets || !planets.length) return;
 
   const cappedDeltaTime = Math.min(deltaTime, 100);
 
   planets.forEach(empStar => {
-    /* ---------- NEW: recalc orbit centre every frame ---------- */
-    if (empStar.orbitParentId) {
+    /* ---------- Recalc orbit centre if camera is available ---------- */
+    if (camera && empStar.orbitParentId) {
       const parent = getObjectById(empStar.orbitParentId);
       if (parent) {
         empStar.orbitCenter = worldToScreen(
@@ -301,9 +302,10 @@ export const updatePlanets = (
         );
       }
     }
+    // If no camera, use the existing orbit center from initialization
     /* ------------------------------------------------------------ */
 
-    // Draw the star regardless of movement state
+    // Draw the comet/planet regardless of movement state
     drawPlanet(ctx, empStar, cappedDeltaTime, planetSize, employeeDisplayStyle);
   });
 };

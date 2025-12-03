@@ -1,5 +1,6 @@
 // src/theme/utils/theme-variables.ts
 import { SemanticColors, ThemeColors, ThemeName, ThemeMode, ThemeVariables } from "../types";
+import { logger } from "@/utils/logger";
 
 export const generateThemeVariables = (
   colors: ThemeColors,
@@ -7,10 +8,7 @@ export const generateThemeVariables = (
   schemeName?: ThemeName
 ): ThemeVariables => {
   try {
-    console.group("[ThemeProvider] Generating theme variables");
-    console.log("Input colors:", colors);
-    console.log("Mode:", mode);
-    console.log("Scheme name:", schemeName);
+    logger.debug("[ThemeProvider] Generating theme variables", { mode, schemeName });
 
     // Determine which scheme to use:
     let scheme: ThemeColors["schemes"][keyof ThemeColors["schemes"]];
@@ -26,30 +24,27 @@ export const generateThemeVariables = (
       }
       scheme = colors.schemes[keys[0]];
     }
-    console.log("Selected scheme:", scheme);
 
     // Get mode-specific colors (light or dark)
     const modeColors = scheme[mode as "light" | "dark"];
     if (!modeColors) {
       throw new Error(`Invalid mode: ${mode}`);
     }
-    console.log("Mode colors:", modeColors);
 
     // Check if base exists
     if (!scheme.base) {
-      console.error("Missing scheme.base in color scheme");
+      logger.error("Missing scheme.base in color scheme");
       throw new Error("Missing scheme.base in color scheme");
     }
-    console.log("Scheme base:", scheme.base);
 
     // Check primary and secondary
     if (!scheme.base.primary) {
-      console.error("Missing scheme.base.primary in color scheme");
+      logger.error("Missing scheme.base.primary in color scheme");
       throw new Error("Missing scheme.base.primary in color scheme");
     }
 
     if (!scheme.base.secondary) {
-      console.error("Missing scheme.base.secondary in color scheme");
+      logger.error("Missing scheme.base.secondary in color scheme");
       throw new Error("Missing scheme.base.secondary in color scheme");
     }
 
@@ -62,8 +57,6 @@ export const generateThemeVariables = (
       text: modeColors.text.hsl,
       border: modeColors.border.hsl,
     };
-
-    console.log("Computed colors:", computedColors);
 
     // Build the ThemeVariables object.
     const themeVariables: ThemeVariables = {
@@ -122,12 +115,10 @@ export const generateThemeVariables = (
       },
     };
 
-    console.log("Generated theme variables:", themeVariables);
-    console.groupEnd();
+    logger.debug("[ThemeProvider] Generated theme variables");
     return themeVariables;
   } catch (error) {
-    console.error("[ThemeProvider] Failed to generate theme variables:", error);
-    console.groupEnd();
+    logger.error("[ThemeProvider] Failed to generate theme variables:", error);
 
     // Create fallback theme variables to prevent cascading errors
     const fallbackThemeVariables: ThemeVariables = {
@@ -192,7 +183,7 @@ export const generateThemeVariables = (
       },
     };
 
-    console.log("[ThemeProvider] Using fallback theme variables:", fallbackThemeVariables);
+    logger.debug("[ThemeProvider] Using fallback theme variables");
     return fallbackThemeVariables;
   }
 };
@@ -213,57 +204,52 @@ export function generateSchemeSemantics(
   schemeName?: ThemeName
 ): SemanticColors {
   try {
-  console.groupCollapsed("generateSchemeSemantics");
+    logger.debug("generateSchemeSemantics", { schemeName });
 
-  if (!colors.semantic) {
-    console.warn("No semantic colors found in ThemeColors");
-    console.groupEnd();
-    throw new Error("Missing semantic colors in ThemeColors");
-  }
-
-  if (schemeName && !colors.schemes[schemeName]) {
-    throw new Error(`Invalid color scheme: ${schemeName}`);
-  }
-
-  // Prepare a new semantic colors object.
-  const semanticResult: Partial<SemanticColors> = {};
-
-  // Required semantic colors
-  const requiredKeys: (keyof SemanticColors)[] = ["success", "warning", "error", "info"];
-  // Optional semantic colors
-  const optionalKeys: (keyof SemanticColors)[] = ["neutral", "hint"];
-
-  // Process required keys
-  for (const key of requiredKeys) {
-    const colorDef = colors.semantic[key];
-    if (!colorDef) {
-      console.error(`Missing required semantic color for key: ${key}`);
-      console.groupEnd();
-      throw new Error(`Missing required semantic color: ${key}`);
+    if (!colors.semantic) {
+      logger.warn("No semantic colors found in ThemeColors");
+      throw new Error("Missing semantic colors in ThemeColors");
     }
-    if (!colorDef.hsl) {
-      console.warn(`Semantic color "${key}" has no HSL value`);
-    }
-    semanticResult[key] = colorDef;
-    console.log(`Processed semantic color "${key}":`, colorDef);
-  }
 
-  // Process optional keys
-  for (const key of optionalKeys) {
-    const colorDef = colors.semantic[key];
-    if (colorDef) {
+    if (schemeName && !colors.schemes[schemeName]) {
+      throw new Error(`Invalid color scheme: ${schemeName}`);
+    }
+
+    // Prepare a new semantic colors object.
+    const semanticResult: Partial<SemanticColors> = {};
+
+    // Required semantic colors
+    const requiredKeys: (keyof SemanticColors)[] = ["success", "warning", "error", "info"];
+    // Optional semantic colors
+    const optionalKeys: (keyof SemanticColors)[] = ["neutral", "hint"];
+
+    // Process required keys
+    for (const key of requiredKeys) {
+      const colorDef = colors.semantic[key];
+      if (!colorDef) {
+        logger.error(`Missing required semantic color for key: ${key}`);
+        throw new Error(`Missing required semantic color: ${key}`);
+      }
       if (!colorDef.hsl) {
-        console.warn(`Optional semantic color "${key}" has no HSL value`);
+        logger.warn(`Semantic color "${key}" has no HSL value`);
       }
       semanticResult[key] = colorDef;
-      console.log(`Processed optional semantic color "${key}":`, colorDef);
     }
-  }
 
-  console.groupEnd();
-  return semanticResult as SemanticColors;
-} catch (error) {
-  console.error("Error in generateSchemeSemantics:", error);
-  throw error;
+    // Process optional keys
+    for (const key of optionalKeys) {
+      const colorDef = colors.semantic[key];
+      if (colorDef) {
+        if (!colorDef.hsl) {
+          logger.warn(`Optional semantic color "${key}" has no HSL value`);
+        }
+        semanticResult[key] = colorDef;
+      }
+    }
+
+    return semanticResult as SemanticColors;
+  } catch (error) {
+    logger.error("Error in generateSchemeSemantics:", error);
+    throw error;
+  }
 }
-};

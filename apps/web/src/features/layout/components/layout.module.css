@@ -1,4 +1,43 @@
 /* components/Layout/layout.module.css */
+
+/* Skip to content link for accessibility */
+.skipToContent {
+  position: fixed;
+  top: -50px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-primary, #6366f1);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 0 0 8px 8px;
+  font-weight: 600;
+  text-decoration: none;
+  z-index: 100001;
+  transition: top 0.3s ease;
+}
+
+.skipToContent:focus {
+  top: 0;
+  outline: 2px solid white;
+  outline-offset: 2px;
+}
+
+/* Global focus indicators for accessibility */
+.layoutWrapper *:focus-visible {
+  outline: 2px solid var(--color-primary, #6366f1);
+  outline-offset: 2px;
+}
+
+.layoutWrapper button:focus-visible,
+.layoutWrapper a:focus-visible,
+.layoutWrapper input:focus-visible,
+.layoutWrapper textarea:focus-visible,
+.layoutWrapper select:focus-visible {
+  outline: 2px solid var(--color-primary, #6366f1);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+}
+
 .layoutWrapper {
   display: flex;
   flex-direction: column;

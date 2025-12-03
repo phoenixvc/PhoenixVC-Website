@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import styles from "./About.module.css";
 import { useSectionObserver } from "@/hooks/useSectionObserver";
 import { ArrowRight, Award, Globe, Shield, Zap } from "lucide-react";
+import { logger } from "@/utils/logger";
 
 interface AboutProps {
   isDarkMode: boolean;
@@ -71,7 +72,7 @@ const coreValues = [
 const About: FC<AboutProps> = memo(({ isDarkMode }) => {
   const [activeSection, setActiveSection] = useState(0);
   const sectionRef = useSectionObserver("about", (id) => {
-    console.log(`[About] Section "${id}" is now visible`);
+    logger.debug(`[About] Section "${id}" is now visible`);
   });
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -86,9 +87,12 @@ const About: FC<AboutProps> = memo(({ isDarkMode }) => {
 
   useEffect(() => {
     const video = videoRef.current;
+    // Store handler reference for proper cleanup
+    const handleLoadedData = () => setVideoLoaded(true);
+
     if (video) {
       // Add event listeners to track video loading
-      video.addEventListener("loadeddata", () => setVideoLoaded(true));
+      video.addEventListener("loadeddata", handleLoadedData);
 
       // Set the correct source based on theme
       const source = video.querySelector("source");
@@ -102,29 +106,29 @@ const About: FC<AboutProps> = memo(({ isDarkMode }) => {
 
     return () => {
       if (video) {
-        video.removeEventListener("loadeddata", () => setVideoLoaded(true));
+        video.removeEventListener("loadeddata", handleLoadedData);
       }
     };
   }, [isDarkMode]);
 
   useEffect(() => {
-    console.log("Video source updated for theme:", isDarkMode ? "dark" : "light");
+    logger.debug("Video source updated for theme:", isDarkMode ? "dark" : "light");
 
     // Check if video files exist with a properly structured async function
     (async () => {
       const checkVideoExists = async (url: string) => {
         try {
           const response = await fetch(url, { method: "HEAD" });
-          console.log(`Video at ${url} exists:`, response.ok);
+          logger.debug(`Video at ${url} exists:`, response.ok);
         } catch (error) {
-          console.error(`Error checking video at ${url}:`, error);
+          logger.error(`Error checking video at ${url}:`, error);
         }
       };
 
       await checkVideoExists("/PhoenixVC_to_Phoenix.mp4");
       await checkVideoExists("/Phoenix_to_PhoenixVC.mp4");
     })().catch(error => {
-      console.error("Error in video check process:", error);
+      logger.error("Error in video check process:", error);
     });
 
   }, [isDarkMode]);
@@ -180,7 +184,7 @@ const About: FC<AboutProps> = memo(({ isDarkMode }) => {
                     const playPromise = video.play();
                     if (playPromise !== undefined) {
                       playPromise.catch(error => {
-                        console.error("Error playing video:", error);
+                        logger.error("Error playing video:", error);
                       });
                     }
                   }
@@ -201,6 +205,9 @@ const About: FC<AboutProps> = memo(({ isDarkMode }) => {
                   src={isDarkMode ? "/LOGO_V3_Primary_darkbg.png" : "/LOGO_V3_Primary_lightbg.png"}
                   alt="Phoenix VC Logo"
                   className={styles.logoImage}
+                  width={400}
+                  height={400}
+                  loading="lazy"
                   style={{ opacity: videoLoaded ? 0.9 : 1, transition: "opacity 0.3s ease" }}
                 />
 
@@ -211,7 +218,7 @@ const About: FC<AboutProps> = memo(({ isDarkMode }) => {
                     className={styles.phoenixVideo}
                     muted
                     playsInline
-                    preload="auto"
+                    preload="metadata"
                   >
                     <source
                       src={isDarkMode ? "/PhoenixVC_to_Phoenix.mp4" : "/Phoenix_to_PhoenixVC.mp4"}

@@ -1,7 +1,8 @@
 // /features/blog/index.tsx
 import { useTheme } from "@/theme";
-import { useEffect } from "react";
+import { useEffect, useState, FormEvent } from "react";
 import { Linkedin } from "lucide-react";
+import { SEO } from "@/components/SEO";
 import styles from "./Blog.module.css";
 
 interface SubstackPost {
@@ -31,6 +32,26 @@ const substackPosts: SubstackPost[] = [
 export const Blog = () => {
   const { themeMode } = useTheme();
   const isDarkMode = themeMode === "dark";
+  const [email, setEmail] = useState("");
+  const [subscribeStatus, setSubscribeStatus] = useState<"idle" | "success" | "error">("idle");
+
+  const handleSubscribe = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!email.trim() || !/^\S+@\S+\.\S+$/.test(email)) {
+      setSubscribeStatus("error");
+      return;
+    }
+
+    // Open Substack subscribe page in new tab with email pre-filled
+    const substackUrl = `https://ebenmare.substack.com/subscribe?email=${encodeURIComponent(email)}`;
+    window.open(substackUrl, "_blank", "noopener,noreferrer");
+    setSubscribeStatus("success");
+    setEmail("");
+
+    // Reset status after 3 seconds
+    setTimeout(() => setSubscribeStatus("idle"), 3000);
+  };
 
   useEffect(() => {
     // Load Substack embed script
@@ -50,10 +71,16 @@ export const Blog = () => {
   }, []);
 
   return (
-    <section className={`${styles.blogSection} ${isDarkMode ? styles.dark : styles.light}`}>
-      <div className={styles.container}>
-        <div className={styles.cosmicBackground}>
-          <h1 className={styles.sectionHeading}>Our Blog</h1>
+    <>
+      <SEO
+        title="Blog"
+        description="Insights on venture capital, blockchain technology, fintech, and emerging trends from the Phoenix VC team and partners."
+        keywords="venture capital blog, fintech insights, blockchain analysis, startup investing"
+      />
+      <section className={`${styles.blogSection} ${isDarkMode ? styles.dark : styles.light}`}>
+        <div className={styles.container}>
+          <div className={styles.cosmicBackground}>
+            <h1 className={styles.sectionHeading}>Our Blog</h1>
           <div className={styles.divider}></div>
 
           <p className={styles.introText}>
@@ -109,21 +136,36 @@ export const Blog = () => {
             <h3 className={styles.subscribeHeading}>Stay Updated</h3>
             <p>Subscribe to get notified about new articles and insights:</p>
 
-            <form className={styles.subscribeForm}>
+            <form className={styles.subscribeForm} onSubmit={handleSubscribe}>
               <input
                 type="email"
                 placeholder="Enter your email"
                 className={styles.emailInput}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                aria-label="Email address for newsletter subscription"
+                aria-invalid={subscribeStatus === "error"}
                 required
               />
-              <button type="submit" className={styles.subscribeButton}>
-                Subscribe
+              <button
+                type="submit"
+                className={styles.subscribeButton}
+                disabled={subscribeStatus === "success"}
+              >
+                {subscribeStatus === "success" ? "Subscribed!" : "Subscribe"}
               </button>
             </form>
+            {subscribeStatus === "error" && (
+              <p className={styles.errorMessage} role="alert">Please enter a valid email address</p>
+            )}
+            {subscribeStatus === "success" && (
+              <p className={styles.successMessage} role="status">Redirecting to Substack...</p>
+            )}
           </div>
         </div>
-      </div>
-    </section>
+        </div>
+      </section>
+    </>
   );
 };
 

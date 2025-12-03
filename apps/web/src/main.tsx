@@ -1,9 +1,15 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
-import { ThemeProvider } from "@/theme"; // or use your barrel file import
+import { ThemeProvider } from "@/theme";
 import "./theme/theme.css";
-console.log("Index file is running");
+import { logger } from "@/utils/logger";
+import { initWebVitals } from "@/utils/performance";
+
+logger.debug("Index file is running");
+
+// Initialize Core Web Vitals monitoring
+initWebVitals();
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider
@@ -22,7 +28,7 @@ createRoot(document.getElementById("root")!).render(
       }}
       className="theme-wrapper"
       onThemeChange={(theme) => {
-        console.log("Theme changed:", theme);
+        logger.debug("Theme changed:", theme);
       }}>
       <App />
     </ThemeProvider>

@@ -328,7 +328,7 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
           </div>
 
           <div>
-            <label>Employee Orbit Speed: {debugSettings.employeeOrbitSpeed.toFixed(5)}</label>
+            <label>Portfolio Orbit Speed: {debugSettings.employeeOrbitSpeed.toFixed(5)}</label>
             <input
               type="range"
               min="0.00001"

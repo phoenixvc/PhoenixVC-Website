@@ -544,16 +544,15 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     dimensions: dimensionsRef.current,
     stars: starsRef.current,
     blackHoles: blackHolesRef.current,
-    employeeStars: employeeStarsRef.current,
     mousePosition,
     enableFlowEffect,
     enableBlackHole,
     enableMouseInteraction,
-    enableEmployeeStars,
+    enablePlanets: enableEmployeeStars, // Map to correct name expected by animation
     flowStrength: debugSettings.flowStrength,
     gravitationalPull: debugSettings.gravitationalPull,
     particleSpeed: debugSettings.particleSpeed,
-    employeeStarSize,
+    planetSize: employeeStarSize, // Map to correct name expected by animation
     employeeDisplayStyle,
     heroMode,
     centerPosition: centerPositionRef.current,
@@ -579,9 +578,10 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     drawDebugInfo: customDrawDebugInfo,
     maxVelocity: debugSettings.maxVelocity,
     animationSpeed: debugSettings.animationSpeed,
+    starSize: starSize,
     starsRef,
     blackHolesRef,
-    employeeStarsRef,
+    planetsRef: employeeStarsRef, // Map to correct name expected by animation
     ensureStarsExist,
     updateFpsData, // Add the FPS update callback
     fpsValuesRef // Add the FPS values ref

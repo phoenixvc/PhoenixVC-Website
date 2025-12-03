@@ -11,12 +11,15 @@ export interface ContactFormProps {
   isSuccess?: boolean;
 }
 
+export type ContactIntent = "general" | "investment" | "partnership" | "media" | "other";
+
 export interface ContactFormData {
   name: string;
   email: string;
   subject: string;
   message: string;
   company: string;
+  intent: ContactIntent;
 }
 
 export interface ContactState {
