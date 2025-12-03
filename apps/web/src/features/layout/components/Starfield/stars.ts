@@ -256,6 +256,29 @@ export const drawStars = (
   });
 };
 
+// ==========================================
+// Connection Stagger Animation Constants
+// ==========================================
+
+/**
+ * Configuration for staggered connection reveal animation
+ */
+const CONNECTION_STAGGER_CONFIG = {
+  /** Total duration for all connections to start appearing (ms) */
+  staggerDuration: 8000,
+  /** Duration for individual connection fade-in (ms) */
+  fadeInDuration: 2000,
+  /**
+   * Prime numbers used for generating unique timing offsets per connection.
+   * Using primes ensures better distribution and avoids clustering of connections.
+   * 7919 and 104729 are chosen as large primes to minimize collision patterns.
+   */
+  primeMultiplier1: 7919,
+  primeMultiplier2: 104729,
+  /** Modulo value for normalizing seed to 0-1 range */
+  seedModulo: 10000
+};
+
 // Track when the starfield was initialized for staggered connection reveal
 let connectionStartTime: number | null = null;
 
@@ -277,7 +300,7 @@ export const drawConnections = (
   // Use current time for animation
   const time = Date.now();
   
-  // Initialize connection start time on first call
+  // Initialize connection start time on first call (single-threaded canvas rendering)
   if (connectionStartTime === null) {
     connectionStartTime = time;
   }
@@ -285,10 +308,7 @@ export const drawConnections = (
   // Calculate elapsed time since connections started (for stagger effect)
   const elapsedTime = time - connectionStartTime;
   
-  // Stagger duration: how long it takes for all connections to appear (8 seconds)
-  const staggerDuration = 8000;
-  // Individual connection fade-in duration (2 seconds)
-  const fadeInDuration = 2000;
+  const { staggerDuration, fadeInDuration, primeMultiplier1, primeMultiplier2, seedModulo } = CONNECTION_STAGGER_CONFIG;
 
   connectionSources.forEach((star1, index1) => {
     // Check against all stars for connections
@@ -302,12 +322,12 @@ export const drawConnections = (
       if (dist < maxDistance) {
         // Create unique timing offset for each connection based on star indices
         // This ensures each connection has its own animation phase
-        const uniqueSeed = (index1 * 7919 + index2 * 104729) % 10000; // Prime numbers for better distribution
-        const phaseOffset = uniqueSeed / 10000 * Math.PI * 2;
+        const uniqueSeed = (index1 * primeMultiplier1 + index2 * primeMultiplier2) % seedModulo;
+        const phaseOffset = uniqueSeed / seedModulo * Math.PI * 2;
         
         // Calculate when this specific connection should start appearing (staggered)
         // Use the unique seed to determine when each connection appears
-        const connectionDelay = (uniqueSeed / 10000) * staggerDuration;
+        const connectionDelay = (uniqueSeed / seedModulo) * staggerDuration;
         
         // Calculate stagger progress for this connection (0 = not started, 1 = fully visible)
         let staggerProgress = 0;
