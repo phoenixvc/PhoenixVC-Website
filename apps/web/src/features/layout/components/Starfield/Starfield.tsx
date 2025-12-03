@@ -25,6 +25,8 @@ import { useDebugControls } from "./hooks/useDebugControls";
 import DebugControlsOverlay from "./DebugControlsOverlay";
 import { useStarInitialization } from "./hooks/useStarInitialization";
 import { applyClickForce, createClickExplosion } from "./stars";
+import { checkSunHover } from "./hooks/animation/animate";
+import SunTooltip, { SunInfo } from "./sunTooltip";
 
 // Define the ref type
 export type StarfieldRef = {
@@ -110,6 +112,10 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     console.log("Unpinning project in starfield");
     setPinnedProject(null);
   };
+
+  // Sun hover state for focus area suns
+  const [hoveredSun, setHoveredSun] = useState<SunInfo | null>(null);
+  const [hoveredSunId, setHoveredSunId] = useState<string | null>(null);
 
   // Game state
   const [gameState, setGameState] = useState<GameState>(initGameState());

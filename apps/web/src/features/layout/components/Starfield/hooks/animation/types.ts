@@ -82,6 +82,7 @@ export interface AnimationProps {
     setCamera?: (camera: Camera) => void;
     navigationState?: CosmicNavigationState;
     hoveredObjectId?: string | null;
+    hoveredSunId?: string | null;
     debugSettings?: DebugSettings; // Add debug settings
 }
 

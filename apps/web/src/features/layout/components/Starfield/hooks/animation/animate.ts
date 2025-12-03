@@ -20,6 +20,8 @@ import { Camera, CosmicNavigationState, CosmicObject } from "../../cosmos/types"
 import { GALAXIES, SPECIAL_COSMIC_OBJECTS, SUNS } from "../../cosmos/cosmicHierarchy";
 import { checkPlanetHover, updatePlanets } from "../../Planets";
 import { drawCosmicNavigation } from "./drawCosmicNavigation";
+// Import sun system for dynamic sun positioning
+import { getSunStates, initializeSunStates, updateSunPhysics, SunState } from "../../sunSystem";
 
 export const animate = (timestamp: number, props: AnimationProps, refs: AnimationRefs): void => {
   try {
@@ -115,7 +117,8 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
     drawStars(ctx, currentStars);
 
     // Draw suns (focus area orbital centers) - always visible
-    drawSuns(ctx, canvas.width, canvas.height, timestamp, props.isDarkMode);
+    // Pass hovered sun id for interactive effects and deltaTime for physics
+    drawSuns(ctx, canvas.width, canvas.height, timestamp, props.isDarkMode, props.hoveredSunId, deltaTime);
 
     // Get current values from refs
     const currentBlackHoles: BlackHole[] = props.blackHolesRef?.current ? [...props.blackHolesRef.current] : [];
@@ -480,63 +483,171 @@ function drawMouseEffects(
     }
   }
 
+// Track if sun system is initialized
+let sunSystemInitialized = false;
+
+// Get the focus area suns for external use
+export function getFocusAreaSuns(): typeof SUNS {
+  return SUNS.filter(sun => sun.parentId === "focus-areas-galaxy");
+}
+
+// Check if mouse is hovering over a sun - returns only the CLOSEST sun
+// Uses dynamic sun positions from the sun system
+export function checkSunHover(
+  mouseX: number,
+  mouseY: number,
+  width: number,
+  height: number
+): { sun: typeof SUNS[0]; index: number; x: number; y: number } | null {
+  const sunStates = getSunStates();
+  
+  // Initialize if needed
+  if (sunStates.length === 0) {
+    initializeSunStates();
+    return null;
+  }
+  
+  let closestSun: { sun: typeof SUNS[0]; index: number; x: number; y: number; distance: number } | null = null;
+  const focusAreaSuns = SUNS.filter(sun => sun.parentId === "focus-areas-galaxy");
+  
+  for (let i = 0; i < sunStates.length; i++) {
+    const sunState = sunStates[i];
+    const x = sunState.x * width;
+    const y = sunState.y * height;
+    const baseSize = Math.max(20, Math.min(width, height) * sunState.size * 0.6);
+    // Increase hit area for better clickability
+    const hitRadius = baseSize * 3;
+    
+    const distance = Math.sqrt(Math.pow(mouseX - x, 2) + Math.pow(mouseY - y, 2));
+    if (distance <= hitRadius) {
+      // Find matching sun from SUNS array
+      const matchingSun = focusAreaSuns.find(s => s.id === sunState.id);
+      if (matchingSun) {
+        // Only keep the closest sun
+        if (!closestSun || distance < closestSun.distance) {
+          closestSun = { sun: matchingSun, index: i, x, y, distance };
+        }
+      }
+    }
+  }
+  
+  // Return without the distance property
+  if (closestSun) {
+    return { sun: closestSun.sun, index: closestSun.index, x: closestSun.x, y: closestSun.y };
+  }
+  return null;
+}
+
+// Get current sun positions for external use (e.g., orbit centers)
+export function getCurrentSunPositions(width: number, height: number): Map<string, { x: number; y: number }> {
+  const sunStates = getSunStates();
+  const positions = new Map<string, { x: number; y: number }>();
+  
+  for (const sun of sunStates) {
+    positions.set(sun.id, { x: sun.x * width, y: sun.y * height });
+  }
+  
+  return positions;
+}
+
 /**
  * Draw suns (focus area orbital centers) on the canvas
- * These are always visible in the starfield as glowing orbital centers
- * Positioned in corners/edges for better visual distribution
+ * Now uses dynamic sun system with gravitational interactions
  */
 function drawSuns(
   ctx: CanvasRenderingContext2D,
   width: number,
   height: number,
   time: number,
-  isDarkMode: boolean
+  isDarkMode: boolean,
+  hoveredSunId?: string | null,
+  deltaTime: number = 16
 ): void {
+  // Initialize sun system if needed
+  if (!sunSystemInitialized) {
+    initializeSunStates();
+    sunSystemInitialized = true;
+  }
+  
+  // Update sun physics
+  updateSunPhysics(deltaTime);
+  
+  const sunStates = getSunStates();
+  
   ctx.save();
 
-  // Only draw the 4 main focus area suns with better positioned coordinates
-  // These represent the 4 investment focus areas and are spread across the visible area
-  const focusAreaSuns = SUNS.filter(sun => sun.parentId === "focus-areas-galaxy");
-  
-  // Define better positions spread across the canvas (avoiding center where hero content is)
-  const sunPositions = [
-    { x: 0.12, y: 0.18 },  // Top-left
-    { x: 0.88, y: 0.15 },  // Top-right
-    { x: 0.15, y: 0.82 },  // Bottom-left  
-    { x: 0.85, y: 0.78 },  // Bottom-right
-  ];
-
-  focusAreaSuns.forEach((sun, index) => {
-    // Use our better distributed positions
-    const pos = sunPositions[index % sunPositions.length];
-    const x = pos.x * width;
-    const y = pos.y * height;
+  sunStates.forEach((sunState) => {
+    // Use dynamic position from sun system
+    const x = sunState.x * width;
+    const y = sunState.y * height;
     // Much larger base size for visibility (minimum 20px, scaled by canvas size)
-    const baseSize = Math.max(20, Math.min(width, height) * sun.size * 0.6);
+    const baseSize = Math.max(20, Math.min(width, height) * sunState.size * 0.6);
     
-    // Pulsating effect
-    const pulse = 1 + 0.2 * Math.sin(time * 0.002 + pos.x * 10);
-    const size = baseSize * pulse;
+    // Check if this sun is hovered
+    const isHovered = hoveredSunId === sunState.id;
     
-    // Draw outer glow (larger for visibility)
-    const glowGradient = ctx.createRadialGradient(x, y, 0, x, y, size * 4);
-    glowGradient.addColorStop(0, `${sun.color}60`);
-    glowGradient.addColorStop(0.4, `${sun.color}30`);
-    glowGradient.addColorStop(0.7, `${sun.color}15`);
-    glowGradient.addColorStop(1, `${sun.color}00`);
+    // Check if sun is in propel mode (avoiding collision)
+    const isPropelling = sunState.isPropelling;
+    
+    // Pulsating effect - faster when hovered or propelling
+    const pulseSpeed = isHovered ? 0.004 : (isPropelling ? 0.006 : 0.002);
+    const pulseAmount = isHovered ? 0.35 : (isPropelling ? 0.25 : 0.2);
+    const pulse = 1 + pulseAmount * Math.sin(time * pulseSpeed + sunState.x * 10);
+    const size = baseSize * pulse * (isHovered ? 1.15 : 1);
+    
+    // Draw outer glow (larger for visibility, even larger when hovered)
+    const glowMultiplier = isHovered ? 5.5 : (isPropelling ? 5 : 4);
+    const glowGradient = ctx.createRadialGradient(x, y, 0, x, y, size * glowMultiplier);
+    glowGradient.addColorStop(0, `${sunState.color}${isHovered ? "80" : "60"}`);
+    glowGradient.addColorStop(0.3, `${sunState.color}${isHovered ? "50" : "30"}`);
+    glowGradient.addColorStop(0.6, `${sunState.color}${isHovered ? "25" : "15"}`);
+    glowGradient.addColorStop(1, `${sunState.color}00`);
     
     ctx.beginPath();
     ctx.fillStyle = glowGradient;
-    ctx.globalAlpha = isDarkMode ? 0.9 : 0.6;
-    ctx.arc(x, y, size * 4, 0, Math.PI * 2);
+    ctx.globalAlpha = isDarkMode ? (isHovered ? 1.0 : 0.9) : (isHovered ? 0.8 : 0.6);
+    ctx.arc(x, y, size * glowMultiplier, 0, Math.PI * 2);
     ctx.fill();
+    
+    // Draw propel effect rings when suns are avoiding collision
+    if (isPropelling) {
+      const propelRingCount = 3;
+      for (let r = 0; r < propelRingCount; r++) {
+        const ringRadius = size * (2 + r * 0.8);
+        const ringAlpha = 0.3 - r * 0.08;
+        ctx.beginPath();
+        ctx.strokeStyle = sunState.color;
+        ctx.lineWidth = 1.5;
+        ctx.globalAlpha = ringAlpha * (0.5 + 0.5 * Math.sin(time * 0.01 + r));
+        ctx.arc(x, y, ringRadius, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+    
+    // Draw clickable ring indicator when hovered
+    if (isHovered) {
+      ctx.beginPath();
+      ctx.strokeStyle = `${sunState.color}`;
+      ctx.lineWidth = 2;
+      ctx.globalAlpha = 0.6 + 0.3 * Math.sin(time * 0.008);
+      ctx.arc(x, y, size * 2.5, 0, Math.PI * 2);
+      ctx.stroke();
+      
+      // Second pulsing ring
+      ctx.beginPath();
+      ctx.strokeStyle = `${sunState.color}`;
+      ctx.lineWidth = 1;
+      ctx.globalAlpha = 0.4 + 0.2 * Math.sin(time * 0.006 + 1);
+      ctx.arc(x, y, size * 3.2, 0, Math.PI * 2);
+      ctx.stroke();
+    }
     
     // Draw inner core
     const coreGradient = ctx.createRadialGradient(x, y, 0, x, y, size);
     coreGradient.addColorStop(0, "#ffffff");
-    coreGradient.addColorStop(0.3, sun.color);
-    coreGradient.addColorStop(0.7, `${sun.color}CC`);
-    coreGradient.addColorStop(1, `${sun.color}66`);
+    coreGradient.addColorStop(0.3, sunState.color);
+    coreGradient.addColorStop(0.7, `${sunState.color}CC`);
+    coreGradient.addColorStop(1, `${sunState.color}66`);
     
     ctx.beginPath();
     ctx.fillStyle = coreGradient;
@@ -551,12 +662,13 @@ function drawSuns(
     ctx.arc(x, y, size * 0.4, 0, Math.PI * 2);
     ctx.fill();
     
-    // Draw rotating rays/corona effect
-    ctx.globalAlpha = isDarkMode ? 0.5 : 0.3;
-    const rayCount = 8;
+    // Draw rotating rays/corona effect - use sun's rotation angle for dynamic rotation
+    ctx.globalAlpha = isDarkMode ? (isHovered ? 0.7 : 0.5) : (isHovered ? 0.5 : 0.3);
+    const rayCount = isHovered ? 12 : (isPropelling ? 10 : 8);
     for (let i = 0; i < rayCount; i++) {
-      const angle = (time * 0.0005) + (i * Math.PI * 2 / rayCount);
-      const rayLength = size * 2.5;
+      // Use the sun's rotation angle for the base rotation
+      const angle = sunState.rotationAngle + (i * Math.PI * 2 / rayCount);
+      const rayLength = size * (isHovered ? 3 : (isPropelling ? 2.8 : 2.5));
       
       ctx.beginPath();
       ctx.moveTo(x, y);
@@ -564,11 +676,11 @@ function drawSuns(
       const endY = y + Math.sin(angle) * rayLength;
       
       const rayGradient = ctx.createLinearGradient(x, y, endX, endY);
-      rayGradient.addColorStop(0, sun.color);
-      rayGradient.addColorStop(1, `${sun.color}00`);
+      rayGradient.addColorStop(0, sunState.color);
+      rayGradient.addColorStop(1, `${sunState.color}00`);
       
       ctx.strokeStyle = rayGradient;
-      ctx.lineWidth = size * 0.2;
+      ctx.lineWidth = size * (isHovered ? 0.25 : 0.2);
       ctx.lineCap = "round";
       ctx.lineTo(endX, endY);
       ctx.stroke();
