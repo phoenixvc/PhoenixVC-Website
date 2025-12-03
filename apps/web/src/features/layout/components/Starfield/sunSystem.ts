@@ -149,7 +149,7 @@ export function updateSunPhysics(deltaTime: number): void {
     
     // Gradually reduce rotation speed when not propelling
     if (!sun.isPropelling) {
-      sun.rotationSpeed = Math.max(0.0001, sun.rotationSpeed * 0.999); // Slowed down by factor of 10
+      sun.rotationSpeed = Math.max(0.0001, sun.rotationSpeed * 0.999); // More gradual deceleration for smoother slowdown
     }
     
     // Update rotation angle
