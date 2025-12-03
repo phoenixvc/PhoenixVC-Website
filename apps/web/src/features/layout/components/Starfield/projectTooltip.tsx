@@ -1,19 +1,19 @@
 import React, { FC, useEffect, useState, useRef } from "react";
-import styles from "./employeeTooltip.module.css";
-import { EmployeeData } from "./types";
+import styles from "./projectTooltip.module.css";
+import { PortfolioProject } from "./types";
 
-interface EmployeeTooltipProps {
-  employee: EmployeeData;
+interface ProjectTooltipProps {
+  project: PortfolioProject;
   x: number;
   y: number;
   isPinned?: boolean;
   isDarkMode?: boolean;
-  onPin?: (employee: EmployeeData) => void;
+  onPin?: (project: PortfolioProject) => void;
   onUnpin?: () => void;
 }
 
-const EmployeeTooltip: FC<EmployeeTooltipProps> = ({
-  employee,
+const ProjectTooltip: FC<ProjectTooltipProps> = ({
+  project,
   x,
   y,
   isPinned = false,
@@ -58,22 +58,22 @@ const EmployeeTooltip: FC<EmployeeTooltipProps> = ({
 
   const position = adjustPosition();
 
-  // Extract data from employee object
-  const yearsExperience = employee.experience ||
-                         (employee.mass ? Math.floor(employee.mass / 10) : 5) +
+  // Extract data from project object
+  const yearsExperience = project.experience ||
+                         (project.mass ? Math.floor(project.mass / 10) : 5) +
                          Math.floor(Math.random() * 5);
-  const expertise = employee.expertise ||
-                   (employee.position ? employee.position.split(" ").slice(-1)[0] : "Technology");
-  const badgeText = employee.department || employee.product || "Team Member";
-  const projectCount = Array.isArray(employee.projects)
-    ? employee.projects.length
-    : (employee.projects || 0);
+  const expertise = project.expertise ||
+                   (project.position ? project.position.split(" ").slice(-1)[0] : "Technology");
+  const badgeText = project.department || project.product || "Portfolio Project";
+  const projectCount = Array.isArray(project.projects)
+    ? project.projects.length
+    : (project.projects || 0);
 
   // Event handlers
   const handleTooltipClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!isPinned && onPin) {
-      onPin(employee);
+      onPin(project);
     }
   };
 
@@ -84,8 +84,8 @@ const EmployeeTooltip: FC<EmployeeTooltipProps> = ({
     }
   };
 
-  // Get employee color
-  const employeeColor = employee.color || (isDarkMode ? "#9d4edd" : "#7b2cbf");
+  // Get project color
+  const projectColor = project.color || (isDarkMode ? "#9d4edd" : "#7b2cbf");
 
   return (
     <div
@@ -115,20 +115,20 @@ const EmployeeTooltip: FC<EmployeeTooltipProps> = ({
       }} />
 
       <div className={styles.tooltipHeader}>
-        {employee.image && (
+        {project.image && (
           <div
             className={styles.tooltipAvatar}
             style={{
-              border: `3px solid ${employeeColor}`,
+              border: `3px solid ${projectColor}`,
               boxShadow: `0 0 10px ${isDarkMode ? "rgba(157, 78, 221, 0.2)" : "rgba(123, 44, 191, 0.12)"}`
             }}
           >
-            <img src={employee.image} alt={employee.name} />
+            <img src={project.image} alt={project.name} />
           </div>
         )}
         <div className={styles.tooltipTitle}>
-          <h3>{employee.fullName || employee.name}</h3>
-          <p>{employee.position}</p>
+          <h3>{project.fullName || project.name}</h3>
+          <p>{project.position}</p>
         </div>
       </div>
 
@@ -148,16 +148,16 @@ const EmployeeTooltip: FC<EmployeeTooltipProps> = ({
           <span className={styles.tooltipValue}>{projectCount}</span>
         </div>
 
-        {employee.bio && (
+        {project.bio && (
           <div className={styles.tooltipBio}>
-            <p>{employee.bio}</p>
+            <p>{project.bio}</p>
           </div>
         )}
 
         <div className={styles.tooltipFooter}>
           <div
             className={styles.tooltipBadge}
-            style={{ backgroundColor: employeeColor }}
+            style={{ backgroundColor: projectColor }}
           >
             {badgeText}
           </div>
@@ -187,4 +187,8 @@ const EmployeeTooltip: FC<EmployeeTooltipProps> = ({
   );
 };
 
-export default EmployeeTooltip;
+// Export with both names for backward compatibility
+export default ProjectTooltip;
+export { ProjectTooltip };
+// Legacy alias
+export const EmployeeTooltip = ProjectTooltip;

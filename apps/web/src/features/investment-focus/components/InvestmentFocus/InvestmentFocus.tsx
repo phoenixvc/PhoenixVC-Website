@@ -16,21 +16,21 @@ interface InvestmentFocusProps {
 
 // Extended details for each focus area
 const focusAreaDetails: Record<string, { longDescription: string; highlights: string[] }> = {
-  "Blockchain Technology": {
-    longDescription: "We invest in cutting-edge decentralized solutions and Web3 infrastructure that are reshaping how we interact with digital systems. Our focus includes blockchain protocols, decentralized finance (DeFi), digital asset management, and enterprise blockchain solutions.",
-    highlights: ["Smart Contract Platforms", "DeFi Protocols", "NFT Infrastructure", "Cross-chain Solutions", "Enterprise Blockchain"]
-  },
-  "Fintech": {
-    longDescription: "We support innovative financial technology solutions that promote financial inclusion and transform traditional banking. Our investments span digital payments, neobanking, lending platforms, insurance technology, and regulatory technology.",
-    highlights: ["Digital Payments", "Neobanking", "Lending Platforms", "InsurTech", "RegTech"]
+  "Fintech & Blockchain": {
+    longDescription: "We invest in cutting-edge financial technology and decentralized solutions that are reshaping how we interact with money and digital systems. Our focus includes blockchain protocols, decentralized finance (DeFi), digital payments, neobanking, and Web3 infrastructure.",
+    highlights: ["DeFi Protocols", "Digital Payments", "Smart Contracts", "Neobanking", "Web3 Infrastructure"]
   },
   "AI & Machine Learning": {
     longDescription: "We back breakthrough innovations in artificial intelligence and machine learning that have the potential to transform industries. Our focus includes generative AI, natural language processing, computer vision, and enterprise AI solutions.",
     highlights: ["Generative AI", "NLP & LLMs", "Computer Vision", "AI Infrastructure", "MLOps"]
   },
-  "ESG": {
-    longDescription: "We invest in companies and technologies that contribute to environmental sustainability, social responsibility, and good governance. Our focus includes clean energy, sustainable agriculture, circular economy solutions, and impact measurement tools.",
-    highlights: ["Clean Energy", "Sustainable Agriculture", "Circular Economy", "Carbon Markets", "Impact Analytics"]
+  "Defense & Security": {
+    longDescription: "We back advanced security solutions that protect people, infrastructure, and digital assets. Our investments span counter-drone technology, digital access management, cybersecurity, and physical security solutions.",
+    highlights: ["Counter-Drone Systems", "Access Control", "Cybersecurity", "IoT Security", "Threat Detection"]
+  },
+  "Mobility & Transportation": {
+    longDescription: "We invest in innovative transportation technology that makes mobility safer, more efficient, and more accessible. Our focus includes ride-sharing, urban mobility, logistics optimization, and smart transportation infrastructure.",
+    highlights: ["Ride-Sharing", "Urban Mobility", "Route Optimization", "Safety Technology", "Smart Transportation"]
   }
 };
 
