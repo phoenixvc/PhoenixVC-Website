@@ -35,7 +35,7 @@ const Hero: FC<ExtendedHeroProps> = memo(
     const [isMouseNearBorder, setIsMouseNearBorder] = useState(false);
 
     const [showHeroContent, setShowHeroContent] = useState(true); // Show by default
-    const [isMinimized, setIsMinimized] = useState(false); // State for minimized hero
+    const [isMinimized, setIsMinimized] = useState(true); // State for minimized hero - minimized by default
     const [showScrollIndicator, setShowScrollIndicator] = useState(true);
     const [showReturnToStars, setShowReturnToStars] = useState(false); // Hide at top of page
     const [scrollPosition, setScrollPosition] = useState(0);
