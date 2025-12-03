@@ -1,7 +1,7 @@
 // hooks/useStarInitialization.ts
 import { useCallback, useRef, useState } from "react";
 import { initBlackHoles } from "../blackHoles";
-import { DEFAULT_BLACK_HOLES, DEFAULT_EMPLOYEES, getColorPalette } from "../constants";
+import { DEFAULT_BLACK_HOLES, DEFAULT_PORTFOLIO_PROJECTS, getColorPalette } from "../constants";
 import { initPlanets } from "../Planets";
 import { BlackHole, DebugSettings, Planet, Star } from "../types";
 
@@ -190,7 +190,7 @@ export const useStarInitialization = ({
       width,
       height,
       effectiveEnablePlanets,
-      DEFAULT_EMPLOYEES,
+      DEFAULT_PORTFOLIO_PROJECTS,
       sidebarWidth,
       centerOffsetX,
       centerOffsetY,
