@@ -123,7 +123,7 @@ export function updateSunPhysics(deltaTime: number): void {
         sun.propelTimer = 60; // Stay in propel mode for ~1 second
         
         // Increase rotation speed when close (slowed down by factor of 50)
-        sun.rotationSpeed = Math.min(0.001, sun.rotationSpeed + ROTATION_SPEED_BOOST * dt * 0.001);
+        sun.rotationSpeed = Math.min(0.0005, sun.rotationSpeed + ROTATION_SPEED_BOOST * dt * 0.001);
         
         // Apply repulsion force
         const repelStrength = (PROPEL_THRESHOLD - dist) / PROPEL_THRESHOLD;
