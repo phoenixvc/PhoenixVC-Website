@@ -224,13 +224,14 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       });
     }
 
+    // Draw portfolio comets/planets
     updatePlanets(
       ctx,
       currentPlanets,
       deltaTime,
       props.planetSize,
       props.employeeDisplayStyle,
-      currentCamera! // Pass the camera
+      currentCamera // Pass the camera (may be undefined if cosmic navigation is disabled)
     );
 
     // Draw mouse effects
