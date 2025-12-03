@@ -35,18 +35,18 @@
     font-weight: 800;
     margin-bottom: 1.5rem;
     display: inline-block;
-    background-image: linear-gradient(90deg, #9333ea 0%, #7c3aed 100%);
+    background-image: linear-gradient(90deg, #7c3aed 0%, #6366f1 100%);
     background-clip: text;
     -webkit-background-clip: text;
     color: transparent;
     letter-spacing: 0.02em;
-    text-shadow: 0 2px 10px rgba(147, 51, 234, 0.4);
+    text-shadow: 0 2px 10px rgba(124, 58, 237, 0.3);
   }
 
   .divider {
     width: 80px;
     height: 3px;
-    background: linear-gradient(90deg, #9333ea 0%, #7c3aed 100%);
+    background: linear-gradient(90deg, #7c3aed 0%, #6366f1 100%);
     margin: 0 auto 2.5rem auto;
     border-radius: 2px;
     position: relative;
@@ -59,9 +59,9 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, #9333ea 0%, #7c3aed 100%);
+    background: linear-gradient(90deg, #7c3aed 0%, #6366f1 100%);
     filter: blur(6px);
-    opacity: 0.6;
+    opacity: 0.5;
     border-radius: 2px;
   }
 
@@ -71,16 +71,16 @@
     padding: 3rem;
     border-radius: 1.25rem;
     background: rgba(20, 18, 40, 0.4);
-    border: 1px solid rgba(147, 51, 234, 0.2);
-    box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.3), 0 0 30px rgba(147, 51, 234, 0.15);
+    border: 1px solid rgba(124, 58, 237, 0.2);
+    box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.3), 0 0 30px rgba(124, 58, 237, 0.15);
     position: relative;
     overflow: hidden;
   }
 
   .light .comingSoonContainer {
     background: rgba(250, 250, 255, 0.6);
-    border: 1px solid rgba(147, 51, 234, 0.15);
-    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1), 0 0 20px rgba(147, 51, 234, 0.1);
+    border: 1px solid rgba(124, 58, 237, 0.15);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1), 0 0 20px rgba(124, 58, 237, 0.1);
   }
 
   .orbitalElement {
@@ -88,7 +88,7 @@
     width: 300px;
     height: 300px;
     border-radius: 50%;
-    border: 1px dashed rgba(147, 51, 234, 0.2);
+    border: 1px dashed rgba(124, 58, 237, 0.2);
     top: -150px;
     right: -150px;
     animation: rotate 60s linear infinite;
@@ -100,10 +100,10 @@
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background: rgba(147, 51, 234, 0.8);
+    background: rgba(124, 58, 237, 0.8);
     top: 50%;
     left: 10%;
-    box-shadow: 0 0 15px rgba(147, 51, 234, 0.5);
+    box-shadow: 0 0 15px rgba(124, 58, 237, 0.5);
     animation: pulse 4s infinite alternate;
   }
 
@@ -111,12 +111,12 @@
     font-size: 2.5rem;
     font-weight: 700;
     margin-bottom: 1.5rem;
-    color: #9333ea;
-    text-shadow: 0 0 10px rgba(147, 51, 234, 0.3);
+    color: #7c3aed;
+    text-shadow: 0 0 10px rgba(124, 58, 237, 0.3);
   }
 
   .light .comingSoonText {
-    color: #7c3aed;
+    color: #6366f1;
   }
 
   .description {
@@ -142,11 +142,11 @@
   .subscribeHeading {
     font-size: 1.5rem;
     margin-bottom: 1rem;
-    color: #9333ea;
+    color: #7c3aed;
   }
 
   .light .subscribeHeading {
-    color: #7c3aed;
+    color: #6366f1;
   }
 
   .subscribeForm {
@@ -162,7 +162,7 @@
     padding: 0.975rem 1.35rem;
     border-radius: 0.85rem;
     background-color: rgba(20, 18, 40, 0.3);
-    border: 1px solid rgba(147, 51, 234, 0.3);
+    border: 1px solid rgba(124, 58, 237, 0.3);
     transition: all 0.25s ease;
     font-size: 0.95rem;
     color: rgba(255, 255, 255, 0.9);
@@ -170,20 +170,20 @@
 
   .light .emailInput {
     background-color: rgba(255, 255, 255, 0.5);
-    border: 1px solid rgba(147, 51, 234, 0.2);
+    border: 1px solid rgba(124, 58, 237, 0.2);
     color: rgba(20, 18, 40, 0.9);
   }
 
   .emailInput:focus {
-    border-color: rgba(147, 51, 234, 0.8);
-    box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.2);
+    border-color: rgba(124, 58, 237, 0.8);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
     outline: none;
   }
 
   .subscribeButton {
     padding: 1rem 1.5rem;
     border-radius: 0.85rem;
-    background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
+    background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
     color: white;
     font-weight: 600;
     font-size: 1rem;
@@ -193,14 +193,14 @@
     overflow: hidden;
     border: none;
     cursor: pointer;
-    box-shadow: 0 0 15px rgba(147, 51, 234, 0.3);
+    box-shadow: 0 0 15px rgba(124, 58, 237, 0.3);
   }
 
   .subscribeButton:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 15px -3px rgba(147, 51, 234, 0.4),
-                0 3px 8px -2px rgba(147, 51, 234, 0.3),
-                0 0 20px rgba(147, 51, 234, 0.25);
+    box-shadow: 0 6px 15px -3px rgba(124, 58, 237, 0.4),
+                0 3px 8px -2px rgba(124, 58, 237, 0.3),
+                0 0 20px rgba(124, 58, 237, 0.25);
   }
 
   .subscribeButton:disabled {
@@ -300,46 +300,46 @@
   }
 
   .postCard {
-    background: rgba(20, 18, 40, 0.4);
-    border: 1px solid rgba(147, 51, 234, 0.2);
+    background: rgba(20, 18, 40, 0.5);
+    border: 1px solid rgba(124, 58, 237, 0.2);
     border-radius: 1rem;
-    padding: 1.5rem;
+    padding: 1.75rem;
     transition: all 0.3s ease;
   }
 
   .light .postCard {
-    background: rgba(255, 255, 255, 0.6);
-    border: 1px solid rgba(147, 51, 234, 0.15);
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(124, 58, 237, 0.15);
   }
 
   .postCard:hover {
-    border-color: rgba(147, 51, 234, 0.4);
-    box-shadow: 0 10px 30px -10px rgba(147, 51, 234, 0.2);
+    border-color: rgba(124, 58, 237, 0.4);
+    box-shadow: 0 10px 30px -10px rgba(124, 58, 237, 0.2);
     transform: translateY(-4px);
   }
 
   /* Team Section */
   .teamSection {
-    background: rgba(147, 51, 234, 0.08);
+    background: rgba(124, 58, 237, 0.08);
     border-radius: 1.25rem;
     padding: 2.5rem;
     margin-bottom: 2rem;
-    border: 1px solid rgba(147, 51, 234, 0.15);
+    border: 1px solid rgba(124, 58, 237, 0.15);
   }
 
   .light .teamSection {
-    background: rgba(147, 51, 234, 0.05);
+    background: rgba(124, 58, 237, 0.05);
   }
 
   .teamHeading {
     font-size: 1.5rem;
     font-weight: 700;
     margin-bottom: 1.5rem;
-    color: #9333ea;
+    color: #7c3aed;
   }
 
   .light .teamHeading {
-    color: #7c3aed;
+    color: #6366f1;
   }
 
   .teamLinks {
@@ -354,23 +354,23 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.85rem 1.5rem;
-    background: linear-gradient(135deg, rgba(147, 51, 234, 0.15), rgba(163, 27, 255, 0.15));
-    border: 1px solid rgba(147, 51, 234, 0.3);
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(99, 102, 241, 0.15));
+    border: 1px solid rgba(124, 58, 237, 0.3);
     border-radius: 0.75rem;
-    color: #9333ea;
+    color: #7c3aed;
     text-decoration: none;
     font-weight: 500;
     transition: all 0.3s ease;
   }
 
   .light .teamLink {
-    color: #7c3aed;
+    color: #6366f1;
   }
 
   .teamLink:hover {
-    background: linear-gradient(135deg, rgba(147, 51, 234, 0.25), rgba(163, 27, 255, 0.25));
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.25), rgba(99, 102, 241, 0.25));
     transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(147, 51, 234, 0.2);
+    box-shadow: 0 6px 15px rgba(124, 58, 237, 0.2);
   }
 
   .substackIcon {
@@ -383,18 +383,19 @@
   }
 
   :global(.substack-post-embed) p {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
+    line-height: 1.5;
   }
 
   :global(.substack-post-embed) a {
-    color: #9333ea;
+    color: #7c3aed;
     font-weight: 600;
     text-decoration: none;
     transition: color 0.2s ease;
   }
 
   :global(.substack-post-embed) a:hover {
-    color: #ff6b00;
+    color: #f97316;
     text-decoration: underline;
   }
 

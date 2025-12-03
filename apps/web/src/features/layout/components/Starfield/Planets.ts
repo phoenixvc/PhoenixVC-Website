@@ -260,7 +260,8 @@ export const checkEmployeeHover = (
 
     // Use the actual mouse coordinates for tooltip positioning
     setHoverInfo({
-      employee: hoveredStar.employee,
+      project: hoveredStar.employee, // project field is required by HoverInfo interface
+      employee: hoveredStar.employee, // backward compatibility alias
       x: mouseX, // Use mouse X instead of star X
       y: mouseY, // Use mouse Y instead of star Y
       show: true
