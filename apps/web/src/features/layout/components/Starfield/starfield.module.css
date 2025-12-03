@@ -145,16 +145,7 @@
   z-index: 1;
 }
 
-/* Make sure the canvas is on top of the background elements */
-.starfieldCanvas {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 3; /* Higher than background elements */
-  pointer-events: none;
-}
+/* Canvas styles consolidated in first .starfieldCanvas definition */
 
 @keyframes starfieldMotion {
   0% { background-position: 0 0, 40px 60px, 130px 270px, 70px 100px; }
@@ -731,14 +722,7 @@
   60% { transform: translateY(-5px); }
 }
 
-.starfieldCanvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-}
+/* Starfield canvas - consolidated in first definition */
 
 .starfieldContainer {
   position: relative;
