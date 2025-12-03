@@ -1,7 +1,6 @@
 import { useRef, useEffect, useState, FC, useMemo, useCallback, forwardRef, useImperativeHandle } from "react";
 import styles from "./starfield.module.css";
 import { initBlackHoles } from "./blackHoles";
-import { initEmployeeStars } from "./employeeStars";
 import { DEFAULT_BLACK_HOLES, DEFAULT_EMPLOYEES, getColorPalette } from "./constants";
 import {
   EmployeeData,

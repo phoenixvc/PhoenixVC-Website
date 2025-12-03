@@ -5,6 +5,10 @@ import { DEFAULT_BLACK_HOLES, DEFAULT_EMPLOYEES, getColorPalette } from "../cons
 import { initPlanets } from "../Planets";
 import { BlackHole, DebugSettings, Planet, Star } from "../types";
 
+// Default values for planet/employee star properties (matching Starfield.tsx defaults)
+const DEFAULT_ENABLE_PLANETS = true;
+const DEFAULT_PLANET_SIZE = 1.0;
+
 interface StarInitializationProps {
   canvasRef: React.RefObject<HTMLCanvasElement>;
   dimensionsRef: React.MutableRefObject<{ width: number; height: number }>;
@@ -17,8 +21,20 @@ interface StarInitializationProps {
   enableBlackHole: boolean;
   blackHoleSize: number;
   particleSpeed: number;
-  enableEmployeeStars: boolean;
-  employeeStarSize: number;
+  /**
+   * Enable planet/employee star rendering.
+   * @preferred Use `enablePlanets` (new naming convention)
+   * @deprecated `enableEmployeeStars` is supported for backward compatibility
+   */
+  enablePlanets?: boolean;
+  enableEmployeeStars?: boolean;
+  /**
+   * Size multiplier for planets/employee stars.
+   * @preferred Use `planetSize` (new naming convention)
+   * @deprecated `employeeStarSize` is supported for backward compatibility
+   */
+  planetSize?: number;
+  employeeStarSize?: number;
   debugSettings: DebugSettings;
   cancelAnimation: () => void;
 }
@@ -35,11 +51,18 @@ export const useStarInitialization = ({
   enableBlackHole,
   blackHoleSize,
   particleSpeed,
+  // Preferred: enablePlanets/planetSize; Deprecated: enableEmployeeStars/employeeStarSize
+  enablePlanets,
   enableEmployeeStars,
+  planetSize,
   employeeStarSize,
   debugSettings,
   cancelAnimation
 }: StarInitializationProps) => {
+  // Resolve naming: prefer new names (enablePlanets/planetSize) but fallback to deprecated names
+  const effectiveEnablePlanets = enablePlanets ?? enableEmployeeStars ?? DEFAULT_ENABLE_PLANETS;
+  const effectivePlanetSize = planetSize ?? employeeStarSize ?? DEFAULT_PLANET_SIZE;
+
   // Store stars in refs to prevent re-renders
   const starsRef = useRef<Star[]>([]);
   const blackHolesRef = useRef<BlackHole[]>([]);
@@ -166,12 +189,12 @@ export const useStarInitialization = ({
     const newPlanets = initPlanets(
       width,
       height,
-      enableEmployeeStars,
+      effectiveEnablePlanets,
       DEFAULT_EMPLOYEES,
       sidebarWidth,
       centerOffsetX,
       centerOffsetY,
-      employeeStarSize
+      effectivePlanetSize
     );
 
     // Modify employee stars to have extremely slow orbit speeds
@@ -212,8 +235,8 @@ export const useStarInitialization = ({
     enableBlackHole,
     blackHoleSize,
     particleSpeed,
-    enableEmployeeStars,
-    employeeStarSize,
+    effectiveEnablePlanets,
+    effectivePlanetSize,
     initializeStarsWithLowVelocity,
     debugSettings.employeeOrbitSpeed,
     canvasRef,
@@ -339,6 +362,9 @@ export const useStarInitialization = ({
     blackHolesRef,
     planets,
     planetsRef,
+    // Aliases for backward compatibility with old naming (employeeStars)
+    employeeStars: planets,
+    employeeStarsRef: planetsRef,
     initializeElements,
     ensureStarsExist,
     resetStars,
