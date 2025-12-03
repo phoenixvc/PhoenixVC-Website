@@ -589,8 +589,8 @@ function drawSuns(
     // Check if sun is in propel mode (avoiding collision)
     const isPropelling = sunState.isPropelling;
     
-    // Pulsating effect - faster when hovered or propelling
-    const pulseSpeed = isHovered ? 0.004 : (isPropelling ? 0.006 : 0.002);
+    // Pulsating effect - slowed down by factor of 10
+    const pulseSpeed = isHovered ? 0.0004 : (isPropelling ? 0.0006 : 0.0002);
     const pulseAmount = isHovered ? 0.35 : (isPropelling ? 0.25 : 0.2);
     const pulse = 1 + pulseAmount * Math.sin(time * pulseSpeed + sunState.x * 10);
     const size = baseSize * pulse * (isHovered ? 1.15 : 1);
@@ -618,7 +618,7 @@ function drawSuns(
         ctx.beginPath();
         ctx.strokeStyle = sunState.color;
         ctx.lineWidth = 1.5;
-        ctx.globalAlpha = ringAlpha * (0.5 + 0.5 * Math.sin(time * 0.01 + r));
+        ctx.globalAlpha = ringAlpha * (0.5 + 0.5 * Math.sin(time * 0.001 + r));
         ctx.arc(x, y, ringRadius, 0, Math.PI * 2);
         ctx.stroke();
       }
@@ -629,7 +629,7 @@ function drawSuns(
       ctx.beginPath();
       ctx.strokeStyle = `${sunState.color}`;
       ctx.lineWidth = 2;
-      ctx.globalAlpha = 0.6 + 0.3 * Math.sin(time * 0.008);
+      ctx.globalAlpha = 0.6 + 0.3 * Math.sin(time * 0.0008);
       ctx.arc(x, y, size * 2.5, 0, Math.PI * 2);
       ctx.stroke();
       
@@ -637,7 +637,7 @@ function drawSuns(
       ctx.beginPath();
       ctx.strokeStyle = `${sunState.color}`;
       ctx.lineWidth = 1;
-      ctx.globalAlpha = 0.4 + 0.2 * Math.sin(time * 0.006 + 1);
+      ctx.globalAlpha = 0.4 + 0.2 * Math.sin(time * 0.0006 + 1);
       ctx.arc(x, y, size * 3.2, 0, Math.PI * 2);
       ctx.stroke();
     }
