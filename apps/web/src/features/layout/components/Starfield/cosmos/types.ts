@@ -1,4 +1,4 @@
-import { EmployeeData } from "../types";
+import { PortfolioProject } from "../types";
 
 // apps/web/src/features/layout/components/Starfield/cosmos/types.ts
 export type Level = "universe" | "galaxy" | "sun" | "planet" | "special";
@@ -36,5 +36,5 @@ export interface CosmicObject {
   parentId?: string;
   color?: string;
   type?: string;
-  employeeData?: EmployeeData;
+  projectData?: PortfolioProject;
 }
