@@ -495,6 +495,39 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
         // Update both the state and the ref directly
         setMousePosition(newPosition);
         mousePositionRef.current = newPosition;
+        
+        // Check for sun hover
+        if (canvasRef.current) {
+          const rect = canvasRef.current.getBoundingClientRect();
+          const canvasX = e.clientX - rect.left;
+          const canvasY = e.clientY - rect.top;
+          const sunHoverResult = checkSunHover(canvasX, canvasY, rect.width, rect.height);
+          
+          if (sunHoverResult) {
+            setHoveredSunId(sunHoverResult.sun.id);
+            setHoveredSun({
+              id: sunHoverResult.sun.id,
+              name: sunHoverResult.sun.name,
+              description: sunHoverResult.sun.description,
+              color: sunHoverResult.sun.color || "#ffffff",
+              x: e.clientX,
+              y: e.clientY
+            });
+            // Change cursor to pointer
+            if (canvasRef.current) {
+              canvasRef.current.style.cursor = "pointer";
+            }
+          } else {
+            if (hoveredSunId) {
+              setHoveredSunId(null);
+              setHoveredSun(null);
+            }
+            // Reset cursor
+            if (canvasRef.current) {
+              canvasRef.current.style.cursor = "default";
+            }
+          }
+        }
 
         console.log("Mouse moved:", {
           x: e.clientX,
@@ -590,7 +623,8 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     planetsRef: employeeStarsRef, // Map to correct name expected by animation
     ensureStarsExist,
     updateFpsData, // Add the FPS update callback
-    fpsValuesRef // Add the FPS values ref
+    fpsValuesRef, // Add the FPS values ref
+    hoveredSunId // Pass the hovered sun id to the animation
   }), [
     mousePosition,
     enableFlowEffect,
@@ -620,7 +654,8 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     blackHolesRef,
     employeeStarsRef,
     ensureStarsExist,
-    updateFpsData
+    updateFpsData,
+    hoveredSunId
   ]);
 
   // Use the animation loop with memoized parameters - ONLY CALL THIS ONCE
@@ -831,6 +866,14 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
           y={hoverInfo.y}
           isDarkMode={isDarkMode}
           onPin={handlePinProject}
+        />
+      )}
+
+      {/* Sun tooltip when hovering over a focus area sun */}
+      {hoveredSun && (
+        <SunTooltip
+          sun={hoveredSun}
+          isDarkMode={isDarkMode}
         />
       )}
 
