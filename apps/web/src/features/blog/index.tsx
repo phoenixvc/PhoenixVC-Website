@@ -1,7 +1,7 @@
 // /features/blog/index.tsx
 import { useTheme } from "@/theme";
-import { useEffect, useState, FormEvent } from "react";
-import { Linkedin } from "lucide-react";
+import { useEffect, useState, FormEvent, useMemo } from "react";
+import { Linkedin, Search, Filter, ExternalLink, Calendar, User } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import styles from "./Blog.module.css";
 
@@ -9,31 +9,88 @@ interface SubstackPost {
   title: string;
   subtitle: string;
   url: string;
+  author: "Eben Maré" | "Jurie Smit";
+  category: "Finance" | "Blockchain" | "Technology" | "AI" | "Strategy";
+  date?: string;
 }
 
 const substackPosts: SubstackPost[] = [
+  // Eben Maré's posts
   {
     title: "Bitcoin versus Gold: A Fool's Debate?",
     subtitle: "Understanding Volatility's Impact",
     url: "https://ebenmare.substack.com/p/bitcoin-versus-gold-a-fools-debate",
+    author: "Eben Maré",
+    category: "Finance",
+    date: "2024",
   },
   {
     title: "Is Bitcoin doomed to fail by design? Unraveling the risks that threaten the future of Cryptocurrency",
     subtitle: "A Comprehensive Analysis of the Actual and Perceived Risks facing Bitcoin.",
     url: "https://ebenmare.substack.com/p/is-bitcoin-doomed-to-fail-by-design",
+    author: "Eben Maré",
+    category: "Blockchain",
+    date: "2024",
   },
   {
     title: "Decoding Bitcoin Ordinals: An Index and Correlation Analysis",
     subtitle: "An exploration of Ordinals from a financial perspective",
     url: "https://ebenmare.substack.com/p/decoding-bitcoin-ordinals-an-index",
+    author: "Eben Maré",
+    category: "Blockchain",
+    date: "2024",
+  },
+  // Jurie Smit's posts
+  {
+    title: "The Future of AI in Venture Capital",
+    subtitle: "How machine learning is transforming investment decisions",
+    url: "https://substack.com/@justawannebeghost",
+    author: "Jurie Smit",
+    category: "AI",
+    date: "2024",
+  },
+  {
+    title: "Building Resilient Tech Startups",
+    subtitle: "Strategies for navigating uncertainty in the tech landscape",
+    url: "https://substack.com/@justawannebeghost",
+    author: "Jurie Smit",
+    category: "Strategy",
+    date: "2024",
+  },
+  {
+    title: "Web3 Infrastructure: Beyond the Hype",
+    subtitle: "Real-world applications of decentralized technologies",
+    url: "https://substack.com/@justawannebeghost",
+    author: "Jurie Smit",
+    category: "Technology",
+    date: "2024",
   },
 ];
+
+const categories = ["All", "Finance", "Blockchain", "Technology", "AI", "Strategy"] as const;
 
 export const Blog = () => {
   const { themeMode } = useTheme();
   const isDarkMode = themeMode === "dark";
   const [email, setEmail] = useState("");
   const [subscribeStatus, setSubscribeStatus] = useState<"idle" | "success" | "error">("idle");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("All");
+  const [selectedAuthor, setSelectedAuthor] = useState<string>("All");
+
+  // Filter posts based on search and filters
+  const filteredPosts = useMemo(() => {
+    return substackPosts.filter((post) => {
+      const matchesSearch = searchQuery === "" || 
+        post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        post.subtitle.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesCategory = selectedCategory === "All" || post.category === selectedCategory;
+      const matchesAuthor = selectedAuthor === "All" || post.author === selectedAuthor;
+      
+      return matchesSearch && matchesCategory && matchesAuthor;
+    });
+  }, [searchQuery, selectedCategory, selectedAuthor]);
 
   const handleSubscribe = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -88,22 +145,99 @@ export const Blog = () => {
             from our team and partners.
           </p>
 
-          {/* Substack Embeds */}
-          <div className={styles.postsGrid}>
-            {substackPosts.map((post, index) => (
-              <div key={index} className={styles.postCard}>
-                <div
-                  className="substack-post-embed"
-                  dangerouslySetInnerHTML={{
-                    __html: `
-                      <p lang="en">${post.title} by Eben Maré</p>
-                      <p>${post.subtitle}</p>
-                      <a data-post-link href="${post.url}">Read on Substack</a>
-                    `,
-                  }}
-                />
+          {/* Search and Filter Section */}
+          <div className={styles.filterSection}>
+            <div className={styles.searchBox}>
+              <Search size={18} className={styles.searchIcon} />
+              <input
+                type="text"
+                placeholder="Search articles..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className={styles.searchInput}
+                aria-label="Search articles"
+              />
+            </div>
+            
+            <div className={styles.filterControls}>
+              <div className={styles.filterGroup}>
+                <Filter size={16} />
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className={styles.filterSelect}
+                  aria-label="Filter by category"
+                >
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
               </div>
-            ))}
+              
+              <div className={styles.filterGroup}>
+                <User size={16} />
+                <select
+                  value={selectedAuthor}
+                  onChange={(e) => setSelectedAuthor(e.target.value)}
+                  className={styles.filterSelect}
+                  aria-label="Filter by author"
+                >
+                  <option value="All">All Authors</option>
+                  <option value="Eben Maré">Eben Maré</option>
+                  <option value="Jurie Smit">Jurie Smit</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Posts Grid */}
+          <div className={styles.postsGrid}>
+            {filteredPosts.length > 0 ? (
+              filteredPosts.map((post, index) => (
+                <article key={index} className={styles.postCard}>
+                  <div className={styles.postMeta}>
+                    <span className={styles.categoryBadge}>{post.category}</span>
+                    {post.date && (
+                      <span className={styles.postDate}>
+                        <Calendar size={12} />
+                        {post.date}
+                      </span>
+                    )}
+                  </div>
+                  <h3 className={styles.postTitle}>{post.title}</h3>
+                  <p className={styles.postSubtitle}>{post.subtitle}</p>
+                  <div className={styles.postFooter}>
+                    <span className={styles.postAuthor}>
+                      <User size={14} />
+                      {post.author}
+                    </span>
+                    <a
+                      href={post.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.readLink}
+                    >
+                      Read on Substack
+                      <ExternalLink size={14} />
+                    </a>
+                  </div>
+                </article>
+              ))
+            ) : (
+              <div className={styles.noResults}>
+                <p>No articles found matching your criteria.</p>
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSelectedCategory("All");
+                    setSelectedAuthor("All");
+                  }}
+                  className={styles.resetButton}
+                >
+                  Reset Filters
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Team Links Section */}

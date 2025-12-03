@@ -305,6 +305,9 @@
     border-radius: 1rem;
     padding: 1.75rem;
     transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
   }
 
   .light .postCard {
@@ -316,6 +319,231 @@
     border-color: rgba(124, 58, 237, 0.4);
     box-shadow: 0 10px 30px -10px rgba(124, 58, 237, 0.2);
     transform: translateY(-4px);
+  }
+
+  .postMeta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .categoryBadge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.2), rgba(99, 102, 241, 0.2));
+    border: 1px solid rgba(124, 58, 237, 0.3);
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #7c3aed;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .light .categoryBadge {
+    color: #6366f1;
+  }
+
+  .postDate {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    opacity: 0.7;
+  }
+
+  .postTitle {
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.4;
+    color: inherit;
+    margin: 0.5rem 0 0;
+  }
+
+  .postSubtitle {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    opacity: 0.85;
+    flex-grow: 1;
+  }
+
+  .postFooter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(124, 58, 237, 0.15);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .postAuthor {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    opacity: 0.8;
+  }
+
+  .readLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #7c3aed;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .light .readLink {
+    color: #6366f1;
+  }
+
+  .readLink:hover {
+    color: #f97316;
+    gap: 0.5rem;
+  }
+
+  /* Filter Section */
+  .filterSection {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: rgba(20, 18, 40, 0.3);
+    border-radius: 1rem;
+    border: 1px solid rgba(124, 58, 237, 0.15);
+  }
+
+  .light .filterSection {
+    background: rgba(255, 255, 255, 0.5);
+  }
+
+  .searchBox {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(124, 58, 237, 0.2);
+    border-radius: 0.75rem;
+    transition: all 0.2s ease;
+  }
+
+  .light .searchBox {
+    background: rgba(255, 255, 255, 0.7);
+  }
+
+  .searchBox:focus-within {
+    border-color: rgba(124, 58, 237, 0.5);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+  }
+
+  .searchIcon {
+    opacity: 0.6;
+    flex-shrink: 0;
+  }
+
+  .searchInput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 0.95rem;
+    color: inherit;
+  }
+
+  .searchInput::placeholder {
+    opacity: 0.5;
+  }
+
+  .filterControls {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .filterGroup {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .filterGroup svg {
+    opacity: 0.6;
+  }
+
+  .filterSelect {
+    padding: 0.5rem 0.75rem;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(124, 58, 237, 0.2);
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    color: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .light .filterSelect {
+    background: rgba(255, 255, 255, 0.7);
+  }
+
+  .filterSelect:hover,
+  .filterSelect:focus {
+    border-color: rgba(124, 58, 237, 0.5);
+    outline: none;
+  }
+
+  .noResults {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem;
+    background: rgba(20, 18, 40, 0.3);
+    border-radius: 1rem;
+    border: 1px dashed rgba(124, 58, 237, 0.3);
+  }
+
+  .light .noResults {
+    background: rgba(255, 255, 255, 0.5);
+  }
+
+  .noResults p {
+    margin-bottom: 1rem;
+    opacity: 0.7;
+  }
+
+  .resetButton {
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
+    border: none;
+    border-radius: 0.5rem;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .resetButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+  }
+
+  @media (min-width: 768px) {
+    .filterSection {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .searchBox {
+      flex: 1;
+      max-width: 400px;
+    }
   }
 
   /* Team Section */
