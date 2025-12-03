@@ -190,7 +190,11 @@ export const DEFAULT_EMPLOYEES: EmployeeData[] = [
   }
 ];
 
-// Alias for clearer terminology - portfolio items displayed as comets
+/**
+ * @deprecated Use DEFAULT_EMPLOYEES directly. This alias exists for semantic clarity
+ * but DEFAULT_EMPLOYEES is the canonical export used throughout the codebase.
+ * Portfolio items are displayed as orbiting comets/planets in the starfield.
+ */
 export const DEFAULT_PORTFOLIO_COMETS = DEFAULT_EMPLOYEES;
 
 // Alternative black hole configurations for multiple black holes
