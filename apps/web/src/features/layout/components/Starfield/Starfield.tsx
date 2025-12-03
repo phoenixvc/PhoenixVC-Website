@@ -799,37 +799,6 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
             handleCanvasClick(e);
           }}
         />
-
-        {/* Add transparent overlay to capture clicks */}
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            zIndex: 4,
-            cursor: "pointer",
-            background: "transparent"
-          }}
-          onClick={(e) => {
-            const x = e.clientX;
-            const y = e.clientY;
-            console.log(`Overlay clicked at: (${x}, ${y})`);
-            applyStarfieldRepulsion(x, y);
-
-            // Also update mouse position state
-            if (setMousePosition) {
-              setMousePosition(prev => ({
-                ...prev,
-                x: x,
-                y: y,
-                isClicked: true,
-                clickTime: Date.now()
-              }));
-            }
-          }}
-        />
       </div>
 
       {/* Only render debug controls when debug mode is active */}
