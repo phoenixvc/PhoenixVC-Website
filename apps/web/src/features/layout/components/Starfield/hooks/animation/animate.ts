@@ -15,9 +15,9 @@ import { AnimationProps, AnimationRefs } from "./types";
 // Import cosmic rendering functions
 import { lerpCamera } from "../../cosmos/camera";
 import { renderCosmicHierarchy } from "../../cosmos/renderCosmicHierarchy";
-import { Camera, CosmicNavigationState } from "../../cosmos/types";
+import { Camera, CosmicNavigationState, CosmicObject } from "../../cosmos/types";
 // Import cosmic hierarchy data
-import { GALAXIES, SPECIAL_COSMIC_OBJECTS } from "../../cosmos/cosmicHierarchy";
+import { GALAXIES, SPECIAL_COSMIC_OBJECTS, SUNS } from "../../cosmos/cosmicHierarchy";
 import { checkPlanetHover, updatePlanets } from "../../Planets";
 import { drawCosmicNavigation } from "./drawCosmicNavigation";
 
@@ -113,6 +113,9 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
 
     // Always draw stars first - this ensures they always appear
     drawStars(ctx, currentStars);
+
+    // Draw suns (focus area orbital centers) - always visible
+    drawSuns(ctx, canvas.width, canvas.height, timestamp, props.isDarkMode);
 
     // Get current values from refs
     const currentBlackHoles: BlackHole[] = props.blackHolesRef?.current ? [...props.blackHolesRef.current] : [];
@@ -476,3 +479,87 @@ function drawMouseEffects(
       ctx.fill();
     }
   }
+
+/**
+ * Draw suns (focus area orbital centers) on the canvas
+ * These are always visible in the starfield as glowing orbital centers
+ */
+function drawSuns(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  time: number,
+  isDarkMode: boolean
+): void {
+  ctx.save();
+
+  // Only draw the main Focus Areas galaxy suns (the ones used for portfolio orbits)
+  const focusAreaSuns = SUNS.filter(sun => sun.parentId === "focus-areas-galaxy");
+  
+  for (const sun of focusAreaSuns) {
+    const x = sun.position.x * width;
+    const y = sun.position.y * height;
+    const baseSize = sun.size * 35; // Scale size for visibility
+    
+    // Pulsating effect
+    const pulse = 1 + 0.15 * Math.sin(time * 0.002 + sun.position.x * 10);
+    const size = baseSize * pulse;
+    
+    // Draw outer glow
+    const glowGradient = ctx.createRadialGradient(x, y, 0, x, y, size * 3);
+    glowGradient.addColorStop(0, `${sun.color}40`);
+    glowGradient.addColorStop(0.5, `${sun.color}20`);
+    glowGradient.addColorStop(1, `${sun.color}00`);
+    
+    ctx.beginPath();
+    ctx.fillStyle = glowGradient;
+    ctx.globalAlpha = isDarkMode ? 0.8 : 0.5;
+    ctx.arc(x, y, size * 3, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Draw inner core
+    const coreGradient = ctx.createRadialGradient(x, y, 0, x, y, size);
+    coreGradient.addColorStop(0, sun.color);
+    coreGradient.addColorStop(0.7, `${sun.color}CC`);
+    coreGradient.addColorStop(1, `${sun.color}66`);
+    
+    ctx.beginPath();
+    ctx.fillStyle = coreGradient;
+    ctx.globalAlpha = isDarkMode ? 0.9 : 0.7;
+    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Draw bright center point
+    ctx.beginPath();
+    ctx.fillStyle = isDarkMode ? "#ffffff" : sun.color;
+    ctx.globalAlpha = 0.8;
+    ctx.arc(x, y, size * 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Draw rotating rays/corona effect
+    ctx.globalAlpha = isDarkMode ? 0.3 : 0.2;
+    const rayCount = 8;
+    for (let i = 0; i < rayCount; i++) {
+      const angle = (time * 0.0005) + (i * Math.PI * 2 / rayCount);
+      const rayLength = size * 2;
+      
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      const endX = x + Math.cos(angle) * rayLength;
+      const endY = y + Math.sin(angle) * rayLength;
+      
+      const rayGradient = ctx.createLinearGradient(x, y, endX, endY);
+      rayGradient.addColorStop(0, sun.color);
+      rayGradient.addColorStop(1, `${sun.color}00`);
+      
+      ctx.strokeStyle = rayGradient;
+      ctx.lineWidth = size * 0.15;
+      ctx.lineCap = "round";
+      ctx.lineTo(endX, endY);
+      ctx.stroke();
+    }
+  }
+  
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}

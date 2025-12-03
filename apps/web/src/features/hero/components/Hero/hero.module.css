@@ -284,6 +284,67 @@
   opacity: 0;
 }
 
+.minimizeButton {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 10;
+}
+
+.minimizeButton:hover {
+  background-color: rgba(0, 0, 0, 0.4);
+  transform: scale(1.05);
+}
+
+.minimized {
+  padding: 0.75rem 2rem 0.75rem 3rem;
+  max-width: 400px;
+}
+
+.minimizedContent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.minimizedTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 768px) {
+  .minimizeButton {
+    top: 0.5rem;
+    left: 0.5rem;
+    width: 24px;
+    height: 24px;
+  }
+
+  .minimized {
+    max-width: 280px;
+    padding: 0.5rem 1.5rem 0.5rem 2.5rem;
+  }
+
+  .minimizedTitle {
+    font-size: 1rem;
+  }
+}
+
 .scrollTitle {
   opacity: 0;
   transform: translateY(20px);
