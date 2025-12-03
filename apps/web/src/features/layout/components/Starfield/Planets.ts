@@ -5,6 +5,7 @@ import { getObjectById, SUNS } from "./cosmos/cosmicHierarchy";
 import { worldToScreen } from "./cosmos/cosmicNavigation";
 import { Camera } from "./cosmos/types";
 import { drawPlanet } from "./starRendering";
+import { getSunStates } from "./sunSystem";
 import { PortfolioProject, HoverInfo, Planet, Satellite } from "./types";
 import { calculateCenter } from "./utils";
 
@@ -153,12 +154,20 @@ export const initPlanets = (
     planets.push(planet);
   });
 
-  // Instead of hardcoding "team-sun-system"
-  planets.forEach(planet => {
-    // Get a random sun ID from your cosmic hierarchy
-    const suns = SUNS; // Import this from cosmicHierarchy.ts
-    const randomSunIndex = Math.floor(Math.random() * suns.length);
-    planet.orbitParentId = suns[randomSunIndex].id;
+  // Assign planets to focus area suns only (not random suns)
+  // Filter to only get the focus area suns
+  const focusAreaSuns = SUNS.filter(sun => sun.parentId === "focus-areas-galaxy");
+  
+  planets.forEach((planet, index) => {
+    // Distribute planets across focus area suns evenly
+    if (focusAreaSuns.length > 0) {
+      const sunIndex = index % focusAreaSuns.length;
+      planet.orbitParentId = focusAreaSuns[sunIndex].id;
+    } else {
+      // Fallback to any sun if no focus area suns found
+      const randomSunIndex = Math.floor(Math.random() * SUNS.length);
+      planet.orbitParentId = SUNS[randomSunIndex].id;
+    }
   });
 
   if (planets.length >= 2) {
@@ -340,44 +349,60 @@ export const updatePlanets = (
   if (!ctx || !planets || !planets.length) return;
 
   const cappedDeltaTime = Math.min(deltaTime, 100);
+  const width = ctx.canvas.width;
+  const height = ctx.canvas.height;
+
+  // Get dynamic sun positions from the sun system
+  const sunStates = getSunStates();
 
   // Track which suns we've already drawn to avoid duplicates
   const drawnSuns = new Set<string>();
 
   planets.forEach(planet => {
-    /* ---------- Recalc orbit centre if camera is available ---------- */
-    if (camera && planet.orbitParentId) {
-      const parent = getObjectById(planet.orbitParentId);
-      if (parent) {
-        planet.orbitCenter = worldToScreen(
-          parent.position.x,
-          parent.position.y,
-          camera,
-          ctx.canvas.width,
-          ctx.canvas.height
-        );
+    /* ---------- Recalc orbit centre using dynamic sun positions ---------- */
+    if (planet.orbitParentId) {
+      // First, try to get dynamic sun position from sun system
+      const sunState = sunStates.find(s => s.id === planet.orbitParentId);
+      
+      if (sunState) {
+        // Use dynamic sun position from the sun system
+        planet.orbitCenter = {
+          x: sunState.x * width,
+          y: sunState.y * height
+        };
         
-        // Draw the sun at the orbital center if not already drawn
-        if (!drawnSuns.has(planet.orbitParentId)) {
+        // Don't draw suns here - they're drawn by the main drawSuns function
+      } else if (camera) {
+        // Fallback to camera-based calculation for non-dynamic suns
+        const parent = getObjectById(planet.orbitParentId);
+        if (parent) {
+          planet.orbitCenter = worldToScreen(
+            parent.position.x,
+            parent.position.y,
+            camera,
+            width,
+            height
+          );
+          
+          // Draw the sun at the orbital center if not already drawn
+          if (!drawnSuns.has(planet.orbitParentId)) {
+            drawnSuns.add(planet.orbitParentId);
+            const sunSize = (parent.size || 0.05) * 50 * planetSize;
+            const sunColor = parent.color || "#f39c12";
+            drawSunAtCenter(ctx, planet.orbitCenter.x, planet.orbitCenter.y, sunColor, sunSize);
+          }
+        }
+      } else if (planet.orbitCenter) {
+        // No camera mode and no dynamic sun - use static parent position
+        const parent = getObjectById(planet.orbitParentId);
+        if (parent && !drawnSuns.has(planet.orbitParentId)) {
           drawnSuns.add(planet.orbitParentId);
           const sunSize = (parent.size || 0.05) * 50 * planetSize;
           const sunColor = parent.color || "#f39c12";
           drawSunAtCenter(ctx, planet.orbitCenter.x, planet.orbitCenter.y, sunColor, sunSize);
         }
       }
-    } else if (planet.orbitCenter && planet.orbitParentId) {
-      // No camera mode - draw sun at the stored orbit center
-      if (!drawnSuns.has(planet.orbitParentId)) {
-        drawnSuns.add(planet.orbitParentId);
-        const parent = getObjectById(planet.orbitParentId);
-        if (parent) {
-          const sunSize = (parent.size || 0.05) * 50 * planetSize;
-          const sunColor = parent.color || "#f39c12";
-          drawSunAtCenter(ctx, planet.orbitCenter.x, planet.orbitCenter.y, sunColor, sunSize);
-        }
-      }
     }
-    // If no camera, use the existing orbit center from initialization
     /* ------------------------------------------------------------ */
 
     // Draw the comet/planet regardless of movement state

@@ -210,3 +210,47 @@ export function getFocusAreaSunId(focusArea: string): string {
   };
   return mapping[focusArea] || "fintech-blockchain-sun";
 }
+
+// Check if mouse is hovering over a sun - returns only the CLOSEST sun
+// This ensures only one sun is highlighted at a time
+export function checkSunHover(
+  mouseX: number, 
+  mouseY: number, 
+  canvasWidth: number, 
+  canvasHeight: number,
+  hoverRadius: number = 40
+): { sun: SunState; distance: number } | null {
+  if (sunStates.length === 0) {
+    initializeSunStates();
+  }
+  
+  let closestSun: SunState | null = null;
+  let closestDistance = Infinity;
+  
+  for (const sun of sunStates) {
+    // Convert normalized position to canvas coordinates
+    const sunX = sun.x * canvasWidth;
+    const sunY = sun.y * canvasHeight;
+    
+    // Calculate distance from mouse to sun center
+    const dx = mouseX - sunX;
+    const dy = mouseY - sunY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    // Calculate effective hover radius based on sun size
+    const sunRadius = Math.max(20, Math.min(canvasWidth, canvasHeight) * sun.size * 0.5);
+    const effectiveRadius = sunRadius + hoverRadius;
+    
+    // Check if within hover radius and closer than previous closest
+    if (distance < effectiveRadius && distance < closestDistance) {
+      closestSun = sun;
+      closestDistance = distance;
+    }
+  }
+  
+  if (closestSun) {
+    return { sun: closestSun, distance: closestDistance };
+  }
+  
+  return null;
+}
