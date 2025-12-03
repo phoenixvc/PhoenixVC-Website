@@ -78,8 +78,8 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
     refs.lastTimeRef.current = timestamp;
 
     // Performance optimization: Skip heavy operations less frequently to reduce flicker
-    // Changed from every 2 frames to every 4 frames for smoother appearance
-    refs.frameSkipRef.current = (refs.frameSkipRef.current + 1) % 4;
+    // Changed from every 4 frames to every 8 frames for smoother star connections
+    refs.frameSkipRef.current = (refs.frameSkipRef.current + 1) % 8;
     const shouldSkipHeavyOperations = refs.frameSkipRef.current !== 0;
 
     // Increment frame counter

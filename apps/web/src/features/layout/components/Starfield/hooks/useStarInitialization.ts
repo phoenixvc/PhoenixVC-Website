@@ -17,8 +17,8 @@ interface StarInitializationProps {
   enableBlackHole: boolean;
   blackHoleSize: number;
   particleSpeed: number;
-  enablePlanets: boolean;
-  planetSize: number;
+  enableEmployeeStars: boolean;
+  employeeStarSize: number;
   debugSettings: DebugSettings;
   cancelAnimation: () => void;
 }
@@ -35,8 +35,8 @@ export const useStarInitialization = ({
   enableBlackHole,
   blackHoleSize,
   particleSpeed,
-  enablePlanets,
-  planetSize,
+  enableEmployeeStars,
+  employeeStarSize,
   debugSettings,
   cancelAnimation
 }: StarInitializationProps) => {
@@ -166,12 +166,12 @@ export const useStarInitialization = ({
     const newPlanets = initPlanets(
       width,
       height,
-      enablePlanets,
+      enableEmployeeStars,
       DEFAULT_EMPLOYEES,
       sidebarWidth,
       centerOffsetX,
       centerOffsetY,
-      planetSize
+      employeeStarSize
     );
 
     // Modify employee stars to have extremely slow orbit speeds
@@ -212,8 +212,8 @@ export const useStarInitialization = ({
     enableBlackHole,
     blackHoleSize,
     particleSpeed,
-    enablePlanets,
-    planetSize,
+    enableEmployeeStars,
+    employeeStarSize,
     initializeStarsWithLowVelocity,
     debugSettings.employeeOrbitSpeed,
     canvasRef,
