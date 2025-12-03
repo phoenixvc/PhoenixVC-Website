@@ -483,6 +483,7 @@ function drawMouseEffects(
 /**
  * Draw suns (focus area orbital centers) on the canvas
  * These are always visible in the starfield as glowing orbital centers
+ * Positioned in corners/edges for better visual distribution
  */
 function drawSuns(
   ctx: CanvasRenderingContext2D,
@@ -493,16 +494,28 @@ function drawSuns(
 ): void {
   ctx.save();
 
-  // Draw all suns from the SUNS array (not just focus-areas-galaxy)
-  // This makes the suns visible as glowing orbital centers
-  for (const sun of SUNS) {
-    const x = sun.position.x * width;
-    const y = sun.position.y * height;
-    // Much larger base size for visibility (minimum 15px, scaled by canvas size)
-    const baseSize = Math.max(15, Math.min(width, height) * sun.size * 0.5);
+  // Only draw the 4 main focus area suns with better positioned coordinates
+  // These represent the 4 investment focus areas and are spread across the visible area
+  const focusAreaSuns = SUNS.filter(sun => sun.parentId === "focus-areas-galaxy");
+  
+  // Define better positions spread across the canvas (avoiding center where hero content is)
+  const sunPositions = [
+    { x: 0.12, y: 0.18 },  // Top-left
+    { x: 0.88, y: 0.15 },  // Top-right
+    { x: 0.15, y: 0.82 },  // Bottom-left  
+    { x: 0.85, y: 0.78 },  // Bottom-right
+  ];
+
+  focusAreaSuns.forEach((sun, index) => {
+    // Use our better distributed positions
+    const pos = sunPositions[index % sunPositions.length];
+    const x = pos.x * width;
+    const y = pos.y * height;
+    // Much larger base size for visibility (minimum 20px, scaled by canvas size)
+    const baseSize = Math.max(20, Math.min(width, height) * sun.size * 0.6);
     
     // Pulsating effect
-    const pulse = 1 + 0.2 * Math.sin(time * 0.002 + sun.position.x * 10);
+    const pulse = 1 + 0.2 * Math.sin(time * 0.002 + pos.x * 10);
     const size = baseSize * pulse;
     
     // Draw outer glow (larger for visibility)
@@ -560,7 +573,7 @@ function drawSuns(
       ctx.lineTo(endX, endY);
       ctx.stroke();
     }
-  }
+  });
   
   ctx.globalAlpha = 1;
   ctx.restore();
