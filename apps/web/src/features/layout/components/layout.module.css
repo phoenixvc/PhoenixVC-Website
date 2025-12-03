@@ -64,7 +64,12 @@
   transition: margin-left 0.3s ease;
   position: relative;
   z-index: 10; /* Higher z-index to be above the starfield */
-  pointer-events: auto; /* Allow pointer events */
+  pointer-events: none; /* Allow pointer events to pass through to starfield */
+}
+
+/* Ensure content inside the wrapper can still receive events */
+.contentWrapper > * {
+  pointer-events: auto;
 }
 
 /* Ensure the debug controls are always clickable */
@@ -82,7 +87,12 @@
   width: 100%;
   position: relative;
   z-index: 10; /* Higher z-index to be above the starfield */
-  pointer-events: auto; /* Allow pointer events */
+  pointer-events: none; /* Allow pointer events to pass through to starfield */
+}
+
+/* Ensure content inside mainContent can still receive events */
+.mainContent > * {
+  pointer-events: auto;
 }
 
 /* Ensure the debug controls are always clickable */
