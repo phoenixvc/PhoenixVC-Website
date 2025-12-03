@@ -493,55 +493,57 @@ function drawSuns(
 ): void {
   ctx.save();
 
-  // Only draw the main Focus Areas galaxy suns (the ones used for portfolio orbits)
-  const focusAreaSuns = SUNS.filter(sun => sun.parentId === "focus-areas-galaxy");
-  
-  for (const sun of focusAreaSuns) {
+  // Draw all suns from the SUNS array (not just focus-areas-galaxy)
+  // This makes the suns visible as glowing orbital centers
+  for (const sun of SUNS) {
     const x = sun.position.x * width;
     const y = sun.position.y * height;
-    const baseSize = sun.size * 35; // Scale size for visibility
+    // Much larger base size for visibility (minimum 15px, scaled by canvas size)
+    const baseSize = Math.max(15, Math.min(width, height) * sun.size * 0.5);
     
     // Pulsating effect
-    const pulse = 1 + 0.15 * Math.sin(time * 0.002 + sun.position.x * 10);
+    const pulse = 1 + 0.2 * Math.sin(time * 0.002 + sun.position.x * 10);
     const size = baseSize * pulse;
     
-    // Draw outer glow
-    const glowGradient = ctx.createRadialGradient(x, y, 0, x, y, size * 3);
-    glowGradient.addColorStop(0, `${sun.color}40`);
-    glowGradient.addColorStop(0.5, `${sun.color}20`);
+    // Draw outer glow (larger for visibility)
+    const glowGradient = ctx.createRadialGradient(x, y, 0, x, y, size * 4);
+    glowGradient.addColorStop(0, `${sun.color}60`);
+    glowGradient.addColorStop(0.4, `${sun.color}30`);
+    glowGradient.addColorStop(0.7, `${sun.color}15`);
     glowGradient.addColorStop(1, `${sun.color}00`);
     
     ctx.beginPath();
     ctx.fillStyle = glowGradient;
-    ctx.globalAlpha = isDarkMode ? 0.8 : 0.5;
-    ctx.arc(x, y, size * 3, 0, Math.PI * 2);
+    ctx.globalAlpha = isDarkMode ? 0.9 : 0.6;
+    ctx.arc(x, y, size * 4, 0, Math.PI * 2);
     ctx.fill();
     
     // Draw inner core
     const coreGradient = ctx.createRadialGradient(x, y, 0, x, y, size);
-    coreGradient.addColorStop(0, sun.color);
+    coreGradient.addColorStop(0, "#ffffff");
+    coreGradient.addColorStop(0.3, sun.color);
     coreGradient.addColorStop(0.7, `${sun.color}CC`);
     coreGradient.addColorStop(1, `${sun.color}66`);
     
     ctx.beginPath();
     ctx.fillStyle = coreGradient;
-    ctx.globalAlpha = isDarkMode ? 0.9 : 0.7;
+    ctx.globalAlpha = isDarkMode ? 1.0 : 0.8;
     ctx.arc(x, y, size, 0, Math.PI * 2);
     ctx.fill();
     
     // Draw bright center point
     ctx.beginPath();
-    ctx.fillStyle = isDarkMode ? "#ffffff" : sun.color;
-    ctx.globalAlpha = 0.8;
-    ctx.arc(x, y, size * 0.3, 0, Math.PI * 2);
+    ctx.fillStyle = "#ffffff";
+    ctx.globalAlpha = 1.0;
+    ctx.arc(x, y, size * 0.4, 0, Math.PI * 2);
     ctx.fill();
     
     // Draw rotating rays/corona effect
-    ctx.globalAlpha = isDarkMode ? 0.3 : 0.2;
+    ctx.globalAlpha = isDarkMode ? 0.5 : 0.3;
     const rayCount = 8;
     for (let i = 0; i < rayCount; i++) {
       const angle = (time * 0.0005) + (i * Math.PI * 2 / rayCount);
-      const rayLength = size * 2;
+      const rayLength = size * 2.5;
       
       ctx.beginPath();
       ctx.moveTo(x, y);
@@ -553,7 +555,7 @@ function drawSuns(
       rayGradient.addColorStop(1, `${sun.color}00`);
       
       ctx.strokeStyle = rayGradient;
-      ctx.lineWidth = size * 0.15;
+      ctx.lineWidth = size * 0.2;
       ctx.lineCap = "round";
       ctx.lineTo(endX, endY);
       ctx.stroke();
