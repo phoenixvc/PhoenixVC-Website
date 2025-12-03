@@ -170,6 +170,3 @@ function drawProjectIdentifier(
     }
   }
 }
-
-// Legacy alias for backward compatibility
-export const drawEmployeeIdentifier = drawProjectIdentifier;

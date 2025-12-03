@@ -275,9 +275,6 @@ export const checkPlanetHover = (
   return false;
 };
 
-// Legacy alias for backward compatibility
-export const checkEmployeeHover = checkPlanetHover;
-
 // Update portfolio items (comets/planets) animation
 export const updatePlanets = (
   ctx: CanvasRenderingContext2D,

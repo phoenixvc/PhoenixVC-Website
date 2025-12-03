@@ -39,9 +39,6 @@ export interface PortfolioProject {
   focusArea?: "ai-ml" | "fintech-blockchain" | "defense-security" | "mobility-transportation";
 }
 
-// Legacy alias for backward compatibility
-export type EmployeeData = PortfolioProject;
-
 export interface Satellite {
   angle: number;
   distance: number;
@@ -58,9 +55,6 @@ export interface PortfolioSatellite {
   size: number;
   color: string;
 }
-
-// Legacy alias for backward compatibility
-export type EmployeeSatellite = PortfolioSatellite;
 
 export interface Pulsation {
   enabled: boolean;
@@ -456,8 +450,7 @@ export interface StarfieldProps {
   hoveredObjectId?: string | null;
 }
 
-// Type aliases for backward compatibility
-export type EmployeeStar = Planet;
+// Type aliases
 export type PortfolioStar = Planet;
 export type InteractiveStarfieldProps = StarfieldProps;
 

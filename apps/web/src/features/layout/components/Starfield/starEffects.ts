@@ -417,8 +417,8 @@ export function drawHoverEffects(
 
       // Add floating skill icons around the star when hovered
       if (planet.isHovered || planet.isSelected) {
-        // Make sure getSkillsForEmployee is defined or import it
-        const skills = getSkillsForEmployee(planet.employee);
+        // Get skills from project data
+        const skills = getSkillsForProject(planet.project);
         const skillCount = skills.length;
 
         if (skillCount > 0) {
@@ -602,6 +602,3 @@ export function drawHoverEffects(
 
     return Array.isArray(project.skills) ? project.skills : [project.skills];
   }
-
-  // Legacy alias for backward compatibility
-  export const getSkillsForEmployee = getSkillsForProject;
