@@ -271,18 +271,38 @@ export const drawConnections = (
 
   ctx.lineWidth = 0.5;
 
-  connectionSources.forEach(star1 => {
+  // Use current time for animation
+  const time = Date.now();
+
+  connectionSources.forEach((star1, index1) => {
     // Check against all stars for connections
-    stars.forEach(star2 => {
-      // Don"t connect to self
+    stars.forEach((star2, index2) => {
+      // Don't connect to self
       if (star1 === star2) return;
 
       const dist = distance(star1.x, star1.y, star2.x, star2.y);
 
       // Only connect stars within the maximum distance
       if (dist < maxDistance) {
+        // Create unique timing offset for each connection based on star indices
+        // This ensures each connection has its own animation phase
+        const uniqueSeed = (index1 * 7919 + index2 * 104729) % 10000; // Prime numbers for better distribution
+        const phaseOffset = uniqueSeed / 10000 * Math.PI * 2;
+        
+        // Create a slow, smooth pulse with unique timing per connection
+        // Different frequencies for more organic feel
+        const frequency1 = 0.0003 + (uniqueSeed % 100) / 100000; // Vary frequency slightly
+        const frequency2 = 0.00017 + (uniqueSeed % 50) / 100000;
+        
+        const pulse1 = Math.sin(time * frequency1 + phaseOffset);
+        const pulse2 = Math.sin(time * frequency2 + phaseOffset * 1.3);
+        
+        // Combine pulses for more complex animation (0.3 to 1.0 range)
+        const pulseMultiplier = 0.5 + (pulse1 * 0.25 + pulse2 * 0.25);
+        
         // Calculate opacity based on distance (fade out as distance increases)
-        const lineOpacity = opacity * (1 - dist / maxDistance);
+        const baseLineOpacity = opacity * (1 - dist / maxDistance);
+        const lineOpacity = baseLineOpacity * pulseMultiplier;
 
         // Draw line with calculated opacity
         ctx.beginPath();

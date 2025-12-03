@@ -2,8 +2,9 @@
 .scoreOverlay {
     position: fixed;
     bottom: 20px;
-    right: 20px;
-    background-color: rgba(0, 0, 0, 0.7);
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.85);
     border-radius: 12px;
     color: white;
     z-index: 1000;
@@ -15,8 +16,8 @@
   }
 
   .expanded {
-    padding: 15px;
-    min-width: 220px;
+    padding: 15px 20px;
+    min-width: 280px;
   }
 
   .scoreHeader {
@@ -49,24 +50,61 @@
     background-color: rgba(255, 255, 255, 0.1);
   }
 
+  /* Compact view styles */
+  .compactView {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+  }
+
   .floatingButton {
     display: flex;
     align-items: center;
     justify-content: center;
     background: linear-gradient(135deg, #8a2be2, #4b0082);
     border: none;
-    border-radius: 12px;
+    border-radius: 50%;
     color: white;
     cursor: pointer;
-    width: 60px;
-    height: 60px;
-    position: relative;
+    width: 40px;
+    height: 40px;
     transition: transform 0.2s, box-shadow 0.2s;
+    flex-shrink: 0;
   }
 
   .floatingButton:hover {
-    transform: scale(1.05);
+    transform: scale(1.1);
     box-shadow: 0 0 25px rgba(138, 43, 226, 0.7);
+  }
+
+  .compactStats {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .compactScore {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: bold;
+    font-size: 16px;
+  }
+
+  .compactLives {
+    display: flex;
+    gap: 4px;
+  }
+
+  .lifeHeart {
+    transition: all 0.2s ease;
+  }
+
+  .livesDisplay {
+    display: flex;
+    gap: 4px;
+    margin-top: 4px;
   }
 
   .miniScore {
@@ -104,6 +142,23 @@
     font-size: 24px;
     font-weight: bold;
     color: #8a2be2; /* Blueviolet */
+  }
+
+  .gameInstructions {
+    background: rgba(138, 43, 226, 0.15);
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+  }
+
+  .gameInstructions p {
+    margin: 0;
+    font-size: 12px;
+    opacity: 0.9;
+  }
+
+  .gameInstructions p + p {
+    margin-top: 4px;
   }
 
   .highScores {

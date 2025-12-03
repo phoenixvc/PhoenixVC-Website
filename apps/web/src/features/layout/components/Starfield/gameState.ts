@@ -33,32 +33,32 @@ export const checkCollisions = (
   stars.forEach((star, starIndex) => {
     if (!star.isActive) return; // Skip inactive stars
 
-    planets.forEach(empStar => {
+    planets.forEach(planet => {
       const dist = Math.sqrt(
-        Math.pow(star.x - empStar.x, 2) +
-        Math.pow(star.y - empStar.y, 2)
+        Math.pow(star.x - planet.x, 2) +
+        Math.pow(star.y - planet.y, 2)
       );
 
       // Collision detection radius - adjust based on star and employee sizes
-      const collisionRadius = 15 + (star.size * 2) + (empStar.employee.mass ? empStar.employee.mass / 20 : 2);
+      const collisionRadius = 15 + (star.size * 2) + (planet.project.mass ? planet.project.mass / 20 : 2);
 
       // Calculate star speed for effect intensity
       const speed = Math.sqrt(star.vx * star.vx + star.vy * star.vy);
 
       if (dist < collisionRadius && star.isActive) {
         // Calculate score based on employee mass and star size
-        const baseScore = empStar.employee.mass || 50;
+        const baseScore = planet.project.mass || 50;
         const starBonus = star.size * 10;
         const velocityBonus = speed * 20;
         const scoreValue = Math.round(baseScore + starBonus + velocityBonus);
 
         // Add collision animation
         newCollisions.push({
-          x: empStar.x,
-          y: empStar.y,
+          x: planet.x,
+          y: planet.y,
           time: Date.now(),
           score: scoreValue,
-          employeeName: empStar.employee.name
+          employeeName: planet.project.name
         });
 
         // Create a visual effect at collision point if the function is provided
@@ -66,7 +66,7 @@ export const checkCollisions = (
           createCollisionEffect(
             star.x,
             star.y,
-            empStar.employee.color || "#8a2be2",
+            planet.project.color || "#8a2be2",
             scoreValue
           );
           collidedStars.push(starIndex);
@@ -76,14 +76,14 @@ export const checkCollisions = (
         star.isActive = false;
 
         // Add some velocity to the employee star for visual feedback
-        empStar.vx += (Math.random() - 0.5) * 0.2;
-        empStar.vy += (Math.random() - 0.5) * 0.2;
+        planet.vx += (Math.random() - 0.5) * 0.2;
+        planet.vy += (Math.random() - 0.5) * 0.2;
 
         // Enable pulsation temporarily for visual feedback
-        if (empStar.pulsation) {
-          empStar.pulsation.enabled = true;
-          empStar.pulsation.maxScale = 1.5; // Bigger pulse on collision
-          empStar.pulsation.speed *= 2; // Faster pulse on collision
+        if (planet.pulsation) {
+          planet.pulsation.enabled = true;
+          planet.pulsation.maxScale = 1.5; // Bigger pulse on collision
+          planet.pulsation.speed *= 2; // Faster pulse on collision
         }
 
         scoreAdded = true;

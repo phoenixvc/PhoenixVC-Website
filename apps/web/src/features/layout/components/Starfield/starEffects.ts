@@ -1,36 +1,36 @@
 // components/Layout/Starfield/starEffects.ts
 
 import { hexToRgb } from "./starUtils";
-import { EmployeeData, Planet } from "./types";
+import { Planet, PortfolioProject } from "./types";
 
 // Draw star glow and core
 // Draw star glow and core
 export function drawStarGlow(
     ctx: CanvasRenderingContext2D,
-    empStar: Planet,
+    planet: Planet,
     starSize: number,
     softRgb: {r: number, g: number, b: number}
   ): void {
-    // Create a unique offset for this star based on employee ID with proper null checking
-    const uniqueOffset = empStar.employee?.id
-      ? (typeof empStar.employee.id === "string"
-          ? empStar.employee.id.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0)
-          : Number(empStar.employee.id))
-      : Math.random() * 1000; // Fallback to a random offset if no employee ID
+    // Create a unique offset for this star based on project ID with proper null checking
+    const uniqueOffset = planet.project?.id
+      ? (typeof planet.project.id === "string"
+          ? planet.project.id.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0)
+          : Number(planet.project.id))
+      : Math.random() * 1000; // Fallback to a random offset if no project ID
 
     // Apply subtle pulsing effect using the unique offset
     const pulseTime = Date.now() * 0.0003 + (uniqueOffset * 0.05);
     const pulseFactor = 1 + Math.sin(pulseTime) * 0.1; // 10% size variation
 
     // Enhanced glow effect - softer glow with independent pulsing
-    const glowMultiplier = empStar.glowIntensity ||
-      (empStar.pathType === "star" ? 2.5 * pulseFactor :
-       empStar.pathType === "planet" ? 1.6 * pulseFactor :
-       empStar.pathType === "comet" ? 2.0 * pulseFactor : 1.6 * pulseFactor);
+    const glowMultiplier = planet.glowIntensity ||
+      (planet.pathType === "star" ? 2.5 * pulseFactor :
+       planet.pathType === "planet" ? 1.6 * pulseFactor :
+       planet.pathType === "comet" ? 2.0 * pulseFactor : 1.6 * pulseFactor);
 
     const glowGradient = ctx.createRadialGradient(
-      empStar.x, empStar.y, 0,
-      empStar.x, empStar.y, starSize * 2.0 * glowMultiplier
+      planet.x, planet.y, 0,
+      planet.x, planet.y, starSize * 2.0 * glowMultiplier
     );
 
     // Use rgba format for star glow to avoid color parsing issues - softer glow
@@ -40,17 +40,17 @@ export function drawStarGlow(
     glowGradient.addColorStop(1, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0)`);
 
     ctx.beginPath();
-    ctx.arc(empStar.x, empStar.y, starSize * 2.0 * glowMultiplier, 0, Math.PI * 2);
+    ctx.arc(planet.x, planet.y, starSize * 2.0 * glowMultiplier, 0, Math.PI * 2);
     ctx.fillStyle = glowGradient;
     ctx.fill();
 
     const gradient = ctx.createRadialGradient(
-      empStar.x, empStar.y, 0,
-      empStar.x, empStar.y, starSize * pulseFactor // Apply pulse to core size too
+      planet.x, planet.y, 0,
+      planet.x, planet.y, starSize * pulseFactor // Apply pulse to core size too
     );
 
     // Enhanced core appearance based on path type - with softer colors
-    switch (empStar.pathType) {
+    switch (planet.pathType) {
       case "star":
         gradient.addColorStop(0, "rgba(255, 255, 255, 0.95)");
         gradient.addColorStop(0.2, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.9)`);
@@ -78,7 +78,7 @@ export function drawStarGlow(
     }
 
     ctx.beginPath();
-    ctx.arc(empStar.x, empStar.y, starSize * pulseFactor, 0, Math.PI * 2);
+    ctx.arc(planet.x, planet.y, starSize * pulseFactor, 0, Math.PI * 2);
     ctx.fillStyle = gradient;
     ctx.fill();
   }
@@ -86,13 +86,13 @@ export function drawStarGlow(
 // Draw comet trail
 export function drawStarTrail(
   ctx: CanvasRenderingContext2D,
-  empStar: Planet,
+  planet: Planet,
   starSize: number,
   softRgb: {r: number, g: number, b: number},
   planetSize: number,
   scaleFactor: number
 ): void {
-  const trailLength = empStar.trailLength || 180;
+  const trailLength = planet.trailLength || 180;
 
   // Add wobble to comet path for more natural movement - slower wobble
   const wobbleTime = Date.now() * 0.0003; // Reduced from 0.0005
@@ -100,15 +100,15 @@ export function drawStarTrail(
 
   ctx.beginPath();
 
-  const dx = -Math.sin(empStar.angle) * (empStar.orbitalDirection === "clockwise" ? 1 : -1);
-  const dy = Math.cos(empStar.angle) * (empStar.orbitalDirection === "clockwise" ? 1 : -1);
+  const dx = -Math.sin(planet.angle) * (planet.orbitalDirection === "clockwise" ? 1 : -1);
+  const dy = Math.cos(planet.angle) * (planet.orbitalDirection === "clockwise" ? 1 : -1);
 
   const magnitude = Math.sqrt(dx * dx + dy * dy) || 1;
   const normalizedDx = dx / magnitude;
   const normalizedDy = dy / magnitude;
 
-  const trailEndX = empStar.x - normalizedDx * trailLength;
-  const trailEndY = empStar.y - normalizedDy * trailLength;
+  const trailEndX = planet.x - normalizedDx * trailLength;
+  const trailEndY = planet.y - normalizedDy * trailLength;
 
   const perpDx = -normalizedDy;
   const perpDy = normalizedDx;
@@ -118,29 +118,29 @@ export function drawStarTrail(
   const endWidth = 1 * planetSize * scaleFactor;
 
   // Create curved trail path with wobble
-  ctx.moveTo(empStar.x + perpDx * startWidth/2, empStar.y + perpDy * startWidth/2);
+  ctx.moveTo(planet.x + perpDx * startWidth/2, planet.y + perpDy * startWidth/2);
 
   // Create control points for curved trail
-  const cp1x = empStar.x - normalizedDx * trailLength * 0.3 + perpDx * startWidth/3 + wobbleAmount;
-  const cp1y = empStar.y - normalizedDy * trailLength * 0.3 + perpDy * startWidth/3 - wobbleAmount/2;
+  const cp1x = planet.x - normalizedDx * trailLength * 0.3 + perpDx * startWidth/3 + wobbleAmount;
+  const cp1y = planet.y - normalizedDy * trailLength * 0.3 + perpDy * startWidth/3 - wobbleAmount/2;
 
-  const cp2x = empStar.x - normalizedDx * trailLength * 0.6 + perpDx * endWidth + wobbleAmount/2;
-  const cp2y = empStar.y - normalizedDy * trailLength * 0.6 + perpDy * endWidth - wobbleAmount;
+  const cp2x = planet.x - normalizedDx * trailLength * 0.6 + perpDx * endWidth + wobbleAmount/2;
+  const cp2y = planet.y - normalizedDy * trailLength * 0.6 + perpDy * endWidth - wobbleAmount;
 
   ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, trailEndX + perpDx * endWidth/2, trailEndY + perpDy * endWidth/2);
   ctx.lineTo(trailEndX - perpDx * endWidth/2, trailEndY - perpDy * endWidth/2);
 
-  const cp3x = empStar.x - normalizedDx * trailLength * 0.6 - perpDx * endWidth - wobbleAmount/2;
-  const cp3y = empStar.y - normalizedDy * trailLength * 0.6 - perpDy * endWidth + wobbleAmount;
+  const cp3x = planet.x - normalizedDx * trailLength * 0.6 - perpDx * endWidth - wobbleAmount/2;
+  const cp3y = planet.y - normalizedDy * trailLength * 0.6 - perpDy * endWidth + wobbleAmount;
 
-  const cp4x = empStar.x - normalizedDx * trailLength * 0.3 - perpDx * startWidth/3 - wobbleAmount;
-  const cp4y = empStar.y - normalizedDy * trailLength * 0.3 - perpDy * startWidth/3 + wobbleAmount/2;
+  const cp4x = planet.x - normalizedDx * trailLength * 0.3 - perpDx * startWidth/3 - wobbleAmount;
+  const cp4y = planet.y - normalizedDy * trailLength * 0.3 - perpDy * startWidth/3 + wobbleAmount/2;
 
-  ctx.bezierCurveTo(cp3x, cp3y, cp4x, cp4y, empStar.x - perpDx * startWidth/2, empStar.y - perpDy * startWidth/2);
+  ctx.bezierCurveTo(cp3x, cp3y, cp4x, cp4y, planet.x - perpDx * startWidth/2, planet.y - perpDy * startWidth/2);
   ctx.closePath();
 
   const gradient = ctx.createLinearGradient(
-    empStar.x, empStar.y,
+    planet.x, planet.y,
     trailEndX, trailEndY
   );
 
@@ -171,7 +171,7 @@ export function drawStarTrail(
   ctx.shadowBlur = 15; // Slightly reduced from 18
 
   ctx.beginPath();
-  ctx.moveTo(empStar.x, empStar.y);
+  ctx.moveTo(planet.x, planet.y);
   ctx.lineTo(trailEndX, trailEndY);
   ctx.lineWidth = 3 * planetSize * scaleFactor;
   ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, 0.6)`; // Reduced opacity
@@ -186,8 +186,8 @@ export function drawStarTrail(
   ctx.save();
   for (let i = 0; i < particleCount; i++) {
     const particlePos = 0.2 + (i / particleCount) * 0.6; // Position along trail (0-1)
-    const particleX = empStar.x - normalizedDx * trailLength * particlePos;
-    const particleY = empStar.y - normalizedDy * trailLength * particlePos;
+    const particleX = planet.x - normalizedDx * trailLength * particlePos;
+    const particleY = planet.y - normalizedDy * trailLength * particlePos;
 
     // Add some randomness to particle position - with slower movement
     const particleOffsetX = (Math.sin(particleTime * (i + 2) * 0.5) * trailLength * 0.04); // Reduced frequency and amount
@@ -233,23 +233,23 @@ export function drawStarTrail(
 // Draw satellites
 export function drawSatellites(
     ctx: CanvasRenderingContext2D,
-    empStar: Planet,
+    planet: Planet,
     scaleFactor: number,
     softRgb: {r: number, g: number, b: number},
     deltaTime: number
   ): void {
-    const fixedDelta = empStar.useSimpleRendering ? 0.2 : 0.5;
+    const fixedDelta = planet.useSimpleRendering ? 0.2 : 0.5;
 
     // Draw orbit paths for satellites (optional visual enhancement) - more subtle
-    if (empStar.satellites && empStar.satellites.length > 0 && !empStar.useSimpleRendering) {
-      empStar.satellites.forEach(satellite => {
+    if (planet.satellites && planet.satellites.length > 0 && !planet.useSimpleRendering) {
+      planet.satellites.forEach(satellite => {
         const a = satellite.distance * scaleFactor;
         const b = satellite.distance * (1 - satellite.eccentricity) * scaleFactor;
 
         ctx.beginPath();
         ctx.ellipse(
-          empStar.x,
-          empStar.y,
+          planet.x,
+          planet.y,
           a,
           b,
           0,
@@ -264,8 +264,8 @@ export function drawSatellites(
     }
 
     // Update and draw satellites with smoother patterns
-    if (empStar.satellites && empStar.satellites.length > 0) {
-      empStar.satellites.forEach((satellite, index) => {
+    if (planet.satellites && planet.satellites.length > 0) {
+      planet.satellites.forEach((satellite, index) => {
         // Independent pulsation for satellites - smoother and slower
         const satelliteTime = Date.now() * 0.0005; // Reduced from 0.001
         const satellitePulse = 0.9 + Math.sin(satelliteTime * (index + 1) * 0.3) * 0.1; // Reduced amplitude
@@ -279,8 +279,8 @@ export function drawSatellites(
         const b = satellite.distance * (1 - eccentricity) * scaleFactor;
 
         // Calculate satellite position relative to the employee star
-        const satX = empStar.x + a * Math.cos(satellite.angle);
-        const satY = empStar.y + b * Math.sin(satellite.angle);
+        const satX = planet.x + a * Math.cos(satellite.angle);
+        const satY = planet.y + b * Math.sin(satellite.angle);
 
         // Draw satellite glow with independent pulsation - softer glow
         ctx.save();
@@ -351,31 +351,31 @@ export function drawSatellites(
 // Draw hover/select effects
 export function drawHoverEffects(
     ctx: CanvasRenderingContext2D,
-    empStar: Planet,
+    planet: Planet,
     starSize: number,
     softRgb: {r: number, g: number, b: number}
   ): void {
-    if (empStar.isHovered || empStar.isSelected) {
+    if (planet.isHovered || planet.isSelected) {
       // Add a pulsing ring around the star when hovered or selected
       ctx.save();
 
-      if (empStar.isHovered) {
+      if (planet.isHovered) {
         // Draw a "clickable" cursor icon or text
         ctx.save();
         ctx.font = "14px Arial";
         ctx.fillStyle = "white";
         ctx.textAlign = "center";
         // Fix: Use starSize instead of planetSize
-        ctx.fillText("Click for details", empStar.x, empStar.y - starSize * 5);
+        ctx.fillText("Click for details", planet.x, planet.y - starSize * 5);
         ctx.restore();
       }
 
       // Use the employee ID or another unique property to create independent pulse timing
       // with proper null checking
-      const uniqueOffset = empStar.employee?.id
-        ? (typeof empStar.employee.id === "string"
-            ? empStar.employee.id.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0)
-            : Number(empStar.employee.id))
+      const uniqueOffset = planet.employee?.id
+        ? (typeof planet.employee.id === "string"
+            ? planet.employee.id.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0)
+            : Number(planet.employee.id))
         : Math.random() * 1000; // Fallback to a random offset if no employee ID
 
       // Use the unique offset to create independent pulse timing
@@ -384,18 +384,18 @@ export function drawHoverEffects(
       const pulseSize = starSize * (1.3 + Math.sin(pulseTime * 1) * 0.2);
 
       ctx.beginPath();
-      ctx.arc(empStar.x, empStar.y, pulseSize, 0, Math.PI * 2);
+      ctx.arc(planet.x, planet.y, pulseSize, 0, Math.PI * 2);
       ctx.lineWidth = 1.5 + Math.sin(pulseTime * 2) * 0.5;
       ctx.strokeStyle = `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, ${pulseOpacity})`;
       ctx.stroke();
       ctx.restore();
 
       // Add "click for details" indicator when hovered
-      if (empStar.isHovered && !empStar.isSelected) {
+      if (planet.isHovered && !planet.isSelected) {
         ctx.save();
         const clickIndicatorSize = starSize * 0.4;
-        const clickIndicatorX = empStar.x + starSize * 1.2;
-        const clickIndicatorY = empStar.y - starSize * 1.2;
+        const clickIndicatorX = planet.x + starSize * 1.2;
+        const clickIndicatorY = planet.y - starSize * 1.2;
 
         // Draw pulsing circle with smoother animation - also use unique timing
         const clickPulse = 0.85 + Math.sin(pulseTime * 2.5) * 0.15;
@@ -416,9 +416,9 @@ export function drawHoverEffects(
       }
 
       // Add floating skill icons around the star when hovered
-      if (empStar.isHovered || empStar.isSelected) {
-        // Make sure getSkillsForEmployee is defined or import it
-        const skills = getSkillsForEmployee(empStar.employee);
+      if (planet.isHovered || planet.isSelected) {
+        // Get skills from project data
+        const skills = getSkillsForProject(planet.project);
         const skillCount = skills.length;
 
         if (skillCount > 0) {
@@ -429,8 +429,8 @@ export function drawHoverEffects(
           skills.forEach((skill, i) => {
             // Use unique timing for skill icon rotation too
             const angle = (i / skillCount) * Math.PI * 2 + Date.now() * 0.0005 + (uniqueOffset * 0.01);
-            const iconX = empStar.x + Math.cos(angle) * orbitRadius;
-            const iconY = empStar.y + Math.sin(angle) * orbitRadius;
+            const iconX = planet.x + Math.cos(angle) * orbitRadius;
+            const iconY = planet.y + Math.sin(angle) * orbitRadius;
 
             // Draw skill icon background
             ctx.beginPath();
@@ -461,12 +461,12 @@ export function drawHoverEffects(
   // Draw star flares
   export function drawStarFlares(
     ctx: CanvasRenderingContext2D,
-    empStar: Planet,
+    planet: Planet,
     starSize: number,
     softRgb: {r: number, g: number, b: number}
   ): void {
     // Create occasional "star flares" that randomly appear on stars - less frequent
-    if (empStar.pathType === "star" && Math.random() < 0.002) { // Reduced from 0.005 to 0.002 (0.2% chance)
+    if (planet.pathType === "star" && Math.random() < 0.002) { // Reduced from 0.005 to 0.002 (0.2% chance)
       ctx.save();
       const flareCount = 2 + Math.floor(Math.random() * 2); // Reduced from 3+3
       const flareLength = starSize * (1.8 + Math.random() * 2.2); // Reduced slightly
@@ -475,16 +475,16 @@ export function drawHoverEffects(
         const flareAngle = (i / flareCount) * Math.PI * 2 + Math.random() * 0.5;
 
         ctx.beginPath();
-        ctx.moveTo(empStar.x, empStar.y);
+        ctx.moveTo(planet.x, planet.y);
         ctx.lineTo(
-          empStar.x + Math.cos(flareAngle) * flareLength,
-          empStar.y + Math.sin(flareAngle) * flareLength
+          planet.x + Math.cos(flareAngle) * flareLength,
+          planet.y + Math.sin(flareAngle) * flareLength
         );
 
         const flareGradient = ctx.createLinearGradient(
-          empStar.x, empStar.y,
-          empStar.x + Math.cos(flareAngle) * flareLength,
-          empStar.y + Math.sin(flareAngle) * flareLength
+          planet.x, planet.y,
+          planet.x + Math.cos(flareAngle) * flareLength,
+          planet.y + Math.sin(flareAngle) * flareLength
         );
 
         flareGradient.addColorStop(0, "rgba(255, 255, 255, 0.7)"); // Reduced opacity
@@ -502,20 +502,20 @@ export function drawHoverEffects(
   // Draw nebula effects
   export function drawNebulaEffects(
     ctx: CanvasRenderingContext2D,
-    empStar: Planet,
+    planet: Planet,
     starSize: number,
     softRgb: {r: number, g: number, b: number}
   ): void {
     // Add subtle background nebula effects behind important stars - more subtle
     // Use nullish coalescing to provide a default value of 0 for mass if it"s undefined
-    if (((empStar.employee.mass ?? 0) > 200 || empStar.isSelected) && !empStar.useSimpleRendering) {
+    if (((planet.employee.mass ?? 0) > 200 || planet.isSelected) && !planet.useSimpleRendering) {
       ctx.save();
       const nebulaSize = starSize * 7; // Reduced from 8
       const nebulaOpacity = 0.12; // Reduced from 0.15
 
       const nebulaGradient = ctx.createRadialGradient(
-        empStar.x, empStar.y, 0,
-        empStar.x, empStar.y, nebulaSize
+        planet.x, planet.y, 0,
+        planet.x, planet.y, nebulaSize
       );
 
       nebulaGradient.addColorStop(0, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, ${nebulaOpacity})`);
@@ -523,7 +523,7 @@ export function drawHoverEffects(
       nebulaGradient.addColorStop(1, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0)`);
 
       ctx.beginPath();
-      ctx.arc(empStar.x, empStar.y, nebulaSize, 0, Math.PI * 2);
+      ctx.arc(planet.x, planet.y, nebulaSize, 0, Math.PI * 2);
       ctx.fillStyle = nebulaGradient;
       ctx.globalCompositeOperation = "screen";
       ctx.fill();
@@ -535,11 +535,11 @@ export function drawHoverEffects(
   // Draw connections between related stars
   export function drawConnections(
     ctx: CanvasRenderingContext2D,
-    empStar: Planet,
+    planet: Planet,
     allStars: Planet[],
     softRgb: {r: number, g: number, b: number}
   ): void {
-    const relatedStars = findRelatedPlanets(empStar, allStars);
+    const relatedStars = findRelatedPlanets(planet, allStars);
 
     if (relatedStars.length > 0) {
       ctx.save();
@@ -549,12 +549,12 @@ export function drawHoverEffects(
         const dashOffset = Date.now() * 0.005; // Reduced from 0.01
 
         ctx.beginPath();
-        ctx.moveTo(empStar.x, empStar.y);
+        ctx.moveTo(planet.x, planet.y);
         ctx.lineTo(relatedStar.x, relatedStar.y);
 
         // Create gradient for connection line - softer
         const connectionGradient = ctx.createLinearGradient(
-          empStar.x, empStar.y,
+          planet.x, planet.y,
           relatedStar.x, relatedStar.y
         );
 
@@ -568,8 +568,8 @@ export function drawHoverEffects(
         ctx.stroke();
 
         // Draw small indicator at midpoint - more subtle
-        const midX = (empStar.x + relatedStar.x) / 2;
-        const midY = (empStar.y + relatedStar.y) / 2;
+        const midX = (planet.x + relatedStar.x) / 2;
+        const midY = (planet.y + relatedStar.y) / 2;
 
         ctx.beginPath();
         ctx.arc(midX, midY, 2.5, 0, Math.PI * 2); // Reduced from 3
@@ -582,23 +582,23 @@ export function drawHoverEffects(
   }
 
   // Helper function to find related stars
-  export function findRelatedPlanets(empStar: Planet, allStars: Planet[]): Planet[] {
-    if (!empStar || !empStar.employee || !empStar.employee.relatedIds || !allStars) {
+  export function findRelatedPlanets(planet: Planet, allStars: Planet[]): Planet[] {
+    if (!planet || !planet.project || !planet.project.relatedIds || !allStars) {
       return [];
     }
 
     return allStars.filter(star =>
-      star !== empStar &&
-      empStar.employee.relatedIds &&
-      empStar.employee.relatedIds.includes(star.employee.id)
+      star !== planet &&
+      planet.project.relatedIds &&
+      planet.project.relatedIds.includes(star.project.id)
     );
   }
 
-  // Helper function to get employee skills
-  export function getSkillsForEmployee(employee: EmployeeData): string[] {
-    if (!employee || !employee.skills) {
+  // Helper function to get project skills
+  export function getSkillsForProject(project: PortfolioProject): string[] {
+    if (!project || !project.skills) {
       return [];
     }
 
-    return Array.isArray(employee.skills) ? employee.skills : [employee.skills];
+    return Array.isArray(project.skills) ? project.skills : [project.skills];
   }

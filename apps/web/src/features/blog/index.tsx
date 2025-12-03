@@ -120,6 +120,24 @@ export const Blog = () => {
                 Eben Maré's Substack
               </a>
               <a
+                href="https://substack.com/@justawannebeghost"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.teamLink}
+              >
+                <span className={styles.substackIcon}>📰</span>
+                Jurie Smit's Substack
+              </a>
+              <a
+                href="https://www.linkedin.com/in/juriesmit/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.teamLink}
+              >
+                <Linkedin size={20} />
+                Jurie Smit on LinkedIn
+              </a>
+              <a
                 href="https://www.linkedin.com/company/101922781/"
                 target="_blank"
                 rel="noopener noreferrer"
