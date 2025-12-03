@@ -256,7 +256,33 @@ export const drawStars = (
   });
 };
 
-// Draw connections between nearby stars (network effect)
+// ==========================================
+// Connection Stagger Animation Constants
+// ==========================================
+
+/**
+ * Configuration for staggered connection reveal animation
+ */
+const CONNECTION_STAGGER_CONFIG = {
+  /** Total duration for all connections to start appearing (ms) */
+  staggerDuration: 8000,
+  /** Duration for individual connection fade-in (ms) */
+  fadeInDuration: 2000,
+  /**
+   * Prime numbers used for generating unique timing offsets per connection.
+   * Using primes ensures better distribution and avoids clustering of connections.
+   * 7919 and 104729 are chosen as large primes to minimize collision patterns.
+   */
+  primeMultiplier1: 7919,
+  primeMultiplier2: 104729,
+  /** Modulo value for normalizing seed to 0-1 range */
+  seedModulo: 10000
+};
+
+// Track when the starfield was initialized for staggered connection reveal
+let connectionStartTime: number | null = null;
+
+// Draw connections between nearby stars (network effect) with staggered reveal
 export const drawConnections = (
   ctx: CanvasRenderingContext2D,
   stars: Star[],
@@ -273,6 +299,16 @@ export const drawConnections = (
 
   // Use current time for animation
   const time = Date.now();
+  
+  // Initialize connection start time on first call (single-threaded canvas rendering)
+  if (connectionStartTime === null) {
+    connectionStartTime = time;
+  }
+  
+  // Calculate elapsed time since connections started (for stagger effect)
+  const elapsedTime = time - connectionStartTime;
+  
+  const { staggerDuration, fadeInDuration, primeMultiplier1, primeMultiplier2, seedModulo } = CONNECTION_STAGGER_CONFIG;
 
   connectionSources.forEach((star1, index1) => {
     // Check against all stars for connections
@@ -286,8 +322,21 @@ export const drawConnections = (
       if (dist < maxDistance) {
         // Create unique timing offset for each connection based on star indices
         // This ensures each connection has its own animation phase
-        const uniqueSeed = (index1 * 7919 + index2 * 104729) % 10000; // Prime numbers for better distribution
-        const phaseOffset = uniqueSeed / 10000 * Math.PI * 2;
+        const uniqueSeed = (index1 * primeMultiplier1 + index2 * primeMultiplier2) % seedModulo;
+        const phaseOffset = uniqueSeed / seedModulo * Math.PI * 2;
+        
+        // Calculate when this specific connection should start appearing (staggered)
+        // Use the unique seed to determine when each connection appears
+        const connectionDelay = (uniqueSeed / seedModulo) * staggerDuration;
+        
+        // Calculate stagger progress for this connection (0 = not started, 1 = fully visible)
+        let staggerProgress = 0;
+        if (elapsedTime > connectionDelay) {
+          staggerProgress = Math.min(1, (elapsedTime - connectionDelay) / fadeInDuration);
+        }
+        
+        // Skip drawing if this connection hasn't started appearing yet
+        if (staggerProgress <= 0) return;
         
         // Create a slow, smooth pulse with unique timing per connection
         // Different frequencies for more organic feel
@@ -302,7 +351,8 @@ export const drawConnections = (
         
         // Calculate opacity based on distance (fade out as distance increases)
         const baseLineOpacity = opacity * (1 - dist / maxDistance);
-        const lineOpacity = baseLineOpacity * pulseMultiplier;
+        // Apply stagger progress to create fade-in effect for each connection
+        const lineOpacity = baseLineOpacity * pulseMultiplier * staggerProgress;
 
         // Draw line with calculated opacity
         ctx.beginPath();
@@ -313,6 +363,11 @@ export const drawConnections = (
       }
     });
   });
+};
+
+// Reset connection start time (useful when starfield is reinitialized)
+export const resetConnectionStagger = (): void => {
+  connectionStartTime = null;
 };
 
 // Create an explosion effect at a point

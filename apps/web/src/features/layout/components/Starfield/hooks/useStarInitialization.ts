@@ -3,6 +3,7 @@ import { useCallback, useRef, useState } from "react";
 import { initBlackHoles } from "../blackHoles";
 import { DEFAULT_BLACK_HOLES, DEFAULT_PORTFOLIO_PROJECTS, getColorPalette } from "../constants";
 import { initPlanets } from "../Planets";
+import { resetConnectionStagger } from "../stars";
 import { BlackHole, DebugSettings, Planet, Star } from "../types";
 
 // Default values for planet/employee star properties (matching Starfield.tsx defaults)
@@ -307,6 +308,9 @@ export const useStarInitialization = ({
 
     // Cancel any existing animation first
     cancelAnimation();
+    
+    // Reset connection stagger to restart the connection reveal animation
+    resetConnectionStagger();
 
     // Reset initialization flags to force complete reinitialization
     isStarsInitializedRef.current = false;

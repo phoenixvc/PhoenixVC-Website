@@ -508,7 +508,8 @@ export function drawHoverEffects(
   ): void {
     // Add subtle background nebula effects behind important stars - more subtle
     // Use nullish coalescing to provide a default value of 0 for mass if it"s undefined
-    if (((planet.employee.mass ?? 0) > 200 || planet.isSelected) && !planet.useSimpleRendering) {
+    // Note: Planet type uses 'project' property, not 'employee'
+    if (((planet.project?.mass ?? 0) > 200 || planet.isSelected) && !planet.useSimpleRendering) {
       ctx.save();
       const nebulaSize = starSize * 7; // Reduced from 8
       const nebulaOpacity = 0.12; // Reduced from 0.15

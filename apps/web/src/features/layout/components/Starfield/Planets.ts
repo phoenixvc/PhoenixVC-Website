@@ -146,7 +146,8 @@ export const initPlanets = (
       glowIntensity,
       pulsation,
       useSimpleRendering,
-      verticalFactor // Add vertical factor for orbit shaping
+      verticalFactor, // Add vertical factor for orbit shaping
+      isMovementPaused: false // Initialize movement as not paused
     } as Planet;
 
     planets.push(planet);
