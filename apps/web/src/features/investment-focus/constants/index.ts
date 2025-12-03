@@ -7,14 +7,9 @@ export const FOCUS_AREAS: FocusArea[] = [
     icon: "🧠"
   },
   {
-    title: "Fintech",
-    description: "Contributing to financial inclusion by supporting innovative payment and banking solutions.",
+    title: "Fintech & Blockchain",
+    description: "Contributing to financial inclusion through innovative payment solutions, decentralized finance, and Web3 infrastructure.",
     icon: "💰"
-  },
-  {
-    title: "Blockchain Technology",
-    description: "Investing in decentralized solutions, Web3 infrastructure, and smart contract platforms.",
-    icon: "🔗"
   },
   {
     title: "Defense & Security",
@@ -25,10 +20,5 @@ export const FOCUS_AREAS: FocusArea[] = [
     title: "Mobility & Transportation",
     description: "Investing in innovative transportation technology and safe mobility solutions.",
     icon: "🚗"
-  },
-  {
-    title: "ESG & Sustainability",
-    description: "Supporting companies with environmental, social, and governance principles for a sustainable future.",
-    icon: "🌍"
   }
 ];

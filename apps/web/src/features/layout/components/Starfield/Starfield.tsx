@@ -1,13 +1,13 @@
 import { useRef, useEffect, useState, FC, useMemo, useCallback, forwardRef, useImperativeHandle } from "react";
 import styles from "./starfield.module.css";
 import { initBlackHoles } from "./blackHoles";
-import { DEFAULT_BLACK_HOLES, DEFAULT_EMPLOYEES, getColorPalette } from "./constants";
+import { DEFAULT_BLACK_HOLES, DEFAULT_PORTFOLIO_PROJECTS, getColorPalette } from "./constants";
 import {
-  EmployeeData,
+  PortfolioProject,
   HoverInfo,
   Star,
   BlackHole,
-  EmployeeStar,
+  PortfolioStar,
   GameState,
   Burst,
   CollisionEffect,
@@ -15,7 +15,7 @@ import {
   MousePosition,
   DebugSettings
 } from "./types";
-import EmployeeTooltip from "./employeeTooltip";
+import { ProjectTooltip } from "./projectTooltip";
 import { fetchIpAddress, getHighScoresForIP, initGameState, saveScore } from "./gameState";
 import ScoreOverlay from "./scoreOverlay";
 import { useAnimationLoop } from "./hooks/useAnimationLoop";
@@ -88,27 +88,27 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     setTimestamp(currentTimestamp);
   }, []);
 
-  // Employee hover state
+  // Project hover state
   const [hoverInfo, setHoverInfo] = useState<HoverInfo>({
-    employee: null,
+    project: null,
     x: 0,
     y: 0,
     show: false
   });
-  const [pinnedEmployee, setPinnedEmployee] = useState<EmployeeData | null>(null);
+  const [pinnedProject, setPinnedProject] = useState<PortfolioProject | null>(null);
   const [pinnedPosition, setPinnedPosition] = useState({ x: 0, y: 0 });
 
-  const handlePinEmployee = (employee: EmployeeData) => {
-    console.log("Pinning employee in starfield:", employee.name);
-    setPinnedEmployee(employee);
+  const handlePinProject = (project: PortfolioProject) => {
+    console.log("Pinning project in starfield:", project.name);
+    setPinnedProject(project);
     setPinnedPosition({ x: mousePosition.x, y: mousePosition.y });
     // Hide hover tooltip when pinning
-    setHoverInfo({ employee: null, x: 0, y: 0, show: false });
+    setHoverInfo({ project: null, x: 0, y: 0, show: false });
   };
 
-  const handleUnpinEmployee = () => {
-    console.log("Unpinning employee in starfield");
-    setPinnedEmployee(null);
+  const handleUnpinProject = () => {
+    console.log("Unpinning project in starfield");
+    setPinnedProject(null);
   };
 
   // Game state
@@ -323,15 +323,15 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
 
   useEffect(() => {
     const handleGlobalClick = (e: MouseEvent) => {
-      // If we have a pinned employee and click is not on tooltip
-      if (pinnedEmployee && canvasRef.current && e.target === canvasRef.current) {
-        handleUnpinEmployee();
+      // If we have a pinned project and click is not on tooltip
+      if (pinnedProject && canvasRef.current && e.target === canvasRef.current) {
+        handleUnpinProject();
       }
     };
 
     window.addEventListener("click", handleGlobalClick);
     return () => window.removeEventListener("click", handleGlobalClick);
-  }, [pinnedEmployee]);
+  }, [pinnedProject]);
 
   // Set up canvas and handle resize
   useEffect(() => {
@@ -807,24 +807,24 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
         />
       )}
 
-      {pinnedEmployee && (
-        <EmployeeTooltip
-          employee={pinnedEmployee}
+      {pinnedProject && (
+        <ProjectTooltip
+          project={pinnedProject}
           x={pinnedPosition.x}
           y={pinnedPosition.y}
           isPinned={true}
           isDarkMode={isDarkMode}
-          onUnpin={handleUnpinEmployee}
+          onUnpin={handleUnpinProject}
         />
       )}
 
-      {hoverInfo.show && hoverInfo.employee && !pinnedEmployee && (
-        <EmployeeTooltip
-          employee={hoverInfo.employee}
+      {hoverInfo.show && hoverInfo.project && !pinnedProject && (
+        <ProjectTooltip
+          project={hoverInfo.project}
           x={hoverInfo.x}
           y={hoverInfo.y}
           isDarkMode={isDarkMode}
-          onPin={handlePinEmployee}
+          onPin={handlePinProject}
         />
       )}
 

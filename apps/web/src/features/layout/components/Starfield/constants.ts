@@ -1,5 +1,5 @@
 // components/Layout/Starfield/constants.ts
-import { BlackHoleData, EmployeeData } from "./types";
+import { BlackHoleData, PortfolioProject } from "./types";
 
   // Default black hole positions
   export const DEFAULT_BLACK_HOLES = [
@@ -7,10 +7,11 @@ import { BlackHoleData, EmployeeData } from "./types";
     { x: 0.8, y: 0.7, radius: 30, color: "#8A2BE2" },
   ];
 
-// Default projects data displayed as orbital elements (using EmployeeData interface for compatibility)
+// Default portfolio projects data displayed as orbital elements
 // Main projects - larger, more prominent stars with weight based on status
-export const DEFAULT_EMPLOYEES: EmployeeData[] = [
-  // Main flagship project - Alpha status, heaviest
+// Each project has a focusArea that determines which sun it orbits around
+export const DEFAULT_PORTFOLIO_PROJECTS: PortfolioProject[] = [
+  // AI & Machine Learning Focus Area
   {
     id: "mystira",
     name: "Mystira",
@@ -28,29 +29,9 @@ export const DEFAULT_EMPLOYEES: EmployeeData[] = [
     expertise: "Storytelling, Child Development, Education",
     projects: ["Interactive Adventures", "Family Playtime", "Group Sessions"],
     skills: ["Storytelling", "Children", "Interactive", "Education"],
-    relatedEmployees: ["phoenixrooivalk", "cognitivemesh"],
-    product: "https://mystira.app"
-  },
-  // Pre-alpha/Seeding projects - smaller
-  {
-    id: "phoenixrooivalk",
-    name: "Phoenix Rooivalk",
-    initials: "PR",
-    position: "Counter-Drone Platform",
-    mass: 200, // Smaller - pre-alpha/seeding
-    color: "#795548", // Brown - for pre-alpha/seeding
-    image: "/themes/rooivalk-icon.png",
-    fullName: "Phoenix Rooivalk",
-    speed: 0.0002,
-    title: "AI-Powered Counter-Drone Platform (Pre-Alpha)",
-    bio: "Phoenix Rooivalk is a sophisticated counter-drone platform leveraging advanced AI for real-time drone detection, classification, and neutralization. Named after the South African Rooivalk attack helicopter.",
-    department: "Defense",
-    experience: 0,
-    expertise: "AI, Machine Learning, Defense Systems",
-    projects: ["Drone Detection", "Threat Assessment", "Airspace Protection"],
-    skills: ["Counter-Drone", "AI", "Defense", "Security"],
-    relatedEmployees: ["mystira", "cognitivemesh"],
-    product: "https://phoenixrooivalk.com"
+    relatedProjects: ["phoenixrooivalk", "cognitivemesh"],
+    product: "https://mystira.app",
+    focusArea: "ai-ml"
   },
   {
     id: "cognitivemesh",
@@ -69,10 +50,119 @@ export const DEFAULT_EMPLOYEES: EmployeeData[] = [
     expertise: "Multi-Agent AI, Enterprise Security, Governance",
     projects: ["AI Orchestration", "Security Compliance", "Zero-Trust Architecture"],
     skills: ["Multi-Agent", "Enterprise", "Security", "Governance"],
-    relatedEmployees: ["mystira", "phoenixrooivalk"],
-    product: "https://github.com/justaghost/cognitive-mesh"
+    relatedProjects: ["mystira", "phoenixrooivalk"],
+    product: "https://github.com/justaghost/cognitive-mesh",
+    focusArea: "ai-ml"
   },
-  // Smaller secondary/supporting projects
+
+  // Defense & Security Focus Area
+  {
+    id: "phoenixrooivalk",
+    name: "Phoenix Rooivalk",
+    initials: "PR",
+    position: "Counter-Drone Platform",
+    mass: 200, // Smaller - pre-alpha/seeding
+    color: "#795548", // Brown - for pre-alpha/seeding
+    image: "/themes/rooivalk-icon.png",
+    fullName: "Phoenix Rooivalk",
+    speed: 0.0002,
+    title: "AI-Powered Counter-Drone Platform (Pre-Alpha)",
+    bio: "Phoenix Rooivalk is a sophisticated counter-drone platform leveraging advanced AI for real-time drone detection, classification, and neutralization. Named after the South African Rooivalk attack helicopter.",
+    department: "Defense",
+    experience: 0,
+    expertise: "AI, Machine Learning, Defense Systems",
+    projects: ["Drone Detection", "Threat Assessment", "Airspace Protection"],
+    skills: ["Counter-Drone", "AI", "Defense", "Security"],
+    relatedProjects: ["mystira", "cognitivemesh"],
+    product: "https://phoenixrooivalk.com",
+    focusArea: "defense-security"
+  },
+  {
+    id: "airkey",
+    name: "Airkey",
+    initials: "AK",
+    position: "Access Management",
+    mass: 150, // Medium - early stage investment
+    color: "#e67e22", // Orange - early stage
+    fullName: "Airkey Ltd",
+    speed: 0.00019,
+    title: "Digital Access Management (Early Stage)",
+    bio: "Airkey Ltd provides innovative digital access management solutions that enable secure, keyless entry systems for commercial and residential properties.",
+    department: "Security",
+    experience: 0,
+    expertise: "Access Control, IoT, Mobile Security",
+    projects: ["Keyless Entry", "Smart Access"],
+    skills: ["Access Control", "Security", "IoT", "Mobile"],
+    relatedProjects: ["phoenixrooivalk", "hop", "chaufher"],
+    product: "",
+    focusArea: "defense-security"
+  },
+
+  // Fintech & Blockchain Focus Area
+  {
+    id: "veritasvault",
+    name: "VeritasVault",
+    initials: "VV",
+    position: "DeFi Platform",
+    mass: 80, // Smallest - pre-alpha/concept stage
+    color: "#795548", // Brown - for pre-alpha
+    fullName: "VeritasVault",
+    speed: 0.00020,
+    title: "DeFi Staking Platform (Pre-Alpha)",
+    bio: "VeritasVault is a decentralized finance platform offering transparent, treasury-backed staking rewards with auto-compounding yields.",
+    department: "Blockchain",
+    experience: 0,
+    expertise: "DeFi, Staking, Smart Contracts",
+    projects: ["Staking Rewards", "Treasury Management"],
+    skills: ["DeFi", "Blockchain", "Staking", "Crypto", "Web3"],
+    relatedProjects: ["cognitivemesh", "airkey"],
+    product: "https://veritasvault.net",
+    focusArea: "fintech-blockchain"
+  },
+
+  // Mobility & Transportation Focus Area
+  {
+    id: "hop",
+    name: "Hop",
+    initials: "HP",
+    position: "Transportation Tech",
+    mass: 150, // Medium - early stage investment
+    color: "#e67e22", // Orange - early stage
+    fullName: "Hop Pty Ltd",
+    speed: 0.00017,
+    title: "Innovative Transportation Technology (Early Stage)",
+    bio: "Hop Pty Ltd is revolutionizing urban mobility with innovative transportation technology solutions that connect commuters with efficient, sustainable transport options.",
+    department: "Mobility",
+    experience: 0,
+    expertise: "Transportation, Urban Mobility, Route Optimization",
+    projects: ["Smart Mobility", "Route Planning"],
+    skills: ["Transportation", "Mobility", "Smart City", "Sustainability"],
+    relatedProjects: ["airkey", "chaufher"],
+    product: "",
+    focusArea: "mobility-transportation"
+  },
+  {
+    id: "chaufher",
+    name: "Chaufher",
+    initials: "CH",
+    position: "Women's Transportation",
+    mass: 180, // Larger - growth stage investment
+    color: "#e74c3c", // Red - growth stage
+    fullName: "Chaufher Pty Ltd",
+    speed: 0.00016,
+    title: "Women-Focused Transportation (Growth Stage)",
+    bio: "Chaufher Pty Ltd is a women-focused transportation service designed to provide safe, reliable rides for women, by women.",
+    department: "Mobility",
+    experience: 0,
+    expertise: "Transportation, Safety, Ride-Sharing",
+    projects: ["Safe Rides", "Women's Transport"],
+    skills: ["Transportation", "Safety", "Women-Focused", "Ride-Sharing"],
+    relatedProjects: ["airkey", "hop"],
+    product: "",
+    focusArea: "mobility-transportation"
+  },
+
+  // Supporting Infrastructure (no specific focus area - orbits the central black hole)
   {
     id: "phoenixvc-website",
     name: "PhoenixVC Website",
@@ -89,7 +179,7 @@ export const DEFAULT_EMPLOYEES: EmployeeData[] = [
     expertise: "React, TypeScript, Azure",
     projects: ["Web Development"],
     skills: ["React", "TypeScript", "Azure"],
-    relatedEmployees: ["mystira"],
+    relatedProjects: ["mystira"],
     product: "https://phoenixvc.tech"
   },
   {
@@ -108,87 +198,13 @@ export const DEFAULT_EMPLOYEES: EmployeeData[] = [
     expertise: "React Components, Design Tokens",
     projects: ["UI Components"],
     skills: ["Design", "Components", "Tokens"],
-    relatedEmployees: ["phoenixvc-website"],
+    relatedProjects: ["phoenixvc-website"],
     product: ""
-  },
-  // Portfolio companies - early stage and growth investments
-  {
-    id: "airkey",
-    name: "Airkey",
-    initials: "AK",
-    position: "Access Management",
-    mass: 150, // Medium - early stage investment
-    color: "#e67e22", // Orange - early stage
-    fullName: "Airkey Ltd",
-    speed: 0.00019,
-    title: "Digital Access Management (Early Stage)",
-    bio: "Airkey Ltd provides innovative digital access management solutions that enable secure, keyless entry systems for commercial and residential properties.",
-    department: "Security",
-    experience: 0,
-    expertise: "Access Control, IoT, Mobile Security",
-    projects: ["Keyless Entry", "Smart Access"],
-    skills: ["Access Control", "Security", "IoT", "Mobile"],
-    relatedEmployees: ["hop", "chaufher"],
-    product: ""
-  },
-  {
-    id: "hop",
-    name: "Hop",
-    initials: "HP",
-    position: "Transportation Tech",
-    mass: 150, // Medium - early stage investment
-    color: "#e67e22", // Orange - early stage
-    fullName: "Hop Pty Ltd",
-    speed: 0.00017,
-    title: "Innovative Transportation Technology (Early Stage)",
-    bio: "Hop Pty Ltd is revolutionizing urban mobility with innovative transportation technology solutions that connect commuters with efficient, sustainable transport options.",
-    department: "Mobility",
-    experience: 0,
-    expertise: "Transportation, Urban Mobility, Route Optimization",
-    projects: ["Smart Mobility", "Route Planning"],
-    skills: ["Transportation", "Mobility", "Smart City", "Sustainability"],
-    relatedEmployees: ["airkey", "chaufher"],
-    product: ""
-  },
-  {
-    id: "chaufher",
-    name: "Chaufher",
-    initials: "CH",
-    position: "Women's Transportation",
-    mass: 180, // Larger - growth stage investment
-    color: "#e74c3c", // Red - growth stage
-    fullName: "Chaufher Pty Ltd",
-    speed: 0.00016,
-    title: "Women-Focused Transportation (Growth Stage)",
-    bio: "Chaufher Pty Ltd is a women-focused transportation service designed to provide safe, reliable rides for women, by women.",
-    department: "Mobility",
-    experience: 0,
-    expertise: "Transportation, Safety, Ride-Sharing",
-    projects: ["Safe Rides", "Women's Transport"],
-    skills: ["Transportation", "Safety", "Women-Focused", "Ride-Sharing"],
-    relatedEmployees: ["airkey", "hop"],
-    product: ""
-  },
-  {
-    id: "veritasvault",
-    name: "VeritasVault",
-    initials: "VV",
-    position: "DeFi Platform",
-    mass: 80, // Smallest - pre-alpha/concept stage
-    color: "#795548", // Brown - for pre-alpha
-    fullName: "VeritasVault",
-    speed: 0.00020,
-    title: "DeFi Staking Platform (Pre-Alpha)",
-    bio: "VeritasVault is a decentralized finance platform offering transparent, treasury-backed staking rewards with auto-compounding yields.",
-    department: "Blockchain",
-    experience: 0,
-    expertise: "DeFi, Staking, Smart Contracts",
-    projects: ["Staking Rewards", "Treasury Management"],
-    skills: ["DeFi", "Blockchain", "Staking", "Crypto", "Web3"],
-    relatedEmployees: ["cognitivemesh", "airkey"],
-    product: "https://veritasvault.net"
   }
 ];
+
+// Legacy alias for backward compatibility
+export const DEFAULT_EMPLOYEES = DEFAULT_PORTFOLIO_PROJECTS;
 
 // Alternative black hole configurations for multiple black holes
 export const MULTIPLE_BLACK_HOLES: BlackHoleData[] = [

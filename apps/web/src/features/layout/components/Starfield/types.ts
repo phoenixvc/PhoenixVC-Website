@@ -15,8 +15,8 @@ export interface CenterPosition {
   y: number;
 }
 
-// Employee-related types
-export interface EmployeeData {
+// Portfolio project types (renamed from Employee-related types)
+export interface PortfolioProject {
   id: string;
   name: string;
   fullName?: string;
@@ -34,9 +34,13 @@ export interface EmployeeData {
   projects?: string[];
   bio?: string;
   title: string;
-  relatedEmployees: string[];
+  relatedProjects: string[];
   product: string;
+  focusArea?: "ai-ml" | "fintech-blockchain" | "defense-security" | "mobility-transportation";
 }
+
+// Legacy alias for backward compatibility
+export type EmployeeData = PortfolioProject;
 
 export interface Satellite {
   angle: number;
@@ -47,13 +51,16 @@ export interface Satellite {
   eccentricity: number;
 }
 
-export interface EmployeeSatellite {
+export interface PortfolioSatellite {
   angle: number;
   distance: number;
   speed: number;
   size: number;
   color: string;
 }
+
+// Legacy alias for backward compatibility
+export type EmployeeSatellite = PortfolioSatellite;
 
 export interface Pulsation {
   enabled: boolean;
@@ -65,7 +72,7 @@ export interface Pulsation {
 }
 
 export interface Planet {
-  employee: EmployeeData;
+  project: PortfolioProject;
   x: number;
   y: number;
   vx: number;
@@ -102,7 +109,7 @@ export interface Planet {
 }
 
 export interface HoverInfo {
-  employee: EmployeeData | null; // Allow null for employee
+  project: PortfolioProject | null;
   x: number;
   y: number;
   show: boolean;
@@ -451,6 +458,7 @@ export interface StarfieldProps {
 
 // Type aliases for backward compatibility
 export type EmployeeStar = Planet;
+export type PortfolioStar = Planet;
 export type InteractiveStarfieldProps = StarfieldProps;
 
 // Global declarations

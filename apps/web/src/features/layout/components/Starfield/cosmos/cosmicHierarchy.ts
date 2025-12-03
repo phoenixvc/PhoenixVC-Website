@@ -34,88 +34,88 @@ export const GALAXIES: CosmicObject[] = [
 
 // Suns representing subcategories
 export const SUNS: CosmicObject[] = [
-  // Focus Areas Galaxy - Suns
+  // Focus Areas Galaxy - Main Focus Area Suns (for the Focus Areas section)
   {
-    id: "fintech-sun",
-    name: "Fintech",
-    description: "Financial technology innovations",
+    id: "fintech-blockchain-sun",
+    name: "Fintech & Blockchain",
+    description: "Financial technology and blockchain innovations",
     position: { x: 0.25, y: 0.35 },
     size: 0.06,
     level: "sun",
     parentId: "focus-areas-galaxy",
-    color: "#2ecc71"
-  },
-  {
-    id: "blockchain-sun",
-    name: "Blockchain",
-    description: "Distributed ledger technologies",
-    position: { x: 0.35, y: 0.45 },
-    size: 0.05,
-    level: "sun",
-    parentId: "focus-areas-galaxy",
-    color: "#1abc9c"
+    color: "#f39c12" // Golden - for fintech/blockchain
   },
   {
     id: "ai-ml-sun",
     name: "AI & ML",
     description: "Artificial intelligence and machine learning",
+    position: { x: 0.35, y: 0.45 },
+    size: 0.055,
+    level: "sun",
+    parentId: "focus-areas-galaxy",
+    color: "#3498db" // Blue - for AI/ML
+  },
+  {
+    id: "defense-security-sun",
+    name: "Defense & Security",
+    description: "Defense technology and security solutions",
     position: { x: 0.28, y: 0.5 },
     size: 0.055,
     level: "sun",
     parentId: "focus-areas-galaxy",
-    color: "#3498db"
+    color: "#e74c3c" // Red - for defense/security
   },
   {
-    id: "other-tech-sun",
-    name: "Other Tech",
-    description: "Other emerging technologies",
+    id: "mobility-transportation-sun",
+    name: "Mobility & Transportation",
+    description: "Transportation and mobility innovations",
     position: { x: 0.2, y: 0.42 },
-    size: 0.045,
+    size: 0.05,
     level: "sun",
     parentId: "focus-areas-galaxy",
-    color: "#16a085"
+    color: "#2ecc71" // Green - for mobility
   },
 
-  // Portfolio Galaxy - Suns
+  // Portfolio Galaxy - Focus Area Suns with Portfolio Companies as Planets
   {
-    id: "early-stage-sun",
-    name: "Early Stage",
-    description: "Early-stage portfolio companies",
+    id: "portfolio-ai-ml-sun",
+    name: "AI & Machine Learning",
+    description: "AI and machine learning portfolio companies",
     position: { x: 0.65, y: 0.25 },
-    size: 0.055,
-    level: "sun",
-    parentId: "portfolio-galaxy",
-    color: "#e67e22"
-  },
-  {
-    id: "growth-stage-sun",
-    name: "Growth Stage",
-    description: "Growth-stage portfolio companies",
-    position: { x: 0.75, y: 0.28 },
     size: 0.06,
     level: "sun",
     parentId: "portfolio-galaxy",
-    color: "#d35400"
+    color: "#3498db" // Blue - AI/ML
   },
   {
-    id: "crypto-investments-sun",
-    name: "Crypto Investments",
-    description: "Blockchain and cryptocurrency investments",
-    position: { x: 0.68, y: 0.35 },
-    size: 0.05,
-    level: "sun",
-    parentId: "portfolio-galaxy",
-    color: "#f39c12"
-  },
-  {
-    id: "strategic-partners-sun",
-    name: "Strategic Partners",
-    description: "Key strategic partnerships",
-    position: { x: 0.72, y: 0.38 },
+    id: "portfolio-fintech-blockchain-sun",
+    name: "Fintech & Blockchain",
+    description: "Fintech and blockchain portfolio companies",
+    position: { x: 0.75, y: 0.28 },
     size: 0.055,
     level: "sun",
     parentId: "portfolio-galaxy",
-    color: "#e74c3c"
+    color: "#f39c12" // Golden - fintech/blockchain
+  },
+  {
+    id: "portfolio-defense-security-sun",
+    name: "Defense & Security",
+    description: "Defense and security portfolio companies",
+    position: { x: 0.68, y: 0.35 },
+    size: 0.055,
+    level: "sun",
+    parentId: "portfolio-galaxy",
+    color: "#e74c3c" // Red - defense/security
+  },
+  {
+    id: "portfolio-mobility-sun",
+    name: "Mobility & Transportation",
+    description: "Mobility and transportation portfolio companies",
+    position: { x: 0.72, y: 0.40 },
+    size: 0.055,
+    level: "sun",
+    parentId: "portfolio-galaxy",
+    color: "#2ecc71" // Green - mobility
   },
 
   // Information Galaxy - Suns
@@ -173,7 +173,7 @@ export const SUNS: CosmicObject[] = [
 
 // Planets representing individual content pages
 export const PLANETS: CosmicObject[] = [
-  // Fintech Sun - Planets
+  // Fintech & Blockchain Sun - Planets (Focus Area concepts)
   {
     id: "digital-banking",
     name: "Digital Banking",
@@ -181,8 +181,8 @@ export const PLANETS: CosmicObject[] = [
     position: { x: 0.23, y: 0.33 },
     size: 0.02,
     level: "planet",
-    parentId: "fintech-sun",
-    color: "#2ecc71"
+    parentId: "fintech-blockchain-sun",
+    color: "#f39c12"
   },
   {
     id: "payment-solutions",
@@ -191,98 +191,46 @@ export const PLANETS: CosmicObject[] = [
     position: { x: 0.27, y: 0.32 },
     size: 0.018,
     level: "planet",
-    parentId: "fintech-sun",
-    color: "#27ae60"
-  },
-  {
-    id: "wealth-management",
-    name: "Wealth Management",
-    description: "Digital wealth management platforms",
-    position: { x: 0.26, y: 0.38 },
-    size: 0.019,
-    level: "planet",
-    parentId: "fintech-sun",
-    color: "#2ecc71"
-  },
-  {
-    id: "insurtech",
-    name: "InsurTech",
-    description: "Insurance technology innovations",
-    position: { x: 0.24, y: 0.36 },
-    size: 0.019,
-    level: "planet",
-    parentId: "fintech-sun",
-    color: "#27ae60"
-  },
-  {
-    id: "regtech",
-    name: "RegTech",
-    description: "Regulatory technology solutions",
-    position: { x: 0.22, y: 0.34 },
-    size: 0.017,
-    level: "planet",
-    parentId: "fintech-sun",
-    color: "#2ecc71"
-  },
-
-  // Blockchain Sun - Planets
-  {
-    id: "cryptocurrency",
-    name: "Cryptocurrency",
-    description: "Digital currency innovations",
-    position: { x: 0.33, y: 0.43 },
-    size: 0.019,
-    level: "planet",
-    parentId: "blockchain-sun",
-    color: "#1abc9c"
-  },
-  {
-    id: "smart-contracts",
-    name: "Smart Contracts",
-    description: "Self-executing contract solutions",
-    position: { x: 0.37, y: 0.42 },
-    size: 0.018,
-    level: "planet",
-    parentId: "blockchain-sun",
-    color: "#16a085"
+    parentId: "fintech-blockchain-sun",
+    color: "#e67e22"
   },
   {
     id: "defi-solutions",
     name: "DeFi Solutions",
     description: "Decentralized finance platforms",
-    position: { x: 0.36, y: 0.47 },
+    position: { x: 0.26, y: 0.38 },
     size: 0.02,
     level: "planet",
-    parentId: "blockchain-sun",
-    color: "#1abc9c"
+    parentId: "fintech-blockchain-sun",
+    color: "#f39c12"
   },
   {
-    id: "nft-platforms",
-    name: "NFT Platforms",
-    description: "Non-fungible token marketplaces",
-    position: { x: 0.34, y: 0.46 },
+    id: "smart-contracts",
+    name: "Smart Contracts",
+    description: "Self-executing contract solutions",
+    position: { x: 0.24, y: 0.36 },
     size: 0.018,
     level: "planet",
-    parentId: "blockchain-sun",
-    color: "#16a085"
+    parentId: "fintech-blockchain-sun",
+    color: "#e67e22"
   },
   {
-    id: "dao-governance",
-    name: "DAO Governance",
-    description: "Decentralized autonomous organizations",
-    position: { x: 0.32, y: 0.44 },
+    id: "web3-infrastructure",
+    name: "Web3 Infrastructure",
+    description: "Web3 and blockchain infrastructure",
+    position: { x: 0.22, y: 0.34 },
     size: 0.017,
     level: "planet",
-    parentId: "blockchain-sun",
-    color: "#1abc9c"
+    parentId: "fintech-blockchain-sun",
+    color: "#f39c12"
   },
 
-  // AI & ML Sun - Planets
+  // AI & ML Sun - Planets (Focus Area concepts)
   {
     id: "data-analytics",
     name: "Data Analytics",
     description: "Advanced data analysis solutions",
-    position: { x: 0.26, y: 0.48 },
+    position: { x: 0.33, y: 0.43 },
     size: 0.019,
     level: "planet",
     parentId: "ai-ml-sun",
@@ -292,7 +240,7 @@ export const PLANETS: CosmicObject[] = [
     id: "machine-learning",
     name: "Machine Learning",
     description: "ML algorithms and applications",
-    position: { x: 0.3, y: 0.52 },
+    position: { x: 0.37, y: 0.42 },
     size: 0.02,
     level: "planet",
     parentId: "ai-ml-sun",
@@ -302,7 +250,7 @@ export const PLANETS: CosmicObject[] = [
     id: "neural-networks",
     name: "Neural Networks",
     description: "Deep learning and neural network solutions",
-    position: { x: 0.27, y: 0.53 },
+    position: { x: 0.36, y: 0.47 },
     size: 0.018,
     level: "planet",
     parentId: "ai-ml-sun",
@@ -312,7 +260,7 @@ export const PLANETS: CosmicObject[] = [
     id: "computer-vision",
     name: "Computer Vision",
     description: "Image and video analysis technologies",
-    position: { x: 0.29, y: 0.49 },
+    position: { x: 0.34, y: 0.46 },
     size: 0.019,
     level: "planet",
     parentId: "ai-ml-sun",
@@ -322,231 +270,173 @@ export const PLANETS: CosmicObject[] = [
     id: "nlp",
     name: "NLP",
     description: "Natural language processing",
-    position: { x: 0.31, y: 0.51 },
+    position: { x: 0.32, y: 0.44 },
     size: 0.018,
     level: "planet",
     parentId: "ai-ml-sun",
     color: "#3498db"
   },
 
-  // Other Tech Sun - Planets
+  // Defense & Security Sun - Planets (Focus Area concepts)
   {
-    id: "iot",
-    name: "IoT",
-    description: "Internet of Things technologies",
-    position: { x: 0.18, y: 0.4 },
-    size: 0.018,
-    level: "planet",
-    parentId: "other-tech-sun",
-    color: "#16a085"
-  },
-  {
-    id: "cloud-computing",
-    name: "Cloud Computing",
-    description: "Cloud infrastructure and services",
-    position: { x: 0.22, y: 0.4 },
+    id: "counter-drone",
+    name: "Counter-Drone",
+    description: "Counter-drone defense systems",
+    position: { x: 0.26, y: 0.48 },
     size: 0.019,
     level: "planet",
-    parentId: "other-tech-sun",
-    color: "#1abc9c"
+    parentId: "defense-security-sun",
+    color: "#e74c3c"
+  },
+  {
+    id: "access-control",
+    name: "Access Control",
+    description: "Digital access management solutions",
+    position: { x: 0.3, y: 0.52 },
+    size: 0.02,
+    level: "planet",
+    parentId: "defense-security-sun",
+    color: "#c0392b"
   },
   {
     id: "cybersecurity",
     name: "Cybersecurity",
     description: "Security solutions and technologies",
+    position: { x: 0.27, y: 0.53 },
+    size: 0.018,
+    level: "planet",
+    parentId: "defense-security-sun",
+    color: "#e74c3c"
+  },
+  {
+    id: "threat-detection",
+    name: "Threat Detection",
+    description: "AI-powered threat detection",
+    position: { x: 0.29, y: 0.49 },
+    size: 0.019,
+    level: "planet",
+    parentId: "defense-security-sun",
+    color: "#c0392b"
+  },
+
+  // Mobility & Transportation Sun - Planets (Focus Area concepts)
+  {
+    id: "ride-sharing",
+    name: "Ride Sharing",
+    description: "Ride-sharing platforms",
+    position: { x: 0.18, y: 0.4 },
+    size: 0.018,
+    level: "planet",
+    parentId: "mobility-transportation-sun",
+    color: "#2ecc71"
+  },
+  {
+    id: "urban-mobility",
+    name: "Urban Mobility",
+    description: "Urban transportation solutions",
+    position: { x: 0.22, y: 0.4 },
+    size: 0.019,
+    level: "planet",
+    parentId: "mobility-transportation-sun",
+    color: "#27ae60"
+  },
+  {
+    id: "route-optimization",
+    name: "Route Optimization",
+    description: "Intelligent route planning",
     position: { x: 0.19, y: 0.44 },
     size: 0.02,
     level: "planet",
-    parentId: "other-tech-sun",
-    color: "#16a085"
+    parentId: "mobility-transportation-sun",
+    color: "#2ecc71"
   },
   {
-    id: "ar-vr",
-    name: "AR/VR",
-    description: "Augmented and virtual reality",
+    id: "smart-transportation",
+    name: "Smart Transportation",
+    description: "Smart city transportation infrastructure",
     position: { x: 0.21, y: 0.43 },
     size: 0.018,
     level: "planet",
-    parentId: "other-tech-sun",
-    color: "#1abc9c"
-  },
-  {
-    id: "quantum-computing",
-    name: "Quantum Computing",
-    description: "Next-generation quantum technologies",
-    position: { x: 0.17, y: 0.41 },
-    size: 0.017,
-    level: "planet",
-    parentId: "other-tech-sun",
-    color: "#16a085"
+    parentId: "mobility-transportation-sun",
+    color: "#27ae60"
   },
 
-  // Early Stage Sun - Planets
+  // Portfolio Galaxy - AI & ML Sun - Portfolio Companies as Planets
   {
-    id: "airkey-ltd-planet",
-    name: "Airkey Ltd",
-    description: "Digital access management solutions",
+    id: "mystira-planet",
+    name: "Mystira",
+    description: "Interactive storytelling adventures for children",
     position: { x: 0.63, y: 0.23 },
-    size: 0.019,
+    size: 0.022,
     level: "planet",
-    parentId: "early-stage-sun",
-    color: "#e67e22"
+    parentId: "portfolio-ai-ml-sun",
+    color: "#9c27b0" // Purple - Alpha status
   },
   {
-    id: "hop-pty-ltd-planet",
-    name: "Hop Pty Ltd",
-    description: "Innovative transportation technology",
+    id: "cognitive-mesh-planet",
+    name: "Cognitive Mesh",
+    description: "Enterprise-grade AI transformation framework",
     position: { x: 0.67, y: 0.24 },
-    size: 0.02,
-    level: "planet",
-    parentId: "early-stage-sun",
-    color: "#d35400"
-  },
-  {
-    id: "fintech-startup-planet",
-    name: "FinTech Startup",
-    description: "Emerging financial technology company",
-    position: { x: 0.64, y: 0.27 },
     size: 0.018,
     level: "planet",
-    parentId: "early-stage-sun",
-    color: "#e67e22"
-  },
-  {
-    id: "ai-startup-planet",
-    name: "AI Startup",
-    description: "Early-stage artificial intelligence company",
-    position: { x: 0.66, y: 0.26 },
-    size: 0.019,
-    level: "planet",
-    parentId: "early-stage-sun",
-    color: "#d35400"
+    parentId: "portfolio-ai-ml-sun",
+    color: "#795548" // Brown - Pre-alpha
   },
 
-  // Growth Stage Sun - Planets
+  // Portfolio Galaxy - Fintech & Blockchain Sun - Portfolio Companies as Planets
   {
-    id: "chaufher-pty-ltd-planet",
-    name: "Chaufher Pty Ltd",
-    description: "Women-focused transportation service",
+    id: "veritasvault-planet",
+    name: "VeritasVault",
+    description: "DeFi staking and treasury-backed rewards platform",
     position: { x: 0.73, y: 0.26 },
-    size: 0.02,
-    level: "planet",
-    parentId: "growth-stage-sun",
-    color: "#e74c3c"
-  },
-  {
-    id: "tech-scale-up-planet",
-    name: "Tech Scale-up",
-    description: "Growing technology company",
-    position: { x: 0.77, y: 0.27 },
-    size: 0.019,
-    level: "planet",
-    parentId: "growth-stage-sun",
-    color: "#d35400"
-  },
-  {
-    id: "saas-platform-planet",
-    name: "SaaS Platform",
-    description: "Enterprise software-as-a-service platform",
-    position: { x: 0.76, y: 0.3 },
     size: 0.018,
     level: "planet",
-    parentId: "growth-stage-sun",
-    color: "#e74c3c"
-  },
-  {
-    id: "health-tech-planet",
-    name: "Health Tech",
-    description: "Healthcare technology company",
-    position: { x: 0.74, y: 0.29 },
-    size: 0.019,
-    level: "planet",
-    parentId: "growth-stage-sun",
-    color: "#d35400"
+    parentId: "portfolio-fintech-blockchain-sun",
+    color: "#795548" // Brown - Pre-alpha
   },
 
-  // Crypto Investments Sun - Planets
+  // Portfolio Galaxy - Defense & Security Sun - Portfolio Companies as Planets
   {
-    id: "crypto-fund-planet",
-    name: "Crypto Fund",
-    description: "Cryptocurrency investment fund",
+    id: "phoenix-rooivalk-planet",
+    name: "Phoenix Rooivalk",
+    description: "AI-powered counter-drone defense platform",
     position: { x: 0.66, y: 0.33 },
-    size: 0.019,
-    level: "planet",
-    parentId: "crypto-investments-sun",
-    color: "#f39c12"
-  },
-  {
-    id: "defi-platform-planet",
-    name: "DeFi Platform",
-    description: "Decentralized finance platform investment",
-    position: { x: 0.7, y: 0.34 },
     size: 0.02,
     level: "planet",
-    parentId: "crypto-investments-sun",
-    color: "#e67e22"
+    parentId: "portfolio-defense-security-sun",
+    color: "#795548" // Brown - Pre-alpha
   },
   {
-    id: "blockchain-venture-planet",
-    name: "Blockchain Venture",
-    description: "Enterprise blockchain solution",
-    position: { x: 0.69, y: 0.37 },
+    id: "airkey-planet",
+    name: "Airkey",
+    description: "Digital access management solutions",
+    position: { x: 0.7, y: 0.34 },
     size: 0.018,
     level: "planet",
-    parentId: "crypto-investments-sun",
-    color: "#f39c12"
-  },
-  {
-    id: "nft-marketplace-planet",
-    name: "NFT Marketplace",
-    description: "Digital collectibles platform",
-    position: { x: 0.67, y: 0.36 },
-    size: 0.019,
-    level: "planet",
-    parentId: "crypto-investments-sun",
-    color: "#e67e22"
+    parentId: "portfolio-defense-security-sun",
+    color: "#e67e22" // Orange - Early stage
   },
 
-  // Strategic Partners Sun - Planets (New)
+  // Portfolio Galaxy - Mobility & Transportation Sun - Portfolio Companies as Planets
   {
-    id: "banking-partner-planet",
-    name: "Banking Partner",
-    description: "Strategic banking relationship",
-    position: { x: 0.70, y: 0.39 },
-    size: 0.019,
-    level: "planet",
-    parentId: "strategic-partners-sun",
-    color: "#e74c3c"
-  },
-  {
-    id: "tech-alliance-planet",
-    name: "Tech Alliance",
-    description: "Technology partnership network",
-    position: { x: 0.74, y: 0.37 },
-    size: 0.02,
-    level: "planet",
-    parentId: "strategic-partners-sun",
-    color: "#c0392b"
-  },
-  {
-    id: "university-partner-planet",
-    name: "University Partner",
-    description: "Academic research partnership",
-    position: { x: 0.73, y: 0.40 },
+    id: "hop-planet",
+    name: "Hop",
+    description: "Innovative transportation technology",
+    position: { x: 0.70, y: 0.38 },
     size: 0.018,
     level: "planet",
-    parentId: "strategic-partners-sun",
-    color: "#e74c3c"
+    parentId: "portfolio-mobility-sun",
+    color: "#e67e22" // Orange - Early stage
   },
   {
-    id: "corporate-venture-planet",
-    name: "Corporate Venture",
-    description: "Corporate co-investment partner",
-    position: { x: 0.71, y: 0.36 },
-    size: 0.019,
+    id: "chaufher-planet",
+    name: "Chaufher",
+    description: "Women-focused transportation service",
+    position: { x: 0.74, y: 0.39 },
+    size: 0.02,
     level: "planet",
-    parentId: "strategic-partners-sun",
-    color: "#c0392b"
+    parentId: "portfolio-mobility-sun",
+    color: "#e74c3c" // Red - Growth stage
   },
 
   // Blog Categories Sun - Planets
