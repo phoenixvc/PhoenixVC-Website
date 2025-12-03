@@ -25,7 +25,7 @@ export const useAnimationLoop = (props: AnimationProps) => {
     clickTime: 0,
     isOnScreen: true
   });
-  const hoverInfoRef = useRef(props.hoverInfo || { employee: null, x: 0, y: 0, show: false });
+  const hoverInfoRef = useRef(props.hoverInfo || { project: null, x: 0, y: 0, show: false });
 
   // Initialize gameStateRef with a proper GameState object
   const gameStateRef = useRef<GameState>((props.gameState as GameState) || {

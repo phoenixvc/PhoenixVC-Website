@@ -5,7 +5,7 @@ import { getObjectById, SUNS } from "./cosmos/cosmicHierarchy";
 import { worldToScreen } from "./cosmos/cosmicNavigation";
 import { Camera } from "./cosmos/types";
 import { drawPlanet } from "./starRendering";
-import { EmployeeData, HoverInfo, Planet, Satellite } from "./types";
+import { PortfolioProject, HoverInfo, Planet, Satellite } from "./types";
 import { calculateCenter } from "./utils";
 
 // Initialize portfolio items as orbiting comets/planets
@@ -13,7 +13,7 @@ export const initPlanets = (
   width: number,
   height: number,
   enablePlanets: boolean,
-  portfolioItems: EmployeeData[],
+  portfolioItems: PortfolioProject[],
   sidebarWidth: number,
   centerOffsetX: number,
   centerOffsetY: number,
@@ -120,9 +120,9 @@ export const initPlanets = (
       direction: 1
     };
 
-    // Create the orbital body (comet/planet) - 'employee' field kept for backward compatibility
+    // Create the orbital body (comet/planet) with project data
     const planet = {
-      employee: item, // The portfolio item data
+      project: item, // The portfolio item data
       x,
       y,
       vx,
@@ -190,7 +190,7 @@ export const initPlanets = (
   return planets;
 };
 
-export const checkEmployeeHover = (
+export const checkPlanetHover = (
   mouseX: number,
   mouseY: number,
   planets: Planet[],
@@ -200,14 +200,14 @@ export const checkEmployeeHover = (
 ): boolean => {
   if (!planets || !planets.length) return false;
 
-  let hoveredStar = null;
+  let hoveredPlanet = null;
   let closestDistance = Infinity;
 
-  // Find the closest star to the mouse
-  for (const empStar of planets) {
+  // Find the closest planet to the mouse
+  for (const planet of planets) {
     const dist = Math.sqrt(
-      Math.pow(mouseX - empStar.x, 2) +
-      Math.pow(mouseY - empStar.y, 2)
+      Math.pow(mouseX - planet.x, 2) +
+      Math.pow(mouseY - planet.y, 2)
     );
 
     // Increased hover radius for better detection
@@ -215,55 +215,54 @@ export const checkEmployeeHover = (
 
     if (dist < hoverRadius && dist < closestDistance) {
       closestDistance = dist;
-      hoveredStar = empStar;
+      hoveredPlanet = planet;
     }
 
-    // If this star was previously hovered but now isn't
-    if (empStar.isHovered && empStar !== hoveredStar) {
+    // If this planet was previously hovered but now isn't
+    if (planet.isHovered && planet !== hoveredPlanet) {
       // Restore original orbit speed if it was stored
-      if (empStar.originalOrbitSpeed !== undefined) {
-        empStar.orbitSpeed = empStar.originalOrbitSpeed;
-        empStar.originalOrbitSpeed = undefined;
+      if (planet.originalOrbitSpeed !== undefined) {
+        planet.orbitSpeed = planet.originalOrbitSpeed;
+        planet.originalOrbitSpeed = undefined;
       }
-      empStar.isMovementPaused = false;
-      empStar.isHovered = false;
+      planet.isMovementPaused = false;
+      planet.isHovered = false;
 
       // Reset pulsation to normal
-      if (empStar.pulsation && !empStar.useSimpleRendering) {
-        empStar.pulsation.enabled = true;
-        empStar.pulsation.minScale = 0.92;
-        empStar.pulsation.maxScale = 1.08;
-        empStar.pulsation.speed = 0.00002;
+      if (planet.pulsation && !planet.useSimpleRendering) {
+        planet.pulsation.enabled = true;
+        planet.pulsation.minScale = 0.92;
+        planet.pulsation.maxScale = 1.08;
+        planet.pulsation.speed = 0.00002;
       }
     }
   }
 
-  // Update the hovered star
-  if (hoveredStar) {
-    // If this star wasn't hovered before, store its original orbit speed
-    if (!hoveredStar.isHovered) {
-      hoveredStar.originalOrbitSpeed = hoveredStar.orbitSpeed;
-      // Freeze the star by setting orbit speed to 0
-      hoveredStar.orbitSpeed = 0;
-      hoveredStar.isMovementPaused = true;
+  // Update the hovered planet
+  if (hoveredPlanet) {
+    // If this planet wasn't hovered before, store its original orbit speed
+    if (!hoveredPlanet.isHovered) {
+      hoveredPlanet.originalOrbitSpeed = hoveredPlanet.orbitSpeed;
+      // Freeze the planet by setting orbit speed to 0
+      hoveredPlanet.orbitSpeed = 0;
+      hoveredPlanet.isMovementPaused = true;
     }
 
-    hoveredStar.isHovered = true;
+    hoveredPlanet.isHovered = true;
 
-    // Set more dramatic pulsation for hovered star
-    if (hoveredStar.pulsation && !hoveredStar.useSimpleRendering) {
-      hoveredStar.pulsation.enabled = true;
-      hoveredStar.pulsation.minScale = 0.8;
-      hoveredStar.pulsation.maxScale = 1.3; // Much more dramatic hover effect
-      hoveredStar.pulsation.speed = 0.0006; // Faster pulsation when hovered
+    // Set more dramatic pulsation for hovered planet
+    if (hoveredPlanet.pulsation && !hoveredPlanet.useSimpleRendering) {
+      hoveredPlanet.pulsation.enabled = true;
+      hoveredPlanet.pulsation.minScale = 0.8;
+      hoveredPlanet.pulsation.maxScale = 1.3; // Much more dramatic hover effect
+      hoveredPlanet.pulsation.speed = 0.0006; // Faster pulsation when hovered
     }
 
     // Use the actual mouse coordinates for tooltip positioning
     setHoverInfo({
-      project: hoveredStar.employee, // project field is required by HoverInfo interface
-      employee: hoveredStar.employee, // backward compatibility alias
-      x: mouseX, // Use mouse X instead of star X
-      y: mouseY, // Use mouse Y instead of star Y
+      project: hoveredPlanet.project, // project field is required by HoverInfo interface
+      x: mouseX, // Use mouse X instead of planet X
+      y: mouseY, // Use mouse Y instead of planet Y
       show: true
     });
 
@@ -275,6 +274,9 @@ export const checkEmployeeHover = (
   }
   return false;
 };
+
+// Legacy alias for backward compatibility
+export const checkEmployeeHover = checkPlanetHover;
 
 // Update portfolio items (comets/planets) animation
 export const updatePlanets = (
@@ -289,12 +291,12 @@ export const updatePlanets = (
 
   const cappedDeltaTime = Math.min(deltaTime, 100);
 
-  planets.forEach(empStar => {
+  planets.forEach(planet => {
     /* ---------- Recalc orbit centre if camera is available ---------- */
-    if (camera && empStar.orbitParentId) {
-      const parent = getObjectById(empStar.orbitParentId);
+    if (camera && planet.orbitParentId) {
+      const parent = getObjectById(planet.orbitParentId);
       if (parent) {
-        empStar.orbitCenter = worldToScreen(
+        planet.orbitCenter = worldToScreen(
           parent.position.x,
           parent.position.y,
           camera,
@@ -307,6 +309,6 @@ export const updatePlanets = (
     /* ------------------------------------------------------------ */
 
     // Draw the comet/planet regardless of movement state
-    drawPlanet(ctx, empStar, cappedDeltaTime, planetSize, employeeDisplayStyle);
+    drawPlanet(ctx, planet, cappedDeltaTime, planetSize, employeeDisplayStyle);
   });
 };

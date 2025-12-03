@@ -73,8 +73,6 @@ export interface Pulsation {
 
 export interface Planet {
   project: PortfolioProject;
-  // Legacy alias for backward compatibility - same as project
-  employee: EmployeeData;
   x: number;
   y: number;
   vx: number;
@@ -112,8 +110,6 @@ export interface Planet {
 
 export interface HoverInfo {
   project: PortfolioProject | null;
-  // Legacy alias for backward compatibility - same as project
-  employee?: EmployeeData | null;
   x: number;
   y: number;
   show: boolean;

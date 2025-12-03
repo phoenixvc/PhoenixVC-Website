@@ -18,7 +18,7 @@ import { renderCosmicHierarchy } from "../../cosmos/renderCosmicHierarchy";
 import { Camera, CosmicNavigationState } from "../../cosmos/types";
 // Import cosmic hierarchy data
 import { GALAXIES, SPECIAL_COSMIC_OBJECTS } from "../../cosmos/cosmicHierarchy";
-import { checkEmployeeHover, updatePlanets } from "../../Planets";
+import { checkPlanetHover, updatePlanets } from "../../Planets";
 import { drawCosmicNavigation } from "./drawCosmicNavigation";
 
 export const animate = (timestamp: number, props: AnimationProps, refs: AnimationRefs): void => {
@@ -168,16 +168,16 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
         // Only update state if it changed significantly
         if (
           newInfo.show !== currentHoverInfo.show ||
-          (newInfo.employee && currentHoverInfo.employee &&
-            newInfo.employee.id !== currentHoverInfo.employee.id) ||
-          (!newInfo.employee && currentHoverInfo.employee) ||
-          (newInfo.employee && !currentHoverInfo.employee)
+          (newInfo.project && currentHoverInfo.project &&
+            newInfo.project.id !== currentHoverInfo.project.id) ||
+          (!newInfo.project && currentHoverInfo.project) ||
+          (newInfo.project && !currentHoverInfo.project)
         ) {
           props.setHoverInfo(newInfo);
         }
       };
 
-      checkEmployeeHover(
+      checkPlanetHover(
         currentMousePosition.x,
         currentMousePosition.y,
         currentPlanets,

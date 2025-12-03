@@ -5,7 +5,7 @@ import {
   BlackHole,
   ClickBurst,
   CollisionEffect,
-  EmployeeData,
+  PortfolioProject,
   GameState,
   HoverInfo,
   MousePosition,
@@ -30,7 +30,7 @@ export interface DebugSettings {
 
 export interface AnimationProps {
     mousePosition: { x: number; y: number; lastX: number; lastY: number; speedX: number; speedY: number; isClicked: boolean; clickTime: number; isOnScreen: boolean; };
-    hoverInfo: { employee: EmployeeData | null; x: number; y: number; show: boolean; }; // Updated to match HoverInfo type
+    hoverInfo: { project: PortfolioProject | null; x: number; y: number; show: boolean; }; // Updated to match HoverInfo type
     gameState: {};
     starSize: number;
     canvasRef: MutableRefObject<HTMLCanvasElement | null>;
