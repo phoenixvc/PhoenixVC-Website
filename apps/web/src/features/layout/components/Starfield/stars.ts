@@ -40,8 +40,8 @@ export const initStars = (
     const x = sidebarWidth + Math.random() * effectiveWidth;
     const y = Math.random() * height;
 
-    // Random size with weighted distribution (more small stars)
-    const sizeMultiplier = Math.pow(Math.random(), 2) * 2 + 0.5;
+    // Random size with weighted distribution (more small stars, crisper appearance)
+    const sizeMultiplier = Math.pow(Math.random(), 2.5) * 1.5 + 0.3; // Reduced from 2+0.5 for smaller stars
     const size = sizeMultiplier * starSize;
 
     // Random color from palette
@@ -317,25 +317,25 @@ export const drawStars = (
       // Multi-frequency twinkle for more organic effect
       const twinkle1 = Math.sin(now * twinkleSpeed1 + uniqueSeed * 0.1);
       const twinkle2 = Math.sin(now * twinkleSpeed2 + uniqueSeed * 0.2);
-      const twinkleFactor = 0.6 + (twinkle1 * 0.2 + twinkle2 * 0.2); // Range: 0.2 to 1.0
+      const twinkleFactor = 0.7 + (twinkle1 * 0.15 + twinkle2 * 0.15); // Range: 0.4 to 1.0 (narrower)
 
-      // Calculate dynamic size with twinkle
-      const twinkleSize = star.size * (0.8 + twinkleFactor * 0.4);
+      // Calculate dynamic size with twinkle - reduced variation for crisper stars
+      const twinkleSize = star.size * (0.9 + twinkleFactor * 0.2); // Reduced size variation
 
       // Parse color once for this star (cached)
       const parsed = parseRgbaColor(star.color);
 
-      // Add subtle glow for larger stars
-      if (star.size > 1.2) {
-        const glowRadius = twinkleSize * 2.5;
+      // Add subtle glow for larger stars only (reduced from 1.2 to 1.8 threshold)
+      if (star.size > 1.8) {
+        const glowRadius = twinkleSize * 1.5; // Reduced from 2.5 for less blur
         const glowGradient = ctx.createRadialGradient(
           star.x, star.y, 0,
           star.x, star.y, glowRadius
         );
 
-        // Use optimized color function for glow
+        // Use optimized color function for glow with reduced opacity
         const glowColor = parsed
-          ? colorWithAlpha(parsed, twinkleFactor * 0.3)
+          ? colorWithAlpha(parsed, twinkleFactor * 0.15) // Reduced from 0.3
           : star.color;
 
         glowGradient.addColorStop(0, glowColor);
