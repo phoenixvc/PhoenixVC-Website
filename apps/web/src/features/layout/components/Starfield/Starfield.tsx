@@ -499,21 +499,24 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
             sunHideTimeoutRef.current = null;
           }
           // Only update state if the hovered sun changed
+          // Use the sun's fixed position (converted to viewport coordinates) instead of following the mouse
+          // This keeps the tooltip stable so users can click on it
           if (hoveredSunIdRef.current !== sunHoverResult.sun.id) {
             hoveredSunIdRef.current = sunHoverResult.sun.id;
             setHoveredSunId(sunHoverResult.sun.id);
+            // Convert canvas-relative sun position to viewport coordinates
+            const sunScreenX = sunHoverResult.x + rect.left;
+            const sunScreenY = sunHoverResult.y + rect.top;
             setHoveredSun({
               id: sunHoverResult.sun.id,
               name: sunHoverResult.sun.name,
               description: sunHoverResult.sun.description,
               color: sunHoverResult.sun.color || "#ffffff",
-              x: e.clientX,
-              y: e.clientY
+              x: sunScreenX,
+              y: sunScreenY
             });
-          } else {
-            // Update position only without changing state for same sun
-            setHoveredSun(prev => prev ? { ...prev, x: e.clientX, y: e.clientY } : null);
           }
+          // Don't update position when hovering over the same sun - keep tooltip stable
           // Change cursor to pointer
           if (canvasRef.current) {
             canvasRef.current.style.cursor = "pointer";
@@ -831,21 +834,19 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-
-    // Apply repulsive force to suns (this stacks up with multiple clicks)
-    const affectedSuns = applyClickRepulsionToSunsCanvas(x, y, rect.width, rect.height);
-
-    // First check if we clicked on a focus area sun
+    // First check if we clicked on a focus area sun BEFORE applying any repulsion
+    // This ensures the sun position is checked before any physics are applied
     const sunHoverResult = checkSunHover(x, y, rect.width, rect.height);
     
     if (sunHoverResult) {
-      // Clicked on a sun - scroll to focus on that area
-      scrollToFocusArea(sunHoverResult.sun.id, sunHoverResult.x, sunHoverResult.y);
-      
-      // Also apply a gentle repulsion for visual feedback
-      applyStarfieldRepulsion(x, y, 150, 30);
+      // Clicked on a sun - zoom to focus on that area
+      zoomToSun(sunHoverResult.sun.id);
       return;
     }
+
+    // Only apply repulsion effects if we didn't click on a sun
+    // Apply repulsive force to suns (this stacks up with multiple clicks)
+    applyClickRepulsionToSunsCanvas(x, y, rect.width, rect.height);
 
     // Use the unified function for regular click repulsion
     applyStarfieldRepulsion(x, y);
@@ -860,7 +861,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
         clickTime: Date.now()
       }));
     }
-  }, [canvasRef, setMousePosition, applyStarfieldRepulsion, scrollToFocusArea]);
+  }, [canvasRef, setMousePosition, applyStarfieldRepulsion, zoomToSun]);
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -874,23 +875,17 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
 
-
-        // Apply repulsive force to suns (this stacks up with multiple clicks)
-        const affectedSuns = applyClickRepulsionToSunsCanvas(x, y, rect.width, rect.height);
-
-        // First check if we clicked on a focus area sun
+        // First check if we clicked on a focus area sun BEFORE applying any repulsion
         const sunHoverResult = checkSunHover(x, y, rect.width, rect.height);
         
         if (sunHoverResult) {
-          // Clicked on a sun - scroll to focus on that area
-          scrollToFocusArea(sunHoverResult.sun.id, sunHoverResult.x, sunHoverResult.y);
-          
-          // Also apply a gentle repulsion for visual feedback
-          applyStarfieldRepulsion(x, y, 150, 30);
+          // Clicked on a sun - zoom to focus on that area
+          zoomToSun(sunHoverResult.sun.id);
           return;
         }
 
-        // Call our unified function for regular click repulsion
+        // Only apply repulsion effects if we didn't click on a sun
+        applyClickRepulsionToSunsCanvas(x, y, rect.width, rect.height);
         applyStarfieldRepulsion(x, y);
       };
 
@@ -900,7 +895,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
         canvas.removeEventListener("click", clickHandler);
       };
     }
-  }, [canvasRef, applyStarfieldRepulsion, scrollToFocusArea]);
+  }, [canvasRef, applyStarfieldRepulsion, zoomToSun]);
 
   return (
     <>
@@ -933,14 +928,14 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
                 const x = touch.clientX - rect.left;
                 const y = touch.clientY - rect.top;
 
-                // Apply repulsion and check sun hover like click handler
-                applyClickRepulsionToSunsCanvas(x, y, rect.width, rect.height);
+                // First check if we touched a sun BEFORE applying any repulsion
                 const sunHoverResult = checkSunHover(x, y, rect.width, rect.height);
 
                 if (sunHoverResult) {
-                  scrollToFocusArea(sunHoverResult.sun.id, sunHoverResult.x, sunHoverResult.y);
-                  applyStarfieldRepulsion(x, y, 150, 30);
+                  zoomToSun(sunHoverResult.sun.id);
                 } else {
+                  // Only apply repulsion if we didn't touch a sun
+                  applyClickRepulsionToSunsCanvas(x, y, rect.width, rect.height);
                   applyStarfieldRepulsion(x, y);
                 }
               }
