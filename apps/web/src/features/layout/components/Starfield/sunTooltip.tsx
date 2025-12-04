@@ -13,11 +13,17 @@ export interface SunInfo {
 interface SunTooltipProps {
   sun: SunInfo;
   isDarkMode?: boolean;
+  onClick?: (sunId: string) => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
 const SunTooltip: FC<SunTooltipProps> = ({
   sun,
   isDarkMode = true,
+  onClick,
+  onMouseEnter,
+  onMouseLeave,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -55,24 +61,34 @@ const SunTooltip: FC<SunTooltipProps> = ({
 
   const position = adjustPosition();
 
+  const handleClick = () => {
+    if (onClick) {
+      onClick(sun.id);
+    }
+  };
+
   return (
     <div
       className={`
         ${styles.sunTooltip}
         ${isVisible ? styles.visible : ""}
         ${!isDarkMode ? styles.lightMode : ""}
+        ${onClick ? styles.clickable : ""}
       `}
       style={{
         ...position,
         opacity: isVisible ? 1 : 0,
         transform: isVisible ? "translateY(0) scale(1)" : "translateY(10px) scale(0.95)",
       }}
+      onClick={handleClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
-      <div 
-        className={styles.sunGlow} 
+      <div
+        className={styles.sunGlow}
         style={{
           background: `radial-gradient(circle at center, ${sun.color}40 0%, transparent 70%)`
-        }} 
+        }}
       />
       <div className={styles.sunIcon} style={{ backgroundColor: sun.color }}>
         <div className={styles.sunCore} />

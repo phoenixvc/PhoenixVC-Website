@@ -73,6 +73,21 @@
   transform: translateY(0) scale(1);
 }
 
+/* Enable pointer events when tooltip is clickable */
+.clickable {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.clickable:hover {
+  transform: translateY(0) scale(1.02);
+  box-shadow: 0 12px 40px rgba(157, 78, 221, 0.4);
+}
+
+.lightMode.clickable:hover {
+  box-shadow: 0 12px 40px rgba(123, 44, 191, 0.3);
+}
+
 .lightMode {
   background: var(--sun-tooltip-bg-light);
   border: 1px solid var(--sun-tooltip-border-light);
