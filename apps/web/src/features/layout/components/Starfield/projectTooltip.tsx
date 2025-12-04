@@ -1,4 +1,5 @@
 import React, { FC, useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import styles from "./projectTooltip.module.css";
 import { PortfolioProject } from "./types";
 
@@ -23,6 +24,7 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 10);
@@ -176,7 +178,7 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
             {badgeText}
           </div>
 
-          {project.product && (
+          {project.product && project.product.trim() !== "" && (
             <a
               href={project.product}
               target="_blank"
@@ -194,20 +196,27 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
             </a>
           )}
 
-          <a
-            href={`/portfolio/${project.id}`}
+          <button
+            type="button"
             className={styles.tooltipLink}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/portfolio/${project.id}`);
+            }}
             style={{
               color: isDarkMode ? 'rgba(157, 78, 221, 0.9)' : 'rgba(123, 44, 191, 0.9)',
               fontSize: '12px',
               textDecoration: 'none',
               fontWeight: 500,
-              marginLeft: project.product ? '0.75rem' : 0
+              marginLeft: project.product && project.product.trim() !== "" ? '0.75rem' : 0,
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0
             }}
           >
             Learn More →
-          </a>
+          </button>
 
           {isPinned && (
             <div className={styles.tooltipPinnedIndicator}>

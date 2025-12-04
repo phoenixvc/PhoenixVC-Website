@@ -15,8 +15,10 @@ export interface CenterPosition {
   y: number;
 }
 
-// Portfolio project types (renamed from Employee-related types)
+// Portfolio project types - re-exported from centralized source
+// Local type kept for backward compatibility with optional fields
 export type ProjectStatus = "alpha" | "pre-alpha" | "early-stage" | "growth" | "active";
+export type FocusAreaId = "ai-ml" | "fintech-blockchain" | "defense-security" | "mobility-transportation" | "infrastructure";
 
 export interface PortfolioProject {
   id: string;
@@ -39,7 +41,7 @@ export interface PortfolioProject {
   status?: ProjectStatus;
   relatedProjects: string[];
   product: string;
-  focusArea?: "ai-ml" | "fintech-blockchain" | "defense-security" | "mobility-transportation";
+  focusArea?: FocusAreaId;
 }
 
 export interface Satellite {

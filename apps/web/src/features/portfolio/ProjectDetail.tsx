@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import {
   ExternalLink,
   Github,
-  FileText,
   ArrowLeft,
   Calendar,
   Target,
@@ -17,14 +16,24 @@ import {
   Network,
   Key,
   Car,
-  Vault
+  Vault,
+  Code,
+  Globe,
+  ChevronRight,
+  Home
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
-import { DEFAULT_PORTFOLIO_PROJECTS } from "@/features/layout/components/Starfield/constants";
-import { PortfolioProject } from "@/features/layout/components/Starfield/types";
+import {
+  PORTFOLIO_PROJECTS,
+  STATUS_CONFIG,
+  FOCUS_AREA_CONFIG,
+  getRelatedProjects,
+  type PortfolioProject,
+  type FocusAreaId
+} from "@/constants/portfolioData";
 import styles from "./ProjectDetail.module.css";
 
-// Icon mapping for projects
+// Icon mapping for projects - includes all projects
 const projectIcons: Record<string, React.ReactNode> = {
   mystira: <BookOpen size={48} />,
   phoenixrooivalk: <Shield size={48} />,
@@ -33,48 +42,17 @@ const projectIcons: Record<string, React.ReactNode> = {
   hop: <Car size={48} />,
   chaufher: <Users size={48} />,
   veritasvault: <Vault size={48} />,
+  "phoenixvc-website": <Globe size={48} />,
+  "design-system": <Code size={48} />,
 };
 
-// Status configuration
-const statusConfig: Record<string, { bg: string; text: string; label: string; description: string }> = {
-  alpha: {
-    bg: "rgba(156, 39, 176, 0.2)",
-    text: "#9c27b0",
-    label: "Alpha",
-    description: "Active development with early users"
-  },
-  "pre-alpha": {
-    bg: "rgba(121, 85, 72, 0.2)",
-    text: "#795548",
-    label: "Pre-Alpha / Seeding",
-    description: "Early development and concept validation"
-  },
-  "early-stage": {
-    bg: "rgba(230, 126, 34, 0.2)",
-    text: "#e67e22",
-    label: "Early Stage",
-    description: "Initial investment and product development"
-  },
-  growth: {
-    bg: "rgba(231, 76, 60, 0.2)",
-    text: "#e74c3c",
-    label: "Growth Stage",
-    description: "Scaling operations and market expansion"
-  },
-  active: {
-    bg: "rgba(76, 175, 80, 0.2)",
-    text: "#4caf50",
-    label: "Active",
-    description: "Operational and maintained"
-  },
-};
-
-// Focus area configuration
-const focusAreaConfig: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-  "ai-ml": { label: "AI & Machine Learning", color: "#3498db", icon: <Zap size={20} /> },
-  "fintech-blockchain": { label: "Fintech & Blockchain", color: "#f39c12", icon: <Vault size={20} /> },
-  "defense-security": { label: "Defense & Security", color: "#e74c3c", icon: <Shield size={20} /> },
-  "mobility-transportation": { label: "Mobility & Transportation", color: "#2ecc71", icon: <Car size={20} /> },
+// Focus area icons (non-serializable, kept local)
+const focusAreaIcons: Record<FocusAreaId, React.ReactNode> = {
+  "ai-ml": <Zap size={20} />,
+  "fintech-blockchain": <Vault size={20} />,
+  "defense-security": <Shield size={20} />,
+  "mobility-transportation": <Car size={20} />,
+  "infrastructure": <Code size={20} />,
 };
 
 const animations = {
@@ -106,15 +84,12 @@ export const ProjectDetail = () => {
   const isDarkMode = themeMode === "dark";
 
   // Find the project by ID
-  const project = DEFAULT_PORTFOLIO_PROJECTS.find(
+  const project = PORTFOLIO_PROJECTS.find(
     (p) => p.id === projectId || p.name.toLowerCase().replace(/\s+/g, "-") === projectId
   );
 
-  // Find related projects
-  const relatedProjects = project?.relatedProjects
-    ?.map((relatedId) => DEFAULT_PORTFOLIO_PROJECTS.find((p) => p.id === relatedId))
-    .filter((p): p is PortfolioProject => p !== undefined)
-    .slice(0, 3);
+  // Get related projects using the helper function (auto-generates from same focus area)
+  const relatedProjects = project ? getRelatedProjects(project.id, 3) : [];
 
   if (!project) {
     return (
@@ -133,17 +108,21 @@ export const ProjectDetail = () => {
     );
   }
 
-  const status = statusConfig[project.status || "active"] || statusConfig.active;
-  const focusArea = project.focusArea ? focusAreaConfig[project.focusArea] : null;
+  const status = STATUS_CONFIG[project.status] || STATUS_CONFIG.active;
+  const focusAreaConfig = FOCUS_AREA_CONFIG[project.focusArea];
+  const focusAreaIcon = focusAreaIcons[project.focusArea];
   const icon = projectIcons[project.id] || <Layers size={48} />;
   const skills = Array.isArray(project.skills) ? project.skills : [];
 
   return (
     <>
       <SEO
-        title={`${project.fullName || project.name} | Phoenix VC Portfolio`}
+        title={`${project.fullName || project.name}`}
         description={project.bio || project.title}
         keywords={skills.join(", ")}
+        ogImage={project.image || undefined}
+        ogType="article"
+        canonicalUrl={`https://phoenixvc.tech/portfolio/${project.id}`}
       />
       <section className={`${styles.projectDetail} ${isDarkMode ? styles.dark : styles.light}`}>
         <div className={styles.container}>
@@ -153,7 +132,23 @@ export const ProjectDetail = () => {
             animate="visible"
             variants={animations.container}
           >
-            {/* Back Navigation */}
+            {/* Breadcrumb Navigation */}
+            <motion.div className={styles.breadcrumb} variants={animations.item}>
+              <Link to="/" className={styles.breadcrumbLink}>
+                <Home size={16} />
+                Home
+              </Link>
+              <ChevronRight size={16} className={styles.breadcrumbSeparator} />
+              <Link to="/#portfolio" className={styles.breadcrumbLink}>
+                Portfolio
+              </Link>
+              <ChevronRight size={16} className={styles.breadcrumbSeparator} />
+              <span className={styles.breadcrumbCurrent}>
+                {project.name}
+              </span>
+            </motion.div>
+
+            {/* Back Button */}
             <motion.div variants={animations.item}>
               <button onClick={() => navigate(-1)} className={styles.backButton}>
                 <ArrowLeft size={20} />
@@ -182,13 +177,13 @@ export const ProjectDetail = () => {
                     >
                       {status.label}
                     </span>
-                    {focusArea && (
+                    {focusAreaConfig && (
                       <span
                         className={styles.focusAreaBadge}
-                        style={{ borderColor: focusArea.color, color: focusArea.color }}
+                        style={{ borderColor: focusAreaConfig.color, color: focusAreaConfig.color }}
                       >
-                        {focusArea.icon}
-                        {focusArea.label}
+                        {focusAreaIcon}
+                        {focusAreaConfig.label}
                       </span>
                     )}
                   </div>
@@ -244,7 +239,7 @@ export const ProjectDetail = () => {
                 <div className={styles.actionsCard}>
                   <h3 className={styles.cardTitle}>Links</h3>
                   <div className={styles.actionButtons}>
-                    {project.product && (
+                    {project.product && project.product.trim() !== "" && !project.product.includes("github") && (
                       <a
                         href={project.product}
                         target="_blank"
@@ -255,7 +250,7 @@ export const ProjectDetail = () => {
                         Visit Website
                       </a>
                     )}
-                    {project.product?.includes("github") && (
+                    {project.product && project.product.trim() !== "" && project.product.includes("github") && (
                       <a
                         href={project.product}
                         target="_blank"
@@ -266,7 +261,7 @@ export const ProjectDetail = () => {
                         View on GitHub
                       </a>
                     )}
-                    {!project.product && (
+                    {(!project.product || project.product.trim() === "") && (
                       <div className={styles.comingSoon}>
                         <Calendar size={20} />
                         Coming Soon
@@ -295,11 +290,11 @@ export const ProjectDetail = () => {
                         <span className={styles.infoValue}>{project.department}</span>
                       </div>
                     )}
-                    {focusArea && (
+                    {focusAreaConfig && (
                       <div className={styles.infoItem}>
                         <span className={styles.infoLabel}>Focus Area</span>
-                        <span className={styles.infoValue} style={{ color: focusArea.color }}>
-                          {focusArea.label}
+                        <span className={styles.infoValue} style={{ color: focusAreaConfig.color }}>
+                          {focusAreaConfig.label}
                         </span>
                       </div>
                     )}
@@ -317,7 +312,7 @@ export const ProjectDetail = () => {
                 </h2>
                 <div className={styles.relatedGrid}>
                   {relatedProjects.map((related) => {
-                    const relatedStatus = statusConfig[related.status || "active"] || statusConfig.active;
+                    const relatedStatus = STATUS_CONFIG[related.status] || STATUS_CONFIG.active;
                     const relatedIcon = projectIcons[related.id] || <Layers size={24} />;
                     return (
                       <Link
@@ -356,9 +351,22 @@ export const ProjectDetail = () => {
             <motion.div className={styles.ctaSection} variants={animations.item}>
               <h3>Interested in this project?</h3>
               <p>Get in touch to learn more about our investment and collaboration opportunities.</p>
-              <Link to="/#contact" className={styles.ctaButton}>
+              <button
+                type="button"
+                className={styles.ctaButton}
+                onClick={() => {
+                  navigate("/");
+                  // Use setTimeout to ensure navigation completes before scrolling
+                  setTimeout(() => {
+                    const contactSection = document.getElementById("contact");
+                    if (contactSection) {
+                      contactSection.scrollIntoView({ behavior: "smooth" });
+                    }
+                  }, 100);
+                }}
+              >
                 Contact Us
-              </Link>
+              </button>
             </motion.div>
           </motion.div>
         </div>
