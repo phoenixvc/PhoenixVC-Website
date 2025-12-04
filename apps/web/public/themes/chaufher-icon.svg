@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Chaufher: Women's Ridehail - Car with female symbol -->
+  <defs>
+    <linearGradient id="chaufher-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e74c3c"/>
+      <stop offset="100%" style="stop-color:#c0392b"/>
+    </linearGradient>
+  </defs>
+  <!-- Car body -->
+  <path d="M10 36 L14 26 L22 22 L42 22 L50 26 L54 36 L54 44 L10 44 Z"
+        fill="url(#chaufher-grad)"/>
+  <!-- Car roof -->
+  <path d="M18 22 L22 14 L42 14 L46 22" fill="url(#chaufher-grad)"/>
+  <!-- Windows -->
+  <path d="M20 22 L23 16 L32 16 L32 22 Z" fill="#fad7d7" opacity="0.8"/>
+  <path d="M44 22 L41 16 L32 16 L32 22 Z" fill="#fad7d7" opacity="0.8"/>
+  <!-- Wheels -->
+  <circle cx="18" cy="44" r="6" fill="#2c3e50"/>
+  <circle cx="18" cy="44" r="3" fill="#7f8c8d"/>
+  <circle cx="46" cy="44" r="6" fill="#2c3e50"/>
+  <circle cx="46" cy="44" r="3" fill="#7f8c8d"/>
+  <!-- Female symbol (venus) on the car -->
+  <circle cx="32" cy="30" r="5" stroke="#ffffff" stroke-width="2" fill="none"/>
+  <line x1="32" y1="35" x2="32" y2="42" stroke="#ffffff" stroke-width="2"/>
+  <line x1="29" y1="39" x2="35" y2="39" stroke="#ffffff" stroke-width="2"/>
+  <!-- Safety heart -->
+  <path d="M50 10 C48 8 45 8 44 11 C43 8 40 8 38 10 C36 12 36 15 44 20 C52 15 52 12 50 10 Z"
+        fill="#ffffff" opacity="0.9"/>
+</svg>

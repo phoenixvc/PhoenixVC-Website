@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Phoenix Rooivalk: Counter-Drone Defense - Shield with falcon/drone -->
+  <defs>
+    <linearGradient id="rooivalk-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#27ae60"/>
+      <stop offset="100%" style="stop-color:#1e8449"/>
+    </linearGradient>
+  </defs>
+  <!-- Shield shape -->
+  <path d="M32 4 L54 12 L54 32 C54 46 32 60 32 60 C32 60 10 46 10 32 L10 12 Z"
+        fill="url(#rooivalk-grad)" stroke="#ffffff" stroke-width="2"/>
+  <!-- Falcon/hawk silhouette -->
+  <path d="M32 16
+           C28 16 22 22 20 28
+           L26 26 L24 32 L28 30
+           L32 42
+           L36 30 L40 32 L38 26 L44 28
+           C42 22 36 16 32 16 Z"
+        fill="#ffffff" opacity="0.9"/>
+  <!-- Eye -->
+  <circle cx="32" cy="24" r="2" fill="#1e8449"/>
+  <!-- Radar waves (defense) -->
+  <path d="M16 48 Q 24 44 32 48 Q 40 44 48 48" stroke="#82e0aa" stroke-width="1.5" fill="none" opacity="0.6"/>
+  <path d="M20 52 Q 26 49 32 52 Q 38 49 44 52" stroke="#82e0aa" stroke-width="1" fill="none" opacity="0.4"/>
+</svg>

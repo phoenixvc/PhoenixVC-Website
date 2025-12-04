@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Airkey: Digital Access Management - Smart key with signal -->
+  <defs>
+    <linearGradient id="airkey-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e67e22"/>
+      <stop offset="100%" style="stop-color:#d35400"/>
+    </linearGradient>
+  </defs>
+  <!-- Key body -->
+  <rect x="8" y="26" width="32" height="12" rx="6" fill="url(#airkey-grad)"/>
+  <!-- Key head (circular) -->
+  <circle cx="14" cy="32" r="10" fill="url(#airkey-grad)" stroke="#ffffff" stroke-width="2"/>
+  <circle cx="14" cy="32" r="4" fill="none" stroke="#ffffff" stroke-width="2"/>
+  <!-- Key teeth -->
+  <path d="M30 38 L30 44 L34 44 L34 38" fill="url(#airkey-grad)"/>
+  <path d="M36 38 L36 42 L40 42 L40 38" fill="url(#airkey-grad)"/>
+  <!-- Wireless signals (digital/air) -->
+  <path d="M46 24 Q 52 32 46 40" stroke="#e67e22" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M50 20 Q 58 32 50 44" stroke="#e67e22" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.7"/>
+  <path d="M54 16 Q 64 32 54 48" stroke="#e67e22" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.4"/>
+  <!-- Digital dots -->
+  <circle cx="44" cy="32" r="2" fill="#ffffff"/>
+</svg>

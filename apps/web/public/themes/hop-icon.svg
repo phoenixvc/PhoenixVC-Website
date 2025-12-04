@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Hop: Connectivity Technology - WiFi/signal with movement -->
+  <defs>
+    <linearGradient id="hop-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e67e22"/>
+      <stop offset="100%" style="stop-color:#d35400"/>
+    </linearGradient>
+  </defs>
+  <!-- Base/router shape -->
+  <ellipse cx="32" cy="52" rx="16" ry="4" fill="url(#hop-grad)"/>
+  <rect x="20" y="44" width="24" height="8" rx="2" fill="url(#hop-grad)"/>
+  <!-- Central tower/antenna -->
+  <rect x="30" y="28" width="4" height="20" fill="url(#hop-grad)"/>
+  <circle cx="32" cy="26" r="4" fill="url(#hop-grad)"/>
+  <!-- Signal waves -->
+  <path d="M18 36 Q 10 26 18 16" stroke="#e67e22" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M14 40 Q 4 26 14 12" stroke="#e67e22" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.7"/>
+  <path d="M10 44 Q -2 26 10 8" stroke="#e67e22" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.4"/>
+  <path d="M46 36 Q 54 26 46 16" stroke="#e67e22" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M50 40 Q 60 26 50 12" stroke="#e67e22" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.7"/>
+  <path d="M54 44 Q 66 26 54 8" stroke="#e67e22" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.4"/>
+  <!-- Connection dots -->
+  <circle cx="32" cy="12" r="2" fill="#ffffff"/>
+</svg>
