@@ -169,14 +169,24 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       }
     }
 
-    // Check if mouse is over content sections (behind which comets shouldn't be interactive)
-    // Content sections start after ~100vh (hero section), so check if mouse Y + scroll is past hero
-    const scrollY = typeof window !== 'undefined' ? window.scrollY : 0;
-    const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 800;
-    const mouseYInDocument = currentMousePosition.y + scrollY;
-    const isOverContent = mouseYInDocument > viewportHeight * 0.9; // Content starts ~90% into first viewport
+    // Check if mouse is actually over the canvas vs over a content card
+    // Using elementFromPoint to detect if there's a higher z-index element at the mouse position
+    let isOverContentCard = false;
+    if (typeof document !== 'undefined' && currentMousePosition.isOnScreen) {
+      const elementAtMouse = document.elementFromPoint(
+        currentMousePosition.x,
+        currentMousePosition.y
+      );
+      if (elementAtMouse) {
+        // Check if the element is NOT the canvas and is NOT inside the starfield container
+        const isCanvas = elementAtMouse.tagName === 'CANVAS';
+        const isInsideStarfield = elementAtMouse.closest('[data-starfield]') !== null;
+        // If not canvas and not in starfield, we're over a content card
+        isOverContentCard = !isCanvas && !isInsideStarfield;
+      }
+    }
 
-    if (props.enablePlanets && props.enableMouseInteraction && !isOverContent) {
+    if (props.enablePlanets && props.enableMouseInteraction) {
       // Create a wrapper function that matches the expected type
       const updateHoverInfoIfChanged = (newInfo: SetStateAction<HoverInfo>): void => {
         // If newInfo is a function, we can"t directly compare it
@@ -197,14 +207,22 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
         }
       };
 
-      checkPlanetHover(
-        currentMousePosition.x,
-        currentMousePosition.y,
-        currentPlanets,
-        props.planetSize,
-        currentHoverInfo,
-        updateHoverInfoIfChanged
-      );
+      // If over a content card, hide any active tooltip; otherwise check for planet hover
+      if (isOverContentCard) {
+        // Clear hover info if currently showing
+        if (currentHoverInfo.show) {
+          props.setHoverInfo({ project: null, x: 0, y: 0, show: false });
+        }
+      } else {
+        checkPlanetHover(
+          currentMousePosition.x,
+          currentMousePosition.y,
+          currentPlanets,
+          props.planetSize,
+          currentHoverInfo,
+          updateHoverInfoIfChanged
+        );
+      }
     }
 
     // Draw connections between stars (network effect) - only if not skipping heavy operations

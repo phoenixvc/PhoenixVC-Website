@@ -67,10 +67,20 @@ export const drawPlanet = (
     updateStarPosition(planet, deltaTime);
   }
 
-  // Use project's own color for distinct planet colors, fall back to sun-aligned color
-  const baseColor = planet.project?.color || getSunAlignedColor(planet);
-  const baseRgb = hexToRgb(baseColor);
-  const softRgb = createSoftenedColor(baseRgb);
+  // Use both project color (core) and sun color (outer glow) for visual distinction
+  const projectColor = planet.project?.color || "#ffffff";
+  const sunColor = getSunAlignedColor(planet);
+
+  // Project color for the core
+  const coreRgb = hexToRgb(projectColor);
+  const softCoreRgb = createSoftenedColor(coreRgb);
+
+  // Sun color for outer glow/ring (shows focus area affiliation)
+  const glowRgb = hexToRgb(sunColor);
+  const softGlowRgb = createSoftenedColor(glowRgb);
+
+  // Use core color as main, glow color for effects
+  const softRgb = softCoreRgb;
 
   // Calculate pulsation effect
   const scaleFactor = calculatePulsation(planet);
@@ -104,6 +114,15 @@ export const drawPlanet = (
   } else {
     // Enhanced rendering with glow
     drawStarGlow(ctx, planet, starSize, softRgb);
+  }
+
+  // Draw outer ring in sun color (shows focus area affiliation)
+  if (!planet.useSimpleRendering && projectColor !== sunColor) {
+    ctx.beginPath();
+    ctx.arc(planet.x, planet.y, starSize * 1.15, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(${softGlowRgb.r}, ${softGlowRgb.g}, ${softGlowRgb.b}, 0.5)`;
+    ctx.lineWidth = 2;
+    ctx.stroke();
   }
 
   // Draw satellites

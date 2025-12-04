@@ -926,7 +926,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   return (
     <>
       {/* Background elements with positive z-index */}
-      <div className={styles.starfieldWrapper}>
+      <div className={styles.starfieldWrapper} data-starfield>
         <div className={`${styles.starfieldBackground} ${isDarkMode ? "" : styles.light}`}></div>
         <div className={`${styles.nebulaOverlay} ${isDarkMode ? "" : styles.light}`}></div>
         <div className={`${styles.frontierAccent} ${isDarkMode ? "" : styles.light}`}></div>
