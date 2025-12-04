@@ -533,10 +533,10 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
               canvasRef.current.style.cursor = "pointer";
             }
           } else {
-            if (hoveredSunId) {
-              setHoveredSunId(null);
-              setHoveredSun(null);
-            }
+            // Always clear tooltip state when not hovering over a sun
+            // (don't check hoveredSunId as it may be stale in the closure)
+            setHoveredSunId(null);
+            setHoveredSun(null);
             // Reset cursor
             if (canvasRef.current) {
               canvasRef.current.style.cursor = "default";

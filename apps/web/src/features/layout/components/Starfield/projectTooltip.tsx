@@ -58,16 +58,20 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
 
   const position = adjustPosition();
 
-  // Extract data from project object
-  const yearsExperience = project.experience ||
-                         (project.mass ? Math.floor(project.mass / 10) : 5) +
-                         Math.floor(Math.random() * 5);
-  const expertise = project.expertise ||
-                   (project.position ? project.position.split(" ").slice(-1)[0] : "Technology");
-  const badgeText = project.department || project.product || "Portfolio Project";
-  const projectCount = Array.isArray(project.projects)
-    ? project.projects.length
-    : (project.projects || 0);
+  // Extract project-relevant data
+  const getStatusFromTitle = (title?: string): string => {
+    if (!title) return "Portfolio";
+    if (title.includes("Alpha") && !title.includes("Pre-Alpha")) return "Alpha";
+    if (title.includes("Pre-Alpha")) return "Pre-Alpha";
+    if (title.includes("Early Stage")) return "Early Stage";
+    if (title.includes("Growth")) return "Growth Stage";
+    return "Active";
+  };
+
+  const projectStage = getStatusFromTitle(project.title);
+  const focusAreaLabel = project.focusArea?.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase()) || project.department || "Technology";
+  const badgeText = projectStage;
+  const skillsList = Array.isArray(project.skills) ? project.skills.slice(0, 3).join(", ") : project.expertise || "Innovation";
 
   // Event handlers
   const handleTooltipClick = (e: React.MouseEvent) => {
@@ -115,17 +119,30 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
       }} />
 
       <div className={styles.tooltipHeader}>
-        {project.image && (
-          <div
-            className={styles.tooltipAvatar}
-            style={{
-              border: `3px solid ${projectColor}`,
-              boxShadow: `0 0 10px ${isDarkMode ? "rgba(157, 78, 221, 0.2)" : "rgba(123, 44, 191, 0.12)"}`
-            }}
-          >
+        <div
+          className={styles.tooltipAvatar}
+          style={{
+            border: `3px solid ${projectColor}`,
+            boxShadow: `0 0 10px ${isDarkMode ? "rgba(157, 78, 221, 0.2)" : "rgba(123, 44, 191, 0.12)"}`,
+            backgroundColor: project.image ? 'transparent' : projectColor,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          {project.image ? (
             <img src={project.image} alt={project.name} />
-          </div>
-        )}
+          ) : (
+            <span style={{
+              color: '#ffffff',
+              fontSize: '18px',
+              fontWeight: 700,
+              letterSpacing: '-0.5px'
+            }}>
+              {project.initials || project.name?.substring(0, 2).toUpperCase()}
+            </span>
+          )}
+        </div>
         <div className={styles.tooltipTitle}>
           <h3>{project.fullName || project.name}</h3>
           <p>{project.position}</p>
@@ -134,18 +151,13 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
 
       <div className={styles.tooltipContent}>
         <div className={styles.tooltipStat}>
-          <span className={styles.tooltipLabel}>Experience:</span>
-          <span className={styles.tooltipValue}>{yearsExperience} years</span>
+          <span className={styles.tooltipLabel}>Focus Area:</span>
+          <span className={styles.tooltipValue}>{focusAreaLabel}</span>
         </div>
 
         <div className={styles.tooltipStat}>
-          <span className={styles.tooltipLabel}>Expertise:</span>
-          <span className={styles.tooltipValue}>{expertise}</span>
-        </div>
-
-        <div className={styles.tooltipStat}>
-          <span className={styles.tooltipLabel}>Projects:</span>
-          <span className={styles.tooltipValue}>{projectCount}</span>
+          <span className={styles.tooltipLabel}>Technologies:</span>
+          <span className={styles.tooltipValue}>{skillsList}</span>
         </div>
 
         {project.bio && (
@@ -161,6 +173,24 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
           >
             {badgeText}
           </div>
+
+          {project.product && (
+            <a
+              href={project.product}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.tooltipLink}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                color: isDarkMode ? 'rgba(157, 78, 221, 0.9)' : 'rgba(123, 44, 191, 0.9)',
+                fontSize: '12px',
+                textDecoration: 'none',
+                fontWeight: 500
+              }}
+            >
+              Visit Project →
+            </a>
+          )}
 
           {isPinned && (
             <div className={styles.tooltipPinnedIndicator}>

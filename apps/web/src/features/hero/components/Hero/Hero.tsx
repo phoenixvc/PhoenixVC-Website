@@ -277,6 +277,12 @@ const Hero: FC<ExtendedHeroProps> = memo(
                                       ? "bg-purple-600 hover:bg-purple-700"
                                       : "bg-purple-500 hover:bg-purple-600"
                                 }`}
+                                onClick={() => {
+                                  const section = document.querySelector(primaryCta.href);
+                                  if (section) {
+                                    section.scrollIntoView({ behavior: "smooth" });
+                                  }
+                                }}
                               >
                                 {primaryCta.text}
                               </button>
@@ -286,6 +292,12 @@ const Hero: FC<ExtendedHeroProps> = memo(
                                     ? "bg-gray-800 text-white hover:bg-gray-700"
                                     : "bg-white text-gray-800 hover:bg-gray-100"
                                 }`}
+                                onClick={() => {
+                                  const section = document.querySelector(secondaryCta.href);
+                                  if (section) {
+                                    section.scrollIntoView({ behavior: "smooth" });
+                                  }
+                                }}
                               >
                                 {secondaryCta.text}
                               </button>
