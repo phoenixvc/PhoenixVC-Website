@@ -9,6 +9,9 @@ export interface SunState {
   // Current position (0-1 normalized, will be multiplied by canvas dimensions)
   x: number;
   y: number;
+  // Velocity for physics-based movement
+  vx: number;
+  vy: number;
   // Base position (where sun wants to return to)
   baseX: number;
   baseY: number;
@@ -27,6 +30,13 @@ export interface SunState {
   driftSpeedY: number;
   driftAmplitudeX: number;
   driftAmplitudeY: number;
+  // Staggered movement - when this sun becomes active
+  activationTime: number;
+  isActive: boolean;
+  // Accumulated click repulsion (stacks up to a maximum)
+  clickRepulsionX: number;
+  clickRepulsionY: number;
+  clickRepulsionDecay: number;
 }
 
 // Better sun positions - accounting for sidebar (~220px) on left
@@ -41,6 +51,7 @@ export const INITIAL_SUN_POSITIONS = [
 // Global sun state (mutable for animation)
 let sunStates: SunState[] = [];
 let lastUpdateTime = 0;
+let systemStartTime = 0;
 
 // Constants for sun physics - extremely slow, subtle drifting motion
 const PROPEL_THRESHOLD = 0.15; // Distance at which repulsion activates
@@ -50,9 +61,29 @@ const DRIFT_AMPLITUDE_MAX = 0.006; // Maximum drift amplitude (much smaller)
 const DRIFT_SPEED_MIN = 0.00003; // Minimum drift speed (10x slower)
 const DRIFT_SPEED_MAX = 0.00008; // Maximum drift speed (10x slower)
 
+// Click repulsion constants
+const CLICK_REPULSION_RADIUS = 0.25; // Normalized radius for click effect
+const CLICK_REPULSION_FORCE = 0.015; // Base force applied per click
+const MAX_CLICK_REPULSION = 0.08; // Maximum accumulated repulsion
+const CLICK_REPULSION_DECAY = 0.97; // How fast repulsion decays each frame
+
+// Staggered activation constants  
+const ACTIVATION_DELAY_MIN = 1000; // Minimum delay before a sun starts moving (ms)
+const ACTIVATION_DELAY_MAX = 3000; // Maximum delay before a sun starts moving (ms)
+const ACTIVATION_TRIGGER_RADIUS = 0.2; // When an active sun gets close, it triggers inactive ones
+
+// Center repulsion to prevent clustering
+const CENTER_REPULSION_STRENGTH = 0.0002; // Force pushing away from center
+const CENTER_X = 0.5;
+const CENTER_Y = 0.5;
+
+// Velocity damping
+const VELOCITY_DAMPING = 0.98;
+
 // Initialize sun states
 export function initializeSunStates(): void {
   const focusAreaSuns = SUNS.filter(sun => sun.parentId === "focus-areas-galaxy");
+  systemStartTime = Date.now();
   
   sunStates = focusAreaSuns.map((sun, index) => {
     const pos = INITIAL_SUN_POSITIONS[index % INITIAL_SUN_POSITIONS.length];
@@ -66,6 +97,13 @@ export function initializeSunStates(): void {
     const driftAmplitudeX = DRIFT_AMPLITUDE_MIN + Math.random() * (DRIFT_AMPLITUDE_MAX - DRIFT_AMPLITUDE_MIN);
     const driftAmplitudeY = DRIFT_AMPLITUDE_MIN + Math.random() * (DRIFT_AMPLITUDE_MAX - DRIFT_AMPLITUDE_MIN);
     
+    // Staggered activation - randomly pick one sun to start first, others wait
+    // The first sun starts after a short delay, others wait longer
+    const isFirstSun = index === Math.floor(Math.random() * focusAreaSuns.length);
+    const activationTime = isFirstSun 
+      ? systemStartTime + ACTIVATION_DELAY_MIN 
+      : systemStartTime + ACTIVATION_DELAY_MIN + Math.random() * (ACTIVATION_DELAY_MAX - ACTIVATION_DELAY_MIN);
+    
     return {
       id: sun.id,
       name: sun.name,
@@ -73,6 +111,8 @@ export function initializeSunStates(): void {
       color: sun.color || "#ffffff",
       x: pos.x,
       y: pos.y,
+      vx: 0,
+      vy: 0,
       baseX: pos.x,
       baseY: pos.y,
       size: sun.size,
@@ -86,6 +126,11 @@ export function initializeSunStates(): void {
       driftSpeedY,
       driftAmplitudeX,
       driftAmplitudeY,
+      activationTime,
+      isActive: false,
+      clickRepulsionX: 0,
+      clickRepulsionY: 0,
+      clickRepulsionDecay: CLICK_REPULSION_DECAY,
     };
   });
   
@@ -100,29 +145,82 @@ export function updateSunPhysics(deltaTime: number): void {
   }
   
   const dt = Math.min(deltaTime, 50); // Cap delta time to prevent physics explosions
+  const currentTime = Date.now();
   
   // Update each sun
   for (let i = 0; i < sunStates.length; i++) {
     const sun = sunStates[i];
     
-    // 1. Calculate smooth sinusoidal drift - unique for each sun
-    // This creates a gentle, organic floating motion
-    sun.driftPhaseX += sun.driftSpeedX * dt;
-    sun.driftPhaseY += sun.driftSpeedY * dt;
+    // Check if sun should become active based on time
+    if (!sun.isActive && currentTime >= sun.activationTime) {
+      sun.isActive = true;
+    }
     
-    // Calculate target position based on base + smooth drift
-    const driftX = Math.sin(sun.driftPhaseX) * sun.driftAmplitudeX;
-    const driftY = Math.sin(sun.driftPhaseY) * sun.driftAmplitudeY;
-    const targetX = sun.baseX + driftX;
-    const targetY = sun.baseY + driftY;
+    // Check if this sun should be triggered by nearby active suns
+    if (!sun.isActive) {
+      for (let j = 0; j < sunStates.length; j++) {
+        if (i === j || !sunStates[j].isActive) continue;
+        
+        const other = sunStates[j];
+        const dx = other.x - sun.x;
+        const dy = other.y - sun.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        // If an active sun gets close enough, trigger this sun
+        if (dist < ACTIVATION_TRIGGER_RADIUS) {
+          sun.isActive = true;
+          break;
+        }
+      }
+    }
     
-    // 2. Smoothly interpolate current position towards target (lerp)
-    // This creates smooth, non-stuttery movement - very slow for subtle motion
-    const lerpFactor = 0.005; // Extremely slow interpolation for minimal movement
-    sun.x += (targetX - sun.x) * lerpFactor;
-    sun.y += (targetY - sun.y) * lerpFactor;
+    // Only apply drift movement if sun is active
+    if (sun.isActive) {
+      // 1. Calculate smooth sinusoidal drift - unique for each sun
+      // This creates a gentle, organic floating motion
+      sun.driftPhaseX += sun.driftSpeedX * dt;
+      sun.driftPhaseY += sun.driftSpeedY * dt;
+      
+      // Calculate target position based on base + smooth drift
+      const driftX = Math.sin(sun.driftPhaseX) * sun.driftAmplitudeX;
+      const driftY = Math.sin(sun.driftPhaseY) * sun.driftAmplitudeY;
+      const targetX = sun.baseX + driftX;
+      const targetY = sun.baseY + driftY;
+      
+      // 2. Smoothly interpolate current position towards target (lerp)
+      // This creates smooth, non-stuttery movement - very slow for subtle motion
+      const lerpFactor = 0.005; // Extremely slow interpolation for minimal movement
+      sun.vx += (targetX - sun.x) * lerpFactor;
+      sun.vy += (targetY - sun.y) * lerpFactor;
+    }
     
-    // 3. Check for proximity to other suns and apply gentle repulsion
+    // 3. Apply accumulated click repulsion
+    sun.vx += sun.clickRepulsionX;
+    sun.vy += sun.clickRepulsionY;
+    
+    // Decay the click repulsion over time
+    sun.clickRepulsionX *= sun.clickRepulsionDecay;
+    sun.clickRepulsionY *= sun.clickRepulsionDecay;
+    
+    // Clear very small repulsion values
+    if (Math.abs(sun.clickRepulsionX) < 0.0001) sun.clickRepulsionX = 0;
+    if (Math.abs(sun.clickRepulsionY) < 0.0001) sun.clickRepulsionY = 0;
+    
+    // 4. Apply center repulsion to prevent clustering
+    const centerDx = sun.x - CENTER_X;
+    const centerDy = sun.y - CENTER_Y;
+    const centerDist = Math.sqrt(centerDx * centerDx + centerDy * centerDy);
+    
+    if (centerDist < 0.3 && centerDist > 0.001) {
+      // Push away from center with increasing force as they get closer
+      const centerRepelFactor = (0.3 - centerDist) / 0.3;
+      const centerNx = centerDx / centerDist;
+      const centerNy = centerDy / centerDist;
+      sun.vx += centerNx * CENTER_REPULSION_STRENGTH * centerRepelFactor * dt;
+      sun.vy += centerNy * CENTER_REPULSION_STRENGTH * centerRepelFactor * dt;
+    }
+    
+    // 5. Check for proximity to other suns and apply gentle repulsion
     for (let j = 0; j < sunStates.length; j++) {
       if (i === j) continue;
       
@@ -140,18 +238,26 @@ export function updateSunPhysics(deltaTime: number): void {
         const nx = dx / dist;
         const ny = dy / dist;
         
-        // Apply gentle repulsion directly to position (not velocity)
+        // Apply gentle repulsion to velocity
         const repelStrength = (PROPEL_THRESHOLD - dist) / PROPEL_THRESHOLD;
         const repelForce = repelStrength * 0.001;
-        sun.x -= nx * repelForce;
-        sun.y -= ny * repelForce;
+        sun.vx -= nx * repelForce;
+        sun.vy -= ny * repelForce;
         
         // Increase rotation speed when close
         sun.rotationSpeed = Math.min(0.0003, sun.rotationSpeed + ROTATION_SPEED_BOOST * dt * 0.0001);
       }
     }
     
-    // 4. Update propel timer
+    // 6. Apply velocity damping
+    sun.vx *= VELOCITY_DAMPING;
+    sun.vy *= VELOCITY_DAMPING;
+    
+    // 7. Update position based on velocity
+    sun.x += sun.vx;
+    sun.y += sun.vy;
+    
+    // 8. Update propel timer
     if (sun.propelTimer > 0) {
       sun.propelTimer -= 1;
       if (sun.propelTimer <= 0) {
@@ -159,18 +265,32 @@ export function updateSunPhysics(deltaTime: number): void {
       }
     }
     
-    // 5. Gradually reduce rotation speed when not propelling
+    // 9. Gradually reduce rotation speed when not propelling
     if (!sun.isPropelling) {
       sun.rotationSpeed = Math.max(0.00001, sun.rotationSpeed * 0.998);
     }
     
-    // 6. Update rotation angle smoothly
+    // 10. Update rotation angle smoothly
     sun.rotationAngle += sun.rotationSpeed * dt;
     
-    // 7. Keep suns within bounds (with padding)
+    // 11. Keep suns within bounds (with padding)
     const padding = 0.12;
-    sun.x = Math.max(padding, Math.min(1 - padding, sun.x));
-    sun.y = Math.max(padding, Math.min(1 - padding, sun.y));
+    if (sun.x < padding) {
+      sun.x = padding;
+      sun.vx = Math.abs(sun.vx) * 0.5; // Bounce back
+    }
+    if (sun.x > 1 - padding) {
+      sun.x = 1 - padding;
+      sun.vx = -Math.abs(sun.vx) * 0.5;
+    }
+    if (sun.y < padding) {
+      sun.y = padding;
+      sun.vy = Math.abs(sun.vy) * 0.5;
+    }
+    if (sun.y > 1 - padding) {
+      sun.y = 1 - padding;
+      sun.vy = -Math.abs(sun.vy) * 0.5;
+    }
   }
 }
 
@@ -206,6 +326,90 @@ export function getFocusAreaSunId(focusArea: string): string {
     "mobility-transportation": "mobility-transportation-sun",
   };
   return mapping[focusArea] || "fintech-blockchain-sun";
+}
+
+/**
+ * Apply repulsive force to suns from a mouse click
+ * The force stacks up to a maximum value to prevent suns from flying off screen
+ * @param clickX - Normalized click X position (0-1)
+ * @param clickY - Normalized click Y position (0-1) 
+ * @returns Number of suns affected
+ */
+export function applyClickRepulsionToSuns(clickX: number, clickY: number): number {
+  if (sunStates.length === 0) {
+    initializeSunStates();
+    return 0;
+  }
+  
+  let affectedCount = 0;
+  
+  for (const sun of sunStates) {
+    const dx = sun.x - clickX;
+    const dy = sun.y - clickY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    
+    // Only affect suns within the click repulsion radius
+    if (dist < CLICK_REPULSION_RADIUS && dist > 0.001) {
+      // Calculate force based on distance (closer = stronger)
+      const forceFactor = 1 - (dist / CLICK_REPULSION_RADIUS);
+      const force = CLICK_REPULSION_FORCE * forceFactor;
+      
+      // Normalize direction
+      const nx = dx / dist;
+      const ny = dy / dist;
+      
+      // Add to accumulated repulsion (stacking effect)
+      sun.clickRepulsionX += nx * force;
+      sun.clickRepulsionY += ny * force;
+      
+      // Clamp to maximum to prevent flying off
+      const currentMagnitude = Math.sqrt(
+        sun.clickRepulsionX * sun.clickRepulsionX + 
+        sun.clickRepulsionY * sun.clickRepulsionY
+      );
+      
+      if (currentMagnitude > MAX_CLICK_REPULSION) {
+        const scale = MAX_CLICK_REPULSION / currentMagnitude;
+        sun.clickRepulsionX *= scale;
+        sun.clickRepulsionY *= scale;
+      }
+      
+      // Also activate the sun if it was inactive (click triggers movement)
+      if (!sun.isActive) {
+        sun.isActive = true;
+      }
+      
+      // Increase rotation speed for visual feedback
+      sun.rotationSpeed = Math.min(0.0005, sun.rotationSpeed + 0.0001);
+      sun.isPropelling = true;
+      sun.propelTimer = 120; // Longer propel visual effect on click
+      
+      affectedCount++;
+    }
+  }
+  
+  return affectedCount;
+}
+
+/**
+ * Apply repulsive force using canvas coordinates
+ * This is a convenience wrapper for use from click handlers
+ * @param canvasX - Click X position in canvas coordinates
+ * @param canvasY - Click Y position in canvas coordinates
+ * @param canvasWidth - Canvas width
+ * @param canvasHeight - Canvas height
+ * @returns Number of suns affected
+ */
+export function applyClickRepulsionToSunsCanvas(
+  canvasX: number,
+  canvasY: number,
+  canvasWidth: number,
+  canvasHeight: number
+): number {
+  // Convert canvas coordinates to normalized coordinates
+  const normalizedX = canvasX / canvasWidth;
+  const normalizedY = canvasY / canvasHeight;
+  return applyClickRepulsionToSuns(normalizedX, normalizedY);
 }
 
 // Check if mouse is hovering over a sun - returns only the CLOSEST sun

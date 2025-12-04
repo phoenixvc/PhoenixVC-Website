@@ -26,6 +26,7 @@ import DebugControlsOverlay from "./DebugControlsOverlay";
 import { useStarInitialization } from "./hooks/useStarInitialization";
 import { applyClickForce, createClickExplosion } from "./stars";
 import { checkSunHover } from "./hooks/animation/animate";
+import { applyClickRepulsionToSunsCanvas } from "./sunSystem";
 import SunTooltip, { SunInfo } from "./sunTooltip";
 
 // Define the ref type
@@ -776,6 +777,10 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     console.log(`Original click event coordinates: (${event.clientX}, ${event.clientY})`);
     console.log(`Canvas rect: left=${rect.left}, top=${rect.top}, width=${rect.width}, height=${rect.height}`);
 
+    // Apply repulsive force to suns (this stacks up with multiple clicks)
+    const affectedSuns = applyClickRepulsionToSunsCanvas(x, y, rect.width, rect.height);
+    console.log(`Applied click repulsion to ${affectedSuns} suns`);
+
     // First check if we clicked on a focus area sun
     const sunHoverResult = checkSunHover(x, y, rect.width, rect.height);
     
@@ -820,6 +825,10 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
         const y = e.clientY - rect.top;
 
         console.log(`Converted to canvas coordinates: (${x}, ${y})`);
+
+        // Apply repulsive force to suns (this stacks up with multiple clicks)
+        const affectedSuns = applyClickRepulsionToSunsCanvas(x, y, rect.width, rect.height);
+        console.log(`Native click: Applied repulsion to ${affectedSuns} suns`);
 
         // First check if we clicked on a focus area sun
         const sunHoverResult = checkSunHover(x, y, rect.width, rect.height);
