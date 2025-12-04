@@ -90,7 +90,7 @@ export const SUN_PHYSICS = {
   /** Minimum distance from canvas edges (as fraction) */
   edgePadding: 0.15,
   /** Minimum distance between suns (as fraction) */
-  minDistance: 0.25,
+  minDistance: 0.35, // Increased from 0.25 so suns start further apart
   /** Offset to avoid sidebar area (as fraction) */
   sidebarOffset: 0.12,
   /** Maximum attempts to find valid sun position */

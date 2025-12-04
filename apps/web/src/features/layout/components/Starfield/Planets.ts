@@ -36,7 +36,7 @@ export const initPlanets = (
     const angleStep = (Math.PI * 2) / totalItems;
     const baseAngle = index * angleStep;
 
-    const orbitRadius = Math.min(width, height) * 0.25 + (index * 40);
+    const orbitRadius = Math.min(width, height) * 0.12 + (index * 25); // Reduced from 0.25 for closer orbits
     const orbitSpeed = item.speed || (0.0005 + (0.0002 * (index % 3)));
 
     const x = centerX + Math.cos(baseAngle) * orbitRadius;
@@ -195,7 +195,7 @@ export const initPlanets = (
     planets[0].pathType = "comet";
     planets[0].trailLength = 280;
     planets[0].pathEccentricity = 0.7;
-    planets[0].orbitRadius = Math.min(width, height) * 0.35;
+    planets[0].orbitRadius = Math.min(width, height) * 0.18; // Reduced from 0.35 for closer orbit
     planets[0].orbitSpeed = 0.0001;
     planets[0].glowIntensity = 2.5;
     planets[0].verticalFactor = 2.2; // Significant vertical stretch
