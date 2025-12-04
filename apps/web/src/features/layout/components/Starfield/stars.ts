@@ -731,7 +731,7 @@ export const createClickExplosion = (
 
 // Helper to gradually deactivate stars
 export const updateStarActivity = (stars: Star[]): void => {
-  const now = Date.now();
+  const now = getFrameTime(); // Use cached frame time for consistency with lastPushed
   const deactivationTime = STAR_PHYSICS.deactivationTime;
 
   for (let i = 0; i < stars.length; i++) {

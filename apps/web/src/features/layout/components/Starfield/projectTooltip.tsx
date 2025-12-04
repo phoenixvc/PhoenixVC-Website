@@ -201,7 +201,7 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
             className={styles.tooltipLink}
             onClick={(e) => {
               e.stopPropagation();
-              navigate(`/portfolio/${project.id}`);
+              void navigate(`/portfolio/${project.id}`);
             }}
             style={{
               color: isDarkMode ? "rgba(157, 78, 221, 0.9)" : "rgba(123, 44, 191, 0.9)",

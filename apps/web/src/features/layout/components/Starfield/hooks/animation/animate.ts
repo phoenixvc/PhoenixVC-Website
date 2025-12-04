@@ -1,7 +1,7 @@
 // components/Layout/Starfield/hooks/animation/animate.ts
 import { SetStateAction } from "react";
 import { drawBlackHole } from "../../blackHoles";
-import { drawConnections, drawStars, updateStarActivity, updateStarPositions, handleBoundaries } from "../../stars";
+import { drawConnections, drawStars, updateStarActivity, updateStarPositions } from "../../stars";
 import { logger } from "@/utils/logger";
 import { updateFrameCache, getFrameTime } from "../../frameCache";
 import {
@@ -230,8 +230,8 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       props.animationSpeed
     );
 
-    // Handle boundary wrapping with smooth buffer zone
-    handleBoundaries(currentStars, canvas.width, canvas.height);
+    // Note: handleBoundaries removed - updateStarPositions already handles wrapping
+    // Adding it here caused double-wrapping and potential oscillation at edges
 
     // Draw black holes if enabled
     if (props.enableBlackHole) {
