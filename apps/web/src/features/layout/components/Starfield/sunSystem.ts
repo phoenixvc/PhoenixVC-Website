@@ -23,6 +23,13 @@ export interface SunState {
   // Is this sun in "propel" mode (avoiding collision)
   isPropelling: boolean;
   propelTimer: number;
+  // Unique drift parameters for independent movement
+  driftPhaseX: number;
+  driftPhaseY: number;
+  driftSpeedX: number;
+  driftSpeedY: number;
+  driftAmplitudeX: number;
+  driftAmplitudeY: number;
 }
 
 // Better sun positions - accounting for sidebar (~220px) on left
@@ -38,15 +45,13 @@ export const INITIAL_SUN_POSITIONS = [
 let sunStates: SunState[] = [];
 let lastUpdateTime = 0;
 
-// Constants for sun physics - slowed down by factor of 100 (doubled from previous 50x)
-const GRAVITATIONAL_CONSTANT = 0.0000001; // Very slow gravitational pull (100x slower than original)
-const SPRING_CONSTANT = 0.000001; // How strongly suns return to base position (100x slower)
-const DAMPING = 0.9998; // Velocity damping (higher = slower movement, more gradual)
-const MIN_DISTANCE = 0.30; // Minimum distance between suns (increased from 0.25)
-const PROPEL_THRESHOLD = 0.12; // Distance at which propel mode activates
-const PROPEL_FORCE = 0.000005; // Force applied when propelling apart (100x slower)
-const ROTATION_SPEED_BOOST = 0.0002; // How fast rotation increases when close (100x slower)
-const MAX_VELOCITY = 0.00001; // Maximum velocity cap (100x slower)
+// Constants for sun physics - smooth, independent drifting motion
+const PROPEL_THRESHOLD = 0.15; // Distance at which repulsion activates
+const ROTATION_SPEED_BOOST = 0.00015; // Rotation speed increase when close
+const DRIFT_AMPLITUDE_MIN = 0.008; // Minimum drift amplitude
+const DRIFT_AMPLITUDE_MAX = 0.015; // Maximum drift amplitude
+const DRIFT_SPEED_MIN = 0.0003; // Minimum drift speed (very slow)
+const DRIFT_SPEED_MAX = 0.0008; // Maximum drift speed (still slow)
 
 // Initialize sun states
 export function initializeSunStates(): void {
@@ -54,6 +59,16 @@ export function initializeSunStates(): void {
   
   sunStates = focusAreaSuns.map((sun, index) => {
     const pos = INITIAL_SUN_POSITIONS[index % INITIAL_SUN_POSITIONS.length];
+    
+    // Create unique drift parameters for each sun so they move independently
+    const driftPhaseX = Math.random() * Math.PI * 2; // Random starting phase
+    const driftPhaseY = Math.random() * Math.PI * 2;
+    const driftSpeedX = DRIFT_SPEED_MIN + Math.random() * (DRIFT_SPEED_MAX - DRIFT_SPEED_MIN);
+    const driftSpeedY = DRIFT_SPEED_MIN + Math.random() * (DRIFT_SPEED_MAX - DRIFT_SPEED_MIN);
+    // Vary the speed slightly so X and Y don't sync up
+    const driftAmplitudeX = DRIFT_AMPLITUDE_MIN + Math.random() * (DRIFT_AMPLITUDE_MAX - DRIFT_AMPLITUDE_MIN);
+    const driftAmplitudeY = DRIFT_AMPLITUDE_MIN + Math.random() * (DRIFT_AMPLITUDE_MAX - DRIFT_AMPLITUDE_MIN);
+    
     return {
       id: sun.id,
       name: sun.name,
@@ -67,9 +82,15 @@ export function initializeSunStates(): void {
       baseY: pos.y,
       size: sun.size,
       rotationAngle: Math.random() * Math.PI * 2,
-      rotationSpeed: 0.00001, // Slowed down by factor of 100
+      rotationSpeed: 0.00001,
       isPropelling: false,
       propelTimer: 0,
+      driftPhaseX,
+      driftPhaseY,
+      driftSpeedX,
+      driftSpeedY,
+      driftAmplitudeX,
+      driftAmplitudeY,
     };
   });
   
@@ -84,62 +105,59 @@ export function updateSunPhysics(deltaTime: number): void {
   }
   
   const dt = Math.min(deltaTime, 50); // Cap delta time to prevent physics explosions
+  const time = Date.now() * 0.001; // Current time in seconds for smooth sine waves
   
   // Update each sun
   for (let i = 0; i < sunStates.length; i++) {
     const sun = sunStates[i];
     
-    // 1. Apply spring force back to base position
-    const springForceX = (sun.baseX - sun.x) * SPRING_CONSTANT;
-    const springForceY = (sun.baseY - sun.y) * SPRING_CONSTANT;
+    // 1. Calculate smooth sinusoidal drift - unique for each sun
+    // This creates a gentle, organic floating motion
+    sun.driftPhaseX += sun.driftSpeedX * dt;
+    sun.driftPhaseY += sun.driftSpeedY * dt;
     
-    sun.vx += springForceX * dt;
-    sun.vy += springForceY * dt;
+    // Calculate target position based on base + smooth drift
+    const driftX = Math.sin(sun.driftPhaseX) * sun.driftAmplitudeX;
+    const driftY = Math.sin(sun.driftPhaseY) * sun.driftAmplitudeY;
+    const targetX = sun.baseX + driftX;
+    const targetY = sun.baseY + driftY;
     
-    // 2. Apply gravitational pull from other suns (very subtle)
+    // 2. Smoothly interpolate current position towards target (lerp)
+    // This creates smooth, non-stuttery movement
+    const lerpFactor = 0.02; // Very slow interpolation for smoothness
+    sun.x += (targetX - sun.x) * lerpFactor;
+    sun.y += (targetY - sun.y) * lerpFactor;
+    
+    // 3. Check for proximity to other suns and apply gentle repulsion
     for (let j = 0; j < sunStates.length; j++) {
       if (i === j) continue;
       
       const other = sunStates[j];
       const dx = other.x - sun.x;
       const dy = other.y - sun.y;
-      const distSq = dx * dx + dy * dy;
-      const dist = Math.sqrt(distSq);
+      const dist = Math.sqrt(dx * dx + dy * dy);
       
-      // Normalize direction
-      const nx = dx / dist;
-      const ny = dy / dist;
-      
-      // Apply weak gravitational attraction
-      if (dist > MIN_DISTANCE) {
-        const gravForce = GRAVITATIONAL_CONSTANT / distSq;
-        sun.vx += nx * gravForce * dt;
-        sun.vy += ny * gravForce * dt;
-      }
-      
-      // 3. Check for collision avoidance / propel mode
-      if (dist < PROPEL_THRESHOLD) {
+      // If suns get too close, push them apart gently
+      if (dist < PROPEL_THRESHOLD && dist > 0.001) {
         sun.isPropelling = true;
-        sun.propelTimer = 60; // Stay in propel mode for ~1 second
+        sun.propelTimer = 60;
         
-        // Increase rotation speed when close (slowed down by factor of 100)
-        sun.rotationSpeed = Math.min(0.00025, sun.rotationSpeed + ROTATION_SPEED_BOOST * dt * 0.001);
+        // Normalize direction
+        const nx = dx / dist;
+        const ny = dy / dist;
         
-        // Apply repulsion force
+        // Apply gentle repulsion directly to position (not velocity)
         const repelStrength = (PROPEL_THRESHOLD - dist) / PROPEL_THRESHOLD;
-        sun.vx -= nx * PROPEL_FORCE * repelStrength * dt;
-        sun.vy -= ny * PROPEL_FORCE * repelStrength * dt;
+        const repelForce = repelStrength * 0.001;
+        sun.x -= nx * repelForce;
+        sun.y -= ny * repelForce;
         
-        // Add tangential "orbital" component to create rotating effect
-        const tangentX = -ny;
-        const tangentY = nx;
-        const tangentForce = PROPEL_FORCE * 0.5 * repelStrength;
-        sun.vx += tangentX * tangentForce * dt;
-        sun.vy += tangentY * tangentForce * dt;
+        // Increase rotation speed when close
+        sun.rotationSpeed = Math.min(0.0003, sun.rotationSpeed + ROTATION_SPEED_BOOST * dt * 0.0001);
       }
     }
     
-    // 4. Update propel timer and rotation
+    // 4. Update propel timer
     if (sun.propelTimer > 0) {
       sun.propelTimer -= 1;
       if (sun.propelTimer <= 0) {
@@ -147,31 +165,16 @@ export function updateSunPhysics(deltaTime: number): void {
       }
     }
     
-    // Gradually reduce rotation speed when not propelling
+    // 5. Gradually reduce rotation speed when not propelling
     if (!sun.isPropelling) {
-      sun.rotationSpeed = Math.max(0.00001, sun.rotationSpeed * 0.9999); // More gradual deceleration for smoother slowdown
+      sun.rotationSpeed = Math.max(0.00001, sun.rotationSpeed * 0.998);
     }
     
-    // Update rotation angle
+    // 6. Update rotation angle smoothly
     sun.rotationAngle += sun.rotationSpeed * dt;
     
-    // 5. Apply damping
-    sun.vx *= DAMPING;
-    sun.vy *= DAMPING;
-    
-    // 6. Cap velocity
-    const speed = Math.sqrt(sun.vx * sun.vx + sun.vy * sun.vy);
-    if (speed > MAX_VELOCITY) {
-      sun.vx = (sun.vx / speed) * MAX_VELOCITY;
-      sun.vy = (sun.vy / speed) * MAX_VELOCITY;
-    }
-    
-    // 7. Update position
-    sun.x += sun.vx * dt;
-    sun.y += sun.vy * dt;
-    
-    // 8. Keep suns within bounds (with padding)
-    const padding = 0.1;
+    // 7. Keep suns within bounds (with padding)
+    const padding = 0.12;
     sun.x = Math.max(padding, Math.min(1 - padding, sun.x));
     sun.y = Math.max(padding, Math.min(1 - padding, sun.y));
   }
