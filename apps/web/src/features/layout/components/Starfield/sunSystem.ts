@@ -26,27 +26,27 @@ export interface SunState {
 }
 
 // Better sun positions - accounting for sidebar (~220px) on left
-// Positions are more inward from corners for better visibility
+// Positions spread further apart towards corners for better separation
 export const INITIAL_SUN_POSITIONS = [
-  { x: 0.28, y: 0.22 },  // Top-left: Fintech & Blockchain (moved right for sidebar)
-  { x: 0.78, y: 0.18 },  // Top-right: AI & ML
-  { x: 0.25, y: 0.75 },  // Bottom-left: Defense & Security (moved right for sidebar)
-  { x: 0.75, y: 0.72 },  // Bottom-right: Mobility & Transportation
+  { x: 0.22, y: 0.18 },  // Top-left: Fintech & Blockchain (moved more towards corner)
+  { x: 0.82, y: 0.15 },  // Top-right: AI & ML (moved more towards corner)
+  { x: 0.20, y: 0.82 },  // Bottom-left: Defense & Security (moved more towards corner)
+  { x: 0.80, y: 0.80 },  // Bottom-right: Mobility & Transportation (moved more towards corner)
 ];
 
 // Global sun state (mutable for animation)
 let sunStates: SunState[] = [];
 let lastUpdateTime = 0;
 
-// Constants for sun physics - slowed down by factor of 50
-const GRAVITATIONAL_CONSTANT = 0.0000002; // Very slow gravitational pull (50x slower)
-const SPRING_CONSTANT = 0.000002; // How strongly suns return to base position (50x slower)
-const DAMPING = 0.9996; // Velocity damping (higher = slower movement)
-const MIN_DISTANCE = 0.25; // Minimum distance between suns (increased to prevent clustering)
-const PROPEL_THRESHOLD = 0.10; // Distance at which propel mode activates (reduced)
-const PROPEL_FORCE = 0.00001; // Force applied when propelling apart (50x slower)
-const ROTATION_SPEED_BOOST = 0.0004; // How fast rotation increases when close (50x slower)
-const MAX_VELOCITY = 0.00002; // Maximum velocity cap (50x slower)
+// Constants for sun physics - slowed down by factor of 100 (doubled from previous 50x)
+const GRAVITATIONAL_CONSTANT = 0.0000001; // Very slow gravitational pull (100x slower than original)
+const SPRING_CONSTANT = 0.000001; // How strongly suns return to base position (100x slower)
+const DAMPING = 0.9998; // Velocity damping (higher = slower movement, more gradual)
+const MIN_DISTANCE = 0.30; // Minimum distance between suns (increased from 0.25)
+const PROPEL_THRESHOLD = 0.12; // Distance at which propel mode activates
+const PROPEL_FORCE = 0.000005; // Force applied when propelling apart (100x slower)
+const ROTATION_SPEED_BOOST = 0.0002; // How fast rotation increases when close (100x slower)
+const MAX_VELOCITY = 0.00001; // Maximum velocity cap (100x slower)
 
 // Initialize sun states
 export function initializeSunStates(): void {
@@ -67,7 +67,7 @@ export function initializeSunStates(): void {
       baseY: pos.y,
       size: sun.size,
       rotationAngle: Math.random() * Math.PI * 2,
-      rotationSpeed: 0.00002, // Slowed down by factor of 50
+      rotationSpeed: 0.00001, // Slowed down by factor of 100
       isPropelling: false,
       propelTimer: 0,
     };
@@ -122,8 +122,8 @@ export function updateSunPhysics(deltaTime: number): void {
         sun.isPropelling = true;
         sun.propelTimer = 60; // Stay in propel mode for ~1 second
         
-        // Increase rotation speed when close (slowed down by factor of 50)
-        sun.rotationSpeed = Math.min(0.0005, sun.rotationSpeed + ROTATION_SPEED_BOOST * dt * 0.001);
+        // Increase rotation speed when close (slowed down by factor of 100)
+        sun.rotationSpeed = Math.min(0.00025, sun.rotationSpeed + ROTATION_SPEED_BOOST * dt * 0.001);
         
         // Apply repulsion force
         const repelStrength = (PROPEL_THRESHOLD - dist) / PROPEL_THRESHOLD;
@@ -149,7 +149,7 @@ export function updateSunPhysics(deltaTime: number): void {
     
     // Gradually reduce rotation speed when not propelling
     if (!sun.isPropelling) {
-      sun.rotationSpeed = Math.max(0.00002, sun.rotationSpeed * 0.9998); // More gradual deceleration for smoother slowdown
+      sun.rotationSpeed = Math.max(0.00001, sun.rotationSpeed * 0.9999); // More gradual deceleration for smoother slowdown
     }
     
     // Update rotation angle
