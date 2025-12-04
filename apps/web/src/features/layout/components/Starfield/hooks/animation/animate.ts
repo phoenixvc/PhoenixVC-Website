@@ -402,8 +402,7 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       updateStarActivity(currentStars);
 
     // Restore canvas context if camera transformation was applied
-    const hasActiveCameraRestore = props.camera && props.camera.zoom > 1;
-    if (hasActiveCameraRestore) {
+    if (hasActiveCamera) {
       ctx.restore();
     }
 

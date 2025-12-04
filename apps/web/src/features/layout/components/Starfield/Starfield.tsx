@@ -795,6 +795,11 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   }, [focusedSunId]);
 
   // Smooth camera lerp animation - only runs when there's an active target
+  // Use a serialized target key to detect when target changes
+  const targetKey = internalCamera.target 
+    ? `${internalCamera.target.cx}-${internalCamera.target.cy}-${internalCamera.target.zoom}` 
+    : null;
+  
   useEffect(() => {
     // Only start animation if there's an active target
     if (!internalCamera.target) {
@@ -806,8 +811,12 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
       return;
     }
     
-    // Animation is already running, don't start another
-    if (cameraAnimationRef.current) return;
+    // Cancel any existing animation before starting a new one
+    // This handles switching between different zoom targets
+    if (cameraAnimationRef.current) {
+      cancelAnimationFrame(cameraAnimationRef.current);
+      cameraAnimationRef.current = null;
+    }
     
     const animateCamera = (): void => {
       setInternalCamera(prev => {
@@ -860,7 +869,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
         cameraAnimationRef.current = null;
       }
     };
-  }, [internalCamera.target !== undefined]); // Only depend on whether target exists, not its values
+  }, [targetKey]); // Re-run when target changes (including switching between targets)
 
   // Legacy function kept for backward compatibility
   const scrollToFocusArea = useCallback((sunId: string, sunX: number, sunY: number) => {
