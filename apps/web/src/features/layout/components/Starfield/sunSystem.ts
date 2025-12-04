@@ -38,15 +38,15 @@ export const INITIAL_SUN_POSITIONS = [
 let sunStates: SunState[] = [];
 let lastUpdateTime = 0;
 
-// Constants for sun physics - slowed down by factor of 10
-const GRAVITATIONAL_CONSTANT = 0.000001; // Very slow gravitational pull (10x slower)
-const SPRING_CONSTANT = 0.00001; // How strongly suns return to base position (10x slower)
-const DAMPING = 0.998; // Velocity damping (higher = slower movement)
+// Constants for sun physics - slowed down by factor of 50
+const GRAVITATIONAL_CONSTANT = 0.0000002; // Very slow gravitational pull (50x slower)
+const SPRING_CONSTANT = 0.000002; // How strongly suns return to base position (50x slower)
+const DAMPING = 0.9996; // Velocity damping (higher = slower movement)
 const MIN_DISTANCE = 0.25; // Minimum distance between suns (increased to prevent clustering)
 const PROPEL_THRESHOLD = 0.10; // Distance at which propel mode activates (reduced)
-const PROPEL_FORCE = 0.00005; // Force applied when propelling apart (10x slower)
-const ROTATION_SPEED_BOOST = 0.002; // How fast rotation increases when close (10x slower)
-const MAX_VELOCITY = 0.0001; // Maximum velocity cap (10x slower)
+const PROPEL_FORCE = 0.00001; // Force applied when propelling apart (50x slower)
+const ROTATION_SPEED_BOOST = 0.0004; // How fast rotation increases when close (50x slower)
+const MAX_VELOCITY = 0.00002; // Maximum velocity cap (50x slower)
 
 // Initialize sun states
 export function initializeSunStates(): void {
@@ -67,7 +67,7 @@ export function initializeSunStates(): void {
       baseY: pos.y,
       size: sun.size,
       rotationAngle: Math.random() * Math.PI * 2,
-      rotationSpeed: 0.0001, // Slowed down by factor of 10
+      rotationSpeed: 0.00002, // Slowed down by factor of 50
       isPropelling: false,
       propelTimer: 0,
     };
@@ -122,8 +122,8 @@ export function updateSunPhysics(deltaTime: number): void {
         sun.isPropelling = true;
         sun.propelTimer = 60; // Stay in propel mode for ~1 second
         
-        // Increase rotation speed when close (slowed down by factor of 10)
-        sun.rotationSpeed = Math.min(0.005, sun.rotationSpeed + ROTATION_SPEED_BOOST * dt * 0.001);
+        // Increase rotation speed when close (slowed down by factor of 50)
+        sun.rotationSpeed = Math.min(0.0005, sun.rotationSpeed + ROTATION_SPEED_BOOST * dt * 0.001);
         
         // Apply repulsion force
         const repelStrength = (PROPEL_THRESHOLD - dist) / PROPEL_THRESHOLD;
@@ -149,7 +149,7 @@ export function updateSunPhysics(deltaTime: number): void {
     
     // Gradually reduce rotation speed when not propelling
     if (!sun.isPropelling) {
-      sun.rotationSpeed = Math.max(0.0001, sun.rotationSpeed * 0.999); // More gradual deceleration for smoother slowdown
+      sun.rotationSpeed = Math.max(0.00002, sun.rotationSpeed * 0.9998); // More gradual deceleration for smoother slowdown
     }
     
     // Update rotation angle
