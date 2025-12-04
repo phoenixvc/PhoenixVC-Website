@@ -178,11 +178,19 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
         currentMousePosition.y
       );
       if (elementAtMouse) {
-        // Check if the element is NOT the canvas and is NOT inside the starfield container
+        // Check if the element is the canvas or inside the starfield container
         const isCanvas = elementAtMouse.tagName === "CANVAS";
         const isInsideStarfield = elementAtMouse.closest("[data-starfield]") !== null;
-        // If not canvas and not in starfield, we're over a content card
-        isOverContentCard = !isCanvas && !isInsideStarfield;
+        // Check if the element is inside the hero section (which should allow tooltips)
+        const isInsideHeroSection = elementAtMouse.closest('section[aria-label="hero section"]') !== null;
+        // Check if hovering over header/navigation (should allow tooltips since they're transparent)
+        const isInsideHeader = elementAtMouse.closest("header") !== null;
+        // Check if hovering over sidebar (should allow tooltips)
+        const isInsideSidebar = elementAtMouse.closest('aside, [role="complementary"]') !== null;
+        
+        // Only consider it as "over content card" if it's NOT any of the allowed elements
+        // This allows tooltips to show when hovering over transparent overlays, header, sidebar, etc.
+        isOverContentCard = !isCanvas && !isInsideStarfield && !isInsideHeroSection && !isInsideHeader && !isInsideSidebar;
       }
     }
 
