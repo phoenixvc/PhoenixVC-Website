@@ -15,6 +15,7 @@ import {
   MousePosition,
   DebugSettings
 } from "./types";
+import { Camera } from "./cosmos/types";
 import { ProjectTooltip } from "./projectTooltip";
 import { fetchIpAddress, getHighScoresForIP, initGameState, saveScore } from "./gameState";
 import ScoreOverlay from "./scoreOverlay";
@@ -26,7 +27,7 @@ import DebugControlsOverlay from "./DebugControlsOverlay";
 import { useStarInitialization } from "./hooks/useStarInitialization";
 import { applyClickForce, createClickExplosion } from "./stars";
 import { checkSunHover } from "./hooks/animation/animate";
-import { applyClickRepulsionToSunsCanvas } from "./sunSystem";
+import { applyClickRepulsionToSunsCanvas, getSunPosition } from "./sunSystem";
 import SunTooltip, { SunInfo } from "./sunTooltip";
 
 // Define the ref type
@@ -121,6 +122,15 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   // Focused sun state - when user clicks on a focus area, we scope the view
   const [focusedSunId, setFocusedSunId] = useState<string | null>(null);
   const focusAnimationRef = useRef<number | null>(null);
+  
+  // Internal camera state for sun zoom functionality
+  const [internalCamera, setInternalCamera] = useState<Camera>({
+    cx: 0.5,
+    cy: 0.5,
+    zoom: 1,
+    target: undefined
+  });
+  const cameraAnimationRef = useRef<number | null>(null);
 
   // Game state
   const [gameState, setGameState] = useState<GameState>(initGameState());
@@ -629,7 +639,10 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     ensureStarsExist,
     updateFpsData, // Add the FPS update callback
     fpsValuesRef, // Add the FPS values ref
-    hoveredSunId // Pass the hovered sun id to the animation
+    hoveredSunId, // Pass the hovered sun id to the animation
+    focusedSunId, // Pass the focused sun id for camera zoom
+    camera: internalCamera, // Pass the internal camera for zoom functionality
+    setCamera: setInternalCamera // Pass camera setter
   }), [
     mousePosition,
     enableFlowEffect,
@@ -660,7 +673,9 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     employeeStarsRef,
     ensureStarsExist,
     updateFpsData,
-    hoveredSunId
+    hoveredSunId,
+    focusedSunId,
+    internalCamera
   ]);
 
   // Use the animation loop with memoized parameters - ONLY CALL THIS ONCE
@@ -722,44 +737,109 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     }
   }, []);
 
-  // Function to smoothly scroll/focus the view on a specific focus area
-  const scrollToFocusArea = useCallback((sunId: string, sunX: number, sunY: number) => {
-    console.log(`Scrolling to focus area: ${sunId} at (${sunX}, ${sunY})`);
+  // Function to zoom the camera to focus on a specific sun
+  const zoomToSun = useCallback((sunId: string) => {
+    console.log(`Zooming to sun: ${sunId}`);
     
-    // Cancel any existing focus animation
-    if (focusAnimationRef.current) {
-      cancelAnimationFrame(focusAnimationRef.current);
+    // Cancel any existing camera animation
+    if (cameraAnimationRef.current) {
+      cancelAnimationFrame(cameraAnimationRef.current);
     }
     
     // If clicking on the same sun, toggle off (zoom out)
     if (focusedSunId === sunId) {
+      console.log("Toggling off focus, zooming back out");
       setFocusedSunId(null);
-      // Smoothly scroll back to center
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-      });
+      
+      // Set camera target to zoom out
+      setInternalCamera(prev => ({
+        ...prev,
+        target: {
+          cx: 0.5,
+          cy: 0.5,
+          zoom: 1
+        }
+      }));
+      return;
+    }
+    
+    // Get the sun's current position
+    const sunPosition = getSunPosition(sunId);
+    if (!sunPosition) {
+      console.error(`Could not find sun with id: ${sunId}`);
       return;
     }
     
     setFocusedSunId(sunId);
     
-    // Calculate target scroll position to center the sun in viewport
-    // The sun position is normalized (0-1), so we need to scale to actual page coordinates
-    const viewportHeight = window.innerHeight;
+    // Set camera target to zoom in on the sun
+    // Sun position is normalized (0-1), camera uses same coordinates
+    setInternalCamera(prev => ({
+      ...prev,
+      target: {
+        cx: sunPosition.x,
+        cy: sunPosition.y,
+        zoom: 2.5 // Zoom in 2.5x when focused on a sun
+      }
+    }));
     
-    // Calculate the target Y scroll position to bring the sun into better view
-    // Sun Y position is from top, we want to scroll so it's visible
-    const targetScrollY = Math.max(0, sunY - viewportHeight * 0.35);
-    
-    // Smooth scroll to the focus area
-    window.scrollTo({
-      top: targetScrollY,
-      behavior: "smooth"
-    });
-    
-    console.log(`Focus area scroll: sunY=${sunY}, targetScrollY=${targetScrollY}, viewportHeight=${viewportHeight}`);
+    console.log(`Set camera target to sun position: (${sunPosition.x}, ${sunPosition.y}) with zoom 2.5`);
   }, [focusedSunId]);
+
+  // Smooth camera lerp animation
+  useEffect(() => {
+    if (!internalCamera.target) return;
+    
+    const animateCamera = () => {
+      setInternalCamera(prev => {
+        if (!prev.target) return prev;
+        
+        const smoothing = 0.08;
+        const newCx = prev.cx + (prev.target.cx - prev.cx) * smoothing;
+        const newCy = prev.cy + (prev.target.cy - prev.cy) * smoothing;
+        const newZoom = prev.zoom + (prev.target.zoom - prev.zoom) * smoothing;
+        
+        // Check if we're close enough to target
+        const isCloseEnough = 
+          Math.abs(newCx - prev.target.cx) < 0.001 &&
+          Math.abs(newCy - prev.target.cy) < 0.001 &&
+          Math.abs(newZoom - prev.target.zoom) < 0.01;
+        
+        if (isCloseEnough) {
+          return {
+            cx: prev.target.cx,
+            cy: prev.target.cy,
+            zoom: prev.target.zoom,
+            target: undefined
+          };
+        }
+        
+        return {
+          cx: newCx,
+          cy: newCy,
+          zoom: newZoom,
+          target: prev.target
+        };
+      });
+      
+      cameraAnimationRef.current = requestAnimationFrame(animateCamera);
+    };
+    
+    cameraAnimationRef.current = requestAnimationFrame(animateCamera);
+    
+    return () => {
+      if (cameraAnimationRef.current) {
+        cancelAnimationFrame(cameraAnimationRef.current);
+      }
+    };
+  }, [internalCamera.target?.cx, internalCamera.target?.cy, internalCamera.target?.zoom]);
+
+  // Legacy function kept for backward compatibility
+  const scrollToFocusArea = useCallback((sunId: string, sunX: number, sunY: number) => {
+    console.log(`scrollToFocusArea called for: ${sunId} at (${sunX}, ${sunY})`);
+    // Now just delegates to the camera zoom function
+    zoomToSun(sunId);
+  }, [zoomToSun]);
 
   // Update the click handler to use this unified function:
   const handleCanvasClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
@@ -920,6 +1000,42 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
           sun={hoveredSun}
           isDarkMode={isDarkMode}
         />
+      )}
+
+      {/* Zoom out button when focused on a sun */}
+      {focusedSunId && (
+        <button
+          className={styles.zoomOutButton}
+          onClick={() => zoomToSun(focusedSunId)}
+          style={{
+            position: "fixed",
+            top: "20px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 1001,
+            padding: "12px 24px",
+            background: isDarkMode 
+              ? "linear-gradient(135deg, rgba(25, 20, 40, 0.95) 0%, rgba(35, 25, 55, 0.95) 100%)"
+              : "linear-gradient(135deg, rgba(250, 248, 255, 0.95) 0%, rgba(240, 235, 255, 0.95) 100%)",
+            backdropFilter: "blur(20px)",
+            border: `1px solid ${isDarkMode ? "rgba(157, 78, 221, 0.5)" : "rgba(123, 44, 191, 0.3)"}`,
+            borderRadius: "30px",
+            color: isDarkMode ? "rgba(255, 255, 255, 0.9)" : "rgba(30, 30, 50, 0.9)",
+            fontSize: "14px",
+            fontWeight: 500,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            boxShadow: isDarkMode 
+              ? "0 8px 32px rgba(157, 78, 221, 0.3)" 
+              : "0 8px 32px rgba(123, 44, 191, 0.2)",
+            transition: "all 0.3s ease"
+          }}
+        >
+          <span style={{ fontSize: "18px" }}>←</span>
+          Zoom Out
+        </button>
       )}
 
       {/* Add score overlay if in game mode */}

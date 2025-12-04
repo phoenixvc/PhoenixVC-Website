@@ -1,19 +1,48 @@
+/* Define CSS variables matching the site theme (from projectTooltip) */
+:root {
+  /* Dark mode defaults */
+  --sun-tooltip-bg-dark: linear-gradient(135deg, rgba(25, 20, 40, 0.95) 0%, rgba(35, 25, 55, 0.95) 100%);
+  --sun-tooltip-border-dark: rgba(157, 78, 221, 0.3);
+  --sun-tooltip-border-left-dark: rgba(157, 78, 221, 0.8);
+  --sun-tooltip-shadow-dark: 0 8px 32px rgba(157, 78, 221, 0.3);
+  --sun-tooltip-text-dark: rgba(255, 255, 255, 0.9);
+  --sun-tooltip-subtext-dark: rgba(255, 255, 255, 0.7);
+  --sun-tooltip-hint-dark: rgba(157, 78, 221, 0.9);
+  --sun-tooltip-header-bg-dark: rgba(157, 78, 221, 0.15);
+  --sun-tooltip-glow-dark: rgba(157, 78, 221, 0.12);
+
+  /* Light mode settings */
+  --sun-tooltip-bg-light: linear-gradient(135deg, rgba(250, 248, 255, 0.95) 0%, rgba(240, 235, 255, 0.95) 100%);
+  --sun-tooltip-border-light: rgba(123, 44, 191, 0.2);
+  --sun-tooltip-border-left-light: rgba(123, 44, 191, 0.6);
+  --sun-tooltip-shadow-light: 0 8px 32px rgba(123, 44, 191, 0.2);
+  --sun-tooltip-text-light: rgba(30, 30, 50, 0.9);
+  --sun-tooltip-subtext-light: rgba(30, 30, 50, 0.7);
+  --sun-tooltip-hint-light: rgba(123, 44, 191, 0.9);
+  --sun-tooltip-header-bg-light: rgba(123, 44, 191, 0.08);
+  --sun-tooltip-glow-light: rgba(123, 44, 191, 0.08);
+}
+
 .sunTooltip {
   position: fixed;
   z-index: 1000;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  background-color: rgba(15, 15, 25, 0.95);
-  border-radius: 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(12px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  gap: 0.875rem;
+  padding: 1rem 1.25rem;
+  background: var(--sun-tooltip-bg-dark);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 12px;
+  border: 1px solid var(--sun-tooltip-border-dark);
+  border-left: 4px solid var(--sun-tooltip-border-left-dark);
+  box-shadow: var(--sun-tooltip-shadow-dark);
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
   pointer-events: none;
-  min-width: 180px;
+  min-width: 200px;
   overflow: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--sun-tooltip-text-dark);
 }
 
 .sunTooltip::before {
@@ -23,7 +52,20 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(157, 78, 221, 0.4), transparent);
+}
+
+.sunTooltip::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+  border-radius: 12px;
+  background: radial-gradient(ellipse at top left, var(--sun-tooltip-glow-dark) 0%, transparent 70%);
 }
 
 .visible {
@@ -32,43 +74,54 @@
 }
 
 .lightMode {
-  background-color: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  background: var(--sun-tooltip-bg-light);
+  border: 1px solid var(--sun-tooltip-border-light);
+  border-left: 4px solid var(--sun-tooltip-border-left-light);
+  box-shadow: var(--sun-tooltip-shadow-light);
+  color: var(--sun-tooltip-text-light);
+}
+
+.lightMode::before {
+  background: linear-gradient(90deg, transparent, rgba(123, 44, 191, 0.3), transparent);
+}
+
+.lightMode::after {
+  background: radial-gradient(ellipse at top left, var(--sun-tooltip-glow-light) 0%, transparent 70%);
 }
 
 .lightMode .sunName {
-  color: #1a1a2e;
+  color: var(--sun-tooltip-text-light);
 }
 
 .lightMode .sunDescription {
-  color: #4a4a6a;
+  color: var(--sun-tooltip-subtext-light);
 }
 
 .lightMode .clickHint {
-  color: #6a6a8a;
+  color: var(--sun-tooltip-hint-light);
 }
 
 .sunGlow {
   position: absolute;
   top: -50%;
   left: -20%;
-  width: 60px;
+  width: 80px;
   height: 200%;
   pointer-events: none;
-  opacity: 0.6;
+  opacity: 0.5;
+  filter: blur(8px);
 }
 
 .sunIcon {
   position: relative;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   flex-shrink: 0;
   box-shadow: 
-    0 0 10px currentColor,
-    0 0 20px currentColor,
-    0 0 30px rgba(255, 255, 255, 0.3);
+    0 0 12px currentColor,
+    0 0 24px currentColor,
+    0 0 36px rgba(255, 255, 255, 0.4);
   animation: sunPulse 2s ease-in-out infinite;
 }
 
@@ -77,56 +130,78 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #ffffff 0%, rgba(255, 255, 255, 0.6) 50%, transparent 70%);
+  background: radial-gradient(circle at 30% 30%, #ffffff 0%, rgba(255, 255, 255, 0.7) 40%, rgba(255, 255, 255, 0.3) 70%, transparent 100%);
 }
 
 .sunInfo {
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
+  gap: 0.25rem;
   position: relative;
   z-index: 1;
 }
 
 .sunName {
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--sun-tooltip-text-dark);
   margin: 0;
   white-space: nowrap;
+  letter-spacing: -0.01em;
 }
 
 .sunDescription {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.8125rem;
+  color: var(--sun-tooltip-subtext-dark);
   margin: 0;
-  line-height: 1.3;
-  max-width: 160px;
+  line-height: 1.4;
+  max-width: 180px;
+  font-weight: 400;
 }
 
 .clickHint {
-  font-size: 0.6875rem;
-  color: rgba(255, 255, 255, 0.5);
-  font-style: italic;
-  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--sun-tooltip-hint-dark);
+  font-weight: 500;
+  margin-top: 0.375rem;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.clickHint::before {
+  content: "→";
+  font-size: 0.875rem;
+  animation: hintPulse 1.5s ease-in-out infinite;
 }
 
 @keyframes sunPulse {
   0%, 100% {
     transform: scale(1);
     box-shadow: 
-      0 0 10px currentColor,
-      0 0 20px currentColor,
-      0 0 30px rgba(255, 255, 255, 0.3);
+      0 0 12px currentColor,
+      0 0 24px currentColor,
+      0 0 36px rgba(255, 255, 255, 0.4);
   }
   50% {
-    transform: scale(1.05);
+    transform: scale(1.08);
     box-shadow: 
-      0 0 15px currentColor,
-      0 0 30px currentColor,
-      0 0 40px rgba(255, 255, 255, 0.4);
+      0 0 18px currentColor,
+      0 0 36px currentColor,
+      0 0 48px rgba(255, 255, 255, 0.5);
+  }
+}
+
+@keyframes hintPulse {
+  0%, 100% {
+    opacity: 0.7;
+    transform: translateX(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(3px);
   }
 }
