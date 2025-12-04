@@ -12,7 +12,10 @@ import { logger } from "@/utils/logger";
 import { useTheme } from "@/theme";
 
 // Add isDarkMode to the component props
-interface ContactProps {}
+// Note: Empty interface kept for future extensibility
+interface ContactProps {
+  // Reserved for future props like isDarkMode or className
+}
 
 const Contact: FC<ContactProps> = memo(() => {
   const { themeMode } = useTheme();
