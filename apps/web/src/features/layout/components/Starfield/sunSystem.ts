@@ -67,18 +67,22 @@ const CLICK_REPULSION_FORCE = 0.015; // Base force applied per click
 const MAX_CLICK_REPULSION = 0.08; // Maximum accumulated repulsion
 const CLICK_REPULSION_DECAY = 0.97; // How fast repulsion decays each frame
 
-// Staggered activation constants  
+// Staggered activation constants
 const ACTIVATION_DELAY_MIN = 1000; // Minimum delay before a sun starts moving (ms)
 const ACTIVATION_DELAY_MAX = 3000; // Maximum delay before a sun starts moving (ms)
 const ACTIVATION_TRIGGER_RADIUS = 0.2; // When an active sun gets close, it triggers inactive ones
 
 // Center repulsion to prevent clustering
 const CENTER_REPULSION_STRENGTH = 0.0002; // Force pushing away from center
+const CENTER_REPULSION_RADIUS = 0.3; // Distance from center where repulsion activates
 const CENTER_X = 0.5;
 const CENTER_Y = 0.5;
 
 // Velocity damping
 const VELOCITY_DAMPING = 0.98;
+
+// Minimum distance threshold to avoid division by zero
+const MIN_DISTANCE_THRESHOLD = 0.001;
 
 // Initialize sun states
 export function initializeSunStates(): void {
@@ -97,9 +101,9 @@ export function initializeSunStates(): void {
     const driftAmplitudeX = DRIFT_AMPLITUDE_MIN + Math.random() * (DRIFT_AMPLITUDE_MAX - DRIFT_AMPLITUDE_MIN);
     const driftAmplitudeY = DRIFT_AMPLITUDE_MIN + Math.random() * (DRIFT_AMPLITUDE_MAX - DRIFT_AMPLITUDE_MIN);
     
-    // Staggered activation - randomly pick one sun to start first, others wait
-    // The first sun starts after a short delay, others wait longer
-    const isFirstSun = index === Math.floor(Math.random() * focusAreaSuns.length);
+    // Staggered activation - first sun (index 0) starts first, others wait longer with random delays
+    // This provides consistent behavior while still having natural-looking staggered activation
+    const isFirstSun = index === 0;
     const activationTime = isFirstSun 
       ? systemStartTime + ACTIVATION_DELAY_MIN 
       : systemStartTime + ACTIVATION_DELAY_MIN + Math.random() * (ACTIVATION_DELAY_MAX - ACTIVATION_DELAY_MIN);
@@ -211,9 +215,9 @@ export function updateSunPhysics(deltaTime: number): void {
     const centerDy = sun.y - CENTER_Y;
     const centerDist = Math.sqrt(centerDx * centerDx + centerDy * centerDy);
     
-    if (centerDist < 0.3 && centerDist > 0.001) {
+    if (centerDist < CENTER_REPULSION_RADIUS && centerDist > MIN_DISTANCE_THRESHOLD) {
       // Push away from center with increasing force as they get closer
-      const centerRepelFactor = (0.3 - centerDist) / 0.3;
+      const centerRepelFactor = (CENTER_REPULSION_RADIUS - centerDist) / CENTER_REPULSION_RADIUS;
       const centerNx = centerDx / centerDist;
       const centerNy = centerDy / centerDist;
       sun.vx += centerNx * CENTER_REPULSION_STRENGTH * centerRepelFactor * dt;
@@ -230,7 +234,7 @@ export function updateSunPhysics(deltaTime: number): void {
       const dist = Math.sqrt(dx * dx + dy * dy);
       
       // If suns get too close, push them apart gently
-      if (dist < PROPEL_THRESHOLD && dist > 0.001) {
+      if (dist < PROPEL_THRESHOLD && dist > MIN_DISTANCE_THRESHOLD) {
         sun.isPropelling = true;
         sun.propelTimer = 60;
         
@@ -332,7 +336,7 @@ export function getFocusAreaSunId(focusArea: string): string {
  * Apply repulsive force to suns from a mouse click
  * The force stacks up to a maximum value to prevent suns from flying off screen
  * @param clickX - Normalized click X position (0-1)
- * @param clickY - Normalized click Y position (0-1) 
+ * @param clickY - Normalized click Y position (0-1)
  * @returns Number of suns affected
  */
 export function applyClickRepulsionToSuns(clickX: number, clickY: number): number {
@@ -349,7 +353,7 @@ export function applyClickRepulsionToSuns(clickX: number, clickY: number): numbe
     const dist = Math.sqrt(dx * dx + dy * dy);
     
     // Only affect suns within the click repulsion radius
-    if (dist < CLICK_REPULSION_RADIUS && dist > 0.001) {
+    if (dist < CLICK_REPULSION_RADIUS && dist > MIN_DISTANCE_THRESHOLD) {
       // Calculate force based on distance (closer = stronger)
       const forceFactor = 1 - (dist / CLICK_REPULSION_RADIUS);
       const force = CLICK_REPULSION_FORCE * forceFactor;
