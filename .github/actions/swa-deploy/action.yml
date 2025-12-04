@@ -201,7 +201,7 @@ runs:
 
     # Login to Azure
     - name: Azure Login
-      uses: azure/login@v1
+      uses: azure/login@v2
       with:
         creds: ${{ inputs.azure_credentials }}
 

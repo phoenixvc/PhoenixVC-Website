@@ -58,7 +58,6 @@ jobs:
       staticSiteUrl: ${{ steps.deploy_production_resources.outputs.staticSiteUrl }}
       teamsLogicAppUrl: ${{ steps.deploy_production_resources.outputs.teamsLogicAppUrl }}
       githubLogicAppUrl: ${{ steps.deploy_production_resources.outputs.githubLogicAppUrl }}
-      encoded_token: ${{ steps.encode_token.outputs.encoded_token }}
       deployment_id: ${{ steps.get_deployment_info.outputs.deployment_id }}
       artifact_id: ${{ steps.get_deployment_info.outputs.artifact_id }}
       run_id: ${{ github.run_id }}
@@ -90,12 +89,6 @@ jobs:
           echo "run_id=${{ github.event.inputs.runID }}" >> $GITHUB_OUTPUT
           echo "commit_sha=${{ github.sha }}" >> $GITHUB_OUTPUT
           echo "timestamp=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
-
-      - name: Encode GitHub Token
-        id: encode_token
-        run: |
-          ENCODED_TOKEN=$(echo -n "${{ secrets.GITHUB_TOKEN }}" | base64)
-          echo "encoded_token=${ENCODED_TOKEN}" >> $GITHUB_OUTPUT
 
   # ───────────────────────────────────────────────
   # ✅ SWA DEPLOYMENT VIA SWA CLI
@@ -171,7 +164,7 @@ jobs:
             })
 
       - name: Azure CLI Login
-        uses: azure/login@v1
+        uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
@@ -251,7 +244,7 @@ jobs:
       name: production
     steps:
       - name: Azure CLI Login
-        uses: azure/login@v1
+        uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
