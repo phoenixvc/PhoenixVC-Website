@@ -112,6 +112,8 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   const [hoveredSunId, setHoveredSunId] = useState<string | null>(null);
   // Ref to track current value and avoid unnecessary state updates
   const hoveredSunIdRef = useRef<string | null>(null);
+  // Ref for debouncing sun tooltip hide
+  const sunHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Focused sun state - when user clicks on a focus area, we scope the view
   const [focusedSunId, setFocusedSunId] = useState<string | null>(null);
@@ -491,6 +493,11 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
         const sunHoverResult = checkSunHover(canvasX, canvasY, rect.width, rect.height);
 
         if (sunHoverResult) {
+          // Clear any pending hide timeout since we're hovering over a sun
+          if (sunHideTimeoutRef.current) {
+            clearTimeout(sunHideTimeoutRef.current);
+            sunHideTimeoutRef.current = null;
+          }
           // Only update state if the hovered sun changed
           if (hoveredSunIdRef.current !== sunHoverResult.sun.id) {
             hoveredSunIdRef.current = sunHoverResult.sun.id;
@@ -513,14 +520,22 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
           }
         } else {
           // Only clear state if we were previously hovering (avoid unnecessary updates)
+          // Add a delay to allow user to move mouse to the tooltip
           if (hoveredSunIdRef.current !== null) {
-            hoveredSunIdRef.current = null;
-            setHoveredSunId(null);
-            setHoveredSun(null);
-          }
-          // Reset cursor
-          if (canvasRef.current) {
-            canvasRef.current.style.cursor = "default";
+            // Clear any existing hide timeout
+            if (sunHideTimeoutRef.current) {
+              clearTimeout(sunHideTimeoutRef.current);
+            }
+            // Set a new hide timeout with 300ms delay
+            sunHideTimeoutRef.current = setTimeout(() => {
+              hoveredSunIdRef.current = null;
+              setHoveredSunId(null);
+              setHoveredSun(null);
+              // Reset cursor
+              if (canvasRef.current) {
+                canvasRef.current.style.cursor = "default";
+              }
+            }, 300);
           }
         }
       }
@@ -976,6 +991,22 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
         <SunTooltip
           sun={hoveredSun}
           isDarkMode={isDarkMode}
+          onClick={(sunId) => zoomToSun(sunId)}
+          onMouseEnter={() => {
+            // Clear any pending hide timeout when mouse enters tooltip
+            if (sunHideTimeoutRef.current) {
+              clearTimeout(sunHideTimeoutRef.current);
+              sunHideTimeoutRef.current = null;
+            }
+          }}
+          onMouseLeave={() => {
+            // Start hide timeout when mouse leaves tooltip
+            sunHideTimeoutRef.current = setTimeout(() => {
+              hoveredSunIdRef.current = null;
+              setHoveredSunId(null);
+              setHoveredSun(null);
+            }, 200);
+          }}
         />
       )}
 

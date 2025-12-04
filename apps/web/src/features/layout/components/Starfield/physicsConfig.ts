@@ -48,19 +48,19 @@ export const STAR_PHYSICS = {
  */
 export const MOUSE_PHYSICS = {
   /** Default radius of mouse effect area */
-  effectRadius: 350,
+  effectRadius: 250,
   /** Base repulsion force from mouse hover */
-  hoverRepelForce: 0.2,
+  hoverRepelForce: 0.15,
 
-  // Click effect
+  // Click effect (reduced for less excessive animation)
   /** Default click force multiplier */
-  clickForce: 25,
+  clickForce: 12,
   /** Additional force multiplier for dramatic effect */
-  clickForceMultiplier: 5,
+  clickForceMultiplier: 2.5,
   /** Tangential force component for spiral effect on click */
-  tangentialStrength: 0.2,
+  tangentialStrength: 0.12,
   /** Random variance for click effect */
-  randomVariance: 0.15,
+  randomVariance: 0.1,
 } as const;
 
 /**

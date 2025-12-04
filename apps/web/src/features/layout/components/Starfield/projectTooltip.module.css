@@ -271,3 +271,79 @@
 .tooltip.lightMode .tooltipPinnedIndicator svg {
   color: var(--tooltip-subtext-light);
 }
+
+/* New status row styling */
+.tooltipStatusRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tooltipStatusBadge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.tooltipFocusArea {
+  font-size: 12px;
+  color: var(--tooltip-subtext-dark);
+  font-weight: 500;
+}
+
+.tooltip.lightMode .tooltipFocusArea {
+  color: var(--tooltip-subtext-light);
+}
+
+/* Technology tags section */
+.tooltipTechSection {
+  margin-top: 4px;
+}
+
+.tooltipTechTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tooltipTechTag {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  border: 1px solid;
+  color: var(--tooltip-text-dark);
+}
+
+.tooltip.lightMode .tooltipTechTag {
+  color: var(--tooltip-text-light);
+}
+
+/* Footer links */
+.tooltipLinks {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.tooltipLinkBtn {
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: opacity 0.2s ease;
+}
+
+.tooltipLinkBtn:hover {
+  opacity: 0.8;
+}

@@ -154,15 +154,40 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
       </div>
 
       <div className={styles.tooltipContent}>
-        <div className={styles.tooltipStat}>
-          <span className={styles.tooltipLabel}>Focus Area:</span>
-          <span className={styles.tooltipValue}>{focusAreaLabel}</span>
+        {/* Status badge - moved to top for prominence */}
+        <div className={styles.tooltipStatusRow}>
+          <span
+            className={styles.tooltipStatusBadge}
+            style={{
+              backgroundColor: `${projectColor}15`,
+              color: projectColor,
+              borderColor: `${projectColor}40`
+            }}
+          >
+            {badgeText}
+          </span>
+          <span className={styles.tooltipFocusArea}>{focusAreaLabel}</span>
         </div>
 
-        <div className={styles.tooltipStat}>
-          <span className={styles.tooltipLabel}>Technologies:</span>
-          <span className={styles.tooltipValue}>{skillsList}</span>
-        </div>
+        {/* Technologies as tags */}
+        {skillsList && (
+          <div className={styles.tooltipTechSection}>
+            <div className={styles.tooltipTechTags}>
+              {(Array.isArray(project.skills) ? project.skills.slice(0, 4) : [project.expertise || "Innovation"]).map((skill, idx) => (
+                <span
+                  key={idx}
+                  className={styles.tooltipTechTag}
+                  style={{
+                    borderColor: `${projectColor}50`,
+                    backgroundColor: `${projectColor}10`
+                  }}
+                >
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {project.bio && (
           <div className={styles.tooltipBio}>
@@ -171,62 +196,36 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
         )}
 
         <div className={styles.tooltipFooter}>
-          <div
-            className={styles.tooltipBadge}
-            style={{ backgroundColor: projectColor }}
-          >
-            {badgeText}
-          </div>
+          <div className={styles.tooltipLinks}>
+            {project.product && project.product.trim() !== "" && (
+              <a
+                href={project.product}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.tooltipLinkBtn}
+                onClick={(e) => e.stopPropagation()}
+                style={{ color: projectColor }}
+              >
+                Visit Project →
+              </a>
+            )}
 
-          {project.product && project.product.trim() !== "" && (
-            <a
-              href={project.product}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.tooltipLink}
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                color: isDarkMode ? "rgba(157, 78, 221, 0.9)" : "rgba(123, 44, 191, 0.9)",
-                fontSize: "12px",
-                textDecoration: "none",
-                fontWeight: 500
+            <button
+              type="button"
+              className={styles.tooltipLinkBtn}
+              onClick={(e) => {
+                e.stopPropagation();
+                void navigate(`/portfolio/${project.id}`);
               }}
+              style={{ color: projectColor }}
             >
-              Visit Project →
-            </a>
-          )}
-
-          <button
-            type="button"
-            className={styles.tooltipLink}
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/portfolio/${project.id}`);
-            }}
-            style={{
-              color: isDarkMode ? "rgba(157, 78, 221, 0.9)" : "rgba(123, 44, 191, 0.9)",
-              fontSize: "12px",
-              textDecoration: "none",
-              fontWeight: 500,
-              marginLeft: project.product && project.product.trim() !== "" ? "0.75rem" : 0,
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              padding: 0
-            }}
-          >
-            Learn More →
-          </button>
+              Learn More →
+            </button>
+          </div>
 
           {isPinned && (
             <div className={styles.tooltipPinnedIndicator}>
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <path
                   d="M12 4V2M12 20v2M4 12H2M22 12h-2M19.07 4.93l-1.41 1.41M6.34 17.66l-1.41 1.41M19.07 19.07l-1.41-1.41M6.34 6.34L4.93 4.93"
                   stroke="currentColor"
