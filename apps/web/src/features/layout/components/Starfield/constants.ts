@@ -2,12 +2,64 @@
 // Re-exports from centralized portfolioData.ts for backward compatibility
 import { BlackHoleData, PortfolioProject } from "./types";
 import { PORTFOLIO_PROJECTS } from "@/constants/portfolioData";
+import { getDailySeededRandom } from "./utils";
+import { BLACK_HOLE_PHYSICS } from "./physicsConfig";
 
-// Default black hole positions
-export const DEFAULT_BLACK_HOLES = [
-  { x: 0.2, y: 0.3, radius: 25, color: "#8A2BE2" },
-  { x: 0.8, y: 0.7, radius: 30, color: "#8A2BE2" },
-];
+/**
+ * Generate randomized black hole positions with proper spacing.
+ * Uses seeded random for consistent daily layouts - all users on the same day
+ * see the same positions, but positions change daily.
+ */
+function generateRandomBlackHolePositions(): Array<{ x: number; y: number; radius: number; color: string }> {
+  const positions: Array<{ x: number; y: number; radius: number; color: string }> = [];
+  const maxAttempts = BLACK_HOLE_PHYSICS.maxPositionAttempts;
+  const edgePadding = BLACK_HOLE_PHYSICS.edgePadding;
+  const minDistance = BLACK_HOLE_PHYSICS.minDistance;
+
+  // Use seeded random for consistent daily layouts (offset 1000 for black holes)
+  const random = getDailySeededRandom(1000);
+
+  for (let i = 0; i < 2; i++) {
+    let attempts = 0;
+    let validPosition = false;
+    let x = 0, y = 0;
+
+    while (!validPosition && attempts < maxAttempts) {
+      // Generate random position within bounds using seeded random
+      x = edgePadding + random() * (1 - 2 * edgePadding);
+      y = edgePadding + random() * (1 - 2 * edgePadding);
+
+      // Check distance from existing black holes
+      validPosition = true;
+      for (const pos of positions) {
+        const dx = x - pos.x;
+        const dy = y - pos.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < minDistance) {
+          validPosition = false;
+          break;
+        }
+      }
+      attempts++;
+    }
+
+    // Fallback if no valid position found
+    if (!validPosition) {
+      x = i === 0 ? 0.25 : 0.75;
+      y = i === 0 ? 0.35 : 0.65;
+    }
+
+    // Random radius variation (25-35) using seeded random
+    const radius = 25 + random() * 10;
+
+    positions.push({ x, y, radius, color: "#8A2BE2" });
+  }
+
+  return positions;
+}
+
+// Generate positions once when module loads (consistent within same day)
+export const DEFAULT_BLACK_HOLES = generateRandomBlackHolePositions();
 
 // Re-export portfolio projects from centralized source
 // This maintains backward compatibility with existing imports

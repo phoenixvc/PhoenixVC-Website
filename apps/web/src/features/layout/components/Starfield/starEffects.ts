@@ -2,6 +2,7 @@
 
 import { hexToRgb } from "./starUtils";
 import { Planet, PortfolioProject } from "./types";
+import { getFrameTime } from "./frameCache";
 
 // Draw star glow and core
 // Draw star glow and core
@@ -19,7 +20,7 @@ export function drawStarGlow(
       : Math.random() * 1000; // Fallback to a random offset if no project ID
 
     // Apply subtle pulsing effect using the unique offset
-    const pulseTime = Date.now() * 0.0003 + (uniqueOffset * 0.05);
+    const pulseTime = getFrameTime() * 0.0003 + (uniqueOffset * 0.05);
     const pulseFactor = 1 + Math.sin(pulseTime) * 0.1; // 10% size variation
 
     // Enhanced glow effect - softer glow with independent pulsing
@@ -95,7 +96,7 @@ export function drawStarTrail(
   const trailLength = planet.trailLength || 180;
 
   // Add wobble to comet path for more natural movement - slower wobble
-  const wobbleTime = Date.now() * 0.0003; // Reduced from 0.0005
+  const wobbleTime = getFrameTime() * 0.0003; // Reduced from 0.0005
   const wobbleAmount = 4 * Math.sin(wobbleTime); // Reduced from 5
 
   ctx.beginPath();
@@ -181,7 +182,7 @@ export function drawStarTrail(
 
   // Add small particles that break off from the comet trail - slower and less frequent
   const particleCount = 4; // Reduced from 5
-  const particleTime = Date.now() * 0.0007; // Reduced from 0.001
+  const particleTime = getFrameTime() * 0.0007; // Reduced from 0.001
 
   ctx.save();
   for (let i = 0; i < particleCount; i++) {
@@ -267,7 +268,7 @@ export function drawSatellites(
     if (planet.satellites && planet.satellites.length > 0) {
       planet.satellites.forEach((satellite, index) => {
         // Independent pulsation for satellites - smoother and slower
-        const satelliteTime = Date.now() * 0.0005; // Reduced from 0.001
+        const satelliteTime = getFrameTime() * 0.0005; // Reduced from 0.001
         const satellitePulse = 0.9 + Math.sin(satelliteTime * (index + 1) * 0.3) * 0.1; // Reduced amplitude
 
         // Update satellite position - key fix here
@@ -379,7 +380,7 @@ export function drawHoverEffects(
         : Math.random() * 1000; // Fallback to a random offset if no employee ID
 
       // Use the unique offset to create independent pulse timing
-      const pulseTime = Date.now() * 0.0005 + (uniqueOffset * 0.1);
+      const pulseTime = getFrameTime() * 0.0005 + (uniqueOffset * 0.1);
       const pulseOpacity = 0.4 + Math.sin(pulseTime * 1.5) * 0.2;
       const pulseSize = starSize * (1.3 + Math.sin(pulseTime * 1) * 0.2);
 
@@ -428,7 +429,7 @@ export function drawHoverEffects(
 
           skills.forEach((skill, i) => {
             // Use unique timing for skill icon rotation too
-            const angle = (i / skillCount) * Math.PI * 2 + Date.now() * 0.0005 + (uniqueOffset * 0.01);
+            const angle = (i / skillCount) * Math.PI * 2 + getFrameTime() * 0.0005 + (uniqueOffset * 0.01);
             const iconX = planet.x + Math.cos(angle) * orbitRadius;
             const iconY = planet.y + Math.sin(angle) * orbitRadius;
 
@@ -547,7 +548,7 @@ export function drawHoverEffects(
 
       relatedStars.forEach(relatedStar => {
         // Draw connection line with animated dash pattern - slower animation
-        const dashOffset = Date.now() * 0.005; // Reduced from 0.01
+        const dashOffset = getFrameTime() * 0.005; // Reduced from 0.01
 
         ctx.beginPath();
         ctx.moveTo(planet.x, planet.y);

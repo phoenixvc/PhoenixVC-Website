@@ -8,6 +8,7 @@ import { drawPlanet } from "./starRendering";
 import { getSunStates } from "./sunSystem";
 import { PortfolioProject, HoverInfo, Planet, Satellite } from "./types";
 import { calculateCenter } from "./utils";
+import { logger } from "@/utils/logger";
 
 // Initialize portfolio items as orbiting comets/planets
 export const initPlanets = (
@@ -23,7 +24,7 @@ export const initPlanets = (
 ): Planet[] => {
   if (!enablePlanets || !portfolioItems || portfolioItems.length === 0) return [];
 
-  console.log("Initializing portfolio comets:", portfolioItems.length);
+  logger.debug("Initializing portfolio comets:", portfolioItems.length);
 
   const planets: Planet[] = [];
   const { centerX, centerY } = calculateCenter(

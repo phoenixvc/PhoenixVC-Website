@@ -1,7 +1,9 @@
 // components/Layout/Starfield/hooks/animation/animate.ts
 import { SetStateAction } from "react";
 import { drawBlackHole } from "../../blackHoles";
-import { drawConnections, drawStars, updateStarActivity, updateStarPositions } from "../../stars";
+import { drawConnections, drawStars, updateStarActivity, updateStarPositions, handleBoundaries } from "../../stars";
+import { logger } from "@/utils/logger";
+import { updateFrameCache, getFrameTime } from "../../frameCache";
 import {
   BlackHole,
   GameState,
@@ -21,29 +23,32 @@ import { GALAXIES, SPECIAL_COSMIC_OBJECTS, SUNS } from "../../cosmos/cosmicHiera
 import { checkPlanetHover, updatePlanets } from "../../Planets";
 import { drawCosmicNavigation } from "./drawCosmicNavigation";
 // Import sun system for dynamic sun positioning
-import { getSunStates, initializeSunStates, updateSunPhysics, SunState } from "../../sunSystem";
+import { getSunStates, initializeSunStates, updateSunPhysics, updateSunSizesFromPlanets, SunState } from "../../sunSystem";
 
 export const animate = (timestamp: number, props: AnimationProps, refs: AnimationRefs): void => {
   try {
+    // Update frame cache at the start of each frame
+    updateFrameCache();
+
     if (props.debugSettings?.verboseLogs) {
-      console.log("frame:", timestamp, "stars:", props.starsRef?.current.length ?? 0);
+      logger.debug("frame:", timestamp, "stars:", props.starsRef?.current.length ?? 0);
     }
 
     // If we"re in the middle of a restart, skip this frame
     if (refs.isRestartingRef.current) {
-      console.log("Skipping animation frame during restart");
+      logger.debug("Skipping animation frame during restart");
       refs.animationRef.current = window.requestAnimationFrame(
         (nextTimestamp) => animate(nextTimestamp, props, refs)
       );
       return;
     }
 
-    // Update last frame time for watchdog
-    refs.lastFrameTimeRef.current = Date.now();
+    // Update last frame time for watchdog (use cached frame time)
+    refs.lastFrameTimeRef.current = getFrameTime();
 
     // Add a safety check for starsRef at the beginning of each frame
     if (!props.starsRef) {
-      console.error("Animation frame error: starsRef is undefined");
+      logger.error("Animation frame error: starsRef is undefined");
       if (refs.isAnimatingRef.current) {
         refs.animationRef.current = window.requestAnimationFrame(
           (nextTimestamp) => animate(nextTimestamp, props, refs)
@@ -54,13 +59,13 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
 
     const canvas = props.canvasRef.current;
     if (!canvas) {
-      console.error("Animation frame error: canvas is null");
+      logger.error("Animation frame error: canvas is null");
       return;
     }
 
     const ctx = canvas.getContext("2d");
     if (!ctx) {
-      console.error("Animation frame error: context is null");
+      logger.error("Animation frame error: context is null");
       return;
     }
 
@@ -73,7 +78,7 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
     // If deltaTime is extremely large (tab was inactive or browser paused),
     // cap it to prevent physics explosions
     if (deltaTime > 200) {
-      console.log(`Large delta time detected: ${deltaTime}ms, capping to 16ms`);
+      logger.debug(`Large delta time detected: ${deltaTime}ms, capping to 16ms`);
       deltaTime = 16;
     }
 
@@ -96,11 +101,11 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
 
     // Check if stars exist and are not empty
     if (currentStars.length === 0) {
-      console.error("No stars to draw! Will retry on next frame.");
+      logger.error("No stars to draw! Will retry on next frame.");
 
       // Try to ensure stars exist before the next frame
       if (props.ensureStarsExist) {
-        console.log("Calling ensureStarsExist from animation loop");
+        logger.debug("Calling ensureStarsExist from animation loop");
         props.ensureStarsExist();
       }
 
@@ -116,13 +121,15 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
     // Always draw stars first - this ensures they always appear
     drawStars(ctx, currentStars);
 
+    // Get planets for sun size calculation
+    const currentPlanets: Planet[] = props.planetsRef?.current ? [...props.planetsRef.current] : [];
+
     // Draw suns (focus area orbital centers) - always visible
-    // Pass hovered sun id and focused sun id for interactive effects and deltaTime for physics
-    drawSuns(ctx, canvas.width, canvas.height, timestamp, props.isDarkMode, props.hoveredSunId, deltaTime, props.focusedSunId);
+    // Pass hovered sun id, focused sun id for interactive effects, deltaTime for physics, and planets for size calculation
+    drawSuns(ctx, canvas.width, canvas.height, timestamp, props.isDarkMode, props.hoveredSunId, deltaTime, props.focusedSunId, currentPlanets);
 
     // Get current values from refs
     const currentBlackHoles: BlackHole[] = props.blackHolesRef?.current ? [...props.blackHolesRef.current] : [];
-    const currentPlanets: Planet[] = props.planetsRef?.current ? [...props.planetsRef.current] : [];
 
     // Fixed: Make sure isClicked is false by default
     const currentMousePosition: MousePosition = refs.mousePositionRef.current ?
@@ -222,6 +229,9 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       props.maxVelocity,
       props.animationSpeed
     );
+
+    // Handle boundary wrapping with smooth buffer zone
+    handleBoundaries(currentStars, canvas.width, canvas.height);
 
     // Draw black holes if enabled
     if (props.enableBlackHole) {
@@ -352,7 +362,7 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
           props.starsRef.current[i].vy = currentStars[i].vy;
         }
       } catch (err) {
-        console.error("Error updating star positions:", err);
+        logger.error("Error updating star positions:", err);
       }
     }
 
@@ -362,13 +372,13 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
         (nextTimestamp) => animate(nextTimestamp, props, refs)
       );
     } else {
-      console.log("Animation stopped because isAnimatingRef.current is false and not restarting");
+      logger.debug("Animation stopped because isAnimatingRef.current is false and not restarting");
     }
   } catch (error) {
-    console.error("Error in animation loop:", error);
+    logger.error("Error in animation loop:", error);
 
     // Log detailed error info
-    console.error("Animation state:", {
+    logger.error("Animation state:", {
       isAnimating: refs.isAnimatingRef.current,
       isRestarting: refs.isRestartingRef.current,
       starsCount: props.starsRef?.current?.length || 0,
@@ -378,7 +388,7 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
 
     // Try to recover by continuing the animation
     if (refs.isAnimatingRef.current || refs.isRestartingRef.current) {
-      console.log("Attempting to recover from animation error");
+      logger.debug("Attempting to recover from animation error");
       setTimeout(() => {
         refs.animationRef.current = window.requestAnimationFrame(
           (nextTimestamp) => animate(nextTimestamp, props, refs)
@@ -429,9 +439,10 @@ function drawMouseEffects(
     ctx.fill();
 
     // Determine time since click to drive ripple effects.
-    const timeSinceClick = currentMousePosition.clickTime
+    // Use a large value (2000ms+) if no click has occurred to prevent effects on load
+    const timeSinceClick = currentMousePosition.clickTime > 0
       ? Date.now() - currentMousePosition.clickTime
-      : 200; // Fallback for testing
+      : 2000; // No click yet - beyond all effect thresholds
 
     // Draw three layered ripple effects.
     for (let i = 0; i < 3; i++) {
@@ -485,6 +496,7 @@ function drawMouseEffects(
 
 // Track if sun system is initialized
 let sunSystemInitialized = false;
+let sunSizesCalculated = false;
 
 // Get the focus area suns for external use
 export function getFocusAreaSuns(): typeof SUNS {
@@ -597,17 +609,24 @@ function drawSuns(
   isDarkMode: boolean,
   hoveredSunId?: string | null,
   deltaTime: number = 16,
-  focusedSunId?: string | null
+  focusedSunId?: string | null,
+  planets?: Planet[]
 ): void {
   // Initialize sun system if needed
   if (!sunSystemInitialized) {
     initializeSunStates();
     sunSystemInitialized = true;
   }
-  
+
+  // Calculate sun sizes based on planet masses (only once)
+  if (!sunSizesCalculated && planets && planets.length > 0) {
+    updateSunSizesFromPlanets(planets);
+    sunSizesCalculated = true;
+  }
+
   // Update sun physics
   updateSunPhysics(deltaTime);
-  
+
   const sunStates = getSunStates();
   
   ctx.save();
@@ -616,8 +635,8 @@ function drawSuns(
     // Use dynamic position from sun system
     const x = sunState.x * width;
     const y = sunState.y * height;
-    // Larger base size for visibility
-    const baseSize = Math.max(25, Math.min(width, height) * sunState.size * 0.7);
+    // Reduced sun size for better proportions (was 0.7, now 0.35)
+    const baseSize = Math.max(18, Math.min(width, height) * sunState.size * 0.35);
     
     // Check if this sun is hovered or focused
     const isHovered = hoveredSunId === sunState.id;

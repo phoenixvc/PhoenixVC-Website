@@ -1,18 +1,22 @@
 // components/Layout/Starfield/stars.ts
 import { Star, BlackHole, MousePosition } from "./types";
 import { getColorPalette } from "./constants";
-import { distance } from "./utils";
+import { distance, parseRgbaColor, brightenColor, colorWithAlpha } from "./utils";
+import {
+  GLOBAL_PHYSICS,
+  STAR_PHYSICS,
+  EXPLOSION_PHYSICS,
+  EFFECT_TIMING,
+  CONNECTION_CONFIG,
+} from "./physicsConfig";
+import { getFrameTime } from "./frameCache";
 
-// Global animation speed control - add this at the top of the file
-const GLOBAL_SPEED_MULTIPLIER = 0.15; // Reduced for smoother, more subtle animations
-
-// Movement multiplier for active (clicked) stars - allows them to move faster
-const ACTIVE_STAR_MOVEMENT_MULTIPLIER = 2.0; // Increased from 0.5 for more visible click effects
-
-// Velocity limits
-const ACTIVE_STAR_VELOCITY_MULTIPLIER = 32; // Doubled from 16 for more dramatic click effects
-const DAMPING_FACTOR_ACTIVE = 0.985; // Less damping for active stars
-const DAMPING_FACTOR_INACTIVE = 0.99; // More damping for inactive stars
+// Re-export physics config values as constants for backward compatibility
+const GLOBAL_SPEED_MULTIPLIER = GLOBAL_PHYSICS.speedMultiplier;
+const ACTIVE_STAR_MOVEMENT_MULTIPLIER = STAR_PHYSICS.activeMovementMultiplier;
+const ACTIVE_STAR_VELOCITY_MULTIPLIER = STAR_PHYSICS.activeVelocityMultiplier;
+const DAMPING_FACTOR_ACTIVE = STAR_PHYSICS.dampingActive;
+const DAMPING_FACTOR_INACTIVE = STAR_PHYSICS.dampingInactive;
 
 // Initialize completely static stars
 export const initStars = (
@@ -106,20 +110,23 @@ export function updateStarPositions(
       star.vy += (Math.random() - 0.5) * flowStrength * normalizedDelta * timeScale * 0.3;
     }
 
-    // Apply black hole gravitational pull
+    // Apply black hole gravitational pull with much larger influence
     if (blackHoles && blackHoles.length > 0) {
       for (let j = 0; j < blackHoles.length; j++) {
         const blackHole = blackHoles[j];
         const dx = blackHole.x - star.x;
         const dy = blackHole.y - star.y;
-        const distSq = dx * dx + dy * dy;
+        const distSq = Math.max(dx * dx + dy * dy, 100); // Prevent division by tiny numbers
         const dist = Math.sqrt(distSq);
 
-        // Only apply gravity if star is within influence range
-        if (dist < blackHole.radius * 4) {
-          const force = gravitationalPull * blackHole.mass / distSq;
-          star.vx += dx / dist * force * normalizedDelta * timeScale;
-          star.vy += dy / dist * force * normalizedDelta * timeScale;
+        // Much larger influence range (15x radius instead of 4x)
+        const influenceRange = blackHole.radius * 15;
+        if (dist < influenceRange) {
+          // Stronger force with falloff based on distance
+          const falloff = 1 - (dist / influenceRange); // Linear falloff
+          const force = gravitationalPull * blackHole.mass * falloff * 0.5 / distSq;
+          star.vx += dx / dist * force * normalizedDelta * timeScale * 3; // 3x multiplier
+          star.vy += dy / dist * force * normalizedDelta * timeScale * 3;
         }
       }
     }
@@ -165,57 +172,108 @@ export function updateStarPositions(
   }
 }
 
-// Integrate forces to update velocities and positions using Velocity Verlet integration
-function integrateForces(stars: Star[], dt: number, maxVelocity: number) {
+/**
+ * Integrate accumulated forces to update velocities and positions.
+ * Uses Velocity Verlet-style integration for smooth physics.
+ *
+ * This function should be called AFTER forces are accumulated in star.fx/fy
+ * and BEFORE handleBoundaries.
+ *
+ * @param stars - Array of stars to update
+ * @param dt - Delta time in milliseconds
+ * @param maxVelocity - Maximum velocity cap
+ * @param useActiveStarPhysics - Whether to use different physics for active stars
+ */
+export function integrateForces(
+  stars: Star[],
+  dt: number,
+  maxVelocity: number = STAR_PHYSICS.maxVelocity,
+  useActiveStarPhysics: boolean = true
+): void {
   // Apply global speed multiplier to dt
   const adjustedDt = dt * GLOBAL_SPEED_MULTIPLIER;
 
-  stars.forEach(star => {
-    // Apply strong damping
-    const damping = 0.9;
+  for (let i = 0; i < stars.length; i++) {
+    const star = stars[i];
+
+    // Use different damping based on star activity
+    const damping = useActiveStarPhysics && star.isActive
+      ? DAMPING_FACTOR_ACTIVE
+      : (useActiveStarPhysics ? DAMPING_FACTOR_INACTIVE : STAR_PHYSICS.dampingIntegration);
+
     star.vx *= damping;
     star.vy *= damping;
 
-    // Update velocity based on force with global speed multiplier
+    // Update velocity based on accumulated forces
     star.vx += star.fx * adjustedDt;
     star.vy += star.fy * adjustedDt;
 
+    // Apply velocity limits
     const speed = Math.sqrt(star.vx * star.vx + star.vy * star.vy);
-    if (speed > maxVelocity * GLOBAL_SPEED_MULTIPLIER) { // Apply multiplier to max velocity
-      star.vx = (star.vx / speed) * maxVelocity * GLOBAL_SPEED_MULTIPLIER;
-      star.vy = (star.vy / speed) * maxVelocity * GLOBAL_SPEED_MULTIPLIER;
+    const effectiveMaxVelocity = useActiveStarPhysics && star.isActive
+      ? maxVelocity * ACTIVE_STAR_VELOCITY_MULTIPLIER
+      : maxVelocity;
+
+    if (speed > effectiveMaxVelocity * GLOBAL_SPEED_MULTIPLIER) {
+      const scale = (effectiveMaxVelocity * GLOBAL_SPEED_MULTIPLIER) / speed;
+      star.vx *= scale;
+      star.vy *= scale;
     }
 
-    // Update position with adjusted dt
-    star.x += star.vx * adjustedDt;
-    star.y += star.vy * adjustedDt;
-  });
+    // Update position with movement multiplier for active stars
+    const movementMultiplier = useActiveStarPhysics && star.isActive
+      ? ACTIVE_STAR_MOVEMENT_MULTIPLIER
+      : GLOBAL_SPEED_MULTIPLIER;
+
+    star.x += star.vx * adjustedDt * movementMultiplier;
+    star.y += star.vy * adjustedDt * movementMultiplier;
+
+    // Reset forces after integration
+    star.fx = 0;
+    star.fy = 0;
+  }
 }
 
-function handleBoundaries(stars: Star[], width: number, height: number) {
-  const buffer = 50;
-
-  stars.forEach(star => {
+/**
+ * Handle boundary wrapping with smooth buffer zone.
+ * Stars smoothly wrap around canvas edges with a buffer to prevent pop-in.
+ *
+ * @param stars - Array of stars to process
+ * @param width - Canvas width
+ * @param height - Canvas height
+ * @param buffer - Buffer zone size (default from STAR_PHYSICS config)
+ */
+export function handleBoundaries(
+  stars: Star[],
+  width: number,
+  height: number,
+  buffer: number = STAR_PHYSICS.boundaryBuffer
+): void {
+  for (let i = 0; i < stars.length; i++) {
+    const star = stars[i];
     if (star.x < -buffer) star.x = width + buffer;
     if (star.x > width + buffer) star.x = -buffer;
     if (star.y < -buffer) star.y = height + buffer;
     if (star.y > height + buffer) star.y = -buffer;
-  });
+  }
 }
 
 export const drawStars = (
   ctx: CanvasRenderingContext2D,
   stars: Star[]
 ): void => {
-  const now = Date.now();
+  const now = getFrameTime();
+  const glowDuration = EFFECT_TIMING.pushGlowDuration;
 
-  stars.forEach(star => {
-    // Check if star was recently pushed (within last 1500ms)
-    const recentlyPushed = star.isActive && (now - star.lastPushed < 1500);
+  for (let i = 0; i < stars.length; i++) {
+    const star = stars[i];
+    // Check if star was recently pushed (within glow duration)
+    const timeSincePush = now - star.lastPushed;
+    const recentlyPushed = star.isActive && (timeSincePush < glowDuration);
 
     if (recentlyPushed) {
-      // Calculate how recent the push was (1.0 = just now, 0.0 = 1500ms ago)
-      const recency = 1 - (now - star.lastPushed) / 1500;
+      // Calculate how recent the push was (1.0 = just now, 0.0 = glowDuration ago)
+      const recency = 1 - timeSincePush / glowDuration;
 
       // MUCH MORE VISIBLE glow effect for pushed stars
       const glowRadius = star.size * (3 + recency * 5); // Larger glow for recent pushes
@@ -224,26 +282,19 @@ export const drawStars = (
         star.x, star.y, glowRadius
       );
 
-      // Get base color and create brighter version for center
+      // Get base color and create brighter version for center (using cached parsing)
       const baseColor = star.color;
+      const parsed = parseRgbaColor(baseColor);
 
-      // Extract RGB components to create a brighter version
-      let brighterColor = baseColor;
-      if (baseColor.startsWith("rgba(")) {
-        const parts = baseColor.substring(5, baseColor.length-1).split(",");
-        if (parts.length >= 3) {
-          // Increase RGB values to make brighter (max 255)
-          const r = Math.min(255, parseInt(parts[0]) + 100);
-          const g = Math.min(255, parseInt(parts[1]) + 100);
-          const b = Math.min(255, parseInt(parts[2]) + 100);
-          brighterColor = `rgba(${r}, ${g}, ${b}, 1.0)`;
-        }
-      }
+      // Use optimized color functions to avoid string manipulation in hot path
+      const brighterColorStr = parsed ? brightenColor(parsed, 100) : baseColor;
+      const midOpacityColor = parsed ? colorWithAlpha(parsed, 0.7) : baseColor;
+      const lowOpacityColor = parsed ? colorWithAlpha(parsed, 0.2) : baseColor;
 
       // Create glow gradient with higher opacity
-      gradient.addColorStop(0, brighterColor);
-      gradient.addColorStop(0.5, baseColor.replace(/[\d.]+\)$/, "0.7)")); // Higher opacity
-      gradient.addColorStop(1, baseColor.replace(/[\d.]+\)$/, "0.2)")); // Higher opacity
+      gradient.addColorStop(0, brighterColorStr);
+      gradient.addColorStop(0.5, midOpacityColor);
+      gradient.addColorStop(1, lowOpacityColor);
 
       // Draw glow
       ctx.beginPath();
@@ -254,40 +305,78 @@ export const drawStars = (
       // Draw actual star (larger than normal)
       ctx.beginPath();
       ctx.arc(star.x, star.y, star.size * (1.5 + recency), 0, Math.PI * 2);
-      ctx.fillStyle = brighterColor;
+      ctx.fillStyle = brighterColorStr;
       ctx.fill();
     } else {
-      // Normal star rendering
+      // Enhanced star rendering with twinkling effect
+      // Create unique twinkle timing for each star based on position
+      const uniqueSeed = (star.x * 127.1 + star.y * 311.7) % 1000;
+      const twinkleSpeed1 = 0.002 + (uniqueSeed % 100) / 50000; // Vary speed per star
+      const twinkleSpeed2 = 0.0015 + (uniqueSeed % 50) / 40000;
+
+      // Multi-frequency twinkle for more organic effect
+      const twinkle1 = Math.sin(now * twinkleSpeed1 + uniqueSeed * 0.1);
+      const twinkle2 = Math.sin(now * twinkleSpeed2 + uniqueSeed * 0.2);
+      const twinkleFactor = 0.6 + (twinkle1 * 0.2 + twinkle2 * 0.2); // Range: 0.2 to 1.0
+
+      // Calculate dynamic size with twinkle
+      const twinkleSize = star.size * (0.8 + twinkleFactor * 0.4);
+
+      // Parse color once for this star (cached)
+      const parsed = parseRgbaColor(star.color);
+
+      // Add subtle glow for larger stars
+      if (star.size > 1.2) {
+        const glowRadius = twinkleSize * 2.5;
+        const glowGradient = ctx.createRadialGradient(
+          star.x, star.y, 0,
+          star.x, star.y, glowRadius
+        );
+
+        // Use optimized color function for glow
+        const glowColor = parsed
+          ? colorWithAlpha(parsed, twinkleFactor * 0.3)
+          : star.color;
+
+        glowGradient.addColorStop(0, glowColor);
+        glowGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, glowRadius, 0, Math.PI * 2);
+        ctx.fillStyle = glowGradient;
+        ctx.fill();
+      }
+
+      // Draw star core with dynamic opacity based on twinkle
       ctx.beginPath();
-      ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-      ctx.fillStyle = star.color;
+      ctx.arc(star.x, star.y, twinkleSize, 0, Math.PI * 2);
+
+      // Use optimized color function for core
+      const alpha = 0.5 + twinkleFactor * 0.5; // Range: 0.5 to 1.0
+      const coreColor = parsed
+        ? colorWithAlpha(parsed, alpha)
+        : star.color;
+
+      ctx.fillStyle = coreColor;
       ctx.fill();
+
+      // Add bright highlight for extra sparkle on brightest moments
+      if (twinkleFactor > 0.85 && star.size > 0.8) {
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, twinkleSize * 0.4, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${(twinkleFactor - 0.85) * 3})`;
+        ctx.fill();
+      }
     }
-  });
+  }
 };
 
 // ==========================================
 // Connection Stagger Animation Constants
 // ==========================================
 
-/**
- * Configuration for staggered connection reveal animation
- */
-const CONNECTION_STAGGER_CONFIG = {
-  /** Total duration for all connections to start appearing (ms) */
-  staggerDuration: 8000,
-  /** Duration for individual connection fade-in (ms) */
-  fadeInDuration: 2000,
-  /**
-   * Prime numbers used for generating unique timing offsets per connection.
-   * Using primes ensures better distribution and avoids clustering of connections.
-   * 7919 and 104729 are chosen as large primes to minimize collision patterns.
-   */
-  primeMultiplier1: 7919,
-  primeMultiplier2: 104729,
-  /** Modulo value for normalizing seed to 0-1 range */
-  seedModulo: 10000
-};
+// Use centralized config for connection stagger settings
+const CONNECTION_STAGGER_CONFIG = CONNECTION_CONFIG;
 
 // Track when the starfield was initialized for staggered connection reveal
 let connectionStartTime: number | null = null;
@@ -307,8 +396,8 @@ export const drawConnections = (
 
   ctx.lineWidth = 0.5;
 
-  // Use current time for animation
-  const time = Date.now();
+  // Use cached frame time for animation
+  const time = getFrameTime();
   
   // Initialize connection start time on first call (single-threaded canvas rendering)
   if (connectionStartTime === null) {
@@ -429,7 +518,7 @@ export const applyExplosionForce = (
   force: number
 ): void => {
   // Use extremely low force with global speed multiplier
-  const adjustedForce = force * 0.1;
+  const adjustedForce = force * EXPLOSION_PHYSICS.forceMultiplier;
 
   stars.forEach(star => {
     const dist = distance(star.x, star.y, x, y);
@@ -447,7 +536,7 @@ export const applyExplosionForce = (
       star.vy += Math.sin(angle) * explosionForce;
 
       const currentVelocity = Math.sqrt(star.vx * star.vx + star.vy * star.vy);
-      const maxExplosionVelocity = 0.00000001 * GLOBAL_SPEED_MULTIPLIER; // Apply multiplier to max velocity
+      const maxExplosionVelocity = EXPLOSION_PHYSICS.maxVelocity * GLOBAL_SPEED_MULTIPLIER;
 
       if (currentVelocity > maxExplosionVelocity) {
         star.vx = (star.vx / currentVelocity) * maxExplosionVelocity;
@@ -455,7 +544,7 @@ export const applyExplosionForce = (
       }
 
       // Mark star as active
-      star.lastPushed = Date.now();
+      star.lastPushed = getFrameTime();
       star.isActive = true;
     }
   });
@@ -515,8 +604,6 @@ export const applyClickForce = (
   radius: number = 350,
   force: number = 25
 ): number => {
-  console.log(`applyClickForce called at (${clickX}, ${clickY}) with radius ${radius} and force ${force}`);
-
   // Much stronger force multiplier for visible repulsion effect
   const adjustedForce = force * 5;
 
@@ -553,12 +640,11 @@ export const applyClickForce = (
       star.vy += (Math.random() - 0.5) * strength * 0.15;
 
       // Mark star as "pushed" for visual effects
-      star.lastPushed = Date.now();
+      star.lastPushed = getFrameTime();
       star.isActive = true;
     }
   });
 
-  console.log(`Total stars affected: ${affectedCount}`);
   return affectedCount;
 };
 
@@ -646,11 +732,13 @@ export const createClickExplosion = (
 // Helper to gradually deactivate stars
 export const updateStarActivity = (stars: Star[]): void => {
   const now = Date.now();
+  const deactivationTime = STAR_PHYSICS.deactivationTime;
 
-  stars.forEach(star => {
-    // If star was pushed more than 1500ms ago, deactivate it
-    if (star.isActive && (now - star.lastPushed > 1500)) {
+  for (let i = 0; i < stars.length; i++) {
+    const star = stars[i];
+    // If star was pushed more than deactivationTime ago, deactivate it
+    if (star.isActive && (now - star.lastPushed > deactivationTime)) {
       star.isActive = false;
     }
-  });
+  }
 };

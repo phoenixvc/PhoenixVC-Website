@@ -128,20 +128,20 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
           style={{
             border: `3px solid ${projectColor}`,
             boxShadow: `0 0 10px ${isDarkMode ? "rgba(157, 78, 221, 0.2)" : "rgba(123, 44, 191, 0.12)"}`,
-            backgroundColor: project.image ? 'transparent' : projectColor,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
+            backgroundColor: project.image ? "transparent" : projectColor,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center"
           }}
         >
           {project.image ? (
             <img src={project.image} alt={project.name} />
           ) : (
             <span style={{
-              color: '#ffffff',
-              fontSize: '18px',
+              color: "#ffffff",
+              fontSize: "18px",
               fontWeight: 700,
-              letterSpacing: '-0.5px'
+              letterSpacing: "-0.5px"
             }}>
               {project.initials || project.name?.substring(0, 2).toUpperCase()}
             </span>
@@ -186,9 +186,9 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
               className={styles.tooltipLink}
               onClick={(e) => e.stopPropagation()}
               style={{
-                color: isDarkMode ? 'rgba(157, 78, 221, 0.9)' : 'rgba(123, 44, 191, 0.9)',
-                fontSize: '12px',
-                textDecoration: 'none',
+                color: isDarkMode ? "rgba(157, 78, 221, 0.9)" : "rgba(123, 44, 191, 0.9)",
+                fontSize: "12px",
+                textDecoration: "none",
                 fontWeight: 500
               }}
             >
@@ -204,14 +204,14 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
               navigate(`/portfolio/${project.id}`);
             }}
             style={{
-              color: isDarkMode ? 'rgba(157, 78, 221, 0.9)' : 'rgba(123, 44, 191, 0.9)',
-              fontSize: '12px',
-              textDecoration: 'none',
+              color: isDarkMode ? "rgba(157, 78, 221, 0.9)" : "rgba(123, 44, 191, 0.9)",
+              fontSize: "12px",
+              textDecoration: "none",
               fontWeight: 500,
-              marginLeft: project.product && project.product.trim() !== "" ? '0.75rem' : 0,
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
+              marginLeft: project.product && project.product.trim() !== "" ? "0.75rem" : 0,
+              background: "none",
+              border: "none",
+              cursor: "pointer",
               padding: 0
             }}
           >

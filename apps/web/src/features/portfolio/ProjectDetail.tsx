@@ -150,7 +150,7 @@ export const ProjectDetail = () => {
 
             {/* Back Button */}
             <motion.div variants={animations.item}>
-              <button onClick={() => navigate(-1)} className={styles.backButton}>
+              <button onClick={() => void navigate(-1)} className={styles.backButton}>
                 <ArrowLeft size={20} />
                 Back
               </button>
@@ -355,7 +355,7 @@ export const ProjectDetail = () => {
                 type="button"
                 className={styles.ctaButton}
                 onClick={() => {
-                  navigate("/");
+                  void navigate("/");
                   // Use setTimeout to ensure navigation completes before scrolling
                   setTimeout(() => {
                     const contactSection = document.getElementById("contact");

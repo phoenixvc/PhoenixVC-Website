@@ -1,5 +1,6 @@
 import { renderCosmicHierarchy } from "../../cosmos/renderCosmicHierarchy";
 import { Camera, CosmicNavigationState } from "../../cosmos/types";
+import { logger } from "@/utils/logger";
 
 /**
  * Draws the cosmic navigation interface on the canvas
@@ -38,5 +39,5 @@ export function drawCosmicNavigation(
   ctx.restore();
 
   // Log that we've rendered (for debugging)
-  console.log(`Rendered cosmic navigation at time ${time}, level: ${navigationState.currentLevel}`);
+  logger.debug(`Rendered cosmic navigation at time ${time}, level: ${navigationState.currentLevel}`);
 }

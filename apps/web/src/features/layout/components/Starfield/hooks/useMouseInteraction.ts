@@ -2,6 +2,7 @@
 import { useState, useRef, useCallback } from "react";
 import { MousePosition, Star, GameState } from "../types";
 import { applyClickForce } from "../stars";
+import { logger } from "@/utils/logger";
 
 export const useMouseInteraction = (
   enableMouseInteraction: boolean,
@@ -49,7 +50,7 @@ export const useMouseInteraction = (
     setMousePosition(newPosition);
 
     // Debug log to verify the mouse position is being updated
-    console.log("Mouse/touch position updated:", {
+    logger.debug("Mouse/touch position updated:", {
       clientX,
       clientY,
       isOnScreen: true,
@@ -82,7 +83,7 @@ export const useMouseInteraction = (
       clickTime: Date.now()
     }));
 
-    console.log("Pointer down:", { clientX, clientY });
+    logger.debug("Pointer down:", { clientX, clientY });
 
     // Game mode: apply force to nearby stars and use a click
     if (gameMode && gameState.remainingClicks > 0) {
@@ -114,7 +115,7 @@ export const useMouseInteraction = (
       ...prev,
       isClicked: false
     }));
-    console.log("Pointer up");
+    logger.debug("Pointer up");
   }, []);
 
   const handleMouseUp = useCallback(() => {
@@ -130,7 +131,7 @@ export const useMouseInteraction = (
       ...prev,
       isOnScreen: false
     }));
-    console.log("Mouse left screen");
+    logger.debug("Mouse left screen");
   }, []);
 
   // Event handlers object
@@ -147,7 +148,7 @@ export const useMouseInteraction = (
       window.addEventListener("touchstart", handleTouchStart);
       window.addEventListener("touchend", handleTouchEnd);
 
-      console.log("Mouse and touch event listeners set up");
+      logger.debug("Mouse and touch event listeners set up");
     },
     cleanup: () => {
       // Mouse events
@@ -161,7 +162,7 @@ export const useMouseInteraction = (
       window.removeEventListener("touchstart", handleTouchStart);
       window.removeEventListener("touchend", handleTouchEnd);
 
-      console.log("Mouse and touch event listeners cleaned up");
+      logger.debug("Mouse and touch event listeners cleaned up");
     }
   };
 

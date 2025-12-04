@@ -12,11 +12,16 @@ const Header: FC<HeaderProps> = ({
   isDarkMode,
   onThemeToggle,
   isSidebarCollapsed,
+  isSidebarOpen = true,
+  sidebarWidth = 0,
+  isMobile = false,
   gameMode,
   onGameModeToggle,
   debugMode = false,
   onDebugModeToggle,
 }) => {
+  // Calculate header left offset based on sidebar state (desktop only)
+  const headerLeftOffset = isMobile ? 0 : (isSidebarOpen ? sidebarWidth : 0);
   const [scrolled, setScrolled] = useState(false);
   const [activePath, setActivePath] = useState("");
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
@@ -131,6 +136,11 @@ const Header: FC<HeaderProps> = ({
         className={`${styles.header} ${
           scrolled ? styles.headerScrolled : ""
         } ${!isDarkMode ? styles.lightMode : ""}`}
+        style={{
+          left: `${headerLeftOffset}px`,
+          width: `calc(100% - ${headerLeftOffset}px)`,
+          transition: "left 0.3s ease, width 0.3s ease"
+        }}
       >
         <div className={styles.headerContainer}>
           <div className={styles.headerLeft}>

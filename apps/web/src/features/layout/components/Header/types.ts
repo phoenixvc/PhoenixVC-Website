@@ -8,9 +8,11 @@ export interface NavItem {
     isDarkMode: boolean;
     onThemeToggle: () => void;
     isSidebarCollapsed: boolean;
+    isSidebarOpen?: boolean;
+    sidebarWidth?: number;
+    isMobile?: boolean;
     gameMode: boolean;
     onGameModeToggle: () => void;
     debugMode?: boolean;
     onDebugModeToggle?: () => void;
-  // Removed useCosmicStarfield and onStarfieldModeToggle props
   }

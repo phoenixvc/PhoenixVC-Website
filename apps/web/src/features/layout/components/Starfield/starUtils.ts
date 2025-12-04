@@ -1,6 +1,7 @@
 // components/Layout/Starfield/starUtils.ts
 
 import { Planet } from "./types";
+import { getFrameTime } from "./frameCache";
 
 // Helper function to convert hex color to RGB
 export function hexToRgb(hex: string): { r: number, g: number, b: number } {
@@ -63,7 +64,7 @@ export function hexToRgb(hex: string): { r: number, g: number, b: number } {
       }
 
       // Smoother pulsation with sine wave and reduced amplitude
-      const pulsationTime = Date.now() * empStar.pulsation.speed;
+      const pulsationTime = getFrameTime() * empStar.pulsation.speed;
       const pulsationRange = empStar.pulsation.maxScale - empStar.pulsation.minScale;
       const pulsationMid = (empStar.pulsation.maxScale + empStar.pulsation.minScale) / 2;
 
