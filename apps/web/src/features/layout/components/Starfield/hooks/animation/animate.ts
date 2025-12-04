@@ -172,15 +172,15 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
     // Check if mouse is actually over the canvas vs over a content card
     // Using elementFromPoint to detect if there's a higher z-index element at the mouse position
     let isOverContentCard = false;
-    if (typeof document !== 'undefined' && currentMousePosition.isOnScreen) {
+    if (typeof document !== "undefined" && currentMousePosition.isOnScreen) {
       const elementAtMouse = document.elementFromPoint(
         currentMousePosition.x,
         currentMousePosition.y
       );
       if (elementAtMouse) {
         // Check if the element is NOT the canvas and is NOT inside the starfield container
-        const isCanvas = elementAtMouse.tagName === 'CANVAS';
-        const isInsideStarfield = elementAtMouse.closest('[data-starfield]') !== null;
+        const isCanvas = elementAtMouse.tagName === "CANVAS";
+        const isInsideStarfield = elementAtMouse.closest("[data-starfield]") !== null;
         // If not canvas and not in starfield, we're over a content card
         isOverContentCard = !isCanvas && !isInsideStarfield;
       }
