@@ -794,13 +794,37 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     
   }, [focusedSunId]);
 
-  // Smooth camera lerp animation
+  // Smooth camera lerp animation - only runs when there's an active target
+  // Use a serialized target key to detect when target changes
+  const targetKey = internalCamera.target 
+    ? `${internalCamera.target.cx}-${internalCamera.target.cy}-${internalCamera.target.zoom}` 
+    : null;
+  
   useEffect(() => {
-    if (!internalCamera.target) return;
+    // Only start animation if there's an active target
+    if (!internalCamera.target) {
+      // No target, ensure any running animation is stopped
+      if (cameraAnimationRef.current) {
+        cancelAnimationFrame(cameraAnimationRef.current);
+        cameraAnimationRef.current = null;
+      }
+      return;
+    }
     
-    const animateCamera = () => {
+    // Cancel any existing animation before starting a new one
+    // This handles switching between different zoom targets
+    if (cameraAnimationRef.current) {
+      cancelAnimationFrame(cameraAnimationRef.current);
+      cameraAnimationRef.current = null;
+    }
+    
+    const animateCamera = (): void => {
       setInternalCamera(prev => {
-        if (!prev.target) return prev;
+        if (!prev.target) {
+          // Target was cleared, stop animation
+          cameraAnimationRef.current = null;
+          return prev;
+        }
         
         const smoothing = 0.08;
         const newCx = prev.cx + (prev.target.cx - prev.cx) * smoothing;
@@ -814,6 +838,8 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
           Math.abs(newZoom - prev.target.zoom) < 0.01;
         
         if (isCloseEnough) {
+          // Reached target, clear it and stop animation
+          cameraAnimationRef.current = null;
           return {
             cx: prev.target.cx,
             cy: prev.target.cy,
@@ -822,6 +848,9 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
           };
         }
         
+        // Continue animation for next frame
+        cameraAnimationRef.current = requestAnimationFrame(animateCamera);
+        
         return {
           cx: newCx,
           cy: newCy,
@@ -829,18 +858,18 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
           target: prev.target
         };
       });
-      
-      cameraAnimationRef.current = requestAnimationFrame(animateCamera);
     };
     
+    // Start the animation
     cameraAnimationRef.current = requestAnimationFrame(animateCamera);
     
     return () => {
       if (cameraAnimationRef.current) {
         cancelAnimationFrame(cameraAnimationRef.current);
+        cameraAnimationRef.current = null;
       }
     };
-  }, [internalCamera.target?.cx, internalCamera.target?.cy, internalCamera.target?.zoom]);
+  }, [targetKey]); // Re-run when target changes (including switching between targets)
 
   // Legacy function kept for backward compatibility
   const scrollToFocusArea = useCallback((sunId: string, sunX: number, sunY: number) => {
