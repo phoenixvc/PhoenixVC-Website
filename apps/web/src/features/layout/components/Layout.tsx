@@ -222,6 +222,9 @@ const Layout = ({ children }: LayoutProps) => {
           isDarkMode={isDarkMode}
           onThemeToggle={toggleTheme}
           isSidebarCollapsed={isCollapsed}
+          isSidebarOpen={isSidebarOpen}
+          sidebarWidth={sidebarWidth}
+          isMobile={isMobile}
           gameMode={gameMode}
           onGameModeToggle={toggleGameMode}
           debugMode={debugMode}

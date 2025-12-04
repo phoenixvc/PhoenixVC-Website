@@ -3,11 +3,59 @@
 import { BlackHoleData, PortfolioProject } from "./types";
 import { PORTFOLIO_PROJECTS } from "@/constants/portfolioData";
 
-// Default black hole positions
-export const DEFAULT_BLACK_HOLES = [
-  { x: 0.2, y: 0.3, radius: 25, color: "#8A2BE2" },
-  { x: 0.8, y: 0.7, radius: 30, color: "#8A2BE2" },
-];
+// Randomized black hole positions - generated fresh on each page load
+// Constraints: away from edges and from each other
+const BH_EDGE_PADDING = 0.15; // Minimum distance from edges
+const BH_MIN_DISTANCE = 0.35; // Minimum distance between black holes
+
+/**
+ * Generate randomized black hole positions with proper spacing
+ */
+function generateRandomBlackHolePositions(): Array<{ x: number; y: number; radius: number; color: string }> {
+  const positions: Array<{ x: number; y: number; radius: number; color: string }> = [];
+  const maxAttempts = 50;
+
+  for (let i = 0; i < 2; i++) {
+    let attempts = 0;
+    let validPosition = false;
+    let x = 0, y = 0;
+
+    while (!validPosition && attempts < maxAttempts) {
+      // Generate random position within bounds
+      x = BH_EDGE_PADDING + Math.random() * (1 - 2 * BH_EDGE_PADDING);
+      y = BH_EDGE_PADDING + Math.random() * (1 - 2 * BH_EDGE_PADDING);
+
+      // Check distance from existing black holes
+      validPosition = true;
+      for (const pos of positions) {
+        const dx = x - pos.x;
+        const dy = y - pos.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < BH_MIN_DISTANCE) {
+          validPosition = false;
+          break;
+        }
+      }
+      attempts++;
+    }
+
+    // Fallback if no valid position found
+    if (!validPosition) {
+      x = i === 0 ? 0.25 : 0.75;
+      y = i === 0 ? 0.35 : 0.65;
+    }
+
+    // Random radius variation (25-35)
+    const radius = 25 + Math.random() * 10;
+
+    positions.push({ x, y, radius, color: "#8A2BE2" });
+  }
+
+  return positions;
+}
+
+// Generate positions once when module loads (fresh on each page refresh)
+export const DEFAULT_BLACK_HOLES = generateRandomBlackHolePositions();
 
 // Re-export portfolio projects from centralized source
 // This maintains backward compatibility with existing imports

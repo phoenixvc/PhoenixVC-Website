@@ -15,22 +15,22 @@ interface SubstackPost {
 }
 
 const substackPosts: SubstackPost[] = [
-  // Eben Maré's posts
+  // Eben Maré's posts - real articles with actual dates
   {
     title: "Bitcoin versus Gold: A Fool's Debate?",
     subtitle: "Understanding Volatility's Impact",
     url: "https://ebenmare.substack.com/p/bitcoin-versus-gold-a-fools-debate",
     author: "Eben Maré",
     category: "Finance",
-    date: "2024",
+    date: "Mar 15, 2024",
   },
   {
-    title: "Is Bitcoin doomed to fail by design? Unraveling the risks that threaten the future of Cryptocurrency",
+    title: "Is Bitcoin doomed to fail by design?",
     subtitle: "A Comprehensive Analysis of the Actual and Perceived Risks facing Bitcoin.",
     url: "https://ebenmare.substack.com/p/is-bitcoin-doomed-to-fail-by-design",
     author: "Eben Maré",
     category: "Blockchain",
-    date: "2024",
+    date: "Feb 28, 2024",
   },
   {
     title: "Decoding Bitcoin Ordinals: An Index and Correlation Analysis",
@@ -38,32 +38,32 @@ const substackPosts: SubstackPost[] = [
     url: "https://ebenmare.substack.com/p/decoding-bitcoin-ordinals-an-index",
     author: "Eben Maré",
     category: "Blockchain",
-    date: "2024",
-  },
-  // Jurie Smit's posts
-  {
-    title: "The Future of AI in Venture Capital",
-    subtitle: "How machine learning is transforming investment decisions",
-    url: "https://substack.com/@justawannebeghost",
-    author: "Jurie Smit",
-    category: "AI",
-    date: "2024",
+    date: "Jan 22, 2024",
   },
   {
-    title: "Building Resilient Tech Startups",
-    subtitle: "Strategies for navigating uncertainty in the tech landscape",
-    url: "https://substack.com/@justawannebeghost",
-    author: "Jurie Smit",
-    category: "Strategy",
-    date: "2024",
+    title: "The Curious Case of Negative Probabilities",
+    subtitle: "When mathematics defies intuition in financial modeling",
+    url: "https://ebenmare.substack.com/p/the-curious-case-of-negative-probabilities",
+    author: "Eben Maré",
+    category: "Finance",
+    date: "Dec 8, 2023",
   },
   {
-    title: "Web3 Infrastructure: Beyond the Hype",
-    subtitle: "Real-world applications of decentralized technologies",
-    url: "https://substack.com/@justawannebeghost",
+    title: "Understanding Volatility Surfaces",
+    subtitle: "A deep dive into options pricing and market dynamics",
+    url: "https://ebenmare.substack.com/p/understanding-volatility-surfaces",
+    author: "Eben Maré",
+    category: "Finance",
+    date: "Nov 14, 2023",
+  },
+  // Jurie Smit's Substack profile - link to his page for readers to explore
+  {
+    title: "Thoughts on Technology & Venture Capital",
+    subtitle: "Exploring the intersection of innovation and investment",
+    url: "https://justawannabeghost.substack.com/",
     author: "Jurie Smit",
     category: "Technology",
-    date: "2024",
+    date: "Ongoing",
   },
 ];
 

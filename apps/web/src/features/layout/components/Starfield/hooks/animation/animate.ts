@@ -431,9 +431,10 @@ function drawMouseEffects(
     ctx.fill();
 
     // Determine time since click to drive ripple effects.
-    const timeSinceClick = currentMousePosition.clickTime
+    // Use a large value (2000ms+) if no click has occurred to prevent effects on load
+    const timeSinceClick = currentMousePosition.clickTime > 0
       ? Date.now() - currentMousePosition.clickTime
-      : 200; // Fallback for testing
+      : 2000; // No click yet - beyond all effect thresholds
 
     // Draw three layered ripple effects.
     for (let i = 0; i < 3; i++) {

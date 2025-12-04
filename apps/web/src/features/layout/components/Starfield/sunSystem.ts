@@ -39,14 +39,60 @@ export interface SunState {
   clickRepulsionDecay: number;
 }
 
-// Better sun positions - accounting for sidebar (~220px) on left
-// Positions spread further apart towards corners for better separation
-export const INITIAL_SUN_POSITIONS = [
-  { x: 0.22, y: 0.18 },  // Top-left: Fintech & Blockchain (moved more towards corner)
-  { x: 0.82, y: 0.15 },  // Top-right: AI & ML (moved more towards corner)
-  { x: 0.20, y: 0.82 },  // Bottom-left: Defense & Security (moved more towards corner)
-  { x: 0.80, y: 0.80 },  // Bottom-right: Mobility & Transportation (moved more towards corner)
-];
+// Randomized sun positions - generated fresh on each page load
+// Constraints: minimum distance from edges and between each other
+const EDGE_PADDING = 0.15; // Minimum distance from edges (15% of canvas)
+const MIN_SUN_DISTANCE = 0.25; // Minimum distance between suns (25% of canvas)
+const SIDEBAR_OFFSET = 0.12; // Extra left padding for sidebar
+
+/**
+ * Generate randomized sun positions with proper spacing
+ * Called once on page load to create unique arrangements
+ */
+function generateRandomSunPositions(count: number): Array<{ x: number; y: number }> {
+  const positions: Array<{ x: number; y: number }> = [];
+  const maxAttempts = 100;
+
+  for (let i = 0; i < count; i++) {
+    let attempts = 0;
+    let validPosition = false;
+    let x = 0, y = 0;
+
+    while (!validPosition && attempts < maxAttempts) {
+      // Generate random position within bounds (accounting for sidebar)
+      x = EDGE_PADDING + SIDEBAR_OFFSET + Math.random() * (1 - 2 * EDGE_PADDING - SIDEBAR_OFFSET);
+      y = EDGE_PADDING + Math.random() * (1 - 2 * EDGE_PADDING);
+
+      // Check distance from all existing positions
+      validPosition = true;
+      for (const pos of positions) {
+        const dx = x - pos.x;
+        const dy = y - pos.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < MIN_SUN_DISTANCE) {
+          validPosition = false;
+          break;
+        }
+      }
+      attempts++;
+    }
+
+    // If we couldn't find a valid position, use a fallback quadrant position
+    if (!validPosition) {
+      const quadrantX = (i % 2 === 0) ? 0.25 : 0.75;
+      const quadrantY = (i < 2) ? 0.25 : 0.75;
+      x = quadrantX + (Math.random() - 0.5) * 0.15;
+      y = quadrantY + (Math.random() - 0.5) * 0.15;
+    }
+
+    positions.push({ x, y });
+  }
+
+  return positions;
+}
+
+// Generate positions once when module loads (fresh on each page refresh)
+export const INITIAL_SUN_POSITIONS = generateRandomSunPositions(4);
 
 // Global sun state (mutable for animation)
 let sunStates: SunState[] = [];
