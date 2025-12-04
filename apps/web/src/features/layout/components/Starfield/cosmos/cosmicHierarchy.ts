@@ -40,7 +40,7 @@ export const SUNS: CosmicObject[] = [
     name: "Fintech & Blockchain",
     description: "Financial technology and blockchain innovations",
     position: { x: 0.25, y: 0.35 },
-    size: 0.06,
+    size: 0.065,
     level: "sun",
     parentId: "focus-areas-galaxy",
     color: "#f39c12" // Golden - for fintech/blockchain
@@ -50,7 +50,7 @@ export const SUNS: CosmicObject[] = [
     name: "AI & ML",
     description: "Artificial intelligence and machine learning",
     position: { x: 0.35, y: 0.45 },
-    size: 0.055,
+    size: 0.06,
     level: "sun",
     parentId: "focus-areas-galaxy",
     color: "#3498db" // Blue - for AI/ML
@@ -60,7 +60,7 @@ export const SUNS: CosmicObject[] = [
     name: "Defense & Security",
     description: "Defense technology and security solutions",
     position: { x: 0.28, y: 0.5 },
-    size: 0.055,
+    size: 0.058,
     level: "sun",
     parentId: "focus-areas-galaxy",
     color: "#e74c3c" // Red - for defense/security
@@ -70,7 +70,7 @@ export const SUNS: CosmicObject[] = [
     name: "Mobility & Transportation",
     description: "Transportation and mobility innovations",
     position: { x: 0.2, y: 0.42 },
-    size: 0.05,
+    size: 0.055,
     level: "sun",
     parentId: "focus-areas-galaxy",
     color: "#2ecc71" // Green - for mobility
@@ -82,7 +82,7 @@ export const SUNS: CosmicObject[] = [
     name: "AI & Machine Learning",
     description: "AI and machine learning portfolio companies",
     position: { x: 0.65, y: 0.25 },
-    size: 0.06,
+    size: 0.065,
     level: "sun",
     parentId: "portfolio-galaxy",
     color: "#3498db" // Blue - AI/ML
@@ -92,7 +92,7 @@ export const SUNS: CosmicObject[] = [
     name: "Fintech & Blockchain",
     description: "Fintech and blockchain portfolio companies",
     position: { x: 0.75, y: 0.28 },
-    size: 0.055,
+    size: 0.06,
     level: "sun",
     parentId: "portfolio-galaxy",
     color: "#f39c12" // Golden - fintech/blockchain
@@ -102,7 +102,7 @@ export const SUNS: CosmicObject[] = [
     name: "Defense & Security",
     description: "Defense and security portfolio companies",
     position: { x: 0.68, y: 0.35 },
-    size: 0.055,
+    size: 0.058,
     level: "sun",
     parentId: "portfolio-galaxy",
     color: "#e74c3c" // Red - defense/security
@@ -112,7 +112,7 @@ export const SUNS: CosmicObject[] = [
     name: "Mobility & Transportation",
     description: "Mobility and transportation portfolio companies",
     position: { x: 0.72, y: 0.40 },
-    size: 0.055,
+    size: 0.058,
     level: "sun",
     parentId: "portfolio-galaxy",
     color: "#2ecc71" // Green - mobility
@@ -124,7 +124,7 @@ export const SUNS: CosmicObject[] = [
     name: "Blog Categories",
     description: "Our insights and thought leadership",
     position: { x: 0.45, y: 0.65 },
-    size: 0.05,
+    size: 0.054,
     level: "sun",
     parentId: "information-galaxy",
     color: "#9b59b6"
@@ -134,7 +134,7 @@ export const SUNS: CosmicObject[] = [
     name: "Company Information",
     description: "About Phoenix VC",
     position: { x: 0.55, y: 0.75 },
-    size: 0.055,
+    size: 0.058,
     level: "sun",
     parentId: "information-galaxy",
     color: "#8e44ad"
@@ -144,7 +144,7 @@ export const SUNS: CosmicObject[] = [
     name: "Resources",
     description: "Research and investment guides",
     position: { x: 0.5, y: 0.6 },
-    size: 0.045,
+    size: 0.048,
     level: "sun",
     parentId: "information-galaxy",
     color: "#9b59b6"
@@ -154,7 +154,7 @@ export const SUNS: CosmicObject[] = [
     name: "Community",
     description: "Events and newsletters",
     position: { x: 0.6, y: 0.65 },
-    size: 0.05,
+    size: 0.054,
     level: "sun",
     parentId: "information-galaxy",
     color: "#8e44ad"
@@ -164,7 +164,7 @@ export const SUNS: CosmicObject[] = [
     name: "Careers",
     description: "Join our team",
     position: { x: 0.42, y: 0.72 },
-    size: 0.045,
+    size: 0.048,
     level: "sun",
     parentId: "information-galaxy",
     color: "#8e44ad"
@@ -179,7 +179,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Digital Banking",
     description: "Next-generation banking solutions",
     position: { x: 0.23, y: 0.33 },
-    size: 0.02,
+    size: 0.022,
     level: "planet",
     parentId: "fintech-blockchain-sun",
     color: "#f39c12"
@@ -189,7 +189,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Payment Solutions",
     description: "Innovative payment technologies",
     position: { x: 0.27, y: 0.32 },
-    size: 0.018,
+    size: 0.02,
     level: "planet",
     parentId: "fintech-blockchain-sun",
     color: "#e67e22"
@@ -199,7 +199,7 @@ export const PLANETS: CosmicObject[] = [
     name: "DeFi Solutions",
     description: "Decentralized finance platforms",
     position: { x: 0.26, y: 0.38 },
-    size: 0.02,
+    size: 0.022,
     level: "planet",
     parentId: "fintech-blockchain-sun",
     color: "#f39c12"
@@ -209,7 +209,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Smart Contracts",
     description: "Self-executing contract solutions",
     position: { x: 0.24, y: 0.36 },
-    size: 0.018,
+    size: 0.02,
     level: "planet",
     parentId: "fintech-blockchain-sun",
     color: "#e67e22"
@@ -219,7 +219,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Web3 Infrastructure",
     description: "Web3 and blockchain infrastructure",
     position: { x: 0.22, y: 0.34 },
-    size: 0.017,
+    size: 0.019,
     level: "planet",
     parentId: "fintech-blockchain-sun",
     color: "#f39c12"
@@ -231,7 +231,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Data Analytics",
     description: "Advanced data analysis solutions",
     position: { x: 0.33, y: 0.43 },
-    size: 0.019,
+    size: 0.021,
     level: "planet",
     parentId: "ai-ml-sun",
     color: "#3498db"
@@ -241,7 +241,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Machine Learning",
     description: "ML algorithms and applications",
     position: { x: 0.37, y: 0.42 },
-    size: 0.02,
+    size: 0.022,
     level: "planet",
     parentId: "ai-ml-sun",
     color: "#2980b9"
@@ -251,7 +251,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Neural Networks",
     description: "Deep learning and neural network solutions",
     position: { x: 0.36, y: 0.47 },
-    size: 0.018,
+    size: 0.02,
     level: "planet",
     parentId: "ai-ml-sun",
     color: "#3498db"
@@ -261,7 +261,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Computer Vision",
     description: "Image and video analysis technologies",
     position: { x: 0.34, y: 0.46 },
-    size: 0.019,
+    size: 0.021,
     level: "planet",
     parentId: "ai-ml-sun",
     color: "#2980b9"
@@ -271,7 +271,7 @@ export const PLANETS: CosmicObject[] = [
     name: "NLP",
     description: "Natural language processing",
     position: { x: 0.32, y: 0.44 },
-    size: 0.018,
+    size: 0.02,
     level: "planet",
     parentId: "ai-ml-sun",
     color: "#3498db"
@@ -283,7 +283,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Counter-Drone",
     description: "Counter-drone defense systems",
     position: { x: 0.26, y: 0.48 },
-    size: 0.019,
+    size: 0.021,
     level: "planet",
     parentId: "defense-security-sun",
     color: "#e74c3c"
@@ -293,7 +293,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Access Control",
     description: "Digital access management solutions",
     position: { x: 0.3, y: 0.52 },
-    size: 0.02,
+    size: 0.022,
     level: "planet",
     parentId: "defense-security-sun",
     color: "#c0392b"
@@ -303,7 +303,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Cybersecurity",
     description: "Security solutions and technologies",
     position: { x: 0.27, y: 0.53 },
-    size: 0.018,
+    size: 0.02,
     level: "planet",
     parentId: "defense-security-sun",
     color: "#e74c3c"
@@ -313,7 +313,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Threat Detection",
     description: "AI-powered threat detection",
     position: { x: 0.29, y: 0.49 },
-    size: 0.019,
+    size: 0.021,
     level: "planet",
     parentId: "defense-security-sun",
     color: "#c0392b"
@@ -325,7 +325,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Ride Sharing",
     description: "Ride-sharing platforms",
     position: { x: 0.18, y: 0.4 },
-    size: 0.018,
+    size: 0.02,
     level: "planet",
     parentId: "mobility-transportation-sun",
     color: "#2ecc71"
@@ -335,7 +335,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Urban Mobility",
     description: "Urban transportation solutions",
     position: { x: 0.22, y: 0.4 },
-    size: 0.019,
+    size: 0.021,
     level: "planet",
     parentId: "mobility-transportation-sun",
     color: "#27ae60"
@@ -345,7 +345,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Route Optimization",
     description: "Intelligent route planning",
     position: { x: 0.19, y: 0.44 },
-    size: 0.02,
+    size: 0.022,
     level: "planet",
     parentId: "mobility-transportation-sun",
     color: "#2ecc71"
@@ -355,7 +355,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Smart Transportation",
     description: "Smart city transportation infrastructure",
     position: { x: 0.21, y: 0.43 },
-    size: 0.018,
+    size: 0.02,
     level: "planet",
     parentId: "mobility-transportation-sun",
     color: "#27ae60"
@@ -367,7 +367,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Mystira",
     description: "Interactive storytelling adventures for children",
     position: { x: 0.63, y: 0.23 },
-    size: 0.022,
+    size: 0.024,
     level: "planet",
     parentId: "portfolio-ai-ml-sun",
     color: "#9c27b0" // Purple - Alpha status
@@ -377,7 +377,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Cognitive Mesh",
     description: "Enterprise-grade AI transformation framework",
     position: { x: 0.67, y: 0.24 },
-    size: 0.018,
+    size: 0.02,
     level: "planet",
     parentId: "portfolio-ai-ml-sun",
     color: "#795548" // Brown - Pre-alpha
@@ -389,7 +389,7 @@ export const PLANETS: CosmicObject[] = [
     name: "VeritasVault",
     description: "DeFi staking and treasury-backed rewards platform",
     position: { x: 0.73, y: 0.26 },
-    size: 0.018,
+    size: 0.02,
     level: "planet",
     parentId: "portfolio-fintech-blockchain-sun",
     color: "#795548" // Brown - Pre-alpha
@@ -401,7 +401,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Phoenix Rooivalk",
     description: "AI-powered counter-drone defense platform",
     position: { x: 0.66, y: 0.33 },
-    size: 0.02,
+    size: 0.022,
     level: "planet",
     parentId: "portfolio-defense-security-sun",
     color: "#795548" // Brown - Pre-alpha
@@ -411,7 +411,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Airkey",
     description: "Digital access management solutions",
     position: { x: 0.7, y: 0.34 },
-    size: 0.018,
+    size: 0.02,
     level: "planet",
     parentId: "portfolio-defense-security-sun",
     color: "#e67e22" // Orange - Early stage
@@ -423,7 +423,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Hop",
     description: "Innovative transportation technology",
     position: { x: 0.70, y: 0.38 },
-    size: 0.018,
+    size: 0.02,
     level: "planet",
     parentId: "portfolio-mobility-sun",
     color: "#e67e22" // Orange - Early stage
@@ -433,7 +433,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Chaufher",
     description: "Women-focused transportation service",
     position: { x: 0.74, y: 0.39 },
-    size: 0.02,
+    size: 0.022,
     level: "planet",
     parentId: "portfolio-mobility-sun",
     color: "#e74c3c" // Red - Growth stage
@@ -445,7 +445,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Market Insights",
     description: "Analysis of market trends",
     position: { x: 0.43, y: 0.63 },
-    size: 0.018,
+    size: 0.02,
     level: "planet",
     parentId: "blog-categories-sun",
     color: "#9b59b6"
@@ -455,7 +455,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Technology Trends",
     description: "Emerging technology insights",
     position: { x: 0.47, y: 0.62 },
-    size: 0.019,
+    size: 0.021,
     level: "planet",
     parentId: "blog-categories-sun",
     color: "#8e44ad"
@@ -465,7 +465,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Investment Strategy",
     description: "Strategic investment approaches",
     position: { x: 0.46, y: 0.67 },
-    size: 0.02,
+    size: 0.022,
     level: "planet",
     parentId: "blog-categories-sun",
     color: "#9b59b6"
@@ -475,7 +475,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Founder Stories",
     description: "Interviews with startup founders",
     position: { x: 0.44, y: 0.66 },
-    size: 0.018,
+    size: 0.02,
     level: "planet",
     parentId: "blog-categories-sun",
     color: "#8e44ad"
@@ -485,7 +485,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Industry Analysis",
     description: "Deep dives into specific industries",
     position: { x: 0.45, y: 0.64 },
-    size: 0.017,
+    size: 0.019,
     level: "planet",
     parentId: "blog-categories-sun",
     color: "#9b59b6"
@@ -497,7 +497,7 @@ export const PLANETS: CosmicObject[] = [
     name: "About Us",
     description: "Our story and mission",
     position: { x: 0.53, y: 0.73 },
-    size: 0.02,
+    size: 0.022,
     level: "planet",
     parentId: "company-information-sun",
     color: "#8e44ad"
@@ -507,7 +507,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Vision & Mission",
     description: "Our goals and principles",
     position: { x: 0.57, y: 0.72 },
-    size: 0.019,
+    size: 0.021,
     level: "planet",
     parentId: "company-information-sun",
     color: "#9b59b6"
@@ -517,7 +517,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Contact",
     description: "Get in touch with us",
     position: { x: 0.56, y: 0.77 },
-    size: 0.018,
+    size: 0.02,
     level: "planet",
     parentId: "company-information-sun",
     color: "#8e44ad"
@@ -527,7 +527,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Team",
     description: "Meet our team",
     position: { x: 0.54, y: 0.76 },
-    size: 0.019,
+    size: 0.021,
     level: "planet",
     parentId: "company-information-sun",
     color: "#9b59b6"
@@ -537,7 +537,7 @@ export const PLANETS: CosmicObject[] = [
     name: "History",
     description: "Our journey through the years",
     position: { x: 0.52, y: 0.74 },
-    size: 0.017,
+    size: 0.019,
     level: "planet",
     parentId: "company-information-sun",
     color: "#8e44ad"
@@ -549,7 +549,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Investment Guides",
     description: "Guides for potential investors",
     position: { x: 0.48, y: 0.58 },
-    size: 0.018,
+    size: 0.02,
     level: "planet",
     parentId: "resources-sun",
     color: "#9b59b6"
@@ -559,7 +559,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Market Research",
     description: "In-depth industry research",
     position: { x: 0.52, y: 0.59 },
-    size: 0.019,
+    size: 0.021,
     level: "planet",
     parentId: "resources-sun",
     color: "#8e44ad"
@@ -569,7 +569,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Startup Toolkit",
     description: "Resources for entrepreneurs",
     position: { x: 0.51, y: 0.62 },
-    size: 0.02,
+    size: 0.022,
     level: "planet",
     parentId: "resources-sun",
     color: "#9b59b6"
@@ -579,7 +579,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Investor Education",
     description: "Educational resources for investors",
     position: { x: 0.49, y: 0.61 },
-    size: 0.017,
+    size: 0.019,
     level: "planet",
     parentId: "resources-sun",
     color: "#8e44ad"
@@ -591,7 +591,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Events",
     description: "Upcoming events and conferences",
     position: { x: 0.58, y: 0.63 },
-    size: 0.019,
+    size: 0.021,
     level: "planet",
     parentId: "community-sun",
     color: "#8e44ad"
@@ -601,7 +601,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Newsletter",
     description: "Subscribe to our newsletter",
     position: { x: 0.62, y: 0.64 },
-    size: 0.018,
+    size: 0.02,
     level: "planet",
     parentId: "community-sun",
     color: "#9b59b6"
@@ -611,7 +611,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Partnerships",
     description: "Partner with Phoenix VC",
     position: { x: 0.61, y: 0.67 },
-    size: 0.02,
+    size: 0.022,
     level: "planet",
     parentId: "community-sun",
     color: "#8e44ad"
@@ -621,7 +621,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Community Forum",
     description: "Join our online community",
     position: { x: 0.59, y: 0.66 },
-    size: 0.017,
+    size: 0.019,
     level: "planet",
     parentId: "community-sun",
     color: "#9b59b6"
@@ -633,7 +633,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Open Positions",
     description: "Current job openings",
     position: { x: 0.40, y: 0.70 },
-    size: 0.018,
+    size: 0.02,
     level: "planet",
     parentId: "careers-sun",
     color: "#8e44ad"
@@ -643,7 +643,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Internships",
     description: "Student and graduate opportunities",
     position: { x: 0.44, y: 0.71 },
-    size: 0.017,
+    size: 0.019,
     level: "planet",
     parentId: "careers-sun",
     color: "#9b59b6"
@@ -653,7 +653,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Company Culture",
     description: "Life at Phoenix VC",
     position: { x: 0.43, y: 0.74 },
-    size: 0.019,
+    size: 0.021,
     level: "planet",
     parentId: "careers-sun",
     color: "#8e44ad"
@@ -663,7 +663,7 @@ export const PLANETS: CosmicObject[] = [
     name: "Benefits",
     description: "Employee benefits and perks",
     position: { x: 0.41, y: 0.73 },
-    size: 0.016,
+    size: 0.018,
     level: "planet",
     parentId: "careers-sun",
     color: "#9b59b6"

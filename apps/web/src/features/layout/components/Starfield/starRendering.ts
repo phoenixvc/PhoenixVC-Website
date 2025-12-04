@@ -74,7 +74,7 @@ export const drawPlanet = (
 
   // Calculate pulsation effect
   const scaleFactor = calculatePulsation(planet);
-  const starSize = 15 * planetSize * scaleFactor; // Reduced from 20 to 15 (smaller planets)
+  const starSize = 16 * planetSize * scaleFactor; // Slightly increased from 15 to 16 for better visibility
 
   // Draw nebula effects for important stars
   drawNebulaEffects(ctx, planet, starSize, softRgb);
