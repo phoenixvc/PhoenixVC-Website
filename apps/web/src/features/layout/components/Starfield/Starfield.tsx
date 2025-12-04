@@ -95,6 +95,12 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   });
   const [pinnedProject, setPinnedProject] = useState<PortfolioProject | null>(null);
   const [pinnedPosition, setPinnedPosition] = useState({ x: 0, y: 0 });
+  // Track if mouse is over the project tooltip to prevent hiding while interacting
+  const isMouseOverProjectTooltipRef = useRef(false);
+  // Ref for debouncing project tooltip hide
+  const projectTooltipHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Delay in ms before hiding tooltip after mouse leaves (allows time to move to tooltip)
+  const TOOLTIP_HIDE_DELAY_MS = 200;
 
   const handlePinProject = (project: PortfolioProject) => {
     setPinnedProject(project);
@@ -105,6 +111,24 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
 
   const handleUnpinProject = () => {
     setPinnedProject(null);
+  };
+
+  // Handlers for project tooltip mouse enter/leave
+  const handleProjectTooltipMouseEnter = () => {
+    // Clear any pending hide timeout when mouse enters tooltip
+    if (projectTooltipHideTimeoutRef.current) {
+      clearTimeout(projectTooltipHideTimeoutRef.current);
+      projectTooltipHideTimeoutRef.current = null;
+    }
+    isMouseOverProjectTooltipRef.current = true;
+  };
+
+  const handleProjectTooltipMouseLeave = () => {
+    isMouseOverProjectTooltipRef.current = false;
+    // Start hide timeout when mouse leaves tooltip
+    projectTooltipHideTimeoutRef.current = setTimeout(() => {
+      setHoverInfo(prev => ({ ...prev, show: false }));
+    }, TOOLTIP_HIDE_DELAY_MS);
   };
 
   // Sun hover state for focus area suns
@@ -657,7 +681,8 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     hoveredSunId, // Pass the hovered sun id to the animation
     focusedSunId, // Pass the focused sun id for camera zoom
     camera: internalCamera, // Pass the internal camera for zoom functionality
-    setCamera: setInternalCamera // Pass camera setter
+    setCamera: setInternalCamera, // Pass camera setter
+    isMouseOverProjectTooltipRef // Track if mouse is over project tooltip
   }), [
     mousePosition,
     enableFlowEffect,
@@ -794,13 +819,37 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     
   }, [focusedSunId]);
 
-  // Smooth camera lerp animation
+  // Smooth camera lerp animation - only runs when there's an active target
+  // Use a serialized target key to detect when target changes
+  const targetKey = internalCamera.target 
+    ? `${internalCamera.target.cx}-${internalCamera.target.cy}-${internalCamera.target.zoom}` 
+    : null;
+  
   useEffect(() => {
-    if (!internalCamera.target) return;
+    // Only start animation if there's an active target
+    if (!internalCamera.target) {
+      // No target, ensure any running animation is stopped
+      if (cameraAnimationRef.current) {
+        cancelAnimationFrame(cameraAnimationRef.current);
+        cameraAnimationRef.current = null;
+      }
+      return;
+    }
     
-    const animateCamera = () => {
+    // Cancel any existing animation before starting a new one
+    // This handles switching between different zoom targets
+    if (cameraAnimationRef.current) {
+      cancelAnimationFrame(cameraAnimationRef.current);
+      cameraAnimationRef.current = null;
+    }
+    
+    const animateCamera = (): void => {
       setInternalCamera(prev => {
-        if (!prev.target) return prev;
+        if (!prev.target) {
+          // Target was cleared, stop animation
+          cameraAnimationRef.current = null;
+          return prev;
+        }
         
         const smoothing = 0.08;
         const newCx = prev.cx + (prev.target.cx - prev.cx) * smoothing;
@@ -814,6 +863,8 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
           Math.abs(newZoom - prev.target.zoom) < 0.01;
         
         if (isCloseEnough) {
+          // Reached target, clear it and stop animation
+          cameraAnimationRef.current = null;
           return {
             cx: prev.target.cx,
             cy: prev.target.cy,
@@ -822,6 +873,9 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
           };
         }
         
+        // Continue animation for next frame
+        cameraAnimationRef.current = requestAnimationFrame(animateCamera);
+        
         return {
           cx: newCx,
           cy: newCy,
@@ -829,18 +883,18 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
           target: prev.target
         };
       });
-      
-      cameraAnimationRef.current = requestAnimationFrame(animateCamera);
     };
     
+    // Start the animation
     cameraAnimationRef.current = requestAnimationFrame(animateCamera);
     
     return () => {
       if (cameraAnimationRef.current) {
         cancelAnimationFrame(cameraAnimationRef.current);
+        cameraAnimationRef.current = null;
       }
     };
-  }, [internalCamera.target?.cx, internalCamera.target?.cy, internalCamera.target?.zoom]);
+  }, [targetKey]); // Re-run when target changes (including switching between targets)
 
   // Legacy function kept for backward compatibility
   const scrollToFocusArea = useCallback((sunId: string, sunX: number, sunY: number) => {
@@ -1004,6 +1058,8 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
           y={hoverInfo.y}
           isDarkMode={isDarkMode}
           onPin={handlePinProject}
+          onMouseEnter={handleProjectTooltipMouseEnter}
+          onMouseLeave={handleProjectTooltipMouseLeave}
         />
       )}
 

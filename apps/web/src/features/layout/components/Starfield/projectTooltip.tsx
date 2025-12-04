@@ -11,6 +11,8 @@ interface ProjectTooltipProps {
   isDarkMode?: boolean;
   onPin?: (project: PortfolioProject) => void;
   onUnpin?: () => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
 const ProjectTooltip: FC<ProjectTooltipProps> = ({
@@ -20,7 +22,9 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
   isPinned = false,
   isDarkMode = true,
   onPin,
-  onUnpin
+  onUnpin,
+  onMouseEnter,
+  onMouseLeave
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -110,6 +114,8 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
         transform: isVisible ? "translateY(0)" : "translateY(10px)",
       }}
       onClick={handleTooltipClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       {isPinned && (
         <div

@@ -2,7 +2,7 @@
 site_name: Phoenix VC Documentation
 site_description: Comprehensive documentation for Phoenix VC's website, infrastructure and design system
 site_author: Phoenix VC Team
-site_url: https://JustAGhosT.github.io/PhoenixVC-Modernized/
+site_url: https://docs.phoenixvc.tech/
 docs_dir: src
 site_dir: site
 

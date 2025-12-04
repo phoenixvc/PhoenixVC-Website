@@ -118,6 +118,25 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       return;
     }
 
+    // Apply camera transformation if zoom is active (zoom > 1)
+    // This creates a smooth zoom effect centered on the camera target
+    const hasActiveCamera = props.camera && props.camera.zoom > 1;
+    if (hasActiveCamera && props.camera) {
+      ctx.save();
+      // Calculate the center point to zoom towards (in canvas coordinates)
+      const cameraCenterX = props.camera.cx * canvas.width;
+      const cameraCenterY = props.camera.cy * canvas.height;
+      
+      // Apply transformation: translate to center, scale, then translate back
+      // This keeps the zoom centered on the camera target point
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.scale(props.camera.zoom, props.camera.zoom);
+      ctx.translate(
+        -cameraCenterX,
+        -cameraCenterY
+      );
+    }
+
     // Always draw stars first - this ensures they always appear
     drawStars(ctx, currentStars);
 
@@ -178,11 +197,19 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
         currentMousePosition.y
       );
       if (elementAtMouse) {
-        // Check if the element is NOT the canvas and is NOT inside the starfield container
+        // Check if the element is the canvas or inside the starfield container
         const isCanvas = elementAtMouse.tagName === "CANVAS";
         const isInsideStarfield = elementAtMouse.closest("[data-starfield]") !== null;
-        // If not canvas and not in starfield, we're over a content card
-        isOverContentCard = !isCanvas && !isInsideStarfield;
+        // Check if the element is inside the hero section (which should allow tooltips)
+        const isInsideHeroSection = elementAtMouse.closest("section[aria-label=\"hero section\"]") !== null;
+        // Check if hovering over header/navigation (should allow tooltips since they're transparent)
+        const isInsideHeader = elementAtMouse.closest("header") !== null;
+        // Check if hovering over sidebar (should allow tooltips)
+        const isInsideSidebar = elementAtMouse.closest("aside, [role=\"complementary\"]") !== null;
+        
+        // Only consider it as "over content card" if it's NOT any of the allowed elements
+        // This allows tooltips to show when hovering over transparent overlays, header, sidebar, etc.
+        isOverContentCard = !isCanvas && !isInsideStarfield && !isInsideHeroSection && !isInsideHeader && !isInsideSidebar;
       }
     }
 
@@ -192,6 +219,11 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
         // If newInfo is a function, we can"t directly compare it
         if (typeof newInfo === "function") {
           props.setHoverInfo(newInfo);
+          return;
+        }
+
+        // Don't hide the tooltip if mouse is currently over it (allows clicking links)
+        if (!newInfo.show && props.isMouseOverProjectTooltipRef?.current) {
           return;
         }
 
@@ -209,8 +241,8 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
 
       // If over a content card, hide any active tooltip; otherwise check for planet hover
       if (isOverContentCard) {
-        // Clear hover info if currently showing
-        if (currentHoverInfo.show) {
+        // Clear hover info if currently showing (but not if mouse is over tooltip)
+        if (currentHoverInfo.show && !props.isMouseOverProjectTooltipRef?.current) {
           props.setHoverInfo({ project: null, x: 0, y: 0, show: false });
         }
       } else {
@@ -373,6 +405,11 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       }
 
       updateStarActivity(currentStars);
+
+    // Restore canvas context if camera transformation was applied
+    if (hasActiveCamera) {
+      ctx.restore();
+    }
 
     // Update star positions in the ref - consolidate this to one place
     if (props.starsRef && props.starsRef.current && props.starsRef.current.length > 0) {

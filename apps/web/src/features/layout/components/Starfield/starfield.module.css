@@ -846,10 +846,11 @@
 /* Zoom Out Button - themed to match site */
 .zoomOutButton {
   position: fixed;
-  top: 20px;
-  left: 50%;
+  top: 90px; /* Below header (70px) with 20px padding */
+  /* Center within content area: account for sidebar (220px) */
+  left: calc(220px + (100% - 220px) / 2);
   transform: translateX(-50%);
-  z-index: 1001;
+  z-index: 50; /* Below header (z-index: 1000) but above starfield */
   padding: 12px 24px;
   background: linear-gradient(135deg, rgba(25, 20, 40, 0.95) 0%, rgba(35, 25, 55, 0.95) 100%);
   backdrop-filter: blur(20px);
