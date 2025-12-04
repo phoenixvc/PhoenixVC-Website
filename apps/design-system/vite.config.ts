@@ -1,5 +1,5 @@
 /// <reference types="vitest/config" />
-/* eslint-disable no-undef */
+/* eslint-disable no-undef -- __dirname compatibility for ES modules */
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
