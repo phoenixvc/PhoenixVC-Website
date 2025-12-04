@@ -6,6 +6,14 @@ import { distance } from "./utils";
 // Global animation speed control - add this at the top of the file
 const GLOBAL_SPEED_MULTIPLIER = 0.15; // Reduced for smoother, more subtle animations
 
+// Movement multiplier for active (clicked) stars - allows them to move faster
+const ACTIVE_STAR_MOVEMENT_MULTIPLIER = 0.5;
+
+// Velocity limits
+const ACTIVE_STAR_VELOCITY_MULTIPLIER = 16; // How much faster active stars can move
+const DAMPING_FACTOR_ACTIVE = 0.985; // Less damping for active stars
+const DAMPING_FACTOR_INACTIVE = 0.99; // More damping for inactive stars
+
 // Initialize completely static stars
 export const initStars = (
   width: number,
@@ -132,20 +140,20 @@ export function updateStarPositions(
 
     // Apply velocity limits with smoother clamping
     const speed = Math.sqrt(star.vx * star.vx + star.vy * star.vy);
-    // Use a MUCH higher maxVelocity for recently pushed stars (16x normal)
-    const effectiveMaxVelocity = star.isActive ? maxVelocity * 16 : maxVelocity;
+    // Use a MUCH higher maxVelocity for recently pushed stars
+    const effectiveMaxVelocity = star.isActive ? maxVelocity * ACTIVE_STAR_VELOCITY_MULTIPLIER : maxVelocity;
     if (speed > effectiveMaxVelocity) {
       star.vx = (star.vx / speed) * effectiveMaxVelocity;
       star.vy = (star.vy / speed) * effectiveMaxVelocity;
     }
 
     // Apply less damping for active stars so they travel further
-    const dampingFactor = star.isActive ? 0.985 : 0.99;
+    const dampingFactor = star.isActive ? DAMPING_FACTOR_ACTIVE : DAMPING_FACTOR_INACTIVE;
     star.vx *= dampingFactor;
     star.vy *= dampingFactor;
 
     // Update position - use higher multiplier for active stars
-    const movementMultiplier = star.isActive ? 0.5 : GLOBAL_SPEED_MULTIPLIER;
+    const movementMultiplier = star.isActive ? ACTIVE_STAR_MOVEMENT_MULTIPLIER : GLOBAL_SPEED_MULTIPLIER;
     star.x += star.vx * normalizedDelta * animationSpeed * movementMultiplier;
     star.y += star.vy * normalizedDelta * animationSpeed * movementMultiplier;
 

@@ -552,9 +552,20 @@ export function getCurrentSunPositions(width: number, height: number): Map<strin
 
 /**
  * Helper to parse hex color to RGB
+ * @param hex - A hex color string (e.g., "#ff0000" or "ff0000")
+ * @returns Object with r, g, b values (0-255) or null if invalid
  */
 function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!hex || typeof hex !== 'string') {
+    return null;
+  }
+  // Remove # if present and trim whitespace
+  const cleanHex = hex.replace(/^#/, '').trim();
+  // Validate hex format (6 hex characters)
+  if (!/^[a-fA-F0-9]{6}$/.test(cleanHex)) {
+    return null;
+  }
+  const result = /^([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(cleanHex);
   return result ? {
     r: parseInt(result[1], 16),
     g: parseInt(result[2], 16),
