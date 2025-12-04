@@ -107,11 +107,15 @@ jobs:
 
       - name: Get Change Summary
         id: get_changes
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
               # For PR events, capture the title and body while replacing newlines with spaces
-              TITLE=$(echo "${{ github.event.pull_request.title }}" | tr '\n' ' ')
-              BODY=$(echo "${{ github.event.pull_request.body }}" | tr '\n' ' ')
+              TITLE=$(echo "$PR_TITLE" | tr '\n' ' ')
+              BODY=$(echo "$PR_BODY" | tr '\n' ' ')
               SUMMARY="${TITLE} - ${BODY}"
             else
               # For push events, use commit messages
