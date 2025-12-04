@@ -7,7 +7,10 @@ import { ArrowRight, Award, Globe, Shield, Zap } from "lucide-react";
 import { logger } from "@/utils/logger";
 import { useTheme } from "@/theme";
 
-interface AboutProps {}
+// Note: Empty interface kept for future extensibility
+interface AboutProps {
+  // Reserved for future props like isDarkMode or className
+}
 
 const aboutAnimations = {
   container: {

@@ -296,8 +296,6 @@ const Hero: FC<ExtendedHeroProps> = memo(
                 </AnimatePresence>
               </motion.div>
             )}
-import HeroSkeleton from "../HeroSkeleton/HeroSkeleton";
-...
           </AnimatePresence>
           {isLoading && <HeroSkeleton />}
         </div>
