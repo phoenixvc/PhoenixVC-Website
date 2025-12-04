@@ -62,6 +62,23 @@ export const drawBlackHole = (
   // Update rotation
   blackHole.rotation += blackHole.rotationSpeed * deltaTime;
 
+  // Draw outer gravitational distortion glow (pulsing effect)
+  const pulseTime = Date.now() * 0.001;
+  const pulseFactor = 1 + Math.sin(pulseTime * 1.5) * 0.15;
+
+  // Outer gravitational glow - very subtle
+  ctx.save();
+  const outerGlow = ctx.createRadialGradient(x, y, radius * 0.8, x, y, radius * 4 * pulseFactor);
+  outerGlow.addColorStop(0, "rgba(60, 0, 120, 0)");
+  outerGlow.addColorStop(0.3, "rgba(80, 20, 160, 0.08)");
+  outerGlow.addColorStop(0.6, "rgba(100, 40, 180, 0.04)");
+  outerGlow.addColorStop(1, "rgba(120, 60, 200, 0)");
+  ctx.beginPath();
+  ctx.arc(x, y, radius * 4 * pulseFactor, 0, Math.PI * 2);
+  ctx.fillStyle = outerGlow;
+  ctx.fill();
+  ctx.restore();
+
   // Create particles for accretion disk - less frequently
   const currentTime = Date.now();
   if (currentTime - blackHole.lastParticleTime > 75) { // Increased from 50ms to 75ms
@@ -110,8 +127,8 @@ export const drawBlackHole = (
     particle.distance -= 0.03 * particleSpeed * deltaTime;
 
     // Update position based on angle and distance
-    particle.x = x ;
-    particle.y = y ;+ Math.sin(particle.angle) * particle.distance;
+    particle.x = x + Math.cos(particle.angle) * particle.distance;
+    particle.y = y + Math.sin(particle.angle) * particle.distance;
 
     // Decrease alpha over time - more slowly
     if (particle.alpha) {
@@ -146,11 +163,31 @@ export const drawBlackHole = (
     ctx.fill();
   }
 
+  // Draw rotating accretion disk rings
+  ctx.save();
+  const diskRadius = radius * 2.5;
+  const rotationAngle = blackHole.rotation;
+
+  // Draw multiple rotating rings for depth effect
+  for (let ring = 0; ring < 3; ring++) {
+    const ringRadius = diskRadius * (0.6 + ring * 0.2);
+    const ringOpacity = 0.25 - ring * 0.06;
+    const ringRotation = rotationAngle * (1 + ring * 0.3);
+
+    ctx.beginPath();
+    ctx.ellipse(x, y, ringRadius, ringRadius * 0.4, ringRotation, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(138, 43, 226, ${ringOpacity})`;
+    ctx.lineWidth = 2 - ring * 0.4;
+    ctx.stroke();
+  }
+  ctx.restore();
+
   // Draw black hole with a more subtle gradient
   const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
   gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
-  gradient.addColorStop(0.6, "rgba(20, 0, 40, 0.8)"); // Darker middle
-  gradient.addColorStop(0.9, "rgba(40, 0, 80, 0.3)"); // More transparent edge
+  gradient.addColorStop(0.5, "rgba(10, 0, 20, 0.95)");
+  gradient.addColorStop(0.7, "rgba(20, 0, 40, 0.8)");
+  gradient.addColorStop(0.9, "rgba(40, 0, 80, 0.3)");
   gradient.addColorStop(1, "rgba(60, 0, 120, 0)");
 
   ctx.beginPath();
@@ -158,10 +195,18 @@ export const drawBlackHole = (
   ctx.fillStyle = gradient;
   ctx.fill();
 
-  // Draw a more subtle event horizon (inner ring)
+  // Draw pulsing event horizon (inner ring)
+  const eventHorizonPulse = 0.9 + Math.sin(pulseTime * 2) * 0.1;
   ctx.beginPath();
-  ctx.arc(x, y, radius * 0.65, 0, Math.PI * 2);
-  ctx.strokeStyle = "rgba(138, 43, 226, 0.3)"; // Reduced opacity from 0.4 to 0.3
-  ctx.lineWidth = 1.5; // Reduced from 2 to 1.5
+  ctx.arc(x, y, radius * 0.65 * eventHorizonPulse, 0, Math.PI * 2);
+  ctx.strokeStyle = `rgba(138, 43, 226, ${0.3 + Math.sin(pulseTime * 2.5) * 0.1})`;
+  ctx.lineWidth = 1.5 + Math.sin(pulseTime * 3) * 0.5;
+  ctx.stroke();
+
+  // Draw inner core highlight
+  ctx.beginPath();
+  ctx.arc(x, y, radius * 0.3, 0, Math.PI * 2);
+  ctx.strokeStyle = "rgba(180, 100, 255, 0.15)";
+  ctx.lineWidth = 1;
   ctx.stroke();
 };

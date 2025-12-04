@@ -106,20 +106,23 @@ export function updateStarPositions(
       star.vy += (Math.random() - 0.5) * flowStrength * normalizedDelta * timeScale * 0.3;
     }
 
-    // Apply black hole gravitational pull
+    // Apply black hole gravitational pull with much larger influence
     if (blackHoles && blackHoles.length > 0) {
       for (let j = 0; j < blackHoles.length; j++) {
         const blackHole = blackHoles[j];
         const dx = blackHole.x - star.x;
         const dy = blackHole.y - star.y;
-        const distSq = dx * dx + dy * dy;
+        const distSq = Math.max(dx * dx + dy * dy, 100); // Prevent division by tiny numbers
         const dist = Math.sqrt(distSq);
 
-        // Only apply gravity if star is within influence range
-        if (dist < blackHole.radius * 4) {
-          const force = gravitationalPull * blackHole.mass / distSq;
-          star.vx += dx / dist * force * normalizedDelta * timeScale;
-          star.vy += dy / dist * force * normalizedDelta * timeScale;
+        // Much larger influence range (15x radius instead of 4x)
+        const influenceRange = blackHole.radius * 15;
+        if (dist < influenceRange) {
+          // Stronger force with falloff based on distance
+          const falloff = 1 - (dist / influenceRange); // Linear falloff
+          const force = gravitationalPull * blackHole.mass * falloff * 0.5 / distSq;
+          star.vx += dx / dist * force * normalizedDelta * timeScale * 3; // 3x multiplier
+          star.vy += dy / dist * force * normalizedDelta * timeScale * 3;
         }
       }
     }
@@ -257,11 +260,68 @@ export const drawStars = (
       ctx.fillStyle = brighterColor;
       ctx.fill();
     } else {
-      // Normal star rendering
+      // Enhanced star rendering with twinkling effect
+      // Create unique twinkle timing for each star based on position
+      const uniqueSeed = (star.x * 127.1 + star.y * 311.7) % 1000;
+      const twinkleSpeed1 = 0.002 + (uniqueSeed % 100) / 50000; // Vary speed per star
+      const twinkleSpeed2 = 0.0015 + (uniqueSeed % 50) / 40000;
+
+      // Multi-frequency twinkle for more organic effect
+      const twinkle1 = Math.sin(now * twinkleSpeed1 + uniqueSeed * 0.1);
+      const twinkle2 = Math.sin(now * twinkleSpeed2 + uniqueSeed * 0.2);
+      const twinkleFactor = 0.6 + (twinkle1 * 0.2 + twinkle2 * 0.2); // Range: 0.2 to 1.0
+
+      // Calculate dynamic size with twinkle
+      const twinkleSize = star.size * (0.8 + twinkleFactor * 0.4);
+
+      // Add subtle glow for larger stars
+      if (star.size > 1.2) {
+        const glowRadius = twinkleSize * 2.5;
+        const glowGradient = ctx.createRadialGradient(
+          star.x, star.y, 0,
+          star.x, star.y, glowRadius
+        );
+
+        // Extract base color for glow
+        let glowColor = star.color;
+        if (glowColor.startsWith("rgba(")) {
+          glowColor = glowColor.replace(/[\d.]+\)$/, `${twinkleFactor * 0.3})`);
+        }
+
+        glowGradient.addColorStop(0, glowColor);
+        glowGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, glowRadius, 0, Math.PI * 2);
+        ctx.fillStyle = glowGradient;
+        ctx.fill();
+      }
+
+      // Draw star core with dynamic opacity based on twinkle
       ctx.beginPath();
-      ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-      ctx.fillStyle = star.color;
+      ctx.arc(star.x, star.y, twinkleSize, 0, Math.PI * 2);
+
+      // Adjust opacity based on twinkle
+      let coreColor = star.color;
+      if (coreColor.startsWith("rgba(")) {
+        // Extract RGB and apply twinkle to alpha
+        const parts = coreColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+        if (parts) {
+          const alpha = 0.5 + twinkleFactor * 0.5; // Range: 0.5 to 1.0
+          coreColor = `rgba(${parts[1]}, ${parts[2]}, ${parts[3]}, ${alpha})`;
+        }
+      }
+
+      ctx.fillStyle = coreColor;
       ctx.fill();
+
+      // Add bright highlight for extra sparkle on brightest moments
+      if (twinkleFactor > 0.85 && star.size > 0.8) {
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, twinkleSize * 0.4, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${(twinkleFactor - 0.85) * 3})`;
+        ctx.fill();
+      }
     }
   });
 };

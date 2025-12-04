@@ -14,6 +14,23 @@ import { calculatePulsation, createSoftenedColor, hexToRgb, updateStarPosition }
 import { Planet } from "./types";
 import { SUNS } from "./cosmos/cosmicHierarchy";
 
+// Image cache to avoid creating new Image objects every frame
+const imageCache = new Map<string, HTMLImageElement>();
+
+// Preload and cache an image
+function getCachedImage(src: string): HTMLImageElement | null {
+  if (!src) return null;
+
+  let img = imageCache.get(src);
+  if (!img) {
+    img = new Image();
+    img.src = src;
+    imageCache.set(src, img);
+  }
+
+  return img.complete ? img : null;
+}
+
 // Get the color a planet should use based on its focus area (matching its sun)
 // Dynamically looks up sun color from cosmicHierarchy to avoid duplication
 function getSunAlignedColor(planet: Planet): string {
@@ -105,18 +122,18 @@ function drawProjectIdentifier(
   displayStyle: "initials" | "avatar" | "both"
 ): void {
   if (!planet.useSimpleRendering && displayStyle === "avatar" && planet.project.image) {
+    const img = getCachedImage(planet.project.image);
+
     ctx.save();
     ctx.beginPath();
     ctx.arc(planet.x, planet.y, starSize * 0.8, 0, Math.PI * 2);
     ctx.clip();
 
-    const img = new Image();
-    img.src = planet.project.image;
-
-    if (img.complete) {
+    if (img) {
       const imgSize = starSize * 1.6;
       ctx.drawImage(img, planet.x - imgSize/2, planet.y - imgSize/2, imgSize, imgSize);
     } else {
+      // Show initials while image loads
       ctx.font = `bold ${Math.floor(starSize * 0.8)}px Arial`;
       ctx.fillStyle = "#ffffff";
       ctx.textAlign = "center";
@@ -129,19 +146,18 @@ function drawProjectIdentifier(
     // Add a subtle ring around the avatar
     ctx.beginPath();
     ctx.arc(planet.x, planet.y, starSize * 0.85, 0, Math.PI * 2);
-    ctx.lineWidth = 1.5; // Reduced from 2
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.6)"; // Reduced from 0.67
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
     ctx.stroke();
   } else if (!planet.useSimpleRendering && displayStyle === "both" && planet.project.image) {
+    const img = getCachedImage(planet.project.image);
+
     ctx.save();
     ctx.beginPath();
     ctx.arc(planet.x, planet.y - starSize * 0.3, starSize * 0.6, 0, Math.PI * 2);
     ctx.clip();
 
-    const img = new Image();
-    img.src = planet.project.image;
-
-    if (img.complete) {
+    if (img) {
       const imgSize = starSize * 1.2;
       ctx.drawImage(img, planet.x - imgSize/2, planet.y - starSize * 0.3 - imgSize/2, imgSize, imgSize);
     }

@@ -53,13 +53,13 @@ let sunStates: SunState[] = [];
 let lastUpdateTime = 0;
 let systemStartTime = 0;
 
-// Constants for sun physics - extremely slow, subtle drifting motion
+// Constants for sun physics - gentle but visible drifting motion
 const PROPEL_THRESHOLD = 0.15; // Distance at which repulsion activates
-const ROTATION_SPEED_BOOST = 0.000015; // Rotation speed increase when close (10x slower)
-const DRIFT_AMPLITUDE_MIN = 0.003; // Minimum drift amplitude (much smaller - stays in place)
-const DRIFT_AMPLITUDE_MAX = 0.006; // Maximum drift amplitude (much smaller)
-const DRIFT_SPEED_MIN = 0.00003; // Minimum drift speed (10x slower)
-const DRIFT_SPEED_MAX = 0.00008; // Maximum drift speed (10x slower)
+const ROTATION_SPEED_BOOST = 0.00008; // Rotation speed increase when close (increased 5x)
+const DRIFT_AMPLITUDE_MIN = 0.015; // Minimum drift amplitude (increased 5x for visibility)
+const DRIFT_AMPLITUDE_MAX = 0.035; // Maximum drift amplitude (increased ~6x for visibility)
+const DRIFT_SPEED_MIN = 0.00015; // Minimum drift speed (increased 5x)
+const DRIFT_SPEED_MAX = 0.0004; // Maximum drift speed (increased 5x)
 
 // Click repulsion constants
 const CLICK_REPULSION_RADIUS = 0.25; // Normalized radius for click effect
@@ -67,10 +67,10 @@ const CLICK_REPULSION_FORCE = 0.015; // Base force applied per click
 const MAX_CLICK_REPULSION = 0.08; // Maximum accumulated repulsion
 const CLICK_REPULSION_DECAY = 0.97; // How fast repulsion decays each frame
 
-// Staggered activation constants
-const ACTIVATION_DELAY_MIN = 1000; // Minimum delay before a sun starts moving (ms)
-const ACTIVATION_DELAY_MAX = 3000; // Maximum delay before a sun starts moving (ms)
-const ACTIVATION_TRIGGER_RADIUS = 0.2; // When an active sun gets close, it triggers inactive ones
+// Staggered activation constants (reduced for faster startup)
+const ACTIVATION_DELAY_MIN = 300; // Minimum delay before a sun starts moving (ms) - faster startup
+const ACTIVATION_DELAY_MAX = 1200; // Maximum delay before a sun starts moving (ms) - faster startup
+const ACTIVATION_TRIGGER_RADIUS = 0.25; // When an active sun gets close, it triggers inactive ones
 
 // Center repulsion to prevent clustering
 const CENTER_REPULSION_STRENGTH = 0.0002; // Force pushing away from center
@@ -192,8 +192,8 @@ export function updateSunPhysics(deltaTime: number): void {
       const targetY = sun.baseY + driftY;
       
       // 2. Smoothly interpolate current position towards target (lerp)
-      // This creates smooth, non-stuttery movement - very slow for subtle motion
-      const lerpFactor = 0.005; // Extremely slow interpolation for minimal movement
+      // This creates smooth, visible movement
+      const lerpFactor = 0.02; // Increased interpolation for visible movement
       sun.vx += (targetX - sun.x) * lerpFactor;
       sun.vy += (targetY - sun.y) * lerpFactor;
     }
@@ -310,6 +310,52 @@ export function getSunPosition(sunId: string): { x: number; y: number } | null {
     return { x: sun.x, y: sun.y };
   }
   return null;
+}
+
+// Calculate sun sizes based on the total mass of their orbiting planets
+// This makes suns with more/heavier planets appear larger
+export function updateSunSizesFromPlanets(
+  planets: Array<{ orbitParentId?: string; project?: { mass?: number } }>
+): void {
+  if (sunStates.length === 0 || !planets || planets.length === 0) return;
+
+  // Calculate total mass for each sun
+  const sunMasses = new Map<string, number>();
+
+  planets.forEach(planet => {
+    const sunId = planet.orbitParentId;
+    if (sunId) {
+      const mass = planet.project?.mass || 100; // Default mass of 100
+      const currentMass = sunMasses.get(sunId) || 0;
+      sunMasses.set(sunId, currentMass + mass);
+    }
+  });
+
+  // Find min and max masses for normalization
+  const masses = Array.from(sunMasses.values());
+  if (masses.length === 0) return;
+
+  const minMass = Math.min(...masses);
+  const maxMass = Math.max(...masses);
+  const massRange = maxMass - minMass || 1; // Avoid division by zero
+
+  // Update sun sizes based on their total planet mass
+  // Base size range: 0.03 (smallest) to 0.07 (largest)
+  const MIN_SUN_SIZE = 0.03;
+  const MAX_SUN_SIZE = 0.07;
+
+  sunStates.forEach(sun => {
+    const totalMass = sunMasses.get(sun.id);
+    if (totalMass !== undefined) {
+      // Normalize mass to 0-1 range
+      const normalizedMass = (totalMass - minMass) / massRange;
+      // Scale to size range with sqrt for better visual scaling
+      sun.size = MIN_SUN_SIZE + Math.sqrt(normalizedMass) * (MAX_SUN_SIZE - MIN_SUN_SIZE);
+    } else {
+      // Sun with no planets gets minimum size
+      sun.size = MIN_SUN_SIZE;
+    }
+  });
 }
 
 // Get all sun positions (for orbit calculations)

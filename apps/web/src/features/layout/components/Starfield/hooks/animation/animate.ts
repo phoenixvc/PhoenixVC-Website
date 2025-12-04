@@ -21,7 +21,7 @@ import { GALAXIES, SPECIAL_COSMIC_OBJECTS, SUNS } from "../../cosmos/cosmicHiera
 import { checkPlanetHover, updatePlanets } from "../../Planets";
 import { drawCosmicNavigation } from "./drawCosmicNavigation";
 // Import sun system for dynamic sun positioning
-import { getSunStates, initializeSunStates, updateSunPhysics, SunState } from "../../sunSystem";
+import { getSunStates, initializeSunStates, updateSunPhysics, updateSunSizesFromPlanets, SunState } from "../../sunSystem";
 
 export const animate = (timestamp: number, props: AnimationProps, refs: AnimationRefs): void => {
   try {
@@ -116,13 +116,15 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
     // Always draw stars first - this ensures they always appear
     drawStars(ctx, currentStars);
 
+    // Get planets for sun size calculation
+    const currentPlanets: Planet[] = props.planetsRef?.current ? [...props.planetsRef.current] : [];
+
     // Draw suns (focus area orbital centers) - always visible
-    // Pass hovered sun id and focused sun id for interactive effects and deltaTime for physics
-    drawSuns(ctx, canvas.width, canvas.height, timestamp, props.isDarkMode, props.hoveredSunId, deltaTime, props.focusedSunId);
+    // Pass hovered sun id, focused sun id for interactive effects, deltaTime for physics, and planets for size calculation
+    drawSuns(ctx, canvas.width, canvas.height, timestamp, props.isDarkMode, props.hoveredSunId, deltaTime, props.focusedSunId, currentPlanets);
 
     // Get current values from refs
     const currentBlackHoles: BlackHole[] = props.blackHolesRef?.current ? [...props.blackHolesRef.current] : [];
-    const currentPlanets: Planet[] = props.planetsRef?.current ? [...props.planetsRef.current] : [];
 
     // Fixed: Make sure isClicked is false by default
     const currentMousePosition: MousePosition = refs.mousePositionRef.current ?
@@ -485,6 +487,7 @@ function drawMouseEffects(
 
 // Track if sun system is initialized
 let sunSystemInitialized = false;
+let sunSizesCalculated = false;
 
 // Get the focus area suns for external use
 export function getFocusAreaSuns(): typeof SUNS {
@@ -597,17 +600,24 @@ function drawSuns(
   isDarkMode: boolean,
   hoveredSunId?: string | null,
   deltaTime: number = 16,
-  focusedSunId?: string | null
+  focusedSunId?: string | null,
+  planets?: Planet[]
 ): void {
   // Initialize sun system if needed
   if (!sunSystemInitialized) {
     initializeSunStates();
     sunSystemInitialized = true;
   }
-  
+
+  // Calculate sun sizes based on planet masses (only once)
+  if (!sunSizesCalculated && planets && planets.length > 0) {
+    updateSunSizesFromPlanets(planets);
+    sunSizesCalculated = true;
+  }
+
   // Update sun physics
   updateSunPhysics(deltaTime);
-  
+
   const sunStates = getSunStates();
   
   ctx.save();
@@ -616,8 +626,8 @@ function drawSuns(
     // Use dynamic position from sun system
     const x = sunState.x * width;
     const y = sunState.y * height;
-    // Larger base size for visibility
-    const baseSize = Math.max(25, Math.min(width, height) * sunState.size * 0.7);
+    // Reduced sun size for better proportions (was 0.7, now 0.35)
+    const baseSize = Math.max(18, Math.min(width, height) * sunState.size * 0.35);
     
     // Check if this sun is hovered or focused
     const isHovered = hoveredSunId === sunState.id;
