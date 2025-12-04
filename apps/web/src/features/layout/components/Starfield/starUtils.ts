@@ -85,7 +85,7 @@ export function hexToRgb(hex: string): { r: number, g: number, b: number } {
     if (empStar.useSimpleRendering) {
       empStar.angle += directionMultiplier * 0.00005 * fixedDelta;
     } else {
-      const speedMultiplier = directionMultiplier * empStar.orbitSpeed * fixedDelta * 2.0;
+      const speedMultiplier = directionMultiplier * empStar.orbitSpeed * fixedDelta * 1.0; // Reduced from 2.0 to 1.0 (halved movement)
       empStar.angle += speedMultiplier;
     }
 

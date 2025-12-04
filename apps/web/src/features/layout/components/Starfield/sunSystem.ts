@@ -42,13 +42,13 @@ export const INITIAL_SUN_POSITIONS = [
 let sunStates: SunState[] = [];
 let lastUpdateTime = 0;
 
-// Constants for sun physics - smooth, independent drifting motion
+// Constants for sun physics - extremely slow, subtle drifting motion
 const PROPEL_THRESHOLD = 0.15; // Distance at which repulsion activates
-const ROTATION_SPEED_BOOST = 0.00015; // Rotation speed increase when close
-const DRIFT_AMPLITUDE_MIN = 0.008; // Minimum drift amplitude
-const DRIFT_AMPLITUDE_MAX = 0.015; // Maximum drift amplitude
-const DRIFT_SPEED_MIN = 0.0003; // Minimum drift speed (very slow)
-const DRIFT_SPEED_MAX = 0.0008; // Maximum drift speed (still slow)
+const ROTATION_SPEED_BOOST = 0.000015; // Rotation speed increase when close (10x slower)
+const DRIFT_AMPLITUDE_MIN = 0.003; // Minimum drift amplitude (much smaller - stays in place)
+const DRIFT_AMPLITUDE_MAX = 0.006; // Maximum drift amplitude (much smaller)
+const DRIFT_SPEED_MIN = 0.00003; // Minimum drift speed (10x slower)
+const DRIFT_SPEED_MAX = 0.00008; // Maximum drift speed (10x slower)
 
 // Initialize sun states
 export function initializeSunStates(): void {
@@ -117,8 +117,8 @@ export function updateSunPhysics(deltaTime: number): void {
     const targetY = sun.baseY + driftY;
     
     // 2. Smoothly interpolate current position towards target (lerp)
-    // This creates smooth, non-stuttery movement
-    const lerpFactor = 0.02; // Very slow interpolation for smoothness
+    // This creates smooth, non-stuttery movement - very slow for subtle motion
+    const lerpFactor = 0.005; // Extremely slow interpolation for minimal movement
     sun.x += (targetX - sun.x) * lerpFactor;
     sun.y += (targetY - sun.y) * lerpFactor;
     
