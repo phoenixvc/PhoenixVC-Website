@@ -83,6 +83,7 @@ export interface AnimationProps {
     navigationState?: CosmicNavigationState;
     hoveredObjectId?: string | null;
     hoveredSunId?: string | null;
+    focusedSunId?: string | null;
     debugSettings?: DebugSettings; // Add debug settings
 }
 
