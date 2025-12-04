@@ -9,9 +9,6 @@ export interface SunState {
   // Current position (0-1 normalized, will be multiplied by canvas dimensions)
   x: number;
   y: number;
-  // Velocity
-  vx: number;
-  vy: number;
   // Base position (where sun wants to return to)
   baseX: number;
   baseY: number;
@@ -76,8 +73,6 @@ export function initializeSunStates(): void {
       color: sun.color || "#ffffff",
       x: pos.x,
       y: pos.y,
-      vx: 0,
-      vy: 0,
       baseX: pos.x,
       baseY: pos.y,
       size: sun.size,
@@ -105,7 +100,6 @@ export function updateSunPhysics(deltaTime: number): void {
   }
   
   const dt = Math.min(deltaTime, 50); // Cap delta time to prevent physics explosions
-  const time = Date.now() * 0.001; // Current time in seconds for smooth sine waves
   
   // Update each sun
   for (let i = 0; i < sunStates.length; i++) {
