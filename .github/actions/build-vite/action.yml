@@ -9,6 +9,10 @@ inputs:
     description: 'Node.js version'
     required: false
     default: '20'  # Updated to current LTS version
+  environment:
+    description: 'Build environment (production/staging)'
+    required: false
+    default: 'staging'
 
 outputs:
   version:
