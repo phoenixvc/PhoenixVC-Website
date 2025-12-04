@@ -5,7 +5,7 @@ import { Linkedin, Search, Filter, ExternalLink, Calendar, User } from "lucide-r
 import { SEO } from "@/components/SEO";
 import styles from "./Blog.module.css";
 
-type Author = "Eben Maré" | "Jurie Smit";
+type Author = "Eben Maré" | "Eben Maré Sr." | "Jurie Smit";
 type BlogCategory = "Finance" | "Blockchain" | "Technology" | "AI" | "Strategy";
 type ArticleSource = "substack" | "linkedin";
 
@@ -53,7 +53,7 @@ const blogPosts: BlogPost[] = [
     title: "The Curious Case of Negative Probabilities",
     subtitle: "When mathematics defies intuition in financial modeling",
     url: "https://ebenmare.substack.com/p/the-curious-case-of-negative-probabilities",
-    author: "Eben Maré",
+    author: "Eben Maré Sr.",
     category: "Finance",
     date: "Dec 8, 2023",
     source: "substack",
@@ -62,7 +62,7 @@ const blogPosts: BlogPost[] = [
     title: "Understanding Volatility Surfaces",
     subtitle: "A deep dive into options pricing and market dynamics",
     url: "https://ebenmare.substack.com/p/understanding-volatility-surfaces",
-    author: "Eben Maré",
+    author: "Eben Maré Sr.",
     category: "Finance",
     date: "Nov 14, 2023",
     source: "substack",
@@ -285,6 +285,7 @@ export const Blog = () => {
                 >
                   <option value="All">All Authors</option>
                   <option value="Eben Maré">Eben Maré</option>
+                  <option value="Eben Maré Sr.">Eben Maré Sr.</option>
                   <option value="Jurie Smit">Jurie Smit</option>
                 </select>
               </div>
