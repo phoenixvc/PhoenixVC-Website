@@ -194,6 +194,21 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
             </a>
           )}
 
+          <a
+            href={`/portfolio/${project.id}`}
+            className={styles.tooltipLink}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              color: isDarkMode ? 'rgba(157, 78, 221, 0.9)' : 'rgba(123, 44, 191, 0.9)',
+              fontSize: '12px',
+              textDecoration: 'none',
+              fontWeight: 500,
+              marginLeft: project.product ? '0.75rem' : 0
+            }}
+          >
+            Learn More →
+          </a>
+
           {isPinned && (
             <div className={styles.tooltipPinnedIndicator}>
               <svg

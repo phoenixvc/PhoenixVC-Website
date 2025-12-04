@@ -12,6 +12,7 @@ import { PageSkeleton } from "@/components/ui/Skeleton";
 // Lazy load route-based components for code splitting
 const Blog = lazy(() => import("./features/blog").then(m => ({ default: m.Blog })));
 const Portfolio = lazy(() => import("./features/portfolio").then(m => ({ default: m.Portfolio })));
+const ProjectDetail = lazy(() => import("./features/portfolio/ProjectDetail").then(m => ({ default: m.ProjectDetail })));
 const AboutPage = lazy(() => import("./features/about-page").then(m => ({ default: m.AboutPage })));
 
 // Loading fallback component using skeleton
@@ -53,6 +54,14 @@ const App = () => {
           <Layout>
             <Suspense fallback={<PageLoader isDarkMode={isDarkMode} />}>
               <Portfolio />
+            </Suspense>
+          </Layout>
+        } />
+
+        <Route path="/portfolio/:projectId" element={
+          <Layout>
+            <Suspense fallback={<PageLoader isDarkMode={isDarkMode} />}>
+              <ProjectDetail />
             </Suspense>
           </Layout>
         } />
