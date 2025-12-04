@@ -48,7 +48,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   flowStrength = 0.01,
   gravitationalPull = 0.05,
   particleSpeed = 0.00001,
-  employeeStarSize = 1.0,
+  employeeStarSize = 0.7,
   employeeDisplayStyle = "initials",
   blackHoleSize = 1.0,
   heroMode = false,
@@ -116,6 +116,10 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   // Sun hover state for focus area suns
   const [hoveredSun, setHoveredSun] = useState<SunInfo | null>(null);
   const [hoveredSunId, setHoveredSunId] = useState<string | null>(null);
+  
+  // Focused sun state - when user clicks on a focus area, we scope the view
+  const [focusedSunId, setFocusedSunId] = useState<string | null>(null);
+  const focusAnimationRef = useRef<number | null>(null);
 
   // Game state
   const [gameState, setGameState] = useState<GameState>(initGameState());
@@ -717,6 +721,45 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     }
   }, []);
 
+  // Function to smoothly scroll/focus the view on a specific focus area
+  const scrollToFocusArea = useCallback((sunId: string, sunX: number, sunY: number) => {
+    console.log(`Scrolling to focus area: ${sunId} at (${sunX}, ${sunY})`);
+    
+    // Cancel any existing focus animation
+    if (focusAnimationRef.current) {
+      cancelAnimationFrame(focusAnimationRef.current);
+    }
+    
+    // If clicking on the same sun, toggle off (zoom out)
+    if (focusedSunId === sunId) {
+      setFocusedSunId(null);
+      // Smoothly scroll back to center
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+      return;
+    }
+    
+    setFocusedSunId(sunId);
+    
+    // Calculate target scroll position to center the sun in viewport
+    // The sun position is normalized (0-1), so we need to scale to actual page coordinates
+    const viewportHeight = window.innerHeight;
+    
+    // Calculate the target Y scroll position to bring the sun into better view
+    // Sun Y position is from top, we want to scroll so it's visible
+    const targetScrollY = Math.max(0, sunY - viewportHeight * 0.35);
+    
+    // Smooth scroll to the focus area
+    window.scrollTo({
+      top: targetScrollY,
+      behavior: "smooth"
+    });
+    
+    console.log(`Focus area scroll: sunY=${sunY}, targetScrollY=${targetScrollY}, viewportHeight=${viewportHeight}`);
+  }, [focusedSunId]);
+
   // Update the click handler to use this unified function:
   const handleCanvasClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!canvasRef.current) {
@@ -733,10 +776,21 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     console.log(`Original click event coordinates: (${event.clientX}, ${event.clientY})`);
     console.log(`Canvas rect: left=${rect.left}, top=${rect.top}, width=${rect.width}, height=${rect.height}`);
 
-    // Use the unified function
-    const affectedStars = applyStarfieldRepulsion(x, y);
+    // First check if we clicked on a focus area sun
+    const sunHoverResult = checkSunHover(x, y, rect.width, rect.height);
+    
+    if (sunHoverResult) {
+      // Clicked on a sun - scroll to focus on that area
+      console.log(`Clicked on sun: ${sunHoverResult.sun.name}`);
+      scrollToFocusArea(sunHoverResult.sun.id, sunHoverResult.x, sunHoverResult.y);
+      
+      // Also apply a gentle repulsion for visual feedback
+      applyStarfieldRepulsion(x, y, 150, 30);
+      return;
+    }
 
-    // const containerRef = useRef<HTMLDivElement>(null);
+    // Use the unified function for regular click repulsion
+    applyStarfieldRepulsion(x, y);
 
     // Update mouse position state
     if (setMousePosition) {
@@ -749,7 +803,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
       }));
       console.log("Mouse position state updated for click");
     }
-  }, [canvasRef, setMousePosition, applyStarfieldRepulsion]);
+  }, [canvasRef, setMousePosition, applyStarfieldRepulsion, scrollToFocusArea]);
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -767,7 +821,20 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
 
         console.log(`Converted to canvas coordinates: (${x}, ${y})`);
 
-        // Call our unified function
+        // First check if we clicked on a focus area sun
+        const sunHoverResult = checkSunHover(x, y, rect.width, rect.height);
+        
+        if (sunHoverResult) {
+          // Clicked on a sun - scroll to focus on that area
+          console.log(`Native click on sun: ${sunHoverResult.sun.name}`);
+          scrollToFocusArea(sunHoverResult.sun.id, sunHoverResult.x, sunHoverResult.y);
+          
+          // Also apply a gentle repulsion for visual feedback
+          applyStarfieldRepulsion(x, y, 150, 30);
+          return;
+        }
+
+        // Call our unified function for regular click repulsion
         applyStarfieldRepulsion(x, y);
       };
 
@@ -778,7 +845,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
         canvas.removeEventListener("click", clickHandler);
       };
     }
-  }, [canvasRef, applyStarfieldRepulsion]);
+  }, [canvasRef, applyStarfieldRepulsion, scrollToFocusArea]);
 
   return (
     <>

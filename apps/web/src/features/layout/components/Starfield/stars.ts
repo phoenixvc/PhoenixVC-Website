@@ -4,7 +4,7 @@ import { getColorPalette } from "./constants";
 import { distance } from "./utils";
 
 // Global animation speed control - add this at the top of the file
-const GLOBAL_SPEED_MULTIPLIER = 0.2; // Adjust this value to slow down all animations
+const GLOBAL_SPEED_MULTIPLIER = 0.15; // Reduced for smoother, more subtle animations
 
 // Initialize completely static stars
 export const initStars = (
@@ -130,18 +130,21 @@ export function updateStarPositions(
       }
     }
 
-    // Apply velocity limits
+    // Apply velocity limits with smoother clamping
     const speed = Math.sqrt(star.vx * star.vx + star.vy * star.vy);
     if (speed > maxVelocity * GLOBAL_SPEED_MULTIPLIER) {
       // Use a much higher maxVelocity for recently pushed stars
-      const effectiveMaxVelocity = star.isActive ? maxVelocity * 10 : maxVelocity;
-      star.vx = (star.vx / speed) * effectiveMaxVelocity * GLOBAL_SPEED_MULTIPLIER;
-      star.vy = (star.vy / speed) * effectiveMaxVelocity * GLOBAL_SPEED_MULTIPLIER;
+      const effectiveMaxVelocity = star.isActive ? maxVelocity * 8 : maxVelocity;
+      // Smooth velocity clamping using soft limit
+      const clampedSpeed = Math.min(speed, effectiveMaxVelocity * GLOBAL_SPEED_MULTIPLIER);
+      star.vx = (star.vx / speed) * clampedSpeed;
+      star.vy = (star.vy / speed) * clampedSpeed;
     }
 
-    // Apply stronger damping to reduce jitter and flicker
-    star.vx *= 0.98;
-    star.vy *= 0.98;
+    // Apply stronger damping for smoother deceleration (easier on the eyes)
+    const dampingFactor = star.isActive ? 0.97 : 0.985;
+    star.vx *= dampingFactor;
+    star.vy *= dampingFactor;
 
     // Update position with global speed multiplier
     star.x += star.vx * normalizedDelta * animationSpeed * GLOBAL_SPEED_MULTIPLIER;
@@ -497,17 +500,18 @@ export const resetStars = (
 };
 
 // Replace the existing applyClickForce function in stars.ts
+// Enhanced click repulsion with smooth easing and more realistic physics
 export const applyClickForce = (
   stars: Star[],
   clickX: number,
   clickY: number,
-  radius: number = 200,
-  force: number = 5
+  radius: number = 250,
+  force: number = 3
 ): number => {
   console.log(`applyClickForce called at (${clickX}, ${clickY}) with radius ${radius} and force ${force}`);
 
-  // Use a MUCH higher force multiplier
-  const adjustedForce = force * 2;
+  // Use a gentler force multiplier for smoother, more natural movement
+  const adjustedForce = force * 1.5;
 
   let affectedCount = 0;
 
@@ -523,16 +527,21 @@ export const applyClickForce = (
       const dirX = dx / Math.max(dist, 0.1); // Avoid division by zero
       const dirY = dy / Math.max(dist, 0.1);
 
-      // Calculate force based on distance (stronger near click point)
-      const strength = adjustedForce * (1 - dist / radius);
+      // Use cubic easing for smoother falloff (stronger at center, gentler at edges)
+      const normalizedDist = dist / radius;
+      const easeOut = 1 - Math.pow(normalizedDist, 2); // Quadratic ease-out
+      const strength = adjustedForce * easeOut;
 
-      // Apply force directly to velocity - MUCH stronger effect
-      star.vx += dirX * strength;
-      star.vy += dirY * strength;
+      // Apply force with slight tangential component for more organic movement
+      const tangentX = -dirY * 0.15; // Small perpendicular component
+      const tangentY = dirX * 0.15;
+      
+      star.vx += (dirX + tangentX) * strength;
+      star.vy += (dirY + tangentY) * strength;
 
-      // Add a small random component for more natural movement
-      star.vx += (Math.random() - 0.5) * strength * 0.2;
-      star.vy += (Math.random() - 0.5) * strength * 0.2;
+      // Smaller random component for subtle variation
+      star.vx += (Math.random() - 0.5) * strength * 0.1;
+      star.vy += (Math.random() - 0.5) * strength * 0.1;
 
       // Mark star as "pushed" for visual effects
       star.lastPushed = Date.now();
