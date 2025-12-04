@@ -11,9 +11,12 @@
     "vite.config.ts",
     "vite.config.d.ts",
     "vite.config.js",
-    "src/**/*",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "apps/design-system/src/**/*.ts",
+    "apps/design-system/src/**/*.tsx",
     "**/*.config.js",
-    "**/*.config.ts",
-],
+    "**/*.config.ts"
+  ],
   "exclude": ["node_modules", "dist"]
 }

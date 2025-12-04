@@ -1,145 +1,113 @@
-📄 `/README.md`
-**Version:** 1.0.4 | Last Updated: 2025-02-15
-
 # Phoenix VC - Website
-**Status:** Production
+
+**Version:** 2.0.0 (Enhanced) | **Status:** Production
 **Maintainer:** Hans Jurgens Smit
-**Location:** South Africa
 
 > Empowering innovation through strategic investments and visionary partnerships
 
 [![Build Status](https://img.shields.io/github/workflow/status/phoenixvc/PhoenixVC-Website/Deploy%20Azure%20Static%20Web%20App)](https://github.com/phoenixvc/PhoenixVC-Website/actions)
-[![Version](https://img.shields.io/badge/version-v1.0.0-blue)](https://github.com/phoenixvc/PhoenixVC-Website/releases)
+[![Version](https://img.shields.io/badge/version-v2.0.0-blue)](https://github.com/phoenixvc/PhoenixVC-Website/releases)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
 
-Phoenix VC is a premier, proprietary venture capital firm dedicated to identifying and investing in transformative technologies. Our modernized website leverages cutting‐edge cloud technologies—including Azure Static Web Apps, Tailwind CSS, and Bicep templates—to deliver a seamless digital experience.
+## 1. Project Overview
 
-## Quick Links
-- [📚 Documentation](docs/README.md)
-- [🚀 Deployment Guide](docs/deployment/README.md)
-- [💡 Contributing](docs/contributing.md)
-- [🛡 Security](docs/SECURITY.md)
-- [📜 Compliance](docs/compliance/README.md)
-- [🏗 Infrastructure](docs/infrastructure/README.md)
-- [❓ FAQ](docs/FAQ.md)
+Phoenix VC is a premier, proprietary venture capital firm dedicated to identifying and investing in transformative technologies. This project is the official corporate website, built with a modern, scalable, and performant technology stack.
 
-## Prerequisites
+### 1.1. Project Purpose & Business Goals
+- **Empower Innovation:** Showcase the firm's strategic investments and visionary partnerships.
+- **Seamless Digital Experience:** Provide a modern and intuitive user experience that reflects the firm's commitment to cutting-edge technology.
+- **Global Communication:** Effectively communicate the firm's brand, mission, and portfolio to a global audience of entrepreneurs, partners, and investors.
 
-| Requirement | Version | Purpose |
-|-------------|---------|---------|
-| [Node.js](https://nodejs.org/) | ≥ 18.x | Runtime environment |
-| [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) | ≥ 2.58.0 | Azure management |
-| [Git](https://git-scm.com/) | ≥ 2.40.0 | Version control |
-| [Python](https://www.python.org/downloads/) | ≥ 3.10 | Development tools (optional) |
+### 1.2. Target Audience
+- **Entrepreneurs & Startups:** Seeking funding and partnership opportunities.
+- **Potential Business Partners:** Exploring strategic collaborations.
+- **Investors & LPs:** Accessing information on fund performance and portfolio companies.
 
-## Repository Structure
+## 2. Implemented Improvements (Phase 3 POCs)
 
-```bash
-📁 docs/                                 # Documentation (Jekyll pages)
-├── 📄 CHANGELOG.md                      # Changelog for documentation updates
-├── 📄 FAQ.md                            # Frequently Asked Questions
-├── 📄 SECURITY.md                       # Security policies (remains at docs root)
-├── 📁 compliance/                       # Compliance guidelines
-│   ├── 📄 README.md                     # Overview of compliance docs
-│   ├── 📄 azure-security-baseline.md    # Azure security baseline (placeholder)
-│   ├── 📄 dns-policy-checklist.md       # DNS policy checklist
-│   ├── 📄 policy-framework.md           # Enterprise policy framework
-│   └── 📄 spn-audit-rotation.md         # SPN audit & rotation guidelines
-├── 📄 contributing.md                   # How to contribute
-├── 📁 deployment/                       # Deployment-related docs
-│   ├── 📄 README.md                     # Deployment hub overview
-│   ├── 📁 adrs/                         # Architectural Decision Records
-│   │   ├── 📄 adr-001-credential-rotation.md
-│   │   └── 📄 adr-002-disaster-recovery.md
-│   ├── 📄 azure-environment-setup.md    # Azure environment setup
-│   ├── 📄 configuration.md              # Environment & resource configuration
-│   ├── 📄 deploy-script-reference.md    # Deployment scripts reference
-│   ├── 📄 deployment-guide.md           # Step-by-step deployment guide
-│   ├── 📄 operations.md                 # Day-to-day operations
-│   ├── 📄 prerequisites.md              # Deployment prerequisites
-│   ├── 📄 service-principals.md         # SPN best practices
-│   └── 📄 troubleshooting.md            # Troubleshooting guide
-├── 📁 development/                      # Development-specific docs
-│   ├── 📄 README.md                     # Development overview
-│   ├── 📄 code-style.md                 # Code style guidelines
-│   └── 📄 development-setup.md          # Local development setup
-├── 📄 documentation-map.md              # Visual map of all docs
-├── 📄 documentation-roadmap.md          # Future documentation improvements
-├── 📁 infrastructure/                   # Infrastructure-related docs
-│   ├── 📄 README.md                     # Infrastructure overview
-│   ├── 📄 architecture.md               # System architecture diagrams
-│   ├── 📄 bicep-templates.md            # IaC templates
-│   ├── 📄 disaster-recovery.md          # Disaster recovery plan
-│   ├── 📄 docker-workflow.md            # Docker configuration workflow
-│   ├── 📄 infrastructure.md             # General infrastructure documentation
-│   └── 📄 monitoring.md                 # Monitoring & logging setup
-├── 📄 naming-conventions.md             # Naming conventions for docs and code
-└── 📁 references/                       # Technical references
-    ├── 📄 azure-component-versions.md   # Component version reference
-    └── 📄 network-topology.md           # Network topology diagrams
-```
+This version of the repository includes several proof-of-concept enhancements that have significantly improved the codebase's quality, performance, and accessibility.
 
-## Getting Started
+- **Foundational Refactoring:**
+  - **Centralized Theme Management:** Eliminated prop drilling by refactoring all components to use a centralized `useTheme` hook.
+  - **Reusable Button Component:** Created a shared `Button` component within the design system to ensure visual consistency.
+  - **Centralized Animations:** Consolidated all `framer-motion` animations into a single, reusable file.
+- **Critical Bug Fixes:**
+  - **Accessibility:** Implemented focus trapping in modals, converted non-semantic elements to buttons, and fixed `key` prop issues.
+  - **React Best Practices:** Refactored scrolling logic to use a `useScrollTo` hook, removing direct DOM manipulation.
+- **Performance & UI Enhancements:**
+  - **Code Splitting:** Implemented `React.lazy` for all major homepage sections to improve initial load times.
+  - **Component Memoization:** Optimized rendering performance by wrapping components in `React.memo` and using `useCallback`.
+  - **Enhanced UI States:** Added a skeleton loader for the hero section and implemented global `:focus-visible` styles for improved accessibility.
+- **New Features (POCs):**
+  - **Team & Advisors Section:** Added a new, lazy-loaded section to the homepage.
+  - **News & Insights Blog:** Created a new `/blog` page with a placeholder component.
+  - **Interactive Portfolio:** Built a new `/portfolio` page with a filterable UI stub.
+- **CI/CD Enhancements:**
+  - **Automated Checks:** Added a GitHub Actions workflow to run linting and formatting checks on all pull requests.
 
-1. **Clone Repository:**
+## 3. Technology Stack
+
+This project uses a modern, robust technology stack:
+
+| Category      | Technology                               |
+|---------------|------------------------------------------|
+| **Frontend**  | React, TypeScript, Vite, Tailwind CSS    |
+| **UI**        | Radix UI, Framer Motion, Lucide React    |
+| **Backend**   | Node.js, Azure Functions, TypeScript     |
+| **Tooling**   | npm Workspaces, ESLint, Prettier, Husky  |
+| **Deployment**| Azure Static Web Apps, Bicep             |
+
+## 4. Design System & Visual Identity
+
+The project features a sophisticated, multi-theme design system.
+
+- **Color System:** A multi-theme system with light and dark modes for themes like "Classic," "Ocean," and "Phoenix."
+- **Typography:** The primary font is 'Outfit', with a responsive typographic scale for headings.
+- **Spacing & Radius:** Consistent spacing and border-radius tokens are used for a cohesive look and feel.
+
+## 5. Getting Started
+
+### 5.1. Prerequisites
+- **Node.js:** `v18.x` or higher
+- **Azure CLI:** `v2.58.0` or higher
+- **Git:** `v2.40.0` or higher
+
+### 5.2. Installation & Local Development
+1. **Clone the repository:**
    ```bash
    git clone https://github.com/phoenixvc/PhoenixVC-Website.git
-   cd PhoenixVC-Modernized
+   cd PhoenixVC-Website
    ```
-
-2. **Environment Setup:**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your values
-   ```
-
-3. **Install Dependencies:**
+2. **Install dependencies:**
    ```bash
    npm install
-   npm run prepare  # Sets up git hooks
    ```
-
-4. **Start Development:**
+3. **Start the development server:**
    ```bash
-   npm run dev      # Starts dev server
-   npm run test     # Runs tests
+   npm run web
    ```
+The application will be available at `http://localhost:5173`.
 
-## Development Scripts
+## 6. Development Scripts
 
-| Command         | Description                  |
-|-----------------|------------------------------|
-| `npm run dev`   | Start development server     |
-| `npm run build` | Build production bundle      |
-| `npm run lint`  | Lint code                    |
-| `npm run test`  | Run test suite               |
-| `npm run format`| Format code                  |
+| Command         | Description                             |
+|-----------------|-----------------------------------------|
+| `npm run web`   | Start the web application dev server    |
+| `npm run build` | Build the production bundle             |
+| `npm run lint`  | Lint the codebase                       |
+| `npm run test`  | Run the test suite                      |
+| `npm run format`| Format the code with Prettier           |
 
-## Deployment
+## 7. Future Development & Known Issues
 
-See [📄 Deployment Guide](docs/deployment/README.md) for detailed instructions.
+- **Storybook:** The installation of Storybook for the design system failed due to a timeout. This should be revisited to provide a proper component library.
+- **Production Hardening:** The POCs implemented in Phase 3 require further work for production readiness, as noted by the `// TODO` comments in the code. This includes adding comprehensive tests, handling edge cases, and further performance optimization.
 
-**Quick Deploy:**
-```bash
-npm run build
-npm run deploy:prod
-```
+## 8. Contributing
 
-## Support & Contact
+Please refer to the `docs/contributing.md` file for guidelines on how to contribute to this project.
 
-- **Technical Support:** [support@phoenixvc.za](mailto:support@phoenixvc.za)
-- **Slack Channel:** #phoenixvc-dev
-- **Documentation:** [📚 Docs](docs/README.md)
-- **Issues:** [GitHub Issues](https://github.com/phoenixvc/PhoenixVC-Website/issues)
-
-## License
+## 9. License
 
 **PROPRIETARY SOFTWARE**
 © 2024-2025 Phoenix VC. All Rights Reserved.
-
-This software is the confidential and proprietary information of Phoenix VC.
-Unauthorized reproduction, distribution, or disclosure is strictly prohibited.
-
----
-
-**Confidentiality Notice:** This document contains proprietary information.

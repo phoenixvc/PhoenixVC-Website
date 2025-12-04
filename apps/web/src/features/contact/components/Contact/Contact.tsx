@@ -9,13 +9,14 @@ import styles from "./Contact.module.css";
 import type { ContactFormData, ContactState } from "../../types";
 import { useSectionObserver } from "@/hooks/useSectionObserver";
 import { logger } from "@/utils/logger";
+import { useTheme } from "@/theme";
 
 // Add isDarkMode to the component props
-interface ContactProps {
-  isDarkMode: boolean;
-}
+interface ContactProps {}
 
-const Contact: FC<ContactProps> = memo(({ isDarkMode }) => {
+const Contact: FC<ContactProps> = memo(({}) => {
+  const { themeMode } = useTheme();
+  const isDarkMode = themeMode === "dark";
   const [state, setState] = useState<ContactState>({
     isLoading: false,
     error: null,

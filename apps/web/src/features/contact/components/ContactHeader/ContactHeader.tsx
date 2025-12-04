@@ -3,14 +3,16 @@ import { FC, memo } from "react";
 import { motion } from "framer-motion";
 import { contactAnimations } from "../../animations";
 import styles from "./ContactHeader.module.css";
+import { useTheme } from "@/theme";
 
 interface ContactHeaderProps {
   title: string;
   subtitle: string;
-  isDarkMode: boolean;
 }
 
-const ContactHeader: FC<ContactHeaderProps> = memo(({ title, subtitle, isDarkMode }) => {
+const ContactHeader: FC<ContactHeaderProps> = memo(({ title, subtitle }) => {
+  const { themeMode } = useTheme();
+  const isDarkMode = themeMode === "dark";
   return (
     <motion.div variants={contactAnimations.item}>
       <h2 className={`${styles.heading} ${isDarkMode ? styles.darkHeading : styles.lightHeading}`}>

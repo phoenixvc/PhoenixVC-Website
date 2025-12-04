@@ -1,8 +1,15 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import dts from "vite-plugin-dts";
+import { fileURLToPath } from "node:url";
+const dirname =
+  typeof __dirname !== "undefined"
+    ? __dirname
+    : path.dirname(fileURLToPath(import.meta.url));
 
+// More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 export default defineConfig({
   plugins: [
     react(),
@@ -21,7 +28,7 @@ export default defineConfig({
   css: {
     modules: {
       localsConvention: "camelCase", // Ensures CSS Modules are properly read
-    }
+    },
   },
   build: {
     lib: {

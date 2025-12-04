@@ -1,15 +1,18 @@
 import { HeroProps } from "@/features/layout/components/Starfield/types";
+import { useScrollTo } from "@/hooks/useScrollTo";
 import { useSectionObserver } from "@/hooks/useSectionObserver";
+import { useTheme } from "@/theme";
 import { AnimatePresence, motion } from "framer-motion";
-import { FC, memo, useEffect, useRef, useState } from "react";
+import { FC, memo, useCallback, useEffect, useRef, useState } from "react";
 import { heroAnimations } from "../../animations";
 import { DEFAULT_HERO_CONTENT } from "../../constants";
 import styles from "./hero.module.css";
+import { Button } from "@phoenixvc/design-system";
 import { logger } from "@/utils/logger";
 import { Minimize2, Maximize2 } from "lucide-react";
+import HeroSkeleton from "../HeroSkeleton/HeroSkeleton";
 
 interface ExtendedHeroProps extends HeroProps {
-  isDarkMode: boolean;
   colorScheme?: string;
   accentColor?: string;
   enableMouseTracking?: boolean;
@@ -22,11 +25,12 @@ const Hero: FC<ExtendedHeroProps> = memo(
     primaryCta = DEFAULT_HERO_CONTENT.primaryCta,
     secondaryCta = DEFAULT_HERO_CONTENT.secondaryCta,
     isLoading = false,
-    isDarkMode,
     colorScheme = "purple",
     accentColor,
     enableMouseTracking = false,
   }) => {
+    const { themeMode } = useTheme();
+    const isDarkMode = themeMode === "dark";
     const sectionRef = useSectionObserver("home", (id) => {
       logger.debug(`[Home] Section "${id}" is now visible`);
     });
@@ -40,29 +44,29 @@ const Hero: FC<ExtendedHeroProps> = memo(
     const [showReturnToStars, setShowReturnToStars] = useState(false); // Hide at top of page
     const [scrollPosition, setScrollPosition] = useState(0);
 
+    const handleMouseMove = useCallback((e: MouseEvent) => {
+      const container = containerRef.current;
+      if (!container) return;
+
+      const rect = container.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      // Check if mouse is near the border (within 20px)
+      const borderThreshold = 20;
+      const isNearBorder =
+        x < borderThreshold ||
+        y < borderThreshold ||
+        x > rect.width - borderThreshold ||
+        y > rect.height - borderThreshold;
+
+      setIsMouseNearBorder(isNearBorder);
+      setMousePosition({ x, y });
+    }, [containerRef]);
+
     // Mouse tracking effect
     useEffect(() => {
       if (!enableMouseTracking || !containerRef.current) return;
-
-      const handleMouseMove = (e: MouseEvent) => {
-        const container = containerRef.current;
-        if (!container) return;
-
-        const rect = container.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        // Check if mouse is near the border (within 20px)
-        const borderThreshold = 20;
-        const isNearBorder =
-          x < borderThreshold ||
-          y < borderThreshold ||
-          x > rect.width - borderThreshold ||
-          y > rect.height - borderThreshold;
-
-        setIsMouseNearBorder(isNearBorder);
-        setMousePosition({ x, y });
-      };
 
       const container = containerRef.current;
       container.addEventListener("mousemove", handleMouseMove);
@@ -70,7 +74,7 @@ const Hero: FC<ExtendedHeroProps> = memo(
       return () => {
         container.removeEventListener("mousemove", handleMouseMove);
       };
-    }, [enableMouseTracking]);
+    }, [enableMouseTracking, handleMouseMove]);
 
     useEffect(() => {
       const handleScroll = () => {
@@ -105,6 +109,7 @@ const Hero: FC<ExtendedHeroProps> = memo(
     };
 
     const { textColor, gradientColors } = getThemeStyles();
+    const scrollTo = useScrollTo();
 
     // Handler for returning to stars
     const handleReturnToStars = () => {
@@ -116,23 +121,6 @@ const Hero: FC<ExtendedHeroProps> = memo(
       setIsMinimized((prev) => !prev);
     };
 
-    // Handler for scroll indicator click - scroll to next section
-    const scrollToContent = () => {
-      // Hide scroll indicator
-      setShowScrollIndicator(false);
-
-      // Try to scroll to the focus-areas section, fallback to scrolling past the hero
-      const focusSection = document.getElementById("focus-areas");
-      if (focusSection) {
-        focusSection.scrollIntoView({ behavior: "smooth" });
-      } else {
-        // Fallback: scroll past the hero section
-        window.scrollTo({
-          top: window.innerHeight,
-          behavior: "smooth",
-        });
-      }
-    };
     return (
       <section
         className={styles.heroSection}
@@ -269,42 +257,19 @@ const Hero: FC<ExtendedHeroProps> = memo(
                               className={styles.heroButtonContainer}
                               transition={{ duration: 0.5, delay: 0.3 }}
                             >
-                              <button
-                                type="button"
+                              <Button
                                 aria-label={`Navigate to ${primaryCta.text} section`}
-                                className={`${styles.heroButton} ${styles.heroPrimaryButton} ${
-                                  accentColor
-                                    ? `bg-${accentColor} hover:bg-${accentColor}-600`
-                                    : isDarkMode
-                                      ? "bg-purple-600 hover:bg-purple-700"
-                                      : "bg-purple-500 hover:bg-purple-600"
-                                }`}
-                                onClick={() => {
-                                  const section = document.querySelector(primaryCta.href);
-                                  if (section) {
-                                    section.scrollIntoView({ behavior: "smooth" });
-                                  }
-                                }}
+                                onClick={() => scrollTo(primaryCta.href)}
                               >
                                 {primaryCta.text}
-                              </button>
-                              <button
-                                type="button"
+                              </Button>
+                              <Button
+                                variant="secondary"
                                 aria-label={`Navigate to ${secondaryCta.text} section`}
-                                className={`${styles.heroButton} ${styles.heroSecondaryButton} ${
-                                  isDarkMode
-                                    ? "bg-gray-800 text-white hover:bg-gray-700"
-                                    : "bg-white text-gray-800 hover:bg-gray-100"
-                                }`}
-                                onClick={() => {
-                                  const section = document.querySelector(secondaryCta.href);
-                                  if (section) {
-                                    section.scrollIntoView({ behavior: "smooth" });
-                                  }
-                                }}
+                                onClick={() => scrollTo(secondaryCta.href)}
                               >
                                 {secondaryCta.text}
-                              </button>
+                              </Button>
                             </motion.div>
                           </motion.div>
                         )}
@@ -331,14 +296,10 @@ const Hero: FC<ExtendedHeroProps> = memo(
                 </AnimatePresence>
               </motion.div>
             )}
+import HeroSkeleton from "../HeroSkeleton/HeroSkeleton";
+...
           </AnimatePresence>
-          {isLoading && (
-            <div className={styles.heroLoading}>
-              <div
-                className={`${styles.heroSpinner} ${isDarkMode ? "border-white" : "border-gray-800"}`}
-              />
-            </div>
-          )}
+          {isLoading && <HeroSkeleton />}
         </div>
 
         <AnimatePresence>
@@ -353,7 +314,7 @@ const Hero: FC<ExtendedHeroProps> = memo(
                 y: { repeat: Infinity, duration: 1.5 },
               }}
               /* No inline styles needed - using CSS for positioning */
-              onClick={scrollToContent}
+              onClick={() => scrollTo("focus-areas")}
               aria-label="Scroll to explore content"
             >
               <svg

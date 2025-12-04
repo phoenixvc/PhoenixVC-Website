@@ -1,0 +1,56 @@
+/* apps/web/src/features/team/components/Team.module.css */
+.section {
+  padding: 4rem 0;
+  background-color: hsl(var(--background));
+}
+
+.darkMode {
+  /* Dark mode specific styles */
+}
+
+.lightMode {
+  /* Light mode specific styles */
+}
+
+.heading {
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.subheading {
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 3rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.teamGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-bottom: 4rem;
+}
+
+.teamMember {
+  text-align: center;
+}
+
+.avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background-color: hsl(var(--muted));
+  margin: 0 auto 1rem;
+}
+
+.name {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.role {
+  color: hsl(var(--muted-foreground));
+}

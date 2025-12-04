@@ -381,3 +381,10 @@
     @apply text-primary hover:text-secondary transition-colors duration-200;
   }
 }
+
+  /* Accessibility: Add a clear focus indicator for keyboard users */
+  *:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+    border-radius: var(--radius);
+  }

@@ -5,10 +5,9 @@ import styles from "./About.module.css";
 import { useSectionObserver } from "@/hooks/useSectionObserver";
 import { ArrowRight, Award, Globe, Shield, Zap } from "lucide-react";
 import { logger } from "@/utils/logger";
+import { useTheme } from "@/theme";
 
-interface AboutProps {
-  isDarkMode: boolean;
-}
+interface AboutProps {}
 
 const aboutAnimations = {
   container: {
@@ -69,7 +68,9 @@ const coreValues = [
   }
 ];
 
-const About: FC<AboutProps> = memo(({ isDarkMode }) => {
+const About: FC<AboutProps> = memo(({}) => {
+  const { themeMode } = useTheme();
+  const isDarkMode = themeMode === "dark";
   const [activeSection, setActiveSection] = useState(0);
   const sectionRef = useSectionObserver("about", (id) => {
     logger.debug(`[About] Section "${id}" is now visible`);
