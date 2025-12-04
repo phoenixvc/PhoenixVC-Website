@@ -107,11 +107,15 @@ jobs:
 
       - name: Get Change Summary
         id: get_changes
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
               # For PR events, capture the title and body while replacing newlines with spaces
-              TITLE=$(echo "${{ github.event.pull_request.title }}" | tr '\n' ' ')
-              BODY=$(echo "${{ github.event.pull_request.body }}" | tr '\n' ' ')
+              TITLE=$(echo "$PR_TITLE" | tr '\n' ' ')
+              BODY=$(echo "$PR_BODY" | tr '\n' ' ')
               SUMMARY="${TITLE} - ${BODY}"
             else
               # For push events, use commit messages
@@ -222,7 +226,6 @@ jobs:
       staticSiteUrl: ${{ steps.deploy_staging_resources.outputs.staticSiteUrl }}
       teamsLogicAppUrl: ${{ steps.deploy_staging_resources.outputs.teamsLogicAppUrl }}
       githubLogicAppUrl: ${{ steps.deploy_staging_resources.outputs.githubLogicAppUrl }}
-      encoded_token: ${{ steps.encode_token.outputs.encoded_token }}
       deployment_id: ${{ steps.get_deployment_info.outputs.deployment_id }}
       run_id: ${{ github.run_id }}
 
@@ -258,12 +261,6 @@ jobs:
           ARTIFACT_ID="phoenixvc_$(date +%Y%m%d)_${{ github.sha }}_${{ github.run_number }}"
           echo "deployment_id=${DEPLOYMENT_ID}" >> $GITHUB_OUTPUT
           echo "artifact_id=${ARTIFACT_ID}" >> $GITHUB_OUTPUT
-
-      - name: Encode GitHub Token
-        id: encode_token
-        run: |
-          ENCODED_TOKEN=$(echo -n "${{ secrets.GITHUB_TOKEN }}" | base64)
-          echo "encoded_token=${ENCODED_TOKEN}" >> $GITHUB_OUTPUT
 
   # ───────────────────────────────────────────────
   # ✅ STAGING SITE DEPLOYMENT VIA SWA CLI
@@ -358,7 +355,6 @@ jobs:
           approval_url: ${{ needs.deploy_resources_staging.outputs.githubLogicAppUrl }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           teams_token: ${{ secrets.TEAMS_TOKEN }}
-          encoded_token: ${{ needs.deploy_resources_staging.outputs.encoded_token }}
           change_summary: ${{ needs.check_relevant_changes.outputs.change_summary }}
           deployment_id: ${{ needs.swa_deploy_staging.outputs.deployment_id }}
           artifact_id: ${{ needs.build_apps.outputs.web_artifact_id }}
