@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState, FC, useMemo, useCallback, forwardRef, useImperativeHandle } from "react";
 import styles from "./starfield.module.css";
+import { logger } from "@/utils/logger";
 import { initBlackHoles } from "./blackHoles";
 import { DEFAULT_BLACK_HOLES, DEFAULT_PORTFOLIO_PROJECTS, getColorPalette } from "./constants";
 import {
@@ -103,7 +104,6 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   const [pinnedPosition, setPinnedPosition] = useState({ x: 0, y: 0 });
 
   const handlePinProject = (project: PortfolioProject) => {
-    console.log("Pinning project in starfield:", project.name);
     setPinnedProject(project);
     setPinnedPosition({ x: mousePosition.x, y: mousePosition.y });
     // Hide hover tooltip when pinning
@@ -111,14 +111,15 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   };
 
   const handleUnpinProject = () => {
-    console.log("Unpinning project in starfield");
     setPinnedProject(null);
   };
 
   // Sun hover state for focus area suns
   const [hoveredSun, setHoveredSun] = useState<SunInfo | null>(null);
   const [hoveredSunId, setHoveredSunId] = useState<string | null>(null);
-  
+  // Ref to track current value and avoid unnecessary state updates
+  const hoveredSunIdRef = useRef<string | null>(null);
+
   // Focused sun state - when user clicks on a focus area, we scope the view
   const [focusedSunId, setFocusedSunId] = useState<string | null>(null);
   const focusAnimationRef = useRef<number | null>(null);
@@ -159,15 +160,9 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   // Expose updateDebugSetting to parent components through ref
   useImperativeHandle(ref, () => ({
     updateDebugSetting: (key, value) => {
-      console.log(`Updating debug setting from parent: ${String(key)} = ${value}`);
       updateDebugSetting(key, value);
     }
   }), [updateDebugSetting]);
-
-  // Track debug mode changes
-  useEffect(() => {
-    console.log("Debug mode in InteractiveStarfield:", debugSettings.isDebugMode);
-  }, [debugSettings.isDebugMode]);
 
   const {
     clickBursts,
@@ -234,7 +229,6 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     // Update the ref with the latest state
     mousePositionRef.current = mousePosition;
 
-    console.log("Updated mousePositionRef from state:", mousePosition);
   }, [mousePosition]);
 
   // Create a custom debug draw function that uses either the external or internal debug function
@@ -266,7 +260,6 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     window.starfieldAPI = {
       applyForce: (x: number, y: number, radius: number, force: number) => {
         if (starsRef.current && starsRef.current.length > 0) {
-          console.log(`API: Applying force at ${x}, ${y} with radius ${radius} and force ${force}`);
           return applyClickForce(starsRef.current, x, y, radius, force);
         }
         return 0;
@@ -292,13 +285,11 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   useEffect(() => {
     const initTimeout = setTimeout(() => {
       if (!isStarsInitializedRef.current || starsRef.current.length === 0) {
-        console.log("Forcing initialization on mount");
         initializeElements();
 
         // Force animation restart after initialization
         setTimeout(() => {
           if (animationControllerRef.current) {
-            console.log("Force restarting animation after initialization");
             animationControllerRef.current.restartAnimation();
           }
         }, 200);
@@ -311,12 +302,10 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   // Detect debug mode changes
   useEffect(() => {
     const lastDebugMode = debugSettings.isDebugMode;
-    console.log("Debug mode state:", lastDebugMode);
 
     // When debug mode changes, ensure stars are reset properly
     return () => {
       if (lastDebugMode !== debugSettings.isDebugMode) {
-        console.log("Debug mode changed, resetting stars");
         setTimeout(() => {
           resetStars();
         }, 50);
@@ -338,7 +327,6 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
         }
       };
 
-      getIP().catch(e => console.log("IP address fetching failed:", e));
     }
   }, [gameMode]);
 
@@ -357,20 +345,16 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   // Set up canvas and handle resize
   useEffect(() => {
     if (hasRunInitialSetupRef.current) {
-      console.log("Initial setup already run, skipping");
       return;
     }
 
-    console.log("Running initial setup");
     const canvas = canvasRef.current;
     if (!canvas) {
-      console.log("No canvas ref, skipping setup");
       return;
     }
 
     // Handle resize without triggering state updates in a loop
     const handleResize = () => {
-      console.log("Resize event triggered");
       const { innerWidth: width, innerHeight: height } = window;
 
       // Set canvas dimensions directly
@@ -445,7 +429,6 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
 
     // Only run this effect if the mode has actually changed
     if (currentMode !== prevModeRef.current) {
-      console.log("Theme changed, forcing complete reset");
       prevModeRef.current = currentMode;
 
       // First stop the current animation
@@ -456,7 +439,6 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
 
       // Reset animation error count and ensure stars exist
       if (ensureStarsExist) {
-        console.log("Ensuring stars exist after theme change");
         ensureStarsExist();
       }
 
@@ -464,7 +446,6 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
       const restartTimeout = setTimeout(() => {
         // Use the stored animation controller to restart
         if (animationControllerRef.current) {
-          console.log("Restarting animation after theme change");
           animationControllerRef.current.restartAnimation();
         }
       }, 300);
@@ -489,36 +470,37 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     }
   }, [initialMousePosition, setMousePosition]);
 
-  // Add this to your InteractiveStarfield component
+  // Mouse tracking effect with proper cleanup
   useEffect(() => {
-    // Test function to simulate mouse movement
-    const simulateMouseMovement = () => {
-      // Get the current mouse position from the browser
-      const mouseTracker = (e: MouseEvent) => {
-        const newPosition = {
-          x: e.clientX,
-          y: e.clientY,
-          lastX: mousePositionRef.current.x,
-          lastY: mousePositionRef.current.y,
-          speedX: e.clientX - mousePositionRef.current.x,
-          speedY: e.clientY - mousePositionRef.current.y,
-          isClicked: mousePositionRef.current.isClicked,
-          clickTime: mousePositionRef.current.clickTime,
-          isOnScreen: true
-        };
+    // Define all handlers as named functions for proper cleanup
+    const handleMouseMove = (e: MouseEvent) => {
+      const newPosition = {
+        x: e.clientX,
+        y: e.clientY,
+        lastX: mousePositionRef.current.x,
+        lastY: mousePositionRef.current.y,
+        speedX: e.clientX - mousePositionRef.current.x,
+        speedY: e.clientY - mousePositionRef.current.y,
+        isClicked: mousePositionRef.current.isClicked,
+        clickTime: mousePositionRef.current.clickTime,
+        isOnScreen: true
+      };
 
-        // Update both the state and the ref directly
-        setMousePosition(newPosition);
-        mousePositionRef.current = newPosition;
-        
-        // Check for sun hover
-        if (canvasRef.current) {
-          const rect = canvasRef.current.getBoundingClientRect();
-          const canvasX = e.clientX - rect.left;
-          const canvasY = e.clientY - rect.top;
-          const sunHoverResult = checkSunHover(canvasX, canvasY, rect.width, rect.height);
-          
-          if (sunHoverResult) {
+      // Update both the state and the ref directly
+      setMousePosition(newPosition);
+      mousePositionRef.current = newPosition;
+
+      // Check for sun hover
+      if (canvasRef.current) {
+        const rect = canvasRef.current.getBoundingClientRect();
+        const canvasX = e.clientX - rect.left;
+        const canvasY = e.clientY - rect.top;
+        const sunHoverResult = checkSunHover(canvasX, canvasY, rect.width, rect.height);
+
+        if (sunHoverResult) {
+          // Only update state if the hovered sun changed
+          if (hoveredSunIdRef.current !== sunHoverResult.sun.id) {
+            hoveredSunIdRef.current = sunHoverResult.sun.id;
             setHoveredSunId(sunHoverResult.sun.id);
             setHoveredSun({
               id: sunHoverResult.sun.id,
@@ -528,69 +510,65 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
               x: e.clientX,
               y: e.clientY
             });
-            // Change cursor to pointer
-            if (canvasRef.current) {
-              canvasRef.current.style.cursor = "pointer";
-            }
           } else {
-            if (hoveredSunId) {
-              setHoveredSunId(null);
-              setHoveredSun(null);
-            }
-            // Reset cursor
-            if (canvasRef.current) {
-              canvasRef.current.style.cursor = "default";
-            }
+            // Update position only without changing state for same sun
+            setHoveredSun(prev => prev ? { ...prev, x: e.clientX, y: e.clientY } : null);
+          }
+          // Change cursor to pointer
+          if (canvasRef.current) {
+            canvasRef.current.style.cursor = "pointer";
+          }
+        } else {
+          // Only clear state if we were previously hovering (avoid unnecessary updates)
+          if (hoveredSunIdRef.current !== null) {
+            hoveredSunIdRef.current = null;
+            setHoveredSunId(null);
+            setHoveredSun(null);
+          }
+          // Reset cursor
+          if (canvasRef.current) {
+            canvasRef.current.style.cursor = "default";
           }
         }
-
-        console.log("Mouse moved:", {
-          x: e.clientX,
-          y: e.clientY,
-          speedX: newPosition.speedX,
-          speedY: newPosition.speedY
-        });
-      };
-
-      // Add mouse event listeners directly here
-      window.addEventListener("mousemove", mouseTracker);
-
-      // Also add mouse down/up events
-      window.addEventListener("mousedown", (e) => {
-        mousePositionRef.current = {
-          ...mousePositionRef.current,
-          isClicked: true,
-          clickTime: Date.now()
-        };
-        setMousePosition({
-          ...mousePositionRef.current,
-          isClicked: true,
-          clickTime: Date.now()
-        });
-      });
-
-      window.addEventListener("mouseup", () => {
-        mousePositionRef.current = {
-          ...mousePositionRef.current,
-          isClicked: false
-        };
-        setMousePosition({
-          ...mousePositionRef.current,
-          isClicked: false
-        });
-      });
-
-      // Cleanup
-      return () => {
-        window.removeEventListener("mousemove", mouseTracker);
-        window.removeEventListener("mousedown", mouseTracker);
-        window.removeEventListener("mouseup", mouseTracker);
-      };
+      }
     };
 
-    // Start the mouse tracking
-    return simulateMouseMovement();
-  }, [setMousePosition]); // Only depend on setMousePosition to avoid re-creating listeners
+    const handleMouseDown = () => {
+      mousePositionRef.current = {
+        ...mousePositionRef.current,
+        isClicked: true,
+        clickTime: Date.now()
+      };
+      setMousePosition({
+        ...mousePositionRef.current,
+        isClicked: true,
+        clickTime: Date.now()
+      });
+    };
+
+    const handleMouseUp = () => {
+      mousePositionRef.current = {
+        ...mousePositionRef.current,
+        isClicked: false
+      };
+      setMousePosition({
+        ...mousePositionRef.current,
+        isClicked: false
+      });
+    };
+
+    // Add all event listeners
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mousedown", handleMouseDown);
+    window.addEventListener("mouseup", handleMouseUp);
+
+    // Cleanup - remove all listeners with correct references
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mousedown", handleMouseDown);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [setMousePosition]);
 
   // Memoize animation loop parameters to prevent unnecessary re-renders
   const animationParams = useMemo(() => ({
@@ -714,32 +692,27 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   };
 
   const applyStarfieldRepulsion = useCallback((x: number, y: number, radius: number = 300, force: number = 100) => {
-    console.log(`Applying repulsion at (${x}, ${y}) with radius ${radius} and force ${force}`);
 
     if (window.starfieldAPI) {
       // Log before calling the API
-      console.log("starfieldAPI is available, calling applyForce");
 
       // Call the API function
       const affectedStars = window.starfieldAPI.applyForce(x, y, radius, force);
 
       // Log the result
-      console.log(`Applied force to ${affectedStars} stars`);
 
       // Create an explosion effect
       const explosionCreated = window.starfieldAPI.createExplosion(x, y);
-      console.log(`Explosion created: ${explosionCreated}`);
 
       return affectedStars;
     } else {
-      console.error("starfieldAPI is not available!");
+      logger.warn("[Starfield] starfieldAPI is not available");
       return 0;
     }
   }, []);
 
   // Function to zoom the camera to focus on a specific sun
   const zoomToSun = useCallback((sunId: string) => {
-    console.log(`Zooming to sun: ${sunId}`);
     
     // Cancel any existing camera animation
     if (cameraAnimationRef.current) {
@@ -748,7 +721,6 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     
     // If clicking on the same sun, toggle off (zoom out)
     if (focusedSunId === sunId) {
-      console.log("Toggling off focus, zooming back out");
       setFocusedSunId(null);
       
       // Set camera target to zoom out
@@ -766,7 +738,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     // Get the sun's current position
     const sunPosition = getSunPosition(sunId);
     if (!sunPosition) {
-      console.error(`Could not find sun with id: ${sunId}`);
+      logger.warn(`[Starfield] Could not find sun with id: ${sunId}`);
       return;
     }
     
@@ -783,7 +755,6 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
       }
     }));
     
-    console.log(`Set camera target to sun position: (${sunPosition.x}, ${sunPosition.y}) with zoom 2.5`);
   }, [focusedSunId]);
 
   // Smooth camera lerp animation
@@ -836,7 +807,6 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
 
   // Legacy function kept for backward compatibility
   const scrollToFocusArea = useCallback((sunId: string, sunX: number, sunY: number) => {
-    console.log(`scrollToFocusArea called for: ${sunId} at (${sunX}, ${sunY})`);
     // Now just delegates to the camera zoom function
     zoomToSun(sunId);
   }, [zoomToSun]);
@@ -844,7 +814,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   // Update the click handler to use this unified function:
   const handleCanvasClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!canvasRef.current) {
-      console.error("Click handler called but canvas ref is null");
+      logger.warn("[Starfield] Click handler called but canvas ref is null");
       return;
     }
 
@@ -853,20 +823,15 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    console.log(`Canvas clicked at canvas coordinates: (${x}, ${y})`);
-    console.log(`Original click event coordinates: (${event.clientX}, ${event.clientY})`);
-    console.log(`Canvas rect: left=${rect.left}, top=${rect.top}, width=${rect.width}, height=${rect.height}`);
 
     // Apply repulsive force to suns (this stacks up with multiple clicks)
     const affectedSuns = applyClickRepulsionToSunsCanvas(x, y, rect.width, rect.height);
-    console.log(`Applied click repulsion to ${affectedSuns} suns`);
 
     // First check if we clicked on a focus area sun
     const sunHoverResult = checkSunHover(x, y, rect.width, rect.height);
     
     if (sunHoverResult) {
       // Clicked on a sun - scroll to focus on that area
-      console.log(`Clicked on sun: ${sunHoverResult.sun.name}`);
       scrollToFocusArea(sunHoverResult.sun.id, sunHoverResult.x, sunHoverResult.y);
       
       // Also apply a gentle repulsion for visual feedback
@@ -886,36 +851,30 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
         isClicked: false,
         clickTime: Date.now()
       }));
-      console.log("Mouse position state updated for click");
     }
   }, [canvasRef, setMousePosition, applyStarfieldRepulsion, scrollToFocusArea]);
 
   useEffect(() => {
     if (canvasRef.current) {
-      console.log("Adding click event listener to canvas");
 
       // Add a direct DOM event listener as a backup
       const canvas = canvasRef.current;
       const clickHandler = (e: MouseEvent) => {
-        console.log("Native canvas click detected", e.clientX, e.clientY);
 
         // Get click coordinates relative to canvas
         const rect = canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
 
-        console.log(`Converted to canvas coordinates: (${x}, ${y})`);
 
         // Apply repulsive force to suns (this stacks up with multiple clicks)
         const affectedSuns = applyClickRepulsionToSunsCanvas(x, y, rect.width, rect.height);
-        console.log(`Native click: Applied repulsion to ${affectedSuns} suns`);
 
         // First check if we clicked on a focus area sun
         const sunHoverResult = checkSunHover(x, y, rect.width, rect.height);
         
         if (sunHoverResult) {
           // Clicked on a sun - scroll to focus on that area
-          console.log(`Native click on sun: ${sunHoverResult.sun.name}`);
           scrollToFocusArea(sunHoverResult.sun.id, sunHoverResult.x, sunHoverResult.y);
           
           // Also apply a gentle repulsion for visual feedback
@@ -930,7 +889,6 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
       canvas.addEventListener("click", clickHandler);
 
       return () => {
-        console.log("Removing click event listener from canvas");
         canvas.removeEventListener("click", clickHandler);
       };
     }
@@ -953,6 +911,32 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
           onClick={(e) => {
             e.stopPropagation(); // Stop event propagation
             handleCanvasClick(e);
+          }}
+          onTouchStart={(e) => {
+            // Prevent default to avoid issues on touch
+            e.stopPropagation();
+          }}
+          onTouchEnd={(e) => {
+            // Convert touch to click for mobile support
+            if (e.changedTouches.length > 0) {
+              const touch = e.changedTouches[0];
+              const rect = canvasRef.current?.getBoundingClientRect();
+              if (rect) {
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
+
+                // Apply repulsion and check sun hover like click handler
+                applyClickRepulsionToSunsCanvas(x, y, rect.width, rect.height);
+                const sunHoverResult = checkSunHover(x, y, rect.width, rect.height);
+
+                if (sunHoverResult) {
+                  scrollToFocusArea(sunHoverResult.sun.id, sunHoverResult.x, sunHoverResult.y);
+                  applyStarfieldRepulsion(x, y, 150, 30);
+                } else {
+                  applyStarfieldRepulsion(x, y);
+                }
+              }
+            }
           }}
         />
       </div>

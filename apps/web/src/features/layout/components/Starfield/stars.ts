@@ -7,10 +7,10 @@ import { distance } from "./utils";
 const GLOBAL_SPEED_MULTIPLIER = 0.15; // Reduced for smoother, more subtle animations
 
 // Movement multiplier for active (clicked) stars - allows them to move faster
-const ACTIVE_STAR_MOVEMENT_MULTIPLIER = 0.5;
+const ACTIVE_STAR_MOVEMENT_MULTIPLIER = 2.0; // Increased from 0.5 for more visible click effects
 
 // Velocity limits
-const ACTIVE_STAR_VELOCITY_MULTIPLIER = 16; // How much faster active stars can move
+const ACTIVE_STAR_VELOCITY_MULTIPLIER = 32; // Doubled from 16 for more dramatic click effects
 const DAMPING_FACTOR_ACTIVE = 0.985; // Less damping for active stars
 const DAMPING_FACTOR_INACTIVE = 0.99; // More damping for inactive stars
 
@@ -512,13 +512,13 @@ export const applyClickForce = (
   stars: Star[],
   clickX: number,
   clickY: number,
-  radius: number = 300,
-  force: number = 8
+  radius: number = 350,
+  force: number = 25
 ): number => {
   console.log(`applyClickForce called at (${clickX}, ${clickY}) with radius ${radius} and force ${force}`);
 
   // Much stronger force multiplier for visible repulsion effect
-  const adjustedForce = force * 3;
+  const adjustedForce = force * 5;
 
   let affectedCount = 0;
 

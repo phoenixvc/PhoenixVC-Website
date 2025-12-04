@@ -1,4 +1,5 @@
 import React, { FC, useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import styles from "./projectTooltip.module.css";
 import { PortfolioProject } from "./types";
 
@@ -23,6 +24,7 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 10);
@@ -58,16 +60,22 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
 
   const position = adjustPosition();
 
-  // Extract data from project object
-  const yearsExperience = project.experience ||
-                         (project.mass ? Math.floor(project.mass / 10) : 5) +
-                         Math.floor(Math.random() * 5);
-  const expertise = project.expertise ||
-                   (project.position ? project.position.split(" ").slice(-1)[0] : "Technology");
-  const badgeText = project.department || project.product || "Portfolio Project";
-  const projectCount = Array.isArray(project.projects)
-    ? project.projects.length
-    : (project.projects || 0);
+  // Format status for display
+  const formatStatus = (status?: string): string => {
+    const statusMap: Record<string, string> = {
+      "alpha": "Alpha",
+      "pre-alpha": "Pre-Alpha",
+      "early-stage": "Early Stage",
+      "growth": "Growth Stage",
+      "active": "Active"
+    };
+    return statusMap[status || ""] || "Portfolio";
+  };
+
+  const projectStage = formatStatus(project.status);
+  const focusAreaLabel = project.focusArea?.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase()) || project.department || "Technology";
+  const badgeText = projectStage;
+  const skillsList = Array.isArray(project.skills) ? project.skills.slice(0, 3).join(", ") : project.expertise || "Innovation";
 
   // Event handlers
   const handleTooltipClick = (e: React.MouseEvent) => {
@@ -115,17 +123,30 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
       }} />
 
       <div className={styles.tooltipHeader}>
-        {project.image && (
-          <div
-            className={styles.tooltipAvatar}
-            style={{
-              border: `3px solid ${projectColor}`,
-              boxShadow: `0 0 10px ${isDarkMode ? "rgba(157, 78, 221, 0.2)" : "rgba(123, 44, 191, 0.12)"}`
-            }}
-          >
+        <div
+          className={styles.tooltipAvatar}
+          style={{
+            border: `3px solid ${projectColor}`,
+            boxShadow: `0 0 10px ${isDarkMode ? "rgba(157, 78, 221, 0.2)" : "rgba(123, 44, 191, 0.12)"}`,
+            backgroundColor: project.image ? 'transparent' : projectColor,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          {project.image ? (
             <img src={project.image} alt={project.name} />
-          </div>
-        )}
+          ) : (
+            <span style={{
+              color: '#ffffff',
+              fontSize: '18px',
+              fontWeight: 700,
+              letterSpacing: '-0.5px'
+            }}>
+              {project.initials || project.name?.substring(0, 2).toUpperCase()}
+            </span>
+          )}
+        </div>
         <div className={styles.tooltipTitle}>
           <h3>{project.fullName || project.name}</h3>
           <p>{project.position}</p>
@@ -134,18 +155,13 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
 
       <div className={styles.tooltipContent}>
         <div className={styles.tooltipStat}>
-          <span className={styles.tooltipLabel}>Experience:</span>
-          <span className={styles.tooltipValue}>{yearsExperience} years</span>
+          <span className={styles.tooltipLabel}>Focus Area:</span>
+          <span className={styles.tooltipValue}>{focusAreaLabel}</span>
         </div>
 
         <div className={styles.tooltipStat}>
-          <span className={styles.tooltipLabel}>Expertise:</span>
-          <span className={styles.tooltipValue}>{expertise}</span>
-        </div>
-
-        <div className={styles.tooltipStat}>
-          <span className={styles.tooltipLabel}>Projects:</span>
-          <span className={styles.tooltipValue}>{projectCount}</span>
+          <span className={styles.tooltipLabel}>Technologies:</span>
+          <span className={styles.tooltipValue}>{skillsList}</span>
         </div>
 
         {project.bio && (
@@ -161,6 +177,46 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
           >
             {badgeText}
           </div>
+
+          {project.product && project.product.trim() !== "" && (
+            <a
+              href={project.product}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.tooltipLink}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                color: isDarkMode ? 'rgba(157, 78, 221, 0.9)' : 'rgba(123, 44, 191, 0.9)',
+                fontSize: '12px',
+                textDecoration: 'none',
+                fontWeight: 500
+              }}
+            >
+              Visit Project →
+            </a>
+          )}
+
+          <button
+            type="button"
+            className={styles.tooltipLink}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/portfolio/${project.id}`);
+            }}
+            style={{
+              color: isDarkMode ? 'rgba(157, 78, 221, 0.9)' : 'rgba(123, 44, 191, 0.9)',
+              fontSize: '12px',
+              textDecoration: 'none',
+              fontWeight: 500,
+              marginLeft: project.product && project.product.trim() !== "" ? '0.75rem' : 0,
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0
+            }}
+          >
+            Learn More →
+          </button>
 
           {isPinned && (
             <div className={styles.tooltipPinnedIndicator}>

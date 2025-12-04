@@ -12,6 +12,25 @@ import {
 } from "./starEffects";
 import { calculatePulsation, createSoftenedColor, hexToRgb, updateStarPosition } from "./starUtils";
 import { Planet } from "./types";
+import { SUNS } from "./cosmos/cosmicHierarchy";
+
+// Get the color a planet should use based on its focus area (matching its sun)
+// Dynamically looks up sun color from cosmicHierarchy to avoid duplication
+function getSunAlignedColor(planet: Planet): string {
+  const focusArea = planet.project?.focusArea;
+  if (focusArea) {
+    // Find the matching focus area sun in the hierarchy
+    const matchingSun = SUNS.find(sun =>
+      sun.parentId === "focus-areas-galaxy" &&
+      sun.id.includes(focusArea.replace(/-/g, "-"))
+    );
+    if (matchingSun?.color) {
+      return matchingSun.color;
+    }
+  }
+  // Fallback to project color or default
+  return planet.project?.color || "#ffffff";
+}
 
 // Draw a portfolio comet/planet with its satellites
 export const drawPlanet = (
@@ -29,8 +48,8 @@ export const drawPlanet = (
     updateStarPosition(planet, deltaTime);
   }
 
-  // Get base color and create softer version
-  const baseColor = planet.project.color || "#ffffff";
+  // Get base color from sun alignment (planets match their orbiting sun's color)
+  const baseColor = getSunAlignedColor(planet);
   const baseRgb = hexToRgb(baseColor);
   const softRgb = createSoftenedColor(baseRgb);
 

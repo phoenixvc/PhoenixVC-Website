@@ -154,17 +154,36 @@ export const initPlanets = (
     planets.push(planet);
   });
 
-  // Assign planets to focus area suns only (not random suns)
-  // Filter to only get the focus area suns
+  // Assign planets to their correct focus area sun based on project.focusArea
   const focusAreaSuns = SUNS.filter(sun => sun.parentId === "focus-areas-galaxy");
-  
+
+  // Create a map of focusArea to sun id for quick lookup
+  const focusAreaToSunId: Record<string, string> = {
+    "ai-ml": "ai-ml-sun",
+    "fintech-blockchain": "fintech-blockchain-sun",
+    "defense-security": "defense-security-sun",
+    "mobility-transportation": "mobility-transportation-sun"
+  };
+
   planets.forEach((planet, index) => {
-    // Distribute planets across focus area suns evenly
-    if (focusAreaSuns.length > 0) {
+    const projectFocusArea = planet.project?.focusArea;
+
+    if (projectFocusArea && focusAreaToSunId[projectFocusArea]) {
+      // Match planet to its correct sun based on focusArea
+      const targetSunId = focusAreaToSunId[projectFocusArea];
+      const matchingSun = focusAreaSuns.find(sun => sun.id === targetSunId);
+      if (matchingSun) {
+        planet.orbitParentId = matchingSun.id;
+      } else {
+        // Fallback to first focus area sun
+        planet.orbitParentId = focusAreaSuns[0]?.id || "ai-ml-sun";
+      }
+    } else if (focusAreaSuns.length > 0) {
+      // For projects without focusArea (infrastructure), distribute evenly
       const sunIndex = index % focusAreaSuns.length;
       planet.orbitParentId = focusAreaSuns[sunIndex].id;
     } else {
-      // Fallback to any sun if no focus area suns found
+      // Final fallback
       const randomSunIndex = Math.floor(Math.random() * SUNS.length);
       planet.orbitParentId = SUNS[randomSunIndex].id;
     }
