@@ -6,6 +6,14 @@ import { distance } from "./utils";
 // Global animation speed control - add this at the top of the file
 const GLOBAL_SPEED_MULTIPLIER = 0.15; // Reduced for smoother, more subtle animations
 
+// Movement multiplier for active (clicked) stars - allows them to move faster
+const ACTIVE_STAR_MOVEMENT_MULTIPLIER = 0.5;
+
+// Velocity limits
+const ACTIVE_STAR_VELOCITY_MULTIPLIER = 16; // How much faster active stars can move
+const DAMPING_FACTOR_ACTIVE = 0.985; // Less damping for active stars
+const DAMPING_FACTOR_INACTIVE = 0.99; // More damping for inactive stars
+
 // Initialize completely static stars
 export const initStars = (
   width: number,
@@ -132,23 +140,22 @@ export function updateStarPositions(
 
     // Apply velocity limits with smoother clamping
     const speed = Math.sqrt(star.vx * star.vx + star.vy * star.vy);
-    if (speed > maxVelocity * GLOBAL_SPEED_MULTIPLIER) {
-      // Use a much higher maxVelocity for recently pushed stars
-      const effectiveMaxVelocity = star.isActive ? maxVelocity * 8 : maxVelocity;
-      // Smooth velocity clamping using soft limit
-      const clampedSpeed = Math.min(speed, effectiveMaxVelocity * GLOBAL_SPEED_MULTIPLIER);
-      star.vx = (star.vx / speed) * clampedSpeed;
-      star.vy = (star.vy / speed) * clampedSpeed;
+    // Use a MUCH higher maxVelocity for recently pushed stars
+    const effectiveMaxVelocity = star.isActive ? maxVelocity * ACTIVE_STAR_VELOCITY_MULTIPLIER : maxVelocity;
+    if (speed > effectiveMaxVelocity) {
+      star.vx = (star.vx / speed) * effectiveMaxVelocity;
+      star.vy = (star.vy / speed) * effectiveMaxVelocity;
     }
 
-    // Apply stronger damping for smoother deceleration (easier on the eyes)
-    const dampingFactor = star.isActive ? 0.97 : 0.985;
+    // Apply less damping for active stars so they travel further
+    const dampingFactor = star.isActive ? DAMPING_FACTOR_ACTIVE : DAMPING_FACTOR_INACTIVE;
     star.vx *= dampingFactor;
     star.vy *= dampingFactor;
 
-    // Update position with global speed multiplier
-    star.x += star.vx * normalizedDelta * animationSpeed * GLOBAL_SPEED_MULTIPLIER;
-    star.y += star.vy * normalizedDelta * animationSpeed * GLOBAL_SPEED_MULTIPLIER;
+    // Update position - use higher multiplier for active stars
+    const movementMultiplier = star.isActive ? ACTIVE_STAR_MOVEMENT_MULTIPLIER : GLOBAL_SPEED_MULTIPLIER;
+    star.x += star.vx * normalizedDelta * animationSpeed * movementMultiplier;
+    star.y += star.vy * normalizedDelta * animationSpeed * movementMultiplier;
 
     // Wrap around edges
     if (star.x < 0) star.x = width;
@@ -500,18 +507,18 @@ export const resetStars = (
 };
 
 // Replace the existing applyClickForce function in stars.ts
-// Enhanced click repulsion with smooth easing and more realistic physics
+// Enhanced click repulsion with much stronger force and visible effect
 export const applyClickForce = (
   stars: Star[],
   clickX: number,
   clickY: number,
-  radius: number = 250,
-  force: number = 3
+  radius: number = 300,
+  force: number = 8
 ): number => {
   console.log(`applyClickForce called at (${clickX}, ${clickY}) with radius ${radius} and force ${force}`);
 
-  // Use a gentler force multiplier for smoother, more natural movement
-  const adjustedForce = force * 1.5;
+  // Much stronger force multiplier for visible repulsion effect
+  const adjustedForce = force * 3;
 
   let affectedCount = 0;
 
@@ -524,24 +531,26 @@ export const applyClickForce = (
       affectedCount++;
 
       // Calculate direction vector (away from click point)
-      const dirX = dx / Math.max(dist, 0.1); // Avoid division by zero
-      const dirY = dy / Math.max(dist, 0.1);
+      const dirX = dx / Math.max(dist, 1); // Avoid division by zero
+      const dirY = dy / Math.max(dist, 1);
 
-      // Use cubic easing for smoother falloff (stronger at center, gentler at edges)
+      // Use cubic easing for stronger effect at center
       const normalizedDist = dist / radius;
-      const easeOut = 1 - Math.pow(normalizedDist, 2); // Quadratic ease-out
+      const easeOut = Math.pow(1 - normalizedDist, 2); // Stronger at center
       const strength = adjustedForce * easeOut;
 
-      // Apply force with slight tangential component for more organic movement
-      const tangentX = -dirY * 0.15; // Small perpendicular component
-      const tangentY = dirX * 0.15;
-      
-      star.vx += (dirX + tangentX) * strength;
-      star.vy += (dirY + tangentY) * strength;
+      // Apply strong radial force
+      star.vx += dirX * strength;
+      star.vy += dirY * strength;
 
-      // Smaller random component for subtle variation
-      star.vx += (Math.random() - 0.5) * strength * 0.1;
-      star.vy += (Math.random() - 0.5) * strength * 0.1;
+      // Add slight tangential component for spiral effect
+      const tangentStrength = strength * 0.2;
+      star.vx += -dirY * tangentStrength;
+      star.vy += dirX * tangentStrength;
+
+      // Small random component for variety
+      star.vx += (Math.random() - 0.5) * strength * 0.15;
+      star.vy += (Math.random() - 0.5) * strength * 0.15;
 
       // Mark star as "pushed" for visual effects
       star.lastPushed = Date.now();
