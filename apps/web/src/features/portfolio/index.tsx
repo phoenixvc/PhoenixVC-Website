@@ -14,7 +14,7 @@ interface Project {
   website?: string;
   github?: string;
   docs?: string;
-  status: "live" | "development" | "beta" | "alpha" | "pre-alpha" | "early-stage" | "growth";
+  status: "live" | "development" | "beta" | "alpha" | "pre-alpha" | "seed" | "early-stage" | "growth";
   tags: string[];
 }
 
@@ -51,25 +51,25 @@ const projects: Project[] = [
   {
     name: "Airkey",
     description: "Digital access management solutions",
-    longDescription: "Airkey Ltd provides innovative digital access management solutions that enable secure, keyless entry systems for commercial and residential properties. Using advanced cryptography and mobile technology, Airkey transforms how organizations manage physical access control.",
+    longDescription: "Airkey Ltd provides innovative digital access management solutions that enable secure, keyless entry systems for various real-world assets. Using advanced cryptography and mobile technology, Airkey transforms how organizations manage physical access control.",
     icon: <Key size={32} />,
-    status: "early-stage",
+    status: "seed",
     tags: ["Access Control", "Security", "IoT", "Mobile"],
   },
   {
     name: "Hop",
-    description: "Innovative transportation technology",
-    longDescription: "Hop Pty Ltd is revolutionizing urban mobility with innovative transportation technology solutions. Their platform connects commuters with efficient, sustainable transport options while optimizing route planning and reducing congestion.",
+    description: "Innovative connectivity technology",
+    longDescription: "Hop (Pty) Ltd is revolutionizing urban mobility with innovative connectivity solutions. Their cutting edge platform and hardware connects commuters with high-speed internet.",
     icon: <Car size={32} />,
-    status: "early-stage",
-    tags: ["Transportation", "Mobility", "Smart City", "Sustainability"],
+    status: "seed",
+    tags: ["Connectivity", "Mobility", "Hardware", "Internet"],
   },
   {
     name: "Chaufher",
-    description: "Women-focused transportation service",
-    longDescription: "Chaufher Pty Ltd is a women-focused transportation service designed to provide safe, reliable rides for women, by women. The platform prioritizes passenger safety with vetted drivers and specialized features tailored to women's transportation needs.",
+    description: "Women-focused ridehail service",
+    longDescription: "Chaufher (Pty) Ltd is a women-focused ridehail service designed to provide safe, reliable rides for women, by women. The platform prioritizes passenger safety with vetted drivers and specialized features tailored to women's transportation needs.",
     icon: <Users size={32} />,
-    status: "growth",
+    status: "seed",
     tags: ["Transportation", "Safety", "Women-Focused", "Ride-Sharing"],
   },
   {
@@ -87,8 +87,9 @@ const projects: Project[] = [
 const statusColors: Record<Project["status"], { bg: string; text: string; label: string }> = {
   live: { bg: "rgba(76, 175, 80, 0.2)", text: "#4caf50", label: "Live" },
   beta: { bg: "rgba(255, 152, 0, 0.2)", text: "#ff9800", label: "Beta" },
-  alpha: { bg: "rgba(156, 39, 176, 0.2)", text: "#9c27b0", label: "Alpha" },
-  "pre-alpha": { bg: "rgba(121, 85, 72, 0.2)", text: "#795548", label: "Pre-Alpha / Seeding" },
+  alpha: { bg: "rgba(156, 39, 176, 0.2)", text: "#9c27b0", label: "Alpha / Pre-Seed" },
+  "pre-alpha": { bg: "rgba(121, 85, 72, 0.2)", text: "#795548", label: "Angel / Pre-Seed" },
+  seed: { bg: "rgba(46, 204, 113, 0.2)", text: "#27ae60", label: "Seed" },
   "early-stage": { bg: "rgba(230, 126, 34, 0.2)", text: "#e67e22", label: "Early Stage" },
   growth: { bg: "rgba(231, 76, 60, 0.2)", text: "#e74c3c", label: "Growth Stage" },
   development: { bg: "rgba(33, 150, 243, 0.2)", text: "#2196f3", label: "In Development" },

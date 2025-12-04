@@ -67,14 +67,31 @@ export const drawPlanet = (
     updateStarPosition(planet, deltaTime);
   }
 
-  // Get base color from sun alignment (planets match their orbiting sun's color)
-  const baseColor = getSunAlignedColor(planet);
-  const baseRgb = hexToRgb(baseColor);
-  const softRgb = createSoftenedColor(baseRgb);
+  // Use both project color (core) and sun color (outer glow) for visual distinction
+  const projectColor = planet.project?.color || "#ffffff";
+  const sunColor = getSunAlignedColor(planet);
+
+  // Project color for the core
+  const coreRgb = hexToRgb(projectColor);
+  const softCoreRgb = createSoftenedColor(coreRgb);
+
+  // Sun color for outer glow/ring (shows focus area affiliation)
+  const glowRgb = hexToRgb(sunColor);
+  const softGlowRgb = createSoftenedColor(glowRgb);
+
+  // Use core color as main, glow color for effects
+  const softRgb = softCoreRgb;
 
   // Calculate pulsation effect
   const scaleFactor = calculatePulsation(planet);
-  const starSize = 16 * planetSize * scaleFactor; // Slightly increased from 15 to 16 for better visibility
+
+  // Scale size based on project mass/weight (normalize around 150 as baseline)
+  const baseMass = 150;
+  const projectMass = planet.project?.mass || baseMass;
+  const massScale = Math.sqrt(projectMass / baseMass); // Square root for gentler scaling
+  const clampedMassScale = Math.max(0.7, Math.min(1.5, massScale)); // Clamp between 0.7x and 1.5x
+
+  const starSize = 18 * planetSize * scaleFactor * clampedMassScale; // Base size with mass scaling
 
   // Draw nebula effects for important stars
   drawNebulaEffects(ctx, planet, starSize, softRgb);
@@ -97,6 +114,15 @@ export const drawPlanet = (
   } else {
     // Enhanced rendering with glow
     drawStarGlow(ctx, planet, starSize, softRgb);
+  }
+
+  // Draw outer ring in sun color (shows focus area affiliation)
+  if (!planet.useSimpleRendering && projectColor !== sunColor) {
+    ctx.beginPath();
+    ctx.arc(planet.x, planet.y, starSize * 1.15, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(${softGlowRgb.r}, ${softGlowRgb.g}, ${softGlowRgb.b}, 0.5)`;
+    ctx.lineWidth = 2;
+    ctx.stroke();
   }
 
   // Draw satellites

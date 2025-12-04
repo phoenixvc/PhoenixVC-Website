@@ -12,6 +12,20 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
+// Load debug mode from localStorage to persist setting across reloads
+const loadDebugModeFromStorage = (): boolean => {
+  try {
+    const saved = localStorage.getItem("starfieldDebugSettings");
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return parsed.isDebugMode ?? false;
+    }
+  } catch {
+    // Silent fail
+  }
+  return false;
+};
+
 const Layout = ({ children }: LayoutProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
@@ -19,8 +33,8 @@ const Layout = ({ children }: LayoutProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(220);
   const [gameMode, setGameMode] = useState(false);
-  // Disable debug mode by default
-  const [debugMode, setDebugMode] = useState(false);
+  // Load debug mode from localStorage to persist setting
+  const [debugMode, setDebugMode] = useState(loadDebugModeFromStorage);
   // Cosmic navigation state
   const [cosmicNavigation, setCosmicNavigation] = useState<CosmicNavigationState>({
     currentLevel: "universe",

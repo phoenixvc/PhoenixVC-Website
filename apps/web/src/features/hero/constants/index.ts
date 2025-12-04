@@ -13,7 +13,7 @@ export const DEFAULT_HERO_CONTENT = {
   subtitle: "Strategic investments and partnerships empowering innovation across the globe",
   primaryCta: {
     text: "Our Focus Areas",
-    href: "#investment"
+    href: "#focus-areas"
   },
   secondaryCta: {
     text: "Get in Touch",

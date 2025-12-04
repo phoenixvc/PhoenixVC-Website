@@ -1,5 +1,5 @@
 import { NavItem } from "@/types";
-import { Home, Info, Target, Briefcase, FileText, Mail, BookOpen, Palette } from "lucide-react";
+import { Home, Info, Target, Briefcase, FileText, Mail, Palette } from "lucide-react";
 
 // Main navigation items used in both header and sidebar
 // Section links (anchors on main page) come before page links
@@ -17,7 +17,7 @@ export const navItems: NavItem[] = [
 
 // Resource items for sidebar only
 export const resourceItems: NavItem[] = [
-  { label: "Documentation", href: "https://docs.phoenixvc.tech", icon: <BookOpen size={20} /> },
+  // Documentation link removed - docs.phoenixvc.tech not yet available
   { label: "Theme Designer", href: "/theme-designer", icon: <Palette size={20} /> },
 ];
 

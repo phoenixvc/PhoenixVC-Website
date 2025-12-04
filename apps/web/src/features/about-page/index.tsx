@@ -19,10 +19,10 @@ const teamMembers: TeamMember[] = [
   {
     name: "Eben Maré",
     role: "CEO",
-    bio: "Eben brings over 20 years of experience in business strategy and leadership. With a passion for identifying transformative opportunities, he guides Phoenix VC's vision and strategic direction.",
+    bio: "Eben is a quantitative finance and technology leader with over 15 years of experience in trading, investment banking, and venture building. As CEO, he combines deep analytical skills with strategic leadership to guide Phoenix VC's growth.",
     image: "/themes/Noster.png",
     linkedin: "https://www.linkedin.com/in/ebenmare/",
-    expertise: ["Business Strategy", "Leadership", "Vision", "Management"],
+    expertise: ["Business Strategy", "Finance", "Technology", "Venture Capital"],
   },
   {
     name: "Jurie Smit",
