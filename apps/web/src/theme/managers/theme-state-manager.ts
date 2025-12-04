@@ -133,9 +133,8 @@ export class ThemeStateManager {
 
   private async getStoredOrDefaultUseSystem(): Promise<boolean> {
     try {
-      const storedUseSystem = await ThemeStorageManager.getUseSystem();
-      // If there's a stored value, use it; otherwise default to false (don't follow system)
-      return storedUseSystem !== null ? storedUseSystem : false;
+      // getUseSystem() already defaults to false if no stored value
+      return await ThemeStorageManager.getUseSystem();
     } catch (error) {
       console.error("[ThemeStateManager] Error getting stored use system setting:", error);
       return false;
