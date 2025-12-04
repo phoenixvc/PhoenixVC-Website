@@ -965,6 +965,32 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
             e.stopPropagation(); // Stop event propagation
             handleCanvasClick(e);
           }}
+          onTouchStart={(e) => {
+            // Prevent default to avoid issues on touch
+            e.stopPropagation();
+          }}
+          onTouchEnd={(e) => {
+            // Convert touch to click for mobile support
+            if (e.changedTouches.length > 0) {
+              const touch = e.changedTouches[0];
+              const rect = canvasRef.current?.getBoundingClientRect();
+              if (rect) {
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
+
+                // Apply repulsion and check sun hover like click handler
+                applyClickRepulsionToSunsCanvas(x, y, rect.width, rect.height);
+                const sunHoverResult = checkSunHover(x, y, rect.width, rect.height);
+
+                if (sunHoverResult) {
+                  scrollToFocusArea(sunHoverResult.sun.id, sunHoverResult.x, sunHoverResult.y);
+                  applyStarfieldRepulsion(x, y, 150, 30);
+                } else {
+                  applyStarfieldRepulsion(x, y);
+                }
+              }
+            }
+          }}
         />
       </div>
 

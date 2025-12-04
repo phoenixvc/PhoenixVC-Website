@@ -270,6 +270,8 @@ const Hero: FC<ExtendedHeroProps> = memo(
                               transition={{ duration: 0.5, delay: 0.3 }}
                             >
                               <button
+                                type="button"
+                                aria-label={`Navigate to ${primaryCta.text} section`}
                                 className={`${styles.heroButton} ${styles.heroPrimaryButton} ${
                                   accentColor
                                     ? `bg-${accentColor} hover:bg-${accentColor}-600`
@@ -287,6 +289,8 @@ const Hero: FC<ExtendedHeroProps> = memo(
                                 {primaryCta.text}
                               </button>
                               <button
+                                type="button"
+                                aria-label={`Navigate to ${secondaryCta.text} section`}
                                 className={`${styles.heroButton} ${styles.heroSecondaryButton} ${
                                   isDarkMode
                                     ? "bg-gray-800 text-white hover:bg-gray-700"
