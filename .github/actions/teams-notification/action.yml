@@ -212,16 +212,17 @@ runs:
         echo "Generated Payload:"
         echo "$PAYLOAD"
 
-        # Write the payload to output for later steps
-        echo "payload<<EOF" >> $GITHUB_OUTPUT
-        echo "$PAYLOAD" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
+        # Write the payload to a temporary file for the next step
+        PAYLOAD_FILE="${RUNNER_TEMP}/payload.json"
+        echo "$PAYLOAD" > "$PAYLOAD_FILE"
+        echo "payload_file=$PAYLOAD_FILE" >> $GITHUB_OUTPUT
 
     - name: Invoke Logic App HTTP Trigger
       shell: bash
       run: |
         echo "Invoking Logic App via HTTP trigger..."
-        COMPACT_PAYLOAD=$(jq -c . <<< '${{ steps.build_payload.outputs.payload }}')
+        PAYLOAD_FILE="${{ steps.build_payload.outputs.payload_file }}"
+        COMPACT_PAYLOAD=$(jq -c . < "$PAYLOAD_FILE")
         echo "Payload to be sent:"
         echo "$COMPACT_PAYLOAD"
         echo "Logic App URL:"
@@ -231,3 +232,5 @@ runs:
           "${{ inputs.logic_app_url }}")
         echo "Response from Logic App:"
         echo "$RESPONSE"
+        # Clean up temporary file
+        rm -f "$PAYLOAD_FILE"
