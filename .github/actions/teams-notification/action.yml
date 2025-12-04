@@ -100,6 +100,11 @@ runs:
     - name: Read and Substitute Template
       shell: bash
       id: build_payload
+      env:
+        INPUT_CHANGE_SUMMARY: ${{ inputs.change_summary }}
+        INPUT_PR_DESCRIPTION: ${{ inputs.pr_description }}
+        INPUT_MESSAGE: ${{ inputs.message }}
+        INPUT_TITLE: ${{ inputs.title }}
       run: |
         # Read the JSON template file
         TEMPLATE=$(cat "$(pwd)/${{ inputs.template_path }}")
@@ -117,16 +122,18 @@ runs:
         resource_group="${{ inputs.resource_group }}"
         environment="${{ inputs.environment }}"
         branch="${{ inputs.branch }}"
-        message="${{ inputs.message }}"
-        title="${{ inputs.title }}"
+        # Use env vars for inputs that may contain special characters (backticks, etc.)
+        message="$INPUT_MESSAGE"
+        title="$INPUT_TITLE"
         deployment_url="${{ inputs.deployment_url }}"
-        change_summary="${{ inputs.change_summary }}"
+        change_summary="$INPUT_CHANGE_SUMMARY"
         deployment_id="${{ inputs.deployment_id }}"
         artifact_id="${{ inputs.artifact_id }}"
         run_id="${{ inputs.run_id }}"
         version="${{ inputs.version }}"
         author="${{ inputs.author }}"
         repository="${{ inputs.repository }}"
+        pr_description="$INPUT_PR_DESCRIPTION"
 
         # Encode tokens
         encodedGitHubToken=$(echo "${{ inputs.github_token }}" | base64)
@@ -165,6 +172,23 @@ runs:
 
         echo "Computed approval URL: $approval_url"
 
+        # Escape special characters in user-provided content for sed and JSON
+        # Function to escape special characters for sed replacement with | delimiter
+        escape_for_sed() {
+          # For sed replacement, we need to:
+          # 1. Escape \ which are special in sed replacement
+          # 2. Escape & which is special in sed replacement
+          # 3. Escape | since we're using it as delimiter
+          # 4. Escape " for valid JSON (need \\\\ to output literal \\")
+          # 5. Replace newlines with spaces (tr) to avoid sed issues
+          printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/&/\\&/g' -e 's/|/\\|/g' -e 's/"/\\\\"/g' | tr '\n' ' '
+        }
+
+        # Escape user-provided content that may contain special characters
+        escaped_message=$(escape_for_sed "$message")
+        escaped_title=$(escape_for_sed "$title")
+        escaped_pr_description=$(escape_for_sed "$pr_description")
+
         # Substitute placeholders in the template using sed
         PAYLOAD=$(echo "$TEMPLATE" | sed \
           -e "s|{{teamsWebhookUrl}}|${webhook_url}|g" \
@@ -172,8 +196,8 @@ runs:
           -e "s|{{resourceGroup}}|${resource_group}|g" \
           -e "s|{{environment}}|${environment}|g" \
           -e "s|{{branch}}|${branch}|g" \
-          -e "s|{{message}}|${message}|g" \
-          -e "s|{{title}}|${title}|g" \
+          -e "s|{{message}}|${escaped_message}|g" \
+          -e "s|{{title}}|${escaped_title}|g" \
           -e "s|{{color}}|$color|g" \
           -e "s|{{deploymentUrl}}|${deployment_url}|g" \
           -e "s|{{rollbackUrl}}|${{ inputs.rollback_url }}|g" \
@@ -182,7 +206,8 @@ runs:
           -e "s|{{approvalUrl}}|${escaped_approval_url}|g" \
           -e "s|{{version}}|${version}|g" \
           -e "s|{{author}}|${author}|g" \
-          -e "s|{{repository}}|${repository}|g"
+          -e "s|{{repository}}|${repository}|g" \
+          -e "s|{{pr_description}}|${escaped_pr_description}|g"
         )
         echo "Generated Payload:"
         echo "$PAYLOAD"
