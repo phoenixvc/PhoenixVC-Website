@@ -2,6 +2,7 @@
 import { SUNS } from "./cosmos/cosmicHierarchy";
 import { getDailySeededRandom } from "./utils";
 import { SUN_PHYSICS } from "./physicsConfig";
+import { getFrameTime } from "./frameCache";
 
 export interface SunState {
   id: string;
@@ -167,7 +168,7 @@ export function updateSunPhysics(deltaTime: number): void {
   }
   
   const dt = Math.min(deltaTime, 50); // Cap delta time to prevent physics explosions
-  const currentTime = Date.now();
+  const currentTime = getFrameTime();
   
   // Update each sun
   for (let i = 0; i < sunStates.length; i++) {

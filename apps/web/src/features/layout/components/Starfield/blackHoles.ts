@@ -2,6 +2,7 @@
 
 import { BlackHole, BlackHoleParticle } from "./types";
 import { randomColor } from "./utils";
+import { getFrameTime } from "./frameCache";
 
 // Initialize black holes based on configuration
 export const initBlackHoles = (
@@ -63,7 +64,7 @@ export const drawBlackHole = (
   blackHole.rotation += blackHole.rotationSpeed * deltaTime;
 
   // Draw outer gravitational distortion glow (pulsing effect)
-  const pulseTime = Date.now() * 0.001;
+  const pulseTime = getFrameTime() * 0.001;
   const pulseFactor = 1 + Math.sin(pulseTime * 1.5) * 0.15;
 
   // Outer gravitational glow - very subtle
@@ -80,7 +81,7 @@ export const drawBlackHole = (
   ctx.restore();
 
   // Create particles for accretion disk - less frequently
-  const currentTime = Date.now();
+  const currentTime = getFrameTime();
   if (currentTime - blackHole.lastParticleTime > 75) { // Increased from 50ms to 75ms
     blackHole.lastParticleTime = currentTime;
 

@@ -9,6 +9,7 @@ import {
   EFFECT_TIMING,
   CONNECTION_CONFIG,
 } from "./physicsConfig";
+import { getFrameTime } from "./frameCache";
 
 // Re-export physics config values as constants for backward compatibility
 const GLOBAL_SPEED_MULTIPLIER = GLOBAL_PHYSICS.speedMultiplier;
@@ -261,7 +262,7 @@ export const drawStars = (
   ctx: CanvasRenderingContext2D,
   stars: Star[]
 ): void => {
-  const now = Date.now();
+  const now = getFrameTime();
   const glowDuration = EFFECT_TIMING.pushGlowDuration;
 
   for (let i = 0; i < stars.length; i++) {
@@ -395,8 +396,8 @@ export const drawConnections = (
 
   ctx.lineWidth = 0.5;
 
-  // Use current time for animation
-  const time = Date.now();
+  // Use cached frame time for animation
+  const time = getFrameTime();
   
   // Initialize connection start time on first call (single-threaded canvas rendering)
   if (connectionStartTime === null) {
@@ -543,7 +544,7 @@ export const applyExplosionForce = (
       }
 
       // Mark star as active
-      star.lastPushed = Date.now();
+      star.lastPushed = getFrameTime();
       star.isActive = true;
     }
   });
@@ -639,7 +640,7 @@ export const applyClickForce = (
       star.vy += (Math.random() - 0.5) * strength * 0.15;
 
       // Mark star as "pushed" for visual effects
-      star.lastPushed = Date.now();
+      star.lastPushed = getFrameTime();
       star.isActive = true;
     }
   });

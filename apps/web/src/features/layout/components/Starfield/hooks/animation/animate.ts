@@ -3,6 +3,7 @@ import { SetStateAction } from "react";
 import { drawBlackHole } from "../../blackHoles";
 import { drawConnections, drawStars, updateStarActivity, updateStarPositions, handleBoundaries } from "../../stars";
 import { logger } from "@/utils/logger";
+import { updateFrameCache, getFrameTime } from "../../frameCache";
 import {
   BlackHole,
   GameState,
@@ -26,6 +27,9 @@ import { getSunStates, initializeSunStates, updateSunPhysics, updateSunSizesFrom
 
 export const animate = (timestamp: number, props: AnimationProps, refs: AnimationRefs): void => {
   try {
+    // Update frame cache at the start of each frame
+    updateFrameCache();
+
     if (props.debugSettings?.verboseLogs) {
       logger.debug("frame:", timestamp, "stars:", props.starsRef?.current.length ?? 0);
     }
@@ -39,8 +43,8 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       return;
     }
 
-    // Update last frame time for watchdog
-    refs.lastFrameTimeRef.current = Date.now();
+    // Update last frame time for watchdog (use cached frame time)
+    refs.lastFrameTimeRef.current = getFrameTime();
 
     // Add a safety check for starsRef at the beginning of each frame
     if (!props.starsRef) {
