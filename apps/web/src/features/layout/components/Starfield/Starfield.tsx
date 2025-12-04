@@ -1005,35 +1005,10 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
       {/* Zoom out button when focused on a sun */}
       {focusedSunId && (
         <button
-          className={styles.zoomOutButton}
+          className={`${styles.zoomOutButton} ${!isDarkMode ? styles.zoomOutButtonLight : ""}`}
           onClick={() => zoomToSun(focusedSunId)}
-          style={{
-            position: "fixed",
-            top: "20px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            zIndex: 1001,
-            padding: "12px 24px",
-            background: isDarkMode 
-              ? "linear-gradient(135deg, rgba(25, 20, 40, 0.95) 0%, rgba(35, 25, 55, 0.95) 100%)"
-              : "linear-gradient(135deg, rgba(250, 248, 255, 0.95) 0%, rgba(240, 235, 255, 0.95) 100%)",
-            backdropFilter: "blur(20px)",
-            border: `1px solid ${isDarkMode ? "rgba(157, 78, 221, 0.5)" : "rgba(123, 44, 191, 0.3)"}`,
-            borderRadius: "30px",
-            color: isDarkMode ? "rgba(255, 255, 255, 0.9)" : "rgba(30, 30, 50, 0.9)",
-            fontSize: "14px",
-            fontWeight: 500,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            boxShadow: isDarkMode 
-              ? "0 8px 32px rgba(157, 78, 221, 0.3)" 
-              : "0 8px 32px rgba(123, 44, 191, 0.2)",
-            transition: "all 0.3s ease"
-          }}
         >
-          <span style={{ fontSize: "18px" }}>←</span>
+          <span className={styles.zoomOutIcon}>←</span>
           Zoom Out
         </button>
       )}
