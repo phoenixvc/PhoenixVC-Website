@@ -85,6 +85,7 @@ export interface AnimationProps {
     hoveredSunId?: string | null;
     focusedSunId?: string | null;
     debugSettings?: DebugSettings; // Add debug settings
+    isMouseOverProjectTooltipRef?: MutableRefObject<boolean>; // Track if mouse is over project tooltip
 }
 
 export interface AnimationRefs {

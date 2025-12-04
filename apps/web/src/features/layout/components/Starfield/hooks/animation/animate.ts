@@ -222,6 +222,11 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
           return;
         }
 
+        // Don't hide the tooltip if mouse is currently over it (allows clicking links)
+        if (!newInfo.show && props.isMouseOverProjectTooltipRef?.current) {
+          return;
+        }
+
         // Only update state if it changed significantly
         if (
           newInfo.show !== currentHoverInfo.show ||
@@ -236,8 +241,8 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
 
       // If over a content card, hide any active tooltip; otherwise check for planet hover
       if (isOverContentCard) {
-        // Clear hover info if currently showing
-        if (currentHoverInfo.show) {
+        // Clear hover info if currently showing (but not if mouse is over tooltip)
+        if (currentHoverInfo.show && !props.isMouseOverProjectTooltipRef?.current) {
           props.setHoverInfo({ project: null, x: 0, y: 0, show: false });
         }
       } else {
