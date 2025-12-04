@@ -40,7 +40,7 @@ export class ThemeTransformationManager {
   constructor(config?: Partial<TransformationConfig>, registry?: ThemeRegistry) {
     // Default configuration with sensible defaults
     this.config = {
-      defaultMode: config?.defaultMode || "light",
+      defaultMode: config?.defaultMode || "dark",
       shadeCount: config?.shadeCount || 9,
       shadeIntensity: config?.shadeIntensity || 0.1,
       contrastThreshold: config?.contrastThreshold || 0.5,
