@@ -211,10 +211,12 @@ export function updateSunPhysics(deltaTime: number): void {
       const targetY = sun.baseY + driftY;
       
       // 2. Smoothly interpolate current position towards target (lerp)
-      // This creates smooth, visible movement
-      const lerpFactor = 0.02; // Increased interpolation for visible movement
-      sun.vx += (targetX - sun.x) * lerpFactor;
-      sun.vy += (targetY - sun.y) * lerpFactor;
+      // Using direct position lerp instead of velocity for smoother, non-jerky movement
+      const lerpFactor = 0.003; // Reduced from 0.02 for much smoother movement
+
+      // Direct position interpolation (smoother than velocity-based)
+      sun.x += (targetX - sun.x) * lerpFactor;
+      sun.y += (targetY - sun.y) * lerpFactor;
     }
     
     // 3. Apply accumulated click repulsion
@@ -229,7 +231,7 @@ export function updateSunPhysics(deltaTime: number): void {
     if (Math.abs(sun.clickRepulsionX) < 0.0001) sun.clickRepulsionX = 0;
     if (Math.abs(sun.clickRepulsionY) < 0.0001) sun.clickRepulsionY = 0;
     
-    // 4. Apply center repulsion to prevent clustering
+    // 4. Apply center repulsion to prevent clustering (directly to position for smoothness)
     const centerDx = sun.x - SUN_PHYSICS.centerX;
     const centerDy = sun.y - SUN_PHYSICS.centerY;
     const centerDist = Math.sqrt(centerDx * centerDx + centerDy * centerDy);
@@ -239,8 +241,9 @@ export function updateSunPhysics(deltaTime: number): void {
       const centerRepelFactor = (SUN_PHYSICS.centerRepulsionRadius - centerDist) / SUN_PHYSICS.centerRepulsionRadius;
       const centerNx = centerDx / centerDist;
       const centerNy = centerDy / centerDist;
-      sun.vx += centerNx * SUN_PHYSICS.centerRepulsionStrength * centerRepelFactor * dt;
-      sun.vy += centerNy * SUN_PHYSICS.centerRepulsionStrength * centerRepelFactor * dt;
+      // Apply directly to position for smoother effect (reduced strength)
+      sun.x += centerNx * SUN_PHYSICS.centerRepulsionStrength * centerRepelFactor * 0.5;
+      sun.y += centerNy * SUN_PHYSICS.centerRepulsionStrength * centerRepelFactor * 0.5;
     }
     
     // 5. Check for proximity to other suns and apply gentle repulsion
@@ -261,24 +264,24 @@ export function updateSunPhysics(deltaTime: number): void {
         const nx = dx / dist;
         const ny = dy / dist;
 
-        // Apply gentle repulsion to velocity
+        // Apply very gentle repulsion directly to position (not velocity) for smoother effect
         const repelStrength = (SUN_PHYSICS.propelThreshold - dist) / SUN_PHYSICS.propelThreshold;
-        const repelForce = repelStrength * 0.001;
-        sun.vx -= nx * repelForce;
-        sun.vy -= ny * repelForce;
+        const repelForce = repelStrength * 0.0003; // Reduced from 0.001 and applied to position
+        sun.x -= nx * repelForce;
+        sun.y -= ny * repelForce;
 
         // Increase rotation speed when close
         sun.rotationSpeed = Math.min(0.0003, sun.rotationSpeed + SUN_PHYSICS.rotationSpeedBoost * dt * 0.0001);
       }
     }
     
-    // 6. Apply velocity damping
-    sun.vx *= SUN_PHYSICS.velocityDamping;
-    sun.vy *= SUN_PHYSICS.velocityDamping;
-    
-    // 7. Update position based on velocity
-    sun.x += sun.vx;
-    sun.y += sun.vy;
+    // 6. Apply stronger velocity damping for smoother movement
+    sun.vx *= 0.92; // Increased damping from 0.98 for quicker settling
+    sun.vy *= 0.92;
+
+    // 7. Update position based on velocity (reduced effect)
+    sun.x += sun.vx * 0.3; // Reduce velocity impact for smoother movement
+    sun.y += sun.vy * 0.3;
     
     // 8. Update propel timer
     if (sun.propelTimer > 0) {

@@ -385,12 +385,21 @@ export const updatePlanets = (
       const sunState = sunStates.find(s => s.id === planet.orbitParentId);
       
       if (sunState) {
-        // Use dynamic sun position from the sun system
-        planet.orbitCenter = {
-          x: sunState.x * width,
-          y: sunState.y * height
-        };
-        
+        // Use dynamic sun position from the sun system with smoothing
+        const targetX = sunState.x * width;
+        const targetY = sunState.y * height;
+
+        // Smooth interpolation to prevent jerky planet movement when sun moves
+        if (planet.orbitCenter) {
+          const smoothingFactor = 0.08; // Smooth following
+          planet.orbitCenter = {
+            x: planet.orbitCenter.x + (targetX - planet.orbitCenter.x) * smoothingFactor,
+            y: planet.orbitCenter.y + (targetY - planet.orbitCenter.y) * smoothingFactor
+          };
+        } else {
+          planet.orbitCenter = { x: targetX, y: targetY };
+        }
+
         // Don't draw suns here - they're drawn by the main drawSuns function
       } else if (camera) {
         // Fallback to camera-based calculation for non-dynamic suns
