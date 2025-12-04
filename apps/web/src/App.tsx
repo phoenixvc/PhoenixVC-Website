@@ -1,13 +1,37 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Layout } from "@/features/layout";
 import { Hero } from "@/features/hero";
 import { InvestmentFocus } from "@/features/investment-focus";
 import { Contact } from "@/features/contact";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { useTheme } from "@/theme";
 import { About } from "./features/about";
 import { ErrorBoundary, NotFound } from "./features/error";
 import { PageSkeleton } from "@/components/ui/Skeleton";
+
+// Component to handle hash scroll restoration after navigation
+const ScrollToHash = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    // Small delay to ensure DOM is ready after route change
+    const timeoutId = setTimeout(() => {
+      if (location.hash) {
+        const element = document.querySelector(location.hash);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+        }
+      } else if (location.pathname === "/") {
+        // Scroll to top when navigating to home without hash
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [location]);
+
+  return null;
+};
 
 // Lazy load route-based components for code splitting
 const Blog = lazy(() => import("./features/blog").then(m => ({ default: m.Blog })));
@@ -28,6 +52,7 @@ const App = () => {
   return (
     <ErrorBoundary>
       <BrowserRouter>
+        <ScrollToHash />
         <Routes>
           <Route path="/" element={
           <Layout>

@@ -432,6 +432,32 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
       // Force a complete reset of stars
       resetStars();
 
+      // Recalculate canvas dimensions to fix coordinate offset issues
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const { innerWidth: width, innerHeight: height } = window;
+        canvas.width = width;
+        canvas.height = height;
+        dimensionsRef.current = { width, height };
+
+        // Update container bounds if in hero mode
+        if (heroMode && containerRef?.current) {
+          const rect = containerRef.current.getBoundingClientRect();
+          containerBoundsRef.current = {
+            left: rect.left,
+            right: rect.right,
+            top: rect.top,
+            bottom: rect.bottom,
+            width: rect.width,
+            height: rect.height
+          };
+          centerPositionRef.current = {
+            x: rect.left + rect.width / 2,
+            y: rect.top + rect.height / 2
+          };
+        }
+      }
+
       // Reset animation error count and ensure stars exist
       if (ensureStarsExist) {
         ensureStarsExist();
@@ -449,7 +475,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
         clearTimeout(restartTimeout);
       };
     }
-  }, [isDarkMode, resetStars, ensureStarsExist]);
+  }, [isDarkMode, resetStars, ensureStarsExist, heroMode, containerRef]);
 
   // Apply initial mouse position if provided
   useEffect(() => {
