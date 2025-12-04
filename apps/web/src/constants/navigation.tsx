@@ -17,7 +17,7 @@ export const navItems: NavItem[] = [
 
 // Resource items for sidebar only
 export const resourceItems: NavItem[] = [
-  { label: "Documentation", href: "https://docs.example.com", icon: <BookOpen size={20} /> },
+  { label: "Documentation", href: "https://docs.phoenixvc.tech", icon: <BookOpen size={20} /> },
   { label: "Theme Designer", href: "/theme-designer", icon: <Palette size={20} /> },
 ];
 

@@ -28,7 +28,9 @@ function getCachedImage(src: string): HTMLImageElement | null {
     imageCache.set(src, img);
   }
 
-  return img.complete ? img : null;
+  // Check both complete AND naturalWidth to ensure image actually loaded successfully
+  // (complete is true even for failed loads, but naturalWidth would be 0)
+  return (img.complete && img.naturalWidth > 0) ? img : null;
 }
 
 // Get the color a planet should use based on its focus area (matching its sun)

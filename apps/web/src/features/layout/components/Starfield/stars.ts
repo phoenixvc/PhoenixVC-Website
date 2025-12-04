@@ -575,8 +575,6 @@ export const applyClickForce = (
   radius: number = 350,
   force: number = 25
 ): number => {
-  console.log(`applyClickForce called at (${clickX}, ${clickY}) with radius ${radius} and force ${force}`);
-
   // Much stronger force multiplier for visible repulsion effect
   const adjustedForce = force * 5;
 
@@ -618,7 +616,6 @@ export const applyClickForce = (
     }
   });
 
-  console.log(`Total stars affected: ${affectedCount}`);
   return affectedCount;
 };
 

@@ -14,6 +14,7 @@ const Blog = lazy(() => import("./features/blog").then(m => ({ default: m.Blog }
 const Portfolio = lazy(() => import("./features/portfolio").then(m => ({ default: m.Portfolio })));
 const ProjectDetail = lazy(() => import("./features/portfolio/ProjectDetail").then(m => ({ default: m.ProjectDetail })));
 const AboutPage = lazy(() => import("./features/about-page").then(m => ({ default: m.AboutPage })));
+const ThemeDesigner = lazy(() => import("./features/theme-designer").then(m => ({ default: m.ThemeDesigner })));
 
 // Loading fallback component using skeleton
 const PageLoader = ({ isDarkMode = false }: { isDarkMode?: boolean }) => (
@@ -70,6 +71,14 @@ const App = () => {
             <Layout>
               <Suspense fallback={<PageLoader isDarkMode={isDarkMode} />}>
                 <AboutPage />
+              </Suspense>
+            </Layout>
+          } />
+
+          <Route path="/theme-designer" element={
+            <Layout>
+              <Suspense fallback={<PageLoader isDarkMode={isDarkMode} />}>
+                <ThemeDesigner isDarkMode={isDarkMode} />
               </Suspense>
             </Layout>
           } />

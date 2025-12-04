@@ -9,7 +9,7 @@ interface SubstackPost {
   title: string;
   subtitle: string;
   url: string;
-  author: "Eben Maré" | "Jurie Smit";
+  author: "Eben Maré";
   category: "Finance" | "Blockchain" | "Technology" | "AI" | "Strategy";
   date?: string;
 }
@@ -55,15 +55,6 @@ const substackPosts: SubstackPost[] = [
     author: "Eben Maré",
     category: "Finance",
     date: "Nov 14, 2023",
-  },
-  // Jurie Smit's Substack profile - link to his page for readers to explore
-  {
-    title: "Thoughts on Technology & Venture Capital",
-    subtitle: "Exploring the intersection of innovation and investment",
-    url: "https://justawannabeghost.substack.com/",
-    author: "Jurie Smit",
-    category: "Technology",
-    date: "Ongoing",
   },
 ];
 
@@ -111,11 +102,18 @@ export const Blog = () => {
   };
 
   useEffect(() => {
-    // Load Substack embed script
+    // Load Substack embed script with error handling
     const script = document.createElement("script");
     script.src = "https://substack.com/embedjs/embed.js";
     script.async = true;
     script.charset = "utf-8";
+
+    // Handle script loading errors gracefully
+    script.onerror = () => {
+      // Substack embed failed to load - this is non-critical, silently continue
+      // The blog will still function, just without Substack embed features
+    };
+
     document.body.appendChild(script);
 
     return () => {
@@ -184,7 +182,6 @@ export const Blog = () => {
                 >
                   <option value="All">All Authors</option>
                   <option value="Eben Maré">Eben Maré</option>
-                  <option value="Jurie Smit">Jurie Smit</option>
                 </select>
               </div>
             </div>
