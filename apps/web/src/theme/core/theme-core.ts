@@ -55,7 +55,7 @@ export class ThemeCore {
 
     // Create transformation manager with configuration
     this.transformationManager = new ThemeTransformationManager({
-      defaultMode: "light",
+      defaultMode: "dark",
       shadeCount: 9,
       shadeIntensity: 0.1,
       contrastThreshold: 0.5
@@ -215,7 +215,7 @@ export class ThemeCore {
     variant: string = "default",
     state: string = "default"
   ): React.CSSProperties {
-    const mode = this.stateManager ? this.stateManager.getState().mode : "light";
+    const mode = this.stateManager ? this.stateManager.getState().mode : "dark";
     return this.styleManager.getComponentStyle(
       component,
       variant,
@@ -225,7 +225,7 @@ export class ThemeCore {
   }
 
   getComponentTypography(component: string, variant: string = "default"): TypographyScale {
-    const mode = this.stateManager ? this.stateManager.getState().mode : "light";
+    const mode = this.stateManager ? this.stateManager.getState().mode : "dark";
     const typography = this.typographyManager.getComponentTypography(
       component,
       variant,
@@ -243,7 +243,7 @@ export class ThemeCore {
   }
 
   getTypographyForElement(element: string): TypographyScale {
-    const mode = this.stateManager ? this.stateManager.getState().mode : "light";
+    const mode = this.stateManager ? this.stateManager.getState().mode : "dark";
     const typography = this.typographyManager.getComponentTypography(
       element,
       "default",
@@ -396,7 +396,7 @@ export class ThemeCore {
 
   // ThemeComponentManager methods with safety checks
   getThemeClasses(themeName: ThemeName): Record<string, string> {
-    const mode = this.stateManager ? this.stateManager.getState().mode : "light";
+    const mode = this.stateManager ? this.stateManager.getState().mode : "dark";
     return this.styleManager.generateThemeClasses(mode, themeName);
   }
 

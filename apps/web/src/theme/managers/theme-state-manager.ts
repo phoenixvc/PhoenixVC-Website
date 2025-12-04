@@ -45,7 +45,7 @@ export class ThemeStateManager {
     this.config = {
       ...config,
       themeName: config.themeName || "classic",
-      mode: config.mode || "light",
+      mode: config.mode || "dark",
       direction: config.direction || "ltr",
       version: config.version || "1.0.0"
     };
@@ -102,9 +102,9 @@ export class ThemeStateManager {
   private initializeState(): void {
     // Set defaults initially
     this.currentThemeName = "classic";
-    this.currentMode = "light";
+    this.currentMode = "dark";
     this.systemMode = this.getInitialSystemMode();
-    this.useSystem = true;
+    this.useSystem = false;
   }
 
   private async getStoredOrDefaultThemeName(): Promise<ThemeName> {
@@ -124,19 +124,21 @@ export class ThemeStateManager {
       const storedMode = await ThemeStorageManager.getThemeMode();
       return storedMode && themeValidationManager.isValidThemeMode(storedMode)
         ? storedMode
-        : "light";
+        : "dark";
     } catch (error) {
       console.error("[ThemeStateManager] Error getting stored theme mode:", error);
-      return "light";
+      return "dark";
     }
   }
 
   private async getStoredOrDefaultUseSystem(): Promise<boolean> {
     try {
-      return await ThemeStorageManager.getUseSystem();
+      const storedUseSystem = await ThemeStorageManager.getUseSystem();
+      // If there's a stored value, use it; otherwise default to false (don't follow system)
+      return storedUseSystem !== null ? storedUseSystem : false;
     } catch (error) {
       console.error("[ThemeStateManager] Error getting stored use system setting:", error);
-      return true;
+      return false;
     }
   }
 
