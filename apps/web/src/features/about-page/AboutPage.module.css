@@ -36,7 +36,7 @@
   font-size: 3.5rem;
   font-weight: 800;
   margin-bottom: 1.5rem;
-  background-image: linear-gradient(90deg, #9333ea 0%, #7c3aed 100%);
+  background-image: linear-gradient(90deg, #9333ea 0%, #ff5a00 100%);
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
@@ -46,7 +46,7 @@
 .divider {
   width: 100px;
   height: 4px;
-  background: linear-gradient(90deg, #9333ea 0%, #7c3aed 100%);
+  background: linear-gradient(90deg, #9333ea 0%, #ff5a00 100%);
   margin: 0 auto 1.5rem;
   border-radius: 2px;
   position: relative;
@@ -59,20 +59,20 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, #9333ea 0%, #7c3aed 100%);
+  background: linear-gradient(90deg, #9333ea 0%, #ff5a00 100%);
   filter: blur(8px);
   opacity: 0.5;
 }
 
 .subtitle {
   font-size: 1.5rem;
-  color: rgba(147, 51, 234, 0.9);
+  color: rgba(255, 90, 0, 0.9);
   font-style: italic;
   font-weight: 500;
 }
 
 .lightMode .subtitle {
-  color: rgba(163, 27, 255, 0.9);
+  color: rgba(230, 81, 0, 0.9);
 }
 
 /* Section Titles */
@@ -80,7 +80,7 @@
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 1.5rem;
-  background-image: linear-gradient(90deg, #9333ea 0%, #c084fc 100%);
+  background-image: linear-gradient(90deg, #9333ea 0%, #ff5a00 100%);
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
@@ -331,16 +331,16 @@
 
 .expertiseTag {
   padding: 0.35rem 0.75rem;
-  background: rgba(147, 51, 234, 0.1);
-  border: 1px solid rgba(147, 51, 234, 0.2);
+  background: rgba(255, 90, 0, 0.1);
+  border: 1px solid rgba(255, 90, 0, 0.2);
   border-radius: 1rem;
   font-size: 0.8rem;
-  color: #9333ea;
+  color: #ff5a00;
 }
 
 .lightMode .expertiseTag {
-  background: rgba(147, 51, 234, 0.08);
-  color: #7c3aed;
+  background: rgba(255, 90, 0, 0.08);
+  color: #e65100;
 }
 
 .linkedinLink {
