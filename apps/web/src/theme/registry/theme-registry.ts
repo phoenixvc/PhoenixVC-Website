@@ -30,7 +30,7 @@ export class ThemeRegistry {
     this.metadata = initialData?.metadata || {} as Record<ThemeName, ThemeMetadata>;
     this.defaults = {
       themeName: initialData?.defaults?.themeName || "classic",
-      mode: initialData?.defaults?.mode || "light"
+      mode: initialData?.defaults?.mode || "dark"
     };
     this.versions = initialData?.versions || {} as Record<ThemeName, string[]>;
     this.sourceSchemes = {} as Record<ThemeName, ThemeSchemeInitial>;

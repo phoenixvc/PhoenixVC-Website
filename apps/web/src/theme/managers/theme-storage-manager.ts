@@ -331,7 +331,7 @@ export class ThemeStorageManager {
    * @returns boolean indicating if system preference is enabled
    */
   static async getUseSystem(): Promise<boolean> {
-    return (await this.get<boolean>(this.KEYS.USE_SYSTEM)) ?? true;
+    return (await this.get<boolean>(this.KEYS.USE_SYSTEM)) ?? false;
   }
 
   /**
