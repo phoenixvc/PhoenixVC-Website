@@ -102,39 +102,7 @@ export const INITIAL_SUN_POSITIONS = generateRandomSunPositions(4);
 
 // Global sun state (mutable for animation)
 let sunStates: SunState[] = [];
-let lastUpdateTime = 0;
 let systemStartTime = 0;
-
-// Constants for sun physics - gentle but visible drifting motion
-const PROPEL_THRESHOLD = 0.15; // Distance at which repulsion activates
-const ROTATION_SPEED_BOOST = 0.00008; // Rotation speed increase when close (increased 5x)
-const DRIFT_AMPLITUDE_MIN = 0.015; // Minimum drift amplitude (increased 5x for visibility)
-const DRIFT_AMPLITUDE_MAX = 0.035; // Maximum drift amplitude (increased ~6x for visibility)
-const DRIFT_SPEED_MIN = 0.00015; // Minimum drift speed (increased 5x)
-const DRIFT_SPEED_MAX = 0.0004; // Maximum drift speed (increased 5x)
-
-// Click repulsion constants
-const CLICK_REPULSION_RADIUS = 0.25; // Normalized radius for click effect
-const CLICK_REPULSION_FORCE = 0.015; // Base force applied per click
-const MAX_CLICK_REPULSION = 0.08; // Maximum accumulated repulsion
-const CLICK_REPULSION_DECAY = 0.97; // How fast repulsion decays each frame
-
-// Staggered activation constants (reduced for faster startup)
-const ACTIVATION_DELAY_MIN = 300; // Minimum delay before a sun starts moving (ms) - faster startup
-const ACTIVATION_DELAY_MAX = 1200; // Maximum delay before a sun starts moving (ms) - faster startup
-const ACTIVATION_TRIGGER_RADIUS = 0.25; // When an active sun gets close, it triggers inactive ones
-
-// Center repulsion to prevent clustering
-const CENTER_REPULSION_STRENGTH = 0.0002; // Force pushing away from center
-const CENTER_REPULSION_RADIUS = 0.3; // Distance from center where repulsion activates
-const CENTER_X = 0.5;
-const CENTER_Y = 0.5;
-
-// Velocity damping
-const VELOCITY_DAMPING = 0.98;
-
-// Minimum distance threshold to avoid division by zero
-const MIN_DISTANCE_THRESHOLD = 0.001;
 
 // Initialize sun states
 export function initializeSunStates(): void {
@@ -147,18 +115,18 @@ export function initializeSunStates(): void {
     // Create unique drift parameters for each sun so they move independently
     const driftPhaseX = Math.random() * Math.PI * 2; // Random starting phase
     const driftPhaseY = Math.random() * Math.PI * 2;
-    const driftSpeedX = DRIFT_SPEED_MIN + Math.random() * (DRIFT_SPEED_MAX - DRIFT_SPEED_MIN);
-    const driftSpeedY = DRIFT_SPEED_MIN + Math.random() * (DRIFT_SPEED_MAX - DRIFT_SPEED_MIN);
+    const driftSpeedX = SUN_PHYSICS.driftSpeedMin + Math.random() * (SUN_PHYSICS.driftSpeedMax - SUN_PHYSICS.driftSpeedMin);
+    const driftSpeedY = SUN_PHYSICS.driftSpeedMin + Math.random() * (SUN_PHYSICS.driftSpeedMax - SUN_PHYSICS.driftSpeedMin);
     // Vary the speed slightly so X and Y don't sync up
-    const driftAmplitudeX = DRIFT_AMPLITUDE_MIN + Math.random() * (DRIFT_AMPLITUDE_MAX - DRIFT_AMPLITUDE_MIN);
-    const driftAmplitudeY = DRIFT_AMPLITUDE_MIN + Math.random() * (DRIFT_AMPLITUDE_MAX - DRIFT_AMPLITUDE_MIN);
+    const driftAmplitudeX = SUN_PHYSICS.driftAmplitudeMin + Math.random() * (SUN_PHYSICS.driftAmplitudeMax - SUN_PHYSICS.driftAmplitudeMin);
+    const driftAmplitudeY = SUN_PHYSICS.driftAmplitudeMin + Math.random() * (SUN_PHYSICS.driftAmplitudeMax - SUN_PHYSICS.driftAmplitudeMin);
     
     // Staggered activation - first sun (index 0) starts first, others wait longer with random delays
     // This provides consistent behavior while still having natural-looking staggered activation
     const isFirstSun = index === 0;
-    const activationTime = isFirstSun 
-      ? systemStartTime + ACTIVATION_DELAY_MIN 
-      : systemStartTime + ACTIVATION_DELAY_MIN + Math.random() * (ACTIVATION_DELAY_MAX - ACTIVATION_DELAY_MIN);
+    const activationTime = isFirstSun
+      ? systemStartTime + SUN_PHYSICS.activationDelayMin
+      : systemStartTime + SUN_PHYSICS.activationDelayMin + Math.random() * (SUN_PHYSICS.activationDelayMax - SUN_PHYSICS.activationDelayMin);
     
     return {
       id: sun.id,
@@ -186,11 +154,9 @@ export function initializeSunStates(): void {
       isActive: false,
       clickRepulsionX: 0,
       clickRepulsionY: 0,
-      clickRepulsionDecay: CLICK_REPULSION_DECAY,
+      clickRepulsionDecay: SUN_PHYSICS.clickRepulsionDecay,
     };
   });
-  
-  lastUpdateTime = Date.now();
 }
 
 // Update sun physics
@@ -223,7 +189,7 @@ export function updateSunPhysics(deltaTime: number): void {
         const dist = Math.sqrt(dx * dx + dy * dy);
         
         // If an active sun gets close enough, trigger this sun
-        if (dist < ACTIVATION_TRIGGER_RADIUS) {
+        if (dist < SUN_PHYSICS.activationTriggerRadius) {
           sun.isActive = true;
           break;
         }
@@ -263,17 +229,17 @@ export function updateSunPhysics(deltaTime: number): void {
     if (Math.abs(sun.clickRepulsionY) < 0.0001) sun.clickRepulsionY = 0;
     
     // 4. Apply center repulsion to prevent clustering
-    const centerDx = sun.x - CENTER_X;
-    const centerDy = sun.y - CENTER_Y;
+    const centerDx = sun.x - SUN_PHYSICS.centerX;
+    const centerDy = sun.y - SUN_PHYSICS.centerY;
     const centerDist = Math.sqrt(centerDx * centerDx + centerDy * centerDy);
-    
-    if (centerDist < CENTER_REPULSION_RADIUS && centerDist > MIN_DISTANCE_THRESHOLD) {
+
+    if (centerDist < SUN_PHYSICS.centerRepulsionRadius && centerDist > SUN_PHYSICS.minDistanceThreshold) {
       // Push away from center with increasing force as they get closer
-      const centerRepelFactor = (CENTER_REPULSION_RADIUS - centerDist) / CENTER_REPULSION_RADIUS;
+      const centerRepelFactor = (SUN_PHYSICS.centerRepulsionRadius - centerDist) / SUN_PHYSICS.centerRepulsionRadius;
       const centerNx = centerDx / centerDist;
       const centerNy = centerDy / centerDist;
-      sun.vx += centerNx * CENTER_REPULSION_STRENGTH * centerRepelFactor * dt;
-      sun.vy += centerNy * CENTER_REPULSION_STRENGTH * centerRepelFactor * dt;
+      sun.vx += centerNx * SUN_PHYSICS.centerRepulsionStrength * centerRepelFactor * dt;
+      sun.vy += centerNy * SUN_PHYSICS.centerRepulsionStrength * centerRepelFactor * dt;
     }
     
     // 5. Check for proximity to other suns and apply gentle repulsion
@@ -286,28 +252,28 @@ export function updateSunPhysics(deltaTime: number): void {
       const dist = Math.sqrt(dx * dx + dy * dy);
       
       // If suns get too close, push them apart gently
-      if (dist < PROPEL_THRESHOLD && dist > MIN_DISTANCE_THRESHOLD) {
+      if (dist < SUN_PHYSICS.propelThreshold && dist > SUN_PHYSICS.minDistanceThreshold) {
         sun.isPropelling = true;
         sun.propelTimer = 60;
-        
+
         // Normalize direction
         const nx = dx / dist;
         const ny = dy / dist;
-        
+
         // Apply gentle repulsion to velocity
-        const repelStrength = (PROPEL_THRESHOLD - dist) / PROPEL_THRESHOLD;
+        const repelStrength = (SUN_PHYSICS.propelThreshold - dist) / SUN_PHYSICS.propelThreshold;
         const repelForce = repelStrength * 0.001;
         sun.vx -= nx * repelForce;
         sun.vy -= ny * repelForce;
-        
+
         // Increase rotation speed when close
-        sun.rotationSpeed = Math.min(0.0003, sun.rotationSpeed + ROTATION_SPEED_BOOST * dt * 0.0001);
+        sun.rotationSpeed = Math.min(0.0003, sun.rotationSpeed + SUN_PHYSICS.rotationSpeedBoost * dt * 0.0001);
       }
     }
     
     // 6. Apply velocity damping
-    sun.vx *= VELOCITY_DAMPING;
-    sun.vy *= VELOCITY_DAMPING;
+    sun.vx *= SUN_PHYSICS.velocityDamping;
+    sun.vy *= SUN_PHYSICS.velocityDamping;
     
     // 7. Update position based on velocity
     sun.x += sun.vx;
@@ -451,10 +417,10 @@ export function applyClickRepulsionToSuns(clickX: number, clickY: number): numbe
     const dist = Math.sqrt(dx * dx + dy * dy);
     
     // Only affect suns within the click repulsion radius
-    if (dist < CLICK_REPULSION_RADIUS && dist > MIN_DISTANCE_THRESHOLD) {
+    if (dist < SUN_PHYSICS.clickRepulsionRadius && dist > SUN_PHYSICS.minDistanceThreshold) {
       // Calculate force based on distance (closer = stronger)
-      const forceFactor = 1 - (dist / CLICK_REPULSION_RADIUS);
-      const force = CLICK_REPULSION_FORCE * forceFactor;
+      const forceFactor = 1 - (dist / SUN_PHYSICS.clickRepulsionRadius);
+      const force = SUN_PHYSICS.clickRepulsionForce * forceFactor;
       
       // Normalize direction
       const nx = dx / dist;
@@ -470,8 +436,8 @@ export function applyClickRepulsionToSuns(clickX: number, clickY: number): numbe
         sun.clickRepulsionY * sun.clickRepulsionY
       );
       
-      if (currentMagnitude > MAX_CLICK_REPULSION) {
-        const scale = MAX_CLICK_REPULSION / currentMagnitude;
+      if (currentMagnitude > SUN_PHYSICS.maxClickRepulsion) {
+        const scale = SUN_PHYSICS.maxClickRepulsion / currentMagnitude;
         sun.clickRepulsionX *= scale;
         sun.clickRepulsionY *= scale;
       }

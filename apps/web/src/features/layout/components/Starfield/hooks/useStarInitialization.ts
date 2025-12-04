@@ -5,6 +5,7 @@ import { DEFAULT_BLACK_HOLES, DEFAULT_PORTFOLIO_PROJECTS, getColorPalette } from
 import { initPlanets } from "../Planets";
 import { resetConnectionStagger } from "../stars";
 import { BlackHole, DebugSettings, Planet, Star } from "../types";
+import { logger } from "@/utils/logger";
 
 // Default values for planet/employee star properties (matching Starfield.tsx defaults)
 const DEFAULT_ENABLE_PLANETS = true;
@@ -87,7 +88,7 @@ export const useStarInitialization = ({
     starSize: number = 1.0,
     colorScheme: string = "white"
   ): Star[] => {
-    console.log(`Initializing ${starCount} stars with size ${starSize}`);
+    logger.debug(`Initializing ${starCount} stars with size ${starSize}`);
 
     // Create a new array to hold the stars
     const stars: Star[] = [];
@@ -129,12 +130,12 @@ export const useStarInitialization = ({
       });
     }
 
-    console.log(`Created ${stars.length} stars with first star:`, stars[0]);
+    logger.debug(`Created ${stars.length} stars with first star:`, stars[0]);
     return stars;
   }, []);
 
   const initializeElements = useCallback(() => {
-    console.log("Initializing elements with dimensions:", dimensionsRef.current);
+    logger.debug("Initializing elements with dimensions:", dimensionsRef.current);
 
     // Always reinitialize stars when this function is called
     isStarsInitializedRef.current = false;
@@ -143,7 +144,7 @@ export const useStarInitialization = ({
     const height = dimensionsRef.current.height || window.innerHeight;
 
     if (width === 0 || height === 0) {
-      console.log("Invalid dimensions, using window dimensions");
+      logger.debug("Invalid dimensions, using window dimensions");
       dimensionsRef.current = {
         width: window.innerWidth,
         height: window.innerHeight
@@ -153,12 +154,12 @@ export const useStarInitialization = ({
     if (canvasRef.current) {
       canvasRef.current.width = dimensionsRef.current.width;
       canvasRef.current.height = dimensionsRef.current.height;
-      console.log("Canvas dimensions set to:", canvasRef.current.width, canvasRef.current.height);
+      logger.debug("Canvas dimensions set to:", canvasRef.current.width, canvasRef.current.height);
     }
 
     // Create stars with explicit dimensions
     const starCount = Math.floor(dimensionsRef.current.width * dimensionsRef.current.height * 0.00015 * starDensity);
-    console.log(`Creating ${starCount} stars`);
+    logger.debug(`Creating ${starCount} stars`);
 
     const newStars = initializeStarsWithLowVelocity(
       dimensionsRef.current.width,
@@ -224,7 +225,7 @@ export const useStarInitialization = ({
     setBlackHoles(newBlackHoles);
     setPlanets(modifiedPlanets);
 
-    console.log(`Initialized with ${newStars.length} stars`);
+    logger.debug(`Initialized with ${newStars.length} stars`);
     isStarsInitializedRef.current = true;
   }, [
     starDensity,
@@ -246,17 +247,17 @@ export const useStarInitialization = ({
 
   // Create a function to ensure stars exist (for animation loop)
   const ensureStarsExist = useCallback(() => {
-    console.log("Ensuring stars exist");
+    logger.debug("Ensuring stars exist");
 
     if (!starsRef.current || starsRef.current.length === 0) {
-      console.log("Stars not initialized, initializing now");
+      logger.debug("Stars not initialized, initializing now");
 
       // Try to initialize elements first
       initializeElements();
 
       // If still no stars, create fallback stars
       if (!starsRef.current || starsRef.current.length === 0) {
-        console.log("Creating fallback stars");
+        logger.debug("Creating fallback stars");
 
         // Create a minimal set of stars as fallback
         const fallbackStars = [];
@@ -287,7 +288,7 @@ export const useStarInitialization = ({
         // Update the ref and state
         starsRef.current = fallbackStars;
         setStars(fallbackStars);
-        console.log("Created fallback stars:", fallbackStars.length);
+        logger.debug("Created fallback stars:", fallbackStars.length);
       }
     }
 
@@ -296,13 +297,13 @@ export const useStarInitialization = ({
 
   // Function to reset all stars
   const resetStars = useCallback(() => {
-    console.log("Reset stars called");
+    logger.debug("Reset stars called");
 
     const width = dimensionsRef.current.width || window.innerWidth;
     const height = dimensionsRef.current.height || window.innerHeight;
 
     if (!width || !height) {
-      console.log("Invalid dimensions, can't reset stars");
+      logger.debug("Invalid dimensions, can't reset stars");
       return;
     }
 
@@ -317,7 +318,7 @@ export const useStarInitialization = ({
     isInitializedRef.current = false;
 
     const starCount = Math.floor(width * height * 0.00015 * starDensity);
-    console.log(`Creating ${starCount} stars`);
+    logger.debug(`Creating ${starCount} stars`);
 
     // Create completely new stars with low velocity
     const newStars = initializeStarsWithLowVelocity(
@@ -331,7 +332,7 @@ export const useStarInitialization = ({
       colorScheme
     );
 
-    console.log(`Created ${newStars.length} stars`);
+    logger.debug(`Created ${newStars.length} stars`);
 
     // Update ref first
     starsRef.current = [...newStars];
@@ -345,7 +346,7 @@ export const useStarInitialization = ({
       initializeElements();
     }, 50);
 
-    console.log("Stars reset complete");
+    logger.debug("Stars reset complete");
   }, [
     starDensity,
     sidebarWidth,

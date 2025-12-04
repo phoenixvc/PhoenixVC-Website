@@ -1,5 +1,6 @@
 // components/Layout/Starfield/gameState.ts
 import { GameState, Planet, Star } from "./types";
+import { logger } from "@/utils/logger";
 
 // Initialize game state
 export const initGameState = (): GameState => {
@@ -182,10 +183,10 @@ export const drawGameUI = (
 // Fetch IP address for high score tracking
 export const fetchIpAddress = async (): Promise<string> => {
   try {
-    console.log("Ftching IP dummy call:");
+    logger.debug("Fetching IP dummy call");
     return "127.0.0.1";
   } catch (error) {
-    console.error("Error fetching IP:", error);
+    logger.error("Error fetching IP:", error);
     return "";
   }
 };
@@ -198,7 +199,7 @@ export const getHighScoresForIP = (ip: string): Array<{score: number, date: stri
       return JSON.parse(scoresString);
     }
   } catch (error) {
-    console.error("Error getting high scores:", error);
+    logger.error("Error getting high scores:", error);
   }
 
   return [];
@@ -226,6 +227,6 @@ export const saveScore = (gameState: GameState): void => {
     // Save back to localStorage
     localStorage.setItem(`highScores_${gameState.ipAddress}`, JSON.stringify(topScores));
   } catch (error) {
-    console.error("Error saving score:", error);
+    logger.error("Error saving score:", error);
   }
 };

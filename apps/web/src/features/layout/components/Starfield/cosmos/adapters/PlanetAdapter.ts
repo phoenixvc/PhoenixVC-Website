@@ -2,6 +2,7 @@
 import { PortfolioProject } from "../../types";
 import { SPECIAL_COSMIC_OBJECTS } from "../cosmicHierarchy";
 import { CosmicObject } from "../types";
+import { logger } from "@/utils/logger";
 
 /**
  * Adapts existing project data to the cosmic hierarchy structure
@@ -26,7 +27,7 @@ export const adaptProjectsToCosmicObjects = (
   );
 
   if (!teamBinarySystem) {
-    console.warn("Team binary system not found in cosmic objects");
+    logger.warn("Team binary system not found in cosmic objects");
     return [];
   }
 

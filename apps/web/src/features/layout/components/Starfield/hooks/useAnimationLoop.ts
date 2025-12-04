@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { CollisionEffect, GameState } from "../types";
 import { animate } from "./animation/animate";
 import { AnimationProps, AnimationRefs } from "./animation/types";
+import { logger } from "@/utils/logger";
 
 export const useAnimationLoop = (props: AnimationProps) => {
   const [currentFps, setCurrentFps] = useState<number>(0);
@@ -108,7 +109,7 @@ export const useAnimationLoop = (props: AnimationProps) => {
 
   // Restart animation function
   const restartAnimation = useCallback(() => {
-    console.log("Restarting animation");
+    logger.debug("Restarting animation");
     isRestartingRef.current = true;
 
     // Cancel current animation frame
@@ -122,7 +123,7 @@ export const useAnimationLoop = (props: AnimationProps) => {
 
     // Ensure we have stars
     if (props.ensureStarsExist && (!props.starsRef?.current || props.starsRef.current.length === 0)) {
-      console.log("No stars found during restart, ensuring stars exist");
+      logger.debug("No stars found during restart, ensuring stars exist");
       props.ensureStarsExist();
       }
 
@@ -141,11 +142,11 @@ export const useAnimationLoop = (props: AnimationProps) => {
 
   // Start animation function
   const startAnimationWithProps = useCallback(() => {
-    console.log("Starting animation with props");
+    logger.debug("Starting animation with props");
 
     // Start animation – read from the ref each frame
     const frame = (ts: number) => {
-      if (DEBUG_LOG) console.log("→ frame", ts);
+      if (DEBUG_LOG) logger.debug("→ frame", ts);
       animate(ts, { ...latestPropsRef.current, updateFpsData }, refs);
   };
     animationRef.current = window.requestAnimationFrame(frame);
@@ -153,20 +154,20 @@ export const useAnimationLoop = (props: AnimationProps) => {
 
   // Set up animation loop
   useEffect(() => {
-    console.log("Setting up animation loop with dimensions", props.dimensions);
+    logger.debug("Setting up animation loop with dimensions", props.dimensions);
 
     // Reset error count when dependencies change
     animationErrorCountRef.current = 0;
 
     // Cancel any existing animation before starting a new one
     if (animationRef.current) {
-      console.log("Canceling previous animation before starting new one");
+      logger.debug("Canceling previous animation before starting new one");
       window.cancelAnimationFrame(animationRef.current);
     }
 
     // Ensure we have stars before starting animation
     if (props.ensureStarsExist && (!props.starsRef?.current || props.starsRef?.current.length === 0)) {
-      console.log("No stars found, ensuring stars exist before starting animation");
+      logger.debug("No stars found, ensuring stars exist before starting animation");
       props.ensureStarsExist();
     }
 

@@ -1,6 +1,7 @@
 // components/Layout/Starfield/hooks/animation/handleDebugModeChanges.ts
 
 import { AnimationRefs } from "./types";
+import { logger } from "@/utils/logger";
 
 export const handleDebugModeChanges = (
     debugMode: boolean,
@@ -10,7 +11,7 @@ export const handleDebugModeChanges = (
   ) => {
     // Check if debug mode changed
     if (debugMode !== refs.lastDebugModeRef.current) {
-      console.log("Debug mode changed from", refs.lastDebugModeRef.current, "to", debugMode);
+      logger.debug("Debug mode changed from", refs.lastDebugModeRef.current, "to", debugMode);
       refs.lastDebugModeRef.current = debugMode;
 
       // Reset animation start time to force a complete redraw
@@ -23,7 +24,7 @@ export const handleDebugModeChanges = (
 
       // Force stars to be recreated when debug mode changes
       if (ensureStarsExist) {
-        console.log("Forcing stars recreation due to debug mode change");
+        logger.debug("Forcing stars recreation due to debug mode change");
         ensureStarsExist();
 
         // Restart animation after a short delay to ensure stars are created

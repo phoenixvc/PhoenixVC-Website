@@ -1,17 +1,10 @@
-import { useRef, useEffect, useState, FC, useMemo, useCallback, forwardRef, useImperativeHandle } from "react";
+import { useRef, useEffect, useState, useMemo, useCallback, forwardRef, useImperativeHandle } from "react";
 import styles from "./starfield.module.css";
 import { logger } from "@/utils/logger";
-import { initBlackHoles } from "./blackHoles";
-import { DEFAULT_BLACK_HOLES, DEFAULT_PORTFOLIO_PROJECTS, getColorPalette } from "./constants";
 import {
   PortfolioProject,
   HoverInfo,
-  Star,
-  BlackHole,
-  PortfolioStar,
   GameState,
-  Burst,
-  CollisionEffect,
   InteractiveStarfieldProps,
   MousePosition,
   DebugSettings

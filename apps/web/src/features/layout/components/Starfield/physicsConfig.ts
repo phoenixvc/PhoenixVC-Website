@@ -83,18 +83,68 @@ export const BLACK_HOLE_PHYSICS = {
 
 /**
  * Sun physics configuration
+ * Controls position generation, drift motion, collision avoidance, and click interactions
  */
 export const SUN_PHYSICS = {
+  // Position generation
   /** Minimum distance from canvas edges (as fraction) */
   edgePadding: 0.15,
   /** Minimum distance between suns (as fraction) */
   minDistance: 0.25,
   /** Offset to avoid sidebar area (as fraction) */
   sidebarOffset: 0.12,
-  /** Velocity damping for sun movement */
-  velocityDamping: 0.98,
   /** Maximum attempts to find valid sun position */
   maxPositionAttempts: 100,
+
+  // Drift motion (gentle floating movement)
+  /** Minimum drift amplitude (how far suns float) */
+  driftAmplitudeMin: 0.015,
+  /** Maximum drift amplitude */
+  driftAmplitudeMax: 0.035,
+  /** Minimum drift speed */
+  driftSpeedMin: 0.00015,
+  /** Maximum drift speed */
+  driftSpeedMax: 0.0004,
+
+  // Collision avoidance (propel mode)
+  /** Distance threshold at which suns repel each other */
+  propelThreshold: 0.15,
+  /** Rotation speed increase when suns are close */
+  rotationSpeedBoost: 0.00008,
+
+  // Click repulsion
+  /** Normalized radius for click effect on suns */
+  clickRepulsionRadius: 0.25,
+  /** Base force applied per click */
+  clickRepulsionForce: 0.015,
+  /** Maximum accumulated repulsion */
+  maxClickRepulsion: 0.08,
+  /** How fast repulsion decays each frame (0.97 = 3% decay) */
+  clickRepulsionDecay: 0.97,
+
+  // Staggered activation (startup animation)
+  /** Minimum delay before a sun starts moving (ms) */
+  activationDelayMin: 300,
+  /** Maximum delay before a sun starts moving (ms) */
+  activationDelayMax: 1200,
+  /** Distance at which an active sun triggers inactive ones */
+  activationTriggerRadius: 0.25,
+
+  // Center repulsion (prevents clustering)
+  /** Force pushing suns away from center */
+  centerRepulsionStrength: 0.0002,
+  /** Distance from center where repulsion activates */
+  centerRepulsionRadius: 0.3,
+  /** Canvas center X (normalized) */
+  centerX: 0.5,
+  /** Canvas center Y (normalized) */
+  centerY: 0.5,
+
+  // Physics
+  /** Velocity damping for sun movement */
+  velocityDamping: 0.98,
+  /** Minimum distance to avoid division by zero */
+  minDistanceThreshold: 0.001,
 } as const;
 
 /**
