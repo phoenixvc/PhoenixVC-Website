@@ -58,17 +58,19 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
 
   const position = adjustPosition();
 
-  // Extract project-relevant data
-  const getStatusFromTitle = (title?: string): string => {
-    if (!title) return "Portfolio";
-    if (title.includes("Alpha") && !title.includes("Pre-Alpha")) return "Alpha";
-    if (title.includes("Pre-Alpha")) return "Pre-Alpha";
-    if (title.includes("Early Stage")) return "Early Stage";
-    if (title.includes("Growth")) return "Growth Stage";
-    return "Active";
+  // Format status for display
+  const formatStatus = (status?: string): string => {
+    const statusMap: Record<string, string> = {
+      "alpha": "Alpha",
+      "pre-alpha": "Pre-Alpha",
+      "early-stage": "Early Stage",
+      "growth": "Growth Stage",
+      "active": "Active"
+    };
+    return statusMap[status || ""] || "Portfolio";
   };
 
-  const projectStage = getStatusFromTitle(project.title);
+  const projectStage = formatStatus(project.status);
   const focusAreaLabel = project.focusArea?.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase()) || project.department || "Technology";
   const badgeText = projectStage;
   const skillsList = Array.isArray(project.skills) ? project.skills.slice(0, 3).join(", ") : project.expertise || "Innovation";

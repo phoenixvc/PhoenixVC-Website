@@ -12,20 +12,21 @@ import {
 } from "./starEffects";
 import { calculatePulsation, createSoftenedColor, hexToRgb, updateStarPosition } from "./starUtils";
 import { Planet } from "./types";
-
-// Sun colors mapped by focus area - planets should match their parent sun
-const FOCUS_AREA_SUN_COLORS: Record<string, string> = {
-  "fintech-blockchain": "#f39c12", // Golden
-  "ai-ml": "#3498db", // Blue
-  "defense-security": "#e74c3c", // Red
-  "mobility-transportation": "#2ecc71", // Green
-};
+import { SUNS } from "./cosmos/cosmicHierarchy";
 
 // Get the color a planet should use based on its focus area (matching its sun)
+// Dynamically looks up sun color from cosmicHierarchy to avoid duplication
 function getSunAlignedColor(planet: Planet): string {
   const focusArea = planet.project?.focusArea;
-  if (focusArea && FOCUS_AREA_SUN_COLORS[focusArea]) {
-    return FOCUS_AREA_SUN_COLORS[focusArea];
+  if (focusArea) {
+    // Find the matching focus area sun in the hierarchy
+    const matchingSun = SUNS.find(sun =>
+      sun.parentId === "focus-areas-galaxy" &&
+      sun.id.includes(focusArea.replace(/-/g, "-"))
+    );
+    if (matchingSun?.color) {
+      return matchingSun.color;
+    }
   }
   // Fallback to project color or default
   return planet.project?.color || "#ffffff";

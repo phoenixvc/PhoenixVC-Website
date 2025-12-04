@@ -118,7 +118,9 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   // Sun hover state for focus area suns
   const [hoveredSun, setHoveredSun] = useState<SunInfo | null>(null);
   const [hoveredSunId, setHoveredSunId] = useState<string | null>(null);
-  
+  // Ref to track current value and avoid unnecessary state updates
+  const hoveredSunIdRef = useRef<string | null>(null);
+
   // Focused sun state - when user clicks on a focus area, we scope the view
   const [focusedSunId, setFocusedSunId] = useState<string | null>(null);
   const focusAnimationRef = useRef<number | null>(null);
@@ -519,24 +521,33 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
           const sunHoverResult = checkSunHover(canvasX, canvasY, rect.width, rect.height);
           
           if (sunHoverResult) {
-            setHoveredSunId(sunHoverResult.sun.id);
-            setHoveredSun({
-              id: sunHoverResult.sun.id,
-              name: sunHoverResult.sun.name,
-              description: sunHoverResult.sun.description,
-              color: sunHoverResult.sun.color || "#ffffff",
-              x: e.clientX,
-              y: e.clientY
-            });
+            // Only update state if the hovered sun changed
+            if (hoveredSunIdRef.current !== sunHoverResult.sun.id) {
+              hoveredSunIdRef.current = sunHoverResult.sun.id;
+              setHoveredSunId(sunHoverResult.sun.id);
+              setHoveredSun({
+                id: sunHoverResult.sun.id,
+                name: sunHoverResult.sun.name,
+                description: sunHoverResult.sun.description,
+                color: sunHoverResult.sun.color || "#ffffff",
+                x: e.clientX,
+                y: e.clientY
+              });
+            } else {
+              // Update position only without changing state for same sun
+              setHoveredSun(prev => prev ? { ...prev, x: e.clientX, y: e.clientY } : null);
+            }
             // Change cursor to pointer
             if (canvasRef.current) {
               canvasRef.current.style.cursor = "pointer";
             }
           } else {
-            // Always clear tooltip state when not hovering over a sun
-            // (don't check hoveredSunId as it may be stale in the closure)
-            setHoveredSunId(null);
-            setHoveredSun(null);
+            // Only clear state if we were previously hovering (avoid unnecessary updates)
+            if (hoveredSunIdRef.current !== null) {
+              hoveredSunIdRef.current = null;
+              setHoveredSunId(null);
+              setHoveredSun(null);
+            }
             // Reset cursor
             if (canvasRef.current) {
               canvasRef.current.style.cursor = "default";

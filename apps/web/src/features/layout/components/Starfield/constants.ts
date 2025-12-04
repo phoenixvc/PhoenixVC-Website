@@ -23,6 +23,7 @@ export const DEFAULT_PORTFOLIO_PROJECTS: PortfolioProject[] = [
     fullName: "Mystira",
     speed: 0.000025, // Slowed down by factor of 10
     title: "Interactive Storytelling Platform (Alpha)",
+    status: "alpha",
     bio: "Mystira brings the wonder of storytelling to life for children, parents, and group leaders alike. Each story is grounded in child development research, fostering emotional growth and meaningful connections.",
     department: "Education",
     experience: 0,
@@ -44,6 +45,7 @@ export const DEFAULT_PORTFOLIO_PROJECTS: PortfolioProject[] = [
     fullName: "Cognitive Mesh",
     speed: 0.000022, // Slowed down by factor of 10
     title: "Enterprise AI Transformation Framework (Pre-Alpha)",
+    status: "pre-alpha",
     bio: "Cognitive Mesh is an enterprise-grade AI transformation framework designed to orchestrate multi-agent cognitive systems with institutional-grade security and NIST compliance controls.",
     department: "Enterprise",
     experience: 0,
@@ -67,6 +69,7 @@ export const DEFAULT_PORTFOLIO_PROJECTS: PortfolioProject[] = [
     fullName: "Phoenix Rooivalk",
     speed: 0.00002, // Slowed down by factor of 10
     title: "AI-Powered Counter-Drone Platform (Pre-Alpha)",
+    status: "pre-alpha",
     bio: "Phoenix Rooivalk is a sophisticated counter-drone platform leveraging advanced AI for real-time drone detection, classification, and neutralization. Named after the South African Rooivalk attack helicopter.",
     department: "Defense",
     experience: 0,
@@ -87,6 +90,7 @@ export const DEFAULT_PORTFOLIO_PROJECTS: PortfolioProject[] = [
     fullName: "Airkey Ltd",
     speed: 0.000019, // Slowed down by factor of 10
     title: "Digital Access Management (Early Stage)",
+    status: "early-stage",
     bio: "Airkey Ltd provides innovative digital access management solutions that enable secure, keyless entry systems for commercial and residential properties.",
     department: "Security",
     experience: 0,
@@ -109,6 +113,7 @@ export const DEFAULT_PORTFOLIO_PROJECTS: PortfolioProject[] = [
     fullName: "VeritasVault",
     speed: 0.000020, // Slowed down by factor of 10
     title: "DeFi Staking Platform (Pre-Alpha)",
+    status: "pre-alpha",
     bio: "VeritasVault is a decentralized finance platform offering transparent, treasury-backed staking rewards with auto-compounding yields.",
     department: "Blockchain",
     experience: 0,
@@ -131,6 +136,7 @@ export const DEFAULT_PORTFOLIO_PROJECTS: PortfolioProject[] = [
     fullName: "Hop Pty Ltd",
     speed: 0.000017, // Slowed down by factor of 10
     title: "Innovative Transportation Technology (Early Stage)",
+    status: "early-stage",
     bio: "Hop Pty Ltd is revolutionizing urban mobility with innovative transportation technology solutions that connect commuters with efficient, sustainable transport options.",
     department: "Mobility",
     experience: 0,
@@ -151,6 +157,7 @@ export const DEFAULT_PORTFOLIO_PROJECTS: PortfolioProject[] = [
     fullName: "Chaufher Pty Ltd",
     speed: 0.000016, // Slowed down by factor of 10
     title: "Women-Focused Transportation (Growth Stage)",
+    status: "growth",
     bio: "Chaufher Pty Ltd is a women-focused transportation service designed to provide safe, reliable rides for women, by women.",
     department: "Mobility",
     experience: 0,
@@ -173,6 +180,7 @@ export const DEFAULT_PORTFOLIO_PROJECTS: PortfolioProject[] = [
     fullName: "PhoenixVC Website",
     speed: 0.000015, // Slowed down by factor of 10
     title: "Corporate Website",
+    status: "active",
     bio: "The official Phoenix VC corporate website built with modern web technologies.",
     department: "Infrastructure",
     experience: 0,
@@ -192,6 +200,7 @@ export const DEFAULT_PORTFOLIO_PROJECTS: PortfolioProject[] = [
     fullName: "Phoenix Design System",
     speed: 0.000018, // Slowed down by factor of 10
     title: "Component Library",
+    status: "active",
     bio: "Shared design system and component library for Phoenix projects.",
     department: "Infrastructure",
     experience: 0,

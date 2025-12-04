@@ -16,6 +16,8 @@ export interface CenterPosition {
 }
 
 // Portfolio project types (renamed from Employee-related types)
+export type ProjectStatus = "alpha" | "pre-alpha" | "early-stage" | "growth" | "active";
+
 export interface PortfolioProject {
   id: string;
   name: string;
@@ -34,6 +36,7 @@ export interface PortfolioProject {
   projects?: string[];
   bio?: string;
   title: string;
+  status?: ProjectStatus;
   relatedProjects: string[];
   product: string;
   focusArea?: "ai-ml" | "fintech-blockchain" | "defense-security" | "mobility-transportation";
