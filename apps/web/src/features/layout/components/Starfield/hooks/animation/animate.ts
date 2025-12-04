@@ -556,11 +556,11 @@ export function getCurrentSunPositions(width: number, height: number): Map<strin
  * @returns Object with r, g, b values (0-255) or null if invalid
  */
 function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
-  if (!hex || typeof hex !== 'string') {
+  if (!hex || typeof hex !== "string") {
     return null;
   }
   // Remove # if present and trim whitespace
-  const cleanHex = hex.replace(/^#/, '').trim();
+  const cleanHex = hex.replace(/^#/, "").trim();
   // Validate hex format (6 hex characters)
   if (!/^[a-fA-F0-9]{6}$/.test(cleanHex)) {
     return null;
