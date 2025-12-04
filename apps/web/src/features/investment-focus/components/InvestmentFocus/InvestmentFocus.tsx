@@ -33,7 +33,7 @@ const focusAreaDetails: Record<string, { longDescription: string; highlights: st
   }
 };
 
-export const InvestmentFocus: FC<InvestmentFocusProps> = ({}) => {
+export const InvestmentFocus: FC<InvestmentFocusProps> = () => {
   const { themeMode } = useTheme();
   const isDarkMode = themeMode === "dark";
   const [selectedArea, setSelectedArea] = useState<FocusArea | null>(null);
@@ -51,13 +51,13 @@ export const InvestmentFocus: FC<InvestmentFocusProps> = ({}) => {
   //    when the modal is closed.
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         handleCloseModal();
       }
 
-      if (event.key === 'Tab' && modalRef.current) {
+      if (event.key === "Tab" && modalRef.current) {
         const focusableElements = modalRef.current.querySelectorAll<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          "button, [href], input, select, textarea, [tabindex]:not([tabindex=\"-1\"])"
         );
         const firstElement = focusableElements[0];
         const lastElement = focusableElements[focusableElements.length - 1];
@@ -77,12 +77,12 @@ export const InvestmentFocus: FC<InvestmentFocusProps> = ({}) => {
     };
 
     if (selectedArea) {
-      document.addEventListener('keydown', handleKeyDown);
+      document.addEventListener("keydown", handleKeyDown);
       modalRef.current?.focus();
     }
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, [selectedArea]);
 
@@ -185,7 +185,7 @@ export const InvestmentFocus: FC<InvestmentFocusProps> = ({}) => {
                 Discuss Opportunities
               </a>
             </motion.div>
-          </motion.div>
+          </motion.button>
         )}
       </AnimatePresence>
     </section>

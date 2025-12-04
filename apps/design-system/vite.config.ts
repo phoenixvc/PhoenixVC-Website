@@ -1,4 +1,5 @@
 /// <reference types="vitest/config" />
+/* eslint-disable no-undef -- __dirname compatibility for ES modules */
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
@@ -32,7 +33,7 @@ export default defineConfig({
   },
   build: {
     lib: {
-      entry: path.resolve(__dirname, "src/index.ts"),
+      entry: path.resolve(dirname, "src/index.ts"),
       name: "PhoenixDesignSystem",
       fileName: (format) => `phoenix-design-system.${format}.js`,
       formats: ["es", "umd"],
@@ -56,10 +57,10 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
-      "@components": path.resolve(__dirname, "./src/components"),
-      "@styles": path.resolve(__dirname, "./src/styles"),
-      "@utils": path.resolve(__dirname, "./src/utils"),
+      "@": path.resolve(dirname, "./src"),
+      "@components": path.resolve(dirname, "./src/components"),
+      "@styles": path.resolve(dirname, "./src/styles"),
+      "@utils": path.resolve(dirname, "./src/utils"),
     },
   },
 });

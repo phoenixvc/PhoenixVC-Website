@@ -68,7 +68,7 @@ const coreValues = [
   }
 ];
 
-const About: FC<AboutProps> = memo(({}) => {
+const About: FC<AboutProps> = memo(() => {
   const { themeMode } = useTheme();
   const isDarkMode = themeMode === "dark";
   const [activeSection, setActiveSection] = useState(0);

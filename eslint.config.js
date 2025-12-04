@@ -34,7 +34,10 @@ export default [{
      "**/design-system/src/*.tsx",
      "**/tailwind.config.js",
      "**/postcss.config.js",
-     "types/eslint-plugin-react-hooks.d.ts"
+     "types/eslint-plugin-react-hooks.d.ts",
+     "**/srcs/**",
+     "**/.storybook/**",
+     "**/*.shims.d.ts"
   ]
 }, js.configs.recommended, {
   files: ['apps/web/**/*.{js,jsx,ts,tsx}'],
