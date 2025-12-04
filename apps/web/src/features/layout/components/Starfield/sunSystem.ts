@@ -1,5 +1,7 @@
 // sunSystem.ts - Dynamic sun positioning with gravitational interactions
 import { SUNS } from "./cosmos/cosmicHierarchy";
+import { getDailySeededRandom } from "./utils";
+import { SUN_PHYSICS } from "./physicsConfig";
 
 export interface SunState {
   id: string;
@@ -39,19 +41,23 @@ export interface SunState {
   clickRepulsionDecay: number;
 }
 
-// Randomized sun positions - generated fresh on each page load
-// Constraints: minimum distance from edges and between each other
-const EDGE_PADDING = 0.15; // Minimum distance from edges (15% of canvas)
-const MIN_SUN_DISTANCE = 0.25; // Minimum distance between suns (25% of canvas)
-const SIDEBAR_OFFSET = 0.12; // Extra left padding for sidebar
-
 /**
- * Generate randomized sun positions with proper spacing
- * Called once on page load to create unique arrangements
+ * Generate randomized sun positions with proper spacing.
+ * Uses seeded random for consistent daily layouts - all users on the same day
+ * see the same positions, but positions change daily.
+ *
+ * @param count - Number of sun positions to generate
+ * @returns Array of normalized positions (0-1)
  */
 function generateRandomSunPositions(count: number): Array<{ x: number; y: number }> {
   const positions: Array<{ x: number; y: number }> = [];
-  const maxAttempts = 100;
+  const maxAttempts = SUN_PHYSICS.maxPositionAttempts;
+  const edgePadding = SUN_PHYSICS.edgePadding;
+  const minDistance = SUN_PHYSICS.minDistance;
+  const sidebarOffset = SUN_PHYSICS.sidebarOffset;
+
+  // Use seeded random for consistent daily layouts (offset 2000 for suns)
+  const random = getDailySeededRandom(2000);
 
   for (let i = 0; i < count; i++) {
     let attempts = 0;
@@ -60,8 +66,8 @@ function generateRandomSunPositions(count: number): Array<{ x: number; y: number
 
     while (!validPosition && attempts < maxAttempts) {
       // Generate random position within bounds (accounting for sidebar)
-      x = EDGE_PADDING + SIDEBAR_OFFSET + Math.random() * (1 - 2 * EDGE_PADDING - SIDEBAR_OFFSET);
-      y = EDGE_PADDING + Math.random() * (1 - 2 * EDGE_PADDING);
+      x = edgePadding + sidebarOffset + random() * (1 - 2 * edgePadding - sidebarOffset);
+      y = edgePadding + random() * (1 - 2 * edgePadding);
 
       // Check distance from all existing positions
       validPosition = true;
@@ -69,7 +75,7 @@ function generateRandomSunPositions(count: number): Array<{ x: number; y: number
         const dx = x - pos.x;
         const dy = y - pos.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance < MIN_SUN_DISTANCE) {
+        if (distance < minDistance) {
           validPosition = false;
           break;
         }
@@ -81,8 +87,8 @@ function generateRandomSunPositions(count: number): Array<{ x: number; y: number
     if (!validPosition) {
       const quadrantX = (i % 2 === 0) ? 0.25 : 0.75;
       const quadrantY = (i < 2) ? 0.25 : 0.75;
-      x = quadrantX + (Math.random() - 0.5) * 0.15;
-      y = quadrantY + (Math.random() - 0.5) * 0.15;
+      x = quadrantX + (random() - 0.5) * 0.15;
+      y = quadrantY + (random() - 0.5) * 0.15;
     }
 
     positions.push({ x, y });
@@ -91,7 +97,7 @@ function generateRandomSunPositions(count: number): Array<{ x: number; y: number
   return positions;
 }
 
-// Generate positions once when module loads (fresh on each page refresh)
+// Generate positions once when module loads (consistent within same day)
 export const INITIAL_SUN_POSITIONS = generateRandomSunPositions(4);
 
 // Global sun state (mutable for animation)

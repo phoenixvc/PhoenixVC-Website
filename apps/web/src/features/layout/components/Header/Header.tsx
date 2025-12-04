@@ -139,7 +139,7 @@ const Header: FC<HeaderProps> = ({
         style={{
           left: `${headerLeftOffset}px`,
           width: `calc(100% - ${headerLeftOffset}px)`,
-          transition: 'left 0.3s ease, width 0.3s ease'
+          transition: "left 0.3s ease, width 0.3s ease"
         }}
       >
         <div className={styles.headerContainer}>

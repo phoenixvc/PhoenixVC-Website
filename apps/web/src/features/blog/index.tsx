@@ -5,17 +5,23 @@ import { Linkedin, Search, Filter, ExternalLink, Calendar, User } from "lucide-r
 import { SEO } from "@/components/SEO";
 import styles from "./Blog.module.css";
 
-interface SubstackPost {
+type Author = "Eben Maré" | "Jurie Smit";
+type BlogCategory = "Finance" | "Blockchain" | "Technology" | "AI" | "Strategy";
+type ArticleSource = "substack" | "linkedin";
+
+interface BlogPost {
   title: string;
   subtitle: string;
   url: string;
-  author: "Eben Maré";
-  category: "Finance" | "Blockchain" | "Technology" | "AI" | "Strategy";
+  author: Author;
+  category: BlogCategory;
   date?: string;
+  source: ArticleSource;
+  readTime?: string;
 }
 
-const substackPosts: SubstackPost[] = [
-  // Eben Maré's posts - real articles with actual dates
+const blogPosts: BlogPost[] = [
+  // Eben Maré's Substack posts
   {
     title: "Bitcoin versus Gold: A Fool's Debate?",
     subtitle: "Understanding Volatility's Impact",
@@ -23,6 +29,7 @@ const substackPosts: SubstackPost[] = [
     author: "Eben Maré",
     category: "Finance",
     date: "Mar 15, 2024",
+    source: "substack",
   },
   {
     title: "Is Bitcoin doomed to fail by design?",
@@ -31,6 +38,7 @@ const substackPosts: SubstackPost[] = [
     author: "Eben Maré",
     category: "Blockchain",
     date: "Feb 28, 2024",
+    source: "substack",
   },
   {
     title: "Decoding Bitcoin Ordinals: An Index and Correlation Analysis",
@@ -39,6 +47,7 @@ const substackPosts: SubstackPost[] = [
     author: "Eben Maré",
     category: "Blockchain",
     date: "Jan 22, 2024",
+    source: "substack",
   },
   {
     title: "The Curious Case of Negative Probabilities",
@@ -47,6 +56,7 @@ const substackPosts: SubstackPost[] = [
     author: "Eben Maré",
     category: "Finance",
     date: "Dec 8, 2023",
+    source: "substack",
   },
   {
     title: "Understanding Volatility Surfaces",
@@ -55,6 +65,99 @@ const substackPosts: SubstackPost[] = [
     author: "Eben Maré",
     category: "Finance",
     date: "Nov 14, 2023",
+    source: "substack",
+  },
+  // Jurie Smit's Substack posts
+  {
+    title: "Practical Cognitive Sovereignty: Your Guide to Staying Human in an AI World",
+    subtitle: "How to maintain meaningful control and decision-making authority while benefiting from AI's capabilities",
+    url: "https://juriesmit.substack.com/p/practical-cognitive-sovereignty",
+    author: "Jurie Smit",
+    category: "AI",
+    date: "Jul 10, 2024",
+    source: "substack",
+    readTime: "4 min",
+  },
+  {
+    title: "The Evolution of Workflow Systems",
+    subtitle: "From Taylor and Gantt's early 1900s efficiency studies to agentic AI: workflows with persistent tasks and self-organizing teams",
+    url: "https://juriesmit.substack.com/p/the-evolution-of-workflow-systems",
+    author: "Jurie Smit",
+    category: "Technology",
+    date: "Jul 9, 2024",
+    source: "substack",
+    readTime: "12 min",
+  },
+  {
+    title: "Beyond AI Criticism: The Expert's Playbook",
+    subtitle: "Why viral AI critiques miss the point, and what experts do differently. A series on AI, Expertise, and Tool Criticism.",
+    url: "https://juriesmit.substack.com/p/beyond-ai-criticism",
+    author: "Jurie Smit",
+    category: "AI",
+    date: "May 20, 2024",
+    source: "substack",
+    readTime: "6 min",
+  },
+  // Jurie Smit's LinkedIn articles
+  {
+    title: "The Prompt Trap: Why Perfect Inputs Kill Productivity",
+    subtitle: "An equally costly failure mode following the Polish Trap - when optimizing prompts becomes counterproductive",
+    url: "https://www.linkedin.com/pulse/prompt-trap-why-perfect-inputs-kill-productivity-jurie-smit",
+    author: "Jurie Smit",
+    category: "AI",
+    date: "2024",
+    source: "linkedin",
+    readTime: "5 min",
+  },
+  {
+    title: "The Paradox of Perfection: How AI is Liberating Creativity",
+    subtitle: "A paradox that plagues many talented individuals: the pursuit of perfection vs creative freedom",
+    url: "https://www.linkedin.com/pulse/paradox-perfection-how-ai-liberating-creativity-jurie-smit",
+    author: "Jurie Smit",
+    category: "AI",
+    date: "2024",
+    source: "linkedin",
+    readTime: "3 min",
+  },
+  {
+    title: "The Paradox of AI Documentation: Unified Context vs. Increased Output",
+    subtitle: "As AI tools become integral to modern software development, professionals notice interesting patterns",
+    url: "https://www.linkedin.com/pulse/paradox-ai-documentation-unified-context-vs-increased-jurie-smit",
+    author: "Jurie Smit",
+    category: "Technology",
+    date: "2024",
+    source: "linkedin",
+    readTime: "7 min",
+  },
+  {
+    title: "The Sensitive Professional: Harnessing Creative Intensity in the Technical World",
+    subtitle: "The truly creative mind in any field: understanding creative intensity and sensitivity",
+    url: "https://www.linkedin.com/pulse/sensitive-professional-harnessing-creative-intensity-jurie-smit",
+    author: "Jurie Smit",
+    category: "Strategy",
+    date: "2024",
+    source: "linkedin",
+    readTime: "7 min",
+  },
+  {
+    title: "The Value of Deleting 1000 Lines of Code vs. Creating It",
+    subtitle: "We often celebrate productivity through creation—but what about the value of thoughtful deletion?",
+    url: "https://www.linkedin.com/pulse/value-deleting-1000-lines-code-vs-creating-legacy-jurie-smit",
+    author: "Jurie Smit",
+    category: "Technology",
+    date: "2024",
+    source: "linkedin",
+    readTime: "5 min",
+  },
+  {
+    title: "South Africa's 2025 VAT Hike: Legacy System Challenges and Impacts",
+    subtitle: "A seemingly modest 0.5% VAT adjustment reveals challenges in legacy systems architecture",
+    url: "https://www.linkedin.com/pulse/south-africas-2025-vat-hike-legacy-system-challenges-jurie-smit",
+    author: "Jurie Smit",
+    category: "Technology",
+    date: "2024",
+    source: "linkedin",
+    readTime: "6 min",
   },
 ];
 
@@ -71,14 +174,14 @@ export const Blog = () => {
 
   // Filter posts based on search and filters
   const filteredPosts = useMemo(() => {
-    return substackPosts.filter((post) => {
-      const matchesSearch = searchQuery === "" || 
+    return blogPosts.filter((post) => {
+      const matchesSearch = searchQuery === "" ||
         post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         post.subtitle.toLowerCase().includes(searchQuery.toLowerCase());
-      
+
       const matchesCategory = selectedCategory === "All" || post.category === selectedCategory;
       const matchesAuthor = selectedAuthor === "All" || post.author === selectedAuthor;
-      
+
       return matchesSearch && matchesCategory && matchesAuthor;
     });
   }, [searchQuery, selectedCategory, selectedAuthor]);
@@ -182,6 +285,7 @@ export const Blog = () => {
                 >
                   <option value="All">All Authors</option>
                   <option value="Eben Maré">Eben Maré</option>
+                  <option value="Jurie Smit">Jurie Smit</option>
                 </select>
               </div>
             </div>
@@ -207,6 +311,7 @@ export const Blog = () => {
                     <span className={styles.postAuthor}>
                       <User size={14} />
                       {post.author}
+                      {post.readTime && <span className={styles.readTime}> · {post.readTime}</span>}
                     </span>
                     <a
                       href={post.url}
@@ -214,8 +319,17 @@ export const Blog = () => {
                       rel="noopener noreferrer"
                       className={styles.readLink}
                     >
-                      Read on Substack
-                      <ExternalLink size={14} />
+                      {post.source === "linkedin" ? (
+                        <>
+                          <Linkedin size={14} />
+                          Read on LinkedIn
+                        </>
+                      ) : (
+                        <>
+                          Read on Substack
+                          <ExternalLink size={14} />
+                        </>
+                      )}
                     </a>
                   </div>
                 </article>
