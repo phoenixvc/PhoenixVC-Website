@@ -635,8 +635,8 @@ function drawSuns(
     // Use dynamic position from sun system
     const x = sunState.x * width;
     const y = sunState.y * height;
-    // Reduced sun size for better proportions (was 0.7, now 0.35)
-    const baseSize = Math.max(18, Math.min(width, height) * sunState.size * 0.35);
+    // Adjusted sun size for better proportions (increased from 0.35 to 0.38)
+    const baseSize = Math.max(20, Math.min(width, height) * sunState.size * 0.38);
     
     // Check if this sun is hovered or focused
     const isHovered = hoveredSunId === sunState.id;

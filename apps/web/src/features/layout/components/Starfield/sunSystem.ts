@@ -362,9 +362,9 @@ export function updateSunSizesFromPlanets(
   const massRange = maxMass - minMass || 1; // Avoid division by zero
 
   // Update sun sizes based on their total planet mass
-  // Base size range: 0.03 (smallest) to 0.07 (largest)
-  const MIN_SUN_SIZE = 0.03;
-  const MAX_SUN_SIZE = 0.07;
+  // Base size range: 0.035 (smallest) to 0.075 (largest) - slightly increased
+  const MIN_SUN_SIZE = 0.035;
+  const MAX_SUN_SIZE = 0.075;
 
   sunStates.forEach(sun => {
     const totalMass = sunMasses.get(sun.id);
