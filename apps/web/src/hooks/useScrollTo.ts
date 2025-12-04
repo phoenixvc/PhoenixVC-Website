@@ -17,15 +17,6 @@ export const useScrollTo = (): ((target: string) => void) => {
         behavior: "smooth",
         block: "start",
       });
-    } else {
-      // If element not found, try to find it as a section
-      const section = document.querySelector(`[id="${elementId}"]`);
-      if (section) {
-        section.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-      }
     }
   }, []);
 
