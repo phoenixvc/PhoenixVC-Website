@@ -5,7 +5,7 @@ import React from "react";
 
 // ==================== Types ====================
 
-export type ProjectStatus = "alpha" | "pre-alpha" | "early-stage" | "growth" | "active";
+export type ProjectStatus = "alpha" | "pre-alpha" | "seed" | "early-stage" | "growth" | "active";
 export type FocusAreaId = "ai-ml" | "fintech-blockchain" | "defense-security" | "mobility-transportation" | "infrastructure";
 
 export interface StatusConfig {
@@ -52,14 +52,20 @@ export const STATUS_CONFIG: Record<ProjectStatus, StatusConfig> = {
   alpha: {
     bg: "rgba(156, 39, 176, 0.2)",
     text: "#9c27b0",
-    label: "Alpha",
+    label: "Alpha / Pre-Seed",
     description: "Active development with early users"
   },
   "pre-alpha": {
     bg: "rgba(121, 85, 72, 0.2)",
     text: "#795548",
-    label: "Pre-Alpha / Seeding",
+    label: "Angel / Pre-Seed",
     description: "Early development and concept validation"
+  },
+  seed: {
+    bg: "rgba(46, 204, 113, 0.2)",
+    text: "#27ae60",
+    label: "Seed",
+    description: "Seed funding stage"
   },
   "early-stage": {
     bg: "rgba(230, 126, 34, 0.2)",
@@ -127,7 +133,7 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     position: "Interactive Storytelling",
     mass: 500,
     color: "#9c27b0",
-    image: "/themes/mystira-icon.png",
+    // image removed - file doesn't exist, will show initials instead
     fullName: "Mystira",
     speed: 0.000025,
     title: "Interactive Storytelling Platform (Alpha)",
@@ -149,7 +155,7 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     position: "AI Framework",
     mass: 150,
     color: "#795548",
-    image: "/themes/cognitivemesh-icon.png",
+    // image removed - file doesn't exist, will show initials instead
     fullName: "Cognitive Mesh",
     speed: 0.000022,
     title: "Enterprise AI Transformation Framework (Pre-Alpha)",
@@ -173,7 +179,7 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     position: "Counter-Drone Platform",
     mass: 200,
     color: "#795548",
-    image: "/themes/rooivalk-icon.png",
+    // image removed - file doesn't exist, will show initials instead
     fullName: "Phoenix Rooivalk",
     speed: 0.00002,
     title: "AI-Powered Counter-Drone Platform (Pre-Alpha)",
@@ -197,9 +203,9 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     color: "#e67e22",
     fullName: "Airkey Ltd",
     speed: 0.000019,
-    title: "Digital Access Management (Early Stage)",
-    status: "early-stage",
-    bio: "Airkey Ltd provides innovative digital access management solutions that enable secure, keyless entry systems for commercial and residential properties.",
+    title: "Digital Access Management (Seed)",
+    status: "seed",
+    bio: "Airkey Ltd provides innovative digital access management solutions that enable secure, keyless entry systems for various real-world assets. Using advanced cryptography and mobile technology, Airkey transforms how organizations manage physical access control.",
     department: "Security",
     experience: 0,
     expertise: "Access Control, IoT, Mobile Security",
@@ -238,19 +244,19 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     id: "hop",
     name: "Hop",
     initials: "HP",
-    position: "Transportation Tech",
+    position: "Connectivity Tech",
     mass: 150,
     color: "#e67e22",
     fullName: "Hop Pty Ltd",
     speed: 0.000017,
-    title: "Innovative Transportation Technology (Early Stage)",
-    status: "early-stage",
-    bio: "Hop Pty Ltd is revolutionizing urban mobility with innovative transportation technology solutions that connect commuters with efficient, sustainable transport options.",
+    title: "Innovative Connectivity Technology (Seed)",
+    status: "seed",
+    bio: "Hop (Pty) Ltd is revolutionizing urban mobility with innovative connectivity solutions. Their cutting edge platform and hardware connects commuters with high-speed internet.",
     department: "Mobility",
     experience: 0,
-    expertise: "Transportation, Urban Mobility, Route Optimization",
-    projects: ["Smart Mobility", "Route Planning"],
-    skills: ["Transportation", "Mobility", "Smart City", "Sustainability"],
+    expertise: "Connectivity, Urban Mobility, Hardware",
+    projects: ["Smart Mobility", "Connectivity Platform"],
+    skills: ["Connectivity", "Mobility", "Hardware", "Internet"],
     relatedProjects: ["airkey", "chaufher"],
     product: "",
     focusArea: "mobility-transportation"
@@ -259,14 +265,14 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     id: "chaufher",
     name: "Chaufher",
     initials: "CH",
-    position: "Women's Transportation",
+    position: "Women's Ridehail",
     mass: 180,
     color: "#e74c3c",
     fullName: "Chaufher Pty Ltd",
     speed: 0.000016,
-    title: "Women-Focused Transportation (Growth Stage)",
-    status: "growth",
-    bio: "Chaufher Pty Ltd is a women-focused transportation service designed to provide safe, reliable rides for women, by women.",
+    title: "Women-Focused Ridehail Service (Seed)",
+    status: "seed",
+    bio: "Chaufher (Pty) Ltd is a women-focused ridehail service designed to provide safe, reliable rides for women, by women. The platform prioritizes passenger safety with vetted drivers and specialized features tailored to women's transportation needs.",
     department: "Mobility",
     experience: 0,
     expertise: "Transportation, Safety, Ride-Sharing",

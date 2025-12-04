@@ -169,7 +169,14 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       }
     }
 
-    if (props.enablePlanets && props.enableMouseInteraction) {
+    // Check if mouse is over content sections (behind which comets shouldn't be interactive)
+    // Content sections start after ~100vh (hero section), so check if mouse Y + scroll is past hero
+    const scrollY = typeof window !== 'undefined' ? window.scrollY : 0;
+    const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 800;
+    const mouseYInDocument = currentMousePosition.y + scrollY;
+    const isOverContent = mouseYInDocument > viewportHeight * 0.9; // Content starts ~90% into first viewport
+
+    if (props.enablePlanets && props.enableMouseInteraction && !isOverContent) {
       // Create a wrapper function that matches the expected type
       const updateHoverInfoIfChanged = (newInfo: SetStateAction<HoverInfo>): void => {
         // If newInfo is a function, we can"t directly compare it

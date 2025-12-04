@@ -67,14 +67,21 @@ export const drawPlanet = (
     updateStarPosition(planet, deltaTime);
   }
 
-  // Get base color from sun alignment (planets match their orbiting sun's color)
-  const baseColor = getSunAlignedColor(planet);
+  // Use project's own color for distinct planet colors, fall back to sun-aligned color
+  const baseColor = planet.project?.color || getSunAlignedColor(planet);
   const baseRgb = hexToRgb(baseColor);
   const softRgb = createSoftenedColor(baseRgb);
 
   // Calculate pulsation effect
   const scaleFactor = calculatePulsation(planet);
-  const starSize = 20 * planetSize * scaleFactor; // Increased from 16 to 20 for better visibility
+
+  // Scale size based on project mass/weight (normalize around 150 as baseline)
+  const baseMass = 150;
+  const projectMass = planet.project?.mass || baseMass;
+  const massScale = Math.sqrt(projectMass / baseMass); // Square root for gentler scaling
+  const clampedMassScale = Math.max(0.7, Math.min(1.5, massScale)); // Clamp between 0.7x and 1.5x
+
+  const starSize = 18 * planetSize * scaleFactor * clampedMassScale; // Base size with mass scaling
 
   // Draw nebula effects for important stars
   drawNebulaEffects(ctx, planet, starSize, softRgb);

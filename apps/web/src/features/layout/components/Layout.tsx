@@ -194,7 +194,7 @@ const Layout = ({ children }: LayoutProps) => {
           enableMouseInteraction={true}
           enablePlanets={true}
           starDensity={1.8}
-          starSize={1.35}
+          starSize={1.5}
           particleSpeed={0.05}
           flowStrength={0.01}
           gravitationalPull={0.05}
