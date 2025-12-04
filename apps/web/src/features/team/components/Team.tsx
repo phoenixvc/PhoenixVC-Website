@@ -1,9 +1,9 @@
 // apps/web/src/features/team/components/Team.tsx
-import { FC, memo } from 'react';
-import { motion } from 'framer-motion';
-import { useTheme } from '@/theme';
-import { containerVariants, itemVariants } from '@/animations/variants';
-import styles from './Team.module.css';
+import { FC, memo } from "react";
+import { motion } from "framer-motion";
+import { useTheme } from "@/theme";
+import { containerVariants, itemVariants } from "@/animations/variants";
+import styles from "./Team.module.css";
 
 // TODO: Production hardening:
 // 1. Fetch team data from a headless CMS or API.
@@ -12,19 +12,19 @@ import styles from './Team.module.css';
 // 4. Add unit and integration tests.
 
 const teamMembers = [
-  { name: 'John Doe', role: 'Managing Partner' },
-  { name: 'Jane Smith', role: 'Venture Partner' },
-  { name: 'Peter Jones', role: 'Principal' },
+  { name: "John Doe", role: "Managing Partner" },
+  { name: "Jane Smith", role: "Venture Partner" },
+  { name: "Peter Jones", role: "Principal" },
 ];
 
 const advisors = [
-  { name: 'Alice Williams', role: 'Industry Advisor' },
-  { name: 'Bob Brown', role: 'Technology Advisor' },
+  { name: "Alice Williams", role: "Industry Advisor" },
+  { name: "Bob Brown", role: "Technology Advisor" },
 ];
 
 const Team: FC = memo(() => {
   const { themeMode } = useTheme();
-  const isDarkMode = themeMode === 'dark';
+  const isDarkMode = themeMode === "dark";
 
   return (
     <section id="team" className={`${styles.section} ${isDarkMode ? styles.darkMode : styles.lightMode}`}>
@@ -71,5 +71,5 @@ const Team: FC = memo(() => {
   );
 });
 
-Team.displayName = 'Team';
+Team.displayName = "Team";
 export default Team;

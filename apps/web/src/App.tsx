@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect } from "react";
+import React from "react";
 import { Layout } from "@/features/layout";
 import { Hero } from "@/features/hero";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
@@ -7,7 +8,7 @@ import { ErrorBoundary, NotFound } from "./features/error";
 import { PageSkeleton } from "@/components/ui/Skeleton";
 
 // Component to handle hash scroll restoration after navigation
-const ScrollToHash = () => {
+const ScrollToHash = (): null => {
   const location = useLocation();
 
   useEffect(() => {
@@ -24,7 +25,7 @@ const ScrollToHash = () => {
       }
     }, 100);
 
-    return () => clearTimeout(timeoutId);
+    return (): void => clearTimeout(timeoutId);
   }, [location]);
 
   return null;
@@ -44,11 +45,11 @@ const LazyTeam = lazy(() => import("./features/team").then(m => ({ default: m.Te
 const LazyContact = lazy(() => import("./features/contact").then(m => ({ default: m.Contact })));
 
 // Loading fallback component using skeleton
-const PageLoader = ({ isDarkMode = false }: { isDarkMode?: boolean }) => (
+const PageLoader = ({ isDarkMode = false }: { isDarkMode?: boolean }): React.JSX.Element => (
   <PageSkeleton isDarkMode={isDarkMode} />
 );
 
-const App = () => {
+const App = (): React.JSX.Element => {
   const { themeMode } = useTheme(); // Get current theme mode
   const isDarkMode = themeMode === "dark";
 

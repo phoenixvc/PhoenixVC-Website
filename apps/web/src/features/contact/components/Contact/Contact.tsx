@@ -14,7 +14,7 @@ import { useTheme } from "@/theme";
 // Add isDarkMode to the component props
 interface ContactProps {}
 
-const Contact: FC<ContactProps> = memo(({}) => {
+const Contact: FC<ContactProps> = memo(() => {
   const { themeMode } = useTheme();
   const isDarkMode = themeMode === "dark";
   const [state, setState] = useState<ContactState>({
