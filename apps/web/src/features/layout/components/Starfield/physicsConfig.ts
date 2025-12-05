@@ -160,10 +160,10 @@ export const FLOW_PHYSICS = {
  * Connection rendering configuration
  */
 export const CONNECTION_CONFIG = {
-  /** Total duration for all connections to start appearing (ms) */
-  staggerDuration: 8000,
-  /** Duration for individual connection fade-in (ms) */
-  fadeInDuration: 2000,
+  /** Total duration for all connections to start appearing (ms) - faster for smoother reveal */
+  staggerDuration: 5000,
+  /** Duration for individual connection fade-in (ms) - smoother fade */
+  fadeInDuration: 3000,
   /** Prime for unique timing (avoids clustering) */
   primeMultiplier1: 7919,
   /** Second prime for timing distribution */

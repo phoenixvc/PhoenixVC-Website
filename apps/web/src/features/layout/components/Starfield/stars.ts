@@ -265,6 +265,10 @@ export const drawStars = (
   const now = getFrameTime();
   const glowDuration = EFFECT_TIMING.pushGlowDuration;
 
+  // Enable anti-aliasing for smoother star rendering
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+
   for (let i = 0; i < stars.length; i++) {
     const star = stars[i];
     // Check if star was recently pushed (within glow duration)
@@ -275,8 +279,8 @@ export const drawStars = (
       // Calculate how recent the push was (1.0 = just now, 0.0 = glowDuration ago)
       const recency = 1 - timeSincePush / glowDuration;
 
-      // MUCH MORE VISIBLE glow effect for pushed stars
-      const glowRadius = star.size * (3 + recency * 5); // Larger glow for recent pushes
+      // Smooth glow effect for pushed stars
+      const glowRadius = star.size * (3 + recency * 5);
       const gradient = ctx.createRadialGradient(
         star.x, star.y, 0,
         star.x, star.y, glowRadius
@@ -291,10 +295,11 @@ export const drawStars = (
       const midOpacityColor = parsed ? colorWithAlpha(parsed, 0.7) : baseColor;
       const lowOpacityColor = parsed ? colorWithAlpha(parsed, 0.2) : baseColor;
 
-      // Create glow gradient with higher opacity
+      // Create smooth glow gradient with more color stops for better blending
       gradient.addColorStop(0, brighterColorStr);
-      gradient.addColorStop(0.5, midOpacityColor);
-      gradient.addColorStop(1, lowOpacityColor);
+      gradient.addColorStop(0.3, midOpacityColor);
+      gradient.addColorStop(0.6, lowOpacityColor);
+      gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
 
       // Draw glow
       ctx.beginPath();
@@ -308,63 +313,87 @@ export const drawStars = (
       ctx.fillStyle = brighterColorStr;
       ctx.fill();
     } else {
-      // Enhanced star rendering with twinkling effect
+      // Smoother star rendering with subtle twinkling effect
       // Create unique twinkle timing for each star based on position
       const uniqueSeed = (star.x * 127.1 + star.y * 311.7) % 1000;
-      const twinkleSpeed1 = 0.002 + (uniqueSeed % 100) / 50000; // Vary speed per star
-      const twinkleSpeed2 = 0.0015 + (uniqueSeed % 50) / 40000;
+      // Slower twinkle speeds for smoother animation
+      const twinkleSpeed1 = 0.0008 + (uniqueSeed % 100) / 80000;
+      const twinkleSpeed2 = 0.0006 + (uniqueSeed % 50) / 60000;
 
-      // Multi-frequency twinkle for more organic effect
+      // Smoother multi-frequency twinkle with reduced variation
       const twinkle1 = Math.sin(now * twinkleSpeed1 + uniqueSeed * 0.1);
       const twinkle2 = Math.sin(now * twinkleSpeed2 + uniqueSeed * 0.2);
-      const twinkleFactor = 0.7 + (twinkle1 * 0.15 + twinkle2 * 0.15); // Range: 0.4 to 1.0 (narrower)
+      // Narrower twinkle range for smoother appearance (0.85 to 1.0)
+      const twinkleFactor = 0.85 + (twinkle1 * 0.075 + twinkle2 * 0.075);
 
-      // Calculate dynamic size with twinkle - reduced variation for crisper stars
-      const twinkleSize = star.size * (0.9 + twinkleFactor * 0.2); // Reduced size variation
+      // Very subtle size variation for smoother appearance
+      const twinkleSize = star.size * (0.95 + twinkleFactor * 0.1);
 
       // Parse color once for this star (cached)
       const parsed = parseRgbaColor(star.color);
 
-      // Add subtle glow for larger stars only (reduced from 1.2 to 1.8 threshold)
-      if (star.size > 1.8) {
-        const glowRadius = twinkleSize * 1.5; // Reduced from 2.5 for less blur
-        const glowGradient = ctx.createRadialGradient(
-          star.x, star.y, 0,
-          star.x, star.y, glowRadius
-        );
+      // Add subtle soft glow for all stars using smooth gradient
+      const glowRadius = twinkleSize * 2.5;
+      const glowGradient = ctx.createRadialGradient(
+        star.x, star.y, 0,
+        star.x, star.y, glowRadius
+      );
 
-        // Use optimized color function for glow with reduced opacity
-        const glowColor = parsed
-          ? colorWithAlpha(parsed, twinkleFactor * 0.15) // Reduced from 0.3
-          : star.color;
+      // Soft glow with multiple color stops for smooth falloff
+      const glowOpacity = twinkleFactor * 0.2;
+      const glowColor = parsed
+        ? colorWithAlpha(parsed, glowOpacity)
+        : star.color;
+      const glowColorMid = parsed
+        ? colorWithAlpha(parsed, glowOpacity * 0.5)
+        : star.color;
 
-        glowGradient.addColorStop(0, glowColor);
-        glowGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+      glowGradient.addColorStop(0, glowColor);
+      glowGradient.addColorStop(0.4, glowColorMid);
+      glowGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
 
-        ctx.beginPath();
-        ctx.arc(star.x, star.y, glowRadius, 0, Math.PI * 2);
-        ctx.fillStyle = glowGradient;
-        ctx.fill();
-      }
-
-      // Draw star core with dynamic opacity based on twinkle
       ctx.beginPath();
-      ctx.arc(star.x, star.y, twinkleSize, 0, Math.PI * 2);
+      ctx.arc(star.x, star.y, glowRadius, 0, Math.PI * 2);
+      ctx.fillStyle = glowGradient;
+      ctx.fill();
 
-      // Use optimized color function for core
-      const alpha = 0.5 + twinkleFactor * 0.5; // Range: 0.5 to 1.0
+      // Draw star core with smooth gradient for better anti-aliasing
+      const coreGradient = ctx.createRadialGradient(
+        star.x, star.y, 0,
+        star.x, star.y, twinkleSize
+      );
+
+      // Stable alpha for core (less flickering)
+      const alpha = 0.7 + twinkleFactor * 0.3; // Range: 0.7 to 1.0
       const coreColor = parsed
         ? colorWithAlpha(parsed, alpha)
         : star.color;
+      const coreColorMid = parsed
+        ? colorWithAlpha(parsed, alpha * 0.8)
+        : star.color;
 
-      ctx.fillStyle = coreColor;
+      coreGradient.addColorStop(0, coreColor);
+      coreGradient.addColorStop(0.6, coreColorMid);
+      coreGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+
+      ctx.beginPath();
+      ctx.arc(star.x, star.y, twinkleSize, 0, Math.PI * 2);
+      ctx.fillStyle = coreGradient;
       ctx.fill();
 
-      // Add bright highlight for extra sparkle on brightest moments
-      if (twinkleFactor > 0.85 && star.size > 0.8) {
+      // Very subtle white center for brightest stars only
+      if (twinkleFactor > 0.9 && star.size > 1.2) {
+        const centerGradient = ctx.createRadialGradient(
+          star.x, star.y, 0,
+          star.x, star.y, twinkleSize * 0.3
+        );
+        const centerOpacity = (twinkleFactor - 0.9) * 5; // 0 to 0.5 range
+        centerGradient.addColorStop(0, `rgba(255, 255, 255, ${centerOpacity})`);
+        centerGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+
         ctx.beginPath();
-        ctx.arc(star.x, star.y, twinkleSize * 0.4, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${(twinkleFactor - 0.85) * 3})`;
+        ctx.arc(star.x, star.y, twinkleSize * 0.3, 0, Math.PI * 2);
+        ctx.fillStyle = centerGradient;
         ctx.fill();
       }
     }
@@ -394,7 +423,9 @@ export const drawConnections = (
   // For performance, check only every 10th star
   const connectionSources = stars.filter((_, i) => i % 10 === 0);
 
-  ctx.lineWidth = 0.5;
+  // Enable smooth line rendering
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
 
   // Use cached frame time for animation
   const time = getFrameTime();
@@ -438,26 +469,37 @@ export const drawConnections = (
         if (staggerProgress <= 0) return;
         
         // Create a slow, smooth pulse with unique timing per connection
-        // Different frequencies for more organic feel
-        const frequency1 = 0.0003 + (uniqueSeed % 100) / 100000; // Vary frequency slightly
-        const frequency2 = 0.00017 + (uniqueSeed % 50) / 100000;
+        // Slower frequencies for smoother animation
+        const frequency1 = 0.00015 + (uniqueSeed % 100) / 200000;
+        const frequency2 = 0.0001 + (uniqueSeed % 50) / 150000;
         
         const pulse1 = Math.sin(time * frequency1 + phaseOffset);
         const pulse2 = Math.sin(time * frequency2 + phaseOffset * 1.3);
         
-        // Combine pulses for more complex animation (0.3 to 1.0 range)
-        const pulseMultiplier = 0.5 + (pulse1 * 0.25 + pulse2 * 0.25);
+        // Combine pulses for smoother animation (0.6 to 1.0 range - less variation)
+        const pulseMultiplier = 0.7 + (pulse1 * 0.15 + pulse2 * 0.15);
         
-        // Calculate opacity based on distance (fade out as distance increases)
-        const baseLineOpacity = opacity * (1 - dist / maxDistance);
-        // Apply stagger progress to create fade-in effect for each connection
-        const lineOpacity = baseLineOpacity * pulseMultiplier * staggerProgress;
+        // Calculate opacity based on distance with smoother falloff
+        const distanceRatio = dist / maxDistance;
+        // Use cubic falloff for smoother fade at edges
+        const distanceFade = 1 - (distanceRatio * distanceRatio * distanceRatio);
+        const baseLineOpacity = opacity * distanceFade;
+        // Apply stagger progress with easing for smooth fade-in
+        const easedProgress = staggerProgress * staggerProgress * (3 - 2 * staggerProgress); // Smooth step
+        const lineOpacity = baseLineOpacity * pulseMultiplier * easedProgress;
 
-        // Draw line with calculated opacity
+        // Use gradient for smoother line appearance
+        const gradient = ctx.createLinearGradient(star1.x, star1.y, star2.x, star2.y);
+        gradient.addColorStop(0, `rgba(${baseColor}, ${lineOpacity * 0.8})`);
+        gradient.addColorStop(0.5, `rgba(${baseColor}, ${lineOpacity})`);
+        gradient.addColorStop(1, `rgba(${baseColor}, ${lineOpacity * 0.8})`);
+
+        // Draw line with smooth gradient and slightly thicker line for better visibility
         ctx.beginPath();
         ctx.moveTo(star1.x, star1.y);
         ctx.lineTo(star2.x, star2.y);
-        ctx.strokeStyle = `rgba(${baseColor}, ${lineOpacity})`;
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 0.8 + pulseMultiplier * 0.4; // Slightly variable width for organic feel
         ctx.stroke();
       }
     });
