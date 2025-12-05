@@ -70,7 +70,7 @@ var logicAppDefinitionText = '''
       "type": "Http",
       "inputs": {
         "method": "POST",
-        "uri": "https://api.github.com/repos/phoenixvc/PhoenixVC-Website/actions/workflows/deploy-production.yml/dispatches",
+        "uri": "https://api.github.com/repos/phoenixvc/PhoenixVC-Website/actions/workflows/production_deployment.yml/dispatches",
         "headers": {
           "Authorization": "Bearer @{parameters('githubToken')}",
           "Accept": "application/vnd.github.v3+json",
@@ -81,7 +81,8 @@ var logicAppDefinitionText = '''
           "inputs": {
             "deploymentId": "@{triggerBody()?['deploymentId']}",
             "artifactId": "@{triggerBody()?['artifactId']}",
-            "runId": "@{triggerBody()?['runId']}"
+            "token": "@{triggerOutputs()['queries']?['token']}",
+            "runID": "@{triggerBody()?['runId']}"
           }
         }
       },
