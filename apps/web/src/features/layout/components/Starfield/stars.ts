@@ -95,7 +95,7 @@ export const initStars = (
 
     // Random size with weighted distribution (more small stars, crisper appearance)
     // Use higher exponent for more small stars, and reduce max size for sharper appearance
-    const sizeMultiplier = Math.pow(Math.random(), 3.5) * 0.5 + 0.1; // Even smaller background stars
+    const sizeMultiplier = Math.pow(Math.random(), 3.8) * 0.4 + 0.08; // Even smaller background stars (5/6 of previous)
     const size = sizeMultiplier * starSize;
 
     // Random color from palette
@@ -501,8 +501,8 @@ export const drawConnections = (
   opacity: number,
   colorScheme: string
 ): void => {
-  // Use duller, less bright colors for connection lines
-  const baseColor = colorScheme === "white" ? "180, 180, 200" : "100, 60, 140"; // Duller gray/purple instead of white/bright purple
+  // Use slightly muted colors for connection lines (balanced brightness)
+  const baseColor = colorScheme === "white" ? "210, 210, 230" : "130, 80, 170"; // Slightly brighter than before but not fully white
 
   // For performance, check only every 10th star
   const connectionSources = stars.filter((_, i) => i % 10 === 0);
@@ -568,7 +568,7 @@ export const drawConnections = (
         // Use cubic falloff for smoother fade at edges (optimized calculation)
         const distanceRatioSquared = distanceRatio * distanceRatio;
         const distanceFade = 1 - (distanceRatioSquared * distanceRatio);
-        const baseLineOpacity = opacity * distanceFade * 0.5; // Reduced by 50% for duller lines
+        const baseLineOpacity = opacity * distanceFade * 0.65; // Slightly brighter than before (was 0.5)
         // Apply stagger progress with smooth step easing for smooth fade-in
         const easedProgress = smoothStep(staggerProgress);
         const lineOpacity = baseLineOpacity * pulseMultiplier * easedProgress;

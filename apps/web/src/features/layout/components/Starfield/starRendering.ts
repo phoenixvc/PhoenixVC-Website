@@ -91,7 +91,7 @@ export const drawPlanet = (
   const massScale = Math.sqrt(projectMass / baseMass); // Square root for gentler scaling
   const clampedMassScale = Math.max(0.7, Math.min(1.5, massScale)); // Clamp between 0.7x and 1.5x
 
-  const starSize = 3 * planetSize * scaleFactor * clampedMassScale; // Base size with mass scaling (reduced from 4 to 3 for slightly smaller planets)
+  const starSize = 2.5 * planetSize * scaleFactor * clampedMassScale; // Base size with mass scaling (reduced from 3 to 2.5 for 5/6 size)
 
   // Draw nebula effects for important stars
   drawNebulaEffects(ctx, planet, starSize, softRgb);
