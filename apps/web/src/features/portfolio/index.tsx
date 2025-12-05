@@ -1,12 +1,14 @@
 // /features/portfolio/index.tsx
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useTheme } from "@/theme";
 import { motion } from "framer-motion";
-import { ExternalLink, Github, Cpu, Network, BookOpen, Shield, FileText, Key, Car, Users, Vault, Eye, EyeOff } from "lucide-react";
+import { ExternalLink, Github, Cpu, Network, BookOpen, Shield, FileText, Key, Car, Users, Vault, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import styles from "./Portfolio.module.css";
 
 interface Project {
+  id: string;
   name: string;
   description: string;
   longDescription: string;
@@ -20,6 +22,7 @@ interface Project {
 
 const projects: Project[] = [
   {
+    id: "mystira",
     name: "Mystira",
     description: "Interactive storytelling adventures for children and families",
     longDescription: "Mystira brings the wonder of storytelling to life for children, parents, and group leaders alike. It transforms shared playtime into immersive, interactive adventures filled with imagination, cooperation, and creativity. Each Mystira story is grounded in child development research, fostering emotional growth, problem-solving skills, and meaningful connections.",
@@ -29,6 +32,7 @@ const projects: Project[] = [
     tags: ["Storytelling", "Children", "Interactive", "Education"],
   },
   {
+    id: "phoenixrooivalk",
     name: "Phoenix Rooivalk",
     description: "AI-powered counter-drone defense platform",
     longDescription: "Phoenix Rooivalk is a sophisticated counter-drone platform that leverages advanced AI and machine learning for real-time drone detection, classification, and neutralization. Named after the South African Rooivalk attack helicopter, it provides comprehensive airspace protection with automated threat assessment and response capabilities.",
@@ -40,6 +44,7 @@ const projects: Project[] = [
     tags: ["Counter-Drone", "AI", "Defense", "Security"],
   },
   {
+    id: "cognitivemesh",
     name: "Cognitive Mesh",
     description: "Enterprise-grade AI transformation framework",
     longDescription: "Cognitive Mesh is an enterprise-grade AI transformation framework designed to orchestrate multi-agent cognitive systems with institutional-grade security and compliance controls. It features a five-layer hexagonal architecture enabling organizations to build, deploy, and manage advanced AI capabilities with comprehensive governance, NIST AI Risk Management Framework compliance, and Zero-Trust security architecture.",
@@ -49,6 +54,7 @@ const projects: Project[] = [
     tags: ["Multi-Agent", "Enterprise", "Security", "Governance", "Azure", ".NET"],
   },
   {
+    id: "airkey",
     name: "Airkey",
     description: "Digital access management solutions",
     longDescription: "Airkey Ltd provides innovative digital access management solutions that enable secure, keyless entry systems for various real-world assets. Using advanced cryptography and mobile technology, Airkey transforms how organizations manage physical access control.",
@@ -57,6 +63,7 @@ const projects: Project[] = [
     tags: ["Access Control", "Security", "IoT", "Mobile"],
   },
   {
+    id: "hop",
     name: "Hop",
     description: "Innovative connectivity technology",
     longDescription: "Hop (Pty) Ltd is revolutionizing urban mobility with innovative connectivity solutions. Their cutting edge platform and hardware connects commuters with high-speed internet.",
@@ -65,6 +72,7 @@ const projects: Project[] = [
     tags: ["Connectivity", "Mobility", "Hardware", "Internet"],
   },
   {
+    id: "chaufher",
     name: "Chaufher",
     description: "Women-focused ridehail service",
     longDescription: "Chaufher (Pty) Ltd is a women-focused ridehail service designed to provide safe, reliable rides for women, by women. The platform prioritizes passenger safety with vetted drivers and specialized features tailored to women's transportation needs.",
@@ -73,6 +81,7 @@ const projects: Project[] = [
     tags: ["Transportation", "Safety", "Women-Focused", "Ride-Sharing"],
   },
   {
+    id: "veritasvault",
     name: "VeritasVault",
     description: "DeFi staking and treasury-backed rewards platform",
     longDescription: "VeritasVault is a decentralized finance platform offering transparent, treasury-backed staking rewards with auto-compounding yields. The platform enables users to earn real yield through depositing, staking, and voting mechanisms with no lock-ups and instant withdrawals.",
@@ -148,7 +157,7 @@ export const Portfolio = () => {
   return (
     <>
       <SEO
-        title="Portfolio"
+        title="Investment Portfolio"
         description="Explore Phoenix VC's portfolio of innovative technology companies across AI, fintech, blockchain, and emerging technologies."
         keywords="venture capital portfolio, tech investments, startup portfolio, AI companies, fintech investments"
       />
@@ -190,45 +199,55 @@ export const Portfolio = () => {
           <motion.div className={styles.projectsGrid} variants={animations.item}>
             {visibleProjects.map((project, index) => (
               <motion.div
-                key={index}
+                key={project.id}
                 className={styles.projectCard}
                 variants={animations.card}
                 whileHover={{ y: -8, transition: { duration: 0.2 } }}
               >
-                <div className={styles.cardHeader}>
-                  <div className={styles.projectIcon}>
-                    {project.icon}
+                <Link to={`/portfolio/${project.id}`} className={styles.cardLink}>
+                  <div className={styles.cardHeader}>
+                    <div className={styles.projectIcon}>
+                      {project.icon}
+                    </div>
+                    <div
+                      className={styles.statusBadge}
+                      style={{
+                        backgroundColor: statusColors[project.status].bg,
+                        color: statusColors[project.status].text,
+                      }}
+                    >
+                      {statusColors[project.status].label}
+                    </div>
                   </div>
-                  <div
-                    className={styles.statusBadge}
-                    style={{
-                      backgroundColor: statusColors[project.status].bg,
-                      color: statusColors[project.status].text,
-                    }}
-                  >
-                    {statusColors[project.status].label}
+
+                  <h2 className={styles.projectName}>{project.name}</h2>
+                  <p className={styles.projectDescription}>{project.description}</p>
+                  <p className={styles.projectLongDescription}>{project.longDescription}</p>
+
+                  <div className={styles.tags}>
+                    {project.tags.map((tag, tagIndex) => (
+                      <span key={tagIndex} className={styles.tag}>
+                        {tag}
+                      </span>
+                    ))}
                   </div>
-                </div>
-
-                <h2 className={styles.projectName}>{project.name}</h2>
-                <p className={styles.projectDescription}>{project.description}</p>
-                <p className={styles.projectLongDescription}>{project.longDescription}</p>
-
-                <div className={styles.tags}>
-                  {project.tags.map((tag, tagIndex) => (
-                    <span key={tagIndex} className={styles.tag}>
-                      {tag}
-                    </span>
-                  ))}
-                </div>
+                </Link>
 
                 <div className={styles.cardActions}>
+                  <Link
+                    to={`/portfolio/${project.id}`}
+                    className={`${styles.actionButton} ${styles.detailsButton}`}
+                  >
+                    <ArrowRight size={18} />
+                    View Details
+                  </Link>
                   {project.website && (
                     <a
                       href={project.website}
                       target="_blank"
                       rel="noopener noreferrer"
                       className={styles.actionButton}
+                      onClick={(e) => e.stopPropagation()}
                     >
                       <ExternalLink size={18} />
                       Website
@@ -240,6 +259,7 @@ export const Portfolio = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                       className={`${styles.actionButton} ${styles.docsButton}`}
+                      onClick={(e) => e.stopPropagation()}
                     >
                       <FileText size={18} />
                       Docs
@@ -251,6 +271,7 @@ export const Portfolio = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                       className={`${styles.actionButton} ${styles.githubButton}`}
+                      onClick={(e) => e.stopPropagation()}
                     >
                       <Github size={18} />
                       GitHub
