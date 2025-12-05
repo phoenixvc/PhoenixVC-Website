@@ -230,24 +230,26 @@ export const checkPlanetHover = (
 ): boolean => {
   if (!planets || !planets.length) return false;
 
+  // Shared hover radius constant for consistent detection
   const hoverRadius = 30 * planetSize;
+
+  // Helper function to calculate distance between mouse and planet
+  const getDistanceToPlanet = (planet: Planet): number => {
+    return Math.sqrt(
+      Math.pow(mouseX - planet.x, 2) +
+      Math.pow(mouseY - planet.y, 2)
+    );
+  };
 
   // First, check if there's a currently hovered planet and if cursor is still within its radius
   // This prevents "stealing" the hover when another planet moves closer
-  let currentlyHoveredPlanet: Planet | null = null;
-  for (const planet of planets) {
-    if (planet.isHovered) {
-      const dist = Math.sqrt(
-        Math.pow(mouseX - planet.x, 2) +
-        Math.pow(mouseY - planet.y, 2)
-      );
-      // If cursor is still within the currently hovered planet's radius, keep it hovered
-      if (dist < hoverRadius) {
-        currentlyHoveredPlanet = planet;
-      }
-      break; // Only one planet should be hovered at a time
-    }
-  }
+  // Note: Only ONE planet can be hovered at a time by design
+  const currentlyHoveredPlanet = planets.find((planet) => {
+    if (!planet.isHovered) return false;
+    const dist = getDistanceToPlanet(planet);
+    // Keep this planet hovered if cursor is still within its radius
+    return dist < hoverRadius;
+  }) ?? null;
 
   let hoveredPlanet: Planet | null = currentlyHoveredPlanet;
 
@@ -258,10 +260,7 @@ export const checkPlanetHover = (
 
     // Find the closest planet to the mouse
     for (const planet of planets) {
-      const dist = Math.sqrt(
-        Math.pow(mouseX - planet.x, 2) +
-        Math.pow(mouseY - planet.y, 2)
-      );
+      const dist = getDistanceToPlanet(planet);
 
       if (dist < hoverRadius && dist < closestDistance) {
         closestDistance = dist;
