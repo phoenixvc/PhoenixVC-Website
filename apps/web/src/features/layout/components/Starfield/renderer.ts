@@ -2,6 +2,7 @@
 import { BlackHole, CenterPosition, ContainerBounds, Explosion, MousePosition, Planet, Star } from "./types";
 import { calculateCenter } from "./utils";
 import { getFrameTime } from "./frameCache";
+import { EFFECT_TIMING } from "./physicsConfig";
 
 // Star birthplace indicator positions (along edges where stars respawn)
 const BIRTHPLACE_INDICATORS = [
@@ -311,11 +312,10 @@ export const updateStar = (
     }
   }
 
-  // Check if consumed star should respawn (after 3-6 second delay with randomization)
+  // Check if consumed star should respawn (after configurable delay with randomization)
   if (star.isConsumed && star.consumedAt) {
     const now = performance.now();
-    // Increased respawn delay: 3-6 seconds (was 1.5-3 seconds)
-    const respawnDelay = 3000 + Math.random() * 3000;
+    const respawnDelay = EFFECT_TIMING.starRespawnDelayBase + Math.random() * EFFECT_TIMING.starRespawnDelayRandom;
     if (now - star.consumedAt > respawnDelay) {
       // Respawn at edge of screen (spawn point effect)
       const edge = Math.floor(Math.random() * 4);

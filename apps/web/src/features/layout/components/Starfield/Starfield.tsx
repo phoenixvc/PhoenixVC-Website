@@ -23,6 +23,7 @@ import { applyClickForce, createClickExplosion } from "./stars";
 import { checkSunHover } from "./hooks/animation/animate";
 import { applyClickRepulsionToSunsCanvas, getSunPosition } from "./sunSystem";
 import SunTooltip, { SunInfo } from "./sunTooltip";
+import { EFFECT_TIMING } from "./physicsConfig";
 
 // Define the ref type
 export type StarfieldRef = {
@@ -750,10 +751,10 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     }
     
     // Wait for stars, planets, and suns to reach their initial positions
-    // 500ms is enough time for the physics engine to position elements
+    // The delay allows the physics engine to position elements before showing
     initializationTimerRef.current = setTimeout(() => {
       setIsStarfieldReady(true);
-    }, 500);
+    }, EFFECT_TIMING.starfieldInitializationDelay);
     
     return () => {
       if (initializationTimerRef.current) {

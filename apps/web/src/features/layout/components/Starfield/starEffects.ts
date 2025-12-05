@@ -4,6 +4,7 @@ import { hexToRgb } from "./starUtils";
 import { Planet, PortfolioProject } from "./types";
 import { getFrameTime } from "./frameCache";
 import { SUNS } from "./cosmos/cosmicHierarchy";
+import { COMET_CONFIG } from "./physicsConfig";
 
 /**
  * Get the sun color for a planet based on its focus area
@@ -191,8 +192,8 @@ export function drawStarTrail(
   const scb = secondaryRgb.b;
 
   // ===== LAYER 1: Main glowing trail body =====
-  // Increased width multiplier for more visible trails
-  const startWidth = 18 * planetSize * scaleFactor;
+  // Use configurable width multiplier for trail visibility
+  const startWidth = COMET_CONFIG.trailWidthMultiplier * planetSize * scaleFactor;
   
   // Subtle wobble for organic feel
   const wobbleTime = time * 0.0002;
@@ -234,13 +235,13 @@ export function drawStarTrail(
   // ===== LAYER 2: Inner bright core trail =====
   ctx.save();
   ctx.beginPath();
-  const coreWidth = startWidth * 0.5; // Increased from 0.4
+  const coreWidth = startWidth * COMET_CONFIG.coreWidthFraction;
   ctx.moveTo(planet.x, planet.y);
-  ctx.lineTo(planet.x - normalizedDx * trailLength * 0.7, planet.y - normalizedDy * trailLength * 0.7); // Extended from 0.6
+  ctx.lineTo(planet.x - normalizedDx * trailLength * COMET_CONFIG.coreLengthFraction, planet.y - normalizedDy * trailLength * COMET_CONFIG.coreLengthFraction);
   
   const coreGradient = ctx.createLinearGradient(
     planet.x, planet.y,
-    planet.x - normalizedDx * trailLength * 0.7, planet.y - normalizedDy * trailLength * 0.7
+    planet.x - normalizedDx * trailLength * COMET_CONFIG.coreLengthFraction, planet.y - normalizedDy * trailLength * COMET_CONFIG.coreLengthFraction
   );
   coreGradient.addColorStop(0, "rgba(255, 255, 255, 1)");
   coreGradient.addColorStop(0.3, `rgba(${sr}, ${sg}, ${sb}, 0.8)`);

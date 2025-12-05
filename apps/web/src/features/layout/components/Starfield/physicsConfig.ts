@@ -192,6 +192,24 @@ export const EFFECT_TIMING = {
   clickExplosionDuration: 800,
   /** Duration of reset animation (ms) */
   resetAnimationDuration: 1000,
+  /** Base delay before consumed star respawns (ms) */
+  starRespawnDelayBase: 3000,
+  /** Random additional delay for star respawn (ms) */
+  starRespawnDelayRandom: 3000,
+  /** Delay before starfield canvas fades in after initialization (ms) */
+  starfieldInitializationDelay: 500,
+} as const;
+
+/**
+ * Comet trail visual configuration
+ */
+export const COMET_CONFIG = {
+  /** Trail width multiplier relative to planet size */
+  trailWidthMultiplier: 18,
+  /** Trail core width as fraction of main trail */
+  coreWidthFraction: 0.5,
+  /** Trail core length as fraction of main trail */
+  coreLengthFraction: 0.7,
 } as const;
 
 // Type exports for type safety
@@ -204,3 +222,4 @@ export type FlowPhysics = typeof FLOW_PHYSICS;
 export type ConnectionConfig = typeof CONNECTION_CONFIG;
 export type ExplosionPhysics = typeof EXPLOSION_PHYSICS;
 export type EffectTiming = typeof EFFECT_TIMING;
+export type CometConfig = typeof COMET_CONFIG;
