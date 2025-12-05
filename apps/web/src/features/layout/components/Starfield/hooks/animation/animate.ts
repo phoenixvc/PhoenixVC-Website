@@ -1170,8 +1170,246 @@ function drawSuns(
     ctx.globalAlpha = 0.5;
     ctx.arc(x + size * 0.35, y + size * 0.35, size * 0.2, 0, Math.PI * 2);
     ctx.fill();
+    
+    // ===== LAYER 13: Focus area vector icon =====
+    // Draw a vector icon in the center of the sun to represent the focus area
+    ctx.globalAlpha = isDarkMode ? 0.85 : 0.75;
+    const iconSize = size * 0.45;
+    
+    // Draw icon based on sun type
+    drawSunIcon(ctx, x, y, iconSize, sunState.id);
   });
   
   ctx.globalAlpha = 1;
   ctx.restore();
+}
+
+/**
+ * Draw a vector icon representing the focus area in the center of a sun
+ */
+function drawSunIcon(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  iconSize: number,
+  sunId: string
+): void {
+  ctx.save();
+  ctx.strokeStyle = "#ffffff";
+  ctx.fillStyle = "#ffffff";
+  ctx.lineWidth = Math.max(1.5, iconSize * 0.08);
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  
+  switch (sunId) {
+    case "fintech-blockchain-sun":
+      // Draw a blockchain/coin icon (hexagon with connecting nodes)
+      drawBlockchainIcon(ctx, x, y, iconSize);
+      break;
+    case "ai-ml-sun":
+      // Draw an AI/brain icon (circuit-like pattern)
+      drawAIIcon(ctx, x, y, iconSize);
+      break;
+    case "defense-security-sun":
+      // Draw a shield icon
+      drawShieldIcon(ctx, x, y, iconSize);
+      break;
+    case "mobility-transportation-sun":
+      // Draw a wheel/motion icon
+      drawMobilityIcon(ctx, x, y, iconSize);
+      break;
+    default:
+      // Default: draw a simple star
+      drawDefaultStarIcon(ctx, x, y, iconSize);
+  }
+  
+  ctx.restore();
+}
+
+/**
+ * Draw a blockchain/fintech icon (hexagon with nodes)
+ */
+function drawBlockchainIcon(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
+  const r = size * 0.6;
+  
+  // Draw hexagon
+  ctx.beginPath();
+  for (let i = 0; i < 6; i++) {
+    const angle = (i * Math.PI / 3) - Math.PI / 2;
+    const px = x + r * Math.cos(angle);
+    const py = y + r * Math.sin(angle);
+    if (i === 0) {
+      ctx.moveTo(px, py);
+    } else {
+      ctx.lineTo(px, py);
+    }
+  }
+  ctx.closePath();
+  ctx.stroke();
+  
+  // Draw nodes at vertices
+  for (let i = 0; i < 6; i++) {
+    const angle = (i * Math.PI / 3) - Math.PI / 2;
+    const px = x + r * Math.cos(angle);
+    const py = y + r * Math.sin(angle);
+    ctx.beginPath();
+    ctx.arc(px, py, size * 0.1, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  // Draw center node
+  ctx.beginPath();
+  ctx.arc(x, y, size * 0.15, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Draw connecting lines from center to alternate vertices (0, 2, 4)
+  // This creates a triangular pattern for visual balance
+  for (let i = 0; i < 6; i += 2) {
+    const angle = (i * Math.PI / 3) - Math.PI / 2;
+    const px = x + r * Math.cos(angle);
+    const py = y + r * Math.sin(angle);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(px, py);
+    ctx.stroke();
+  }
+}
+
+/**
+ * Draw an AI/ML icon (neural network pattern)
+ */
+function drawAIIcon(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
+  // Draw brain-like circuit pattern
+  const r = size * 0.5;
+  
+  // Central node
+  ctx.beginPath();
+  ctx.arc(x, y, size * 0.18, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Outer nodes in a circle
+  const nodeCount = 5;
+  const outerNodes: Array<{x: number; y: number}> = [];
+  for (let i = 0; i < nodeCount; i++) {
+    const angle = (i * Math.PI * 2 / nodeCount) - Math.PI / 2;
+    const px = x + r * Math.cos(angle);
+    const py = y + r * Math.sin(angle);
+    outerNodes.push({x: px, y: py});
+    
+    // Draw node
+    ctx.beginPath();
+    ctx.arc(px, py, size * 0.12, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Connect to center
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(px, py);
+    ctx.stroke();
+  }
+  
+  // Connect outer nodes to adjacent nodes (neural network connections)
+  for (let i = 0; i < nodeCount; i++) {
+    const next = (i + 1) % nodeCount;
+    ctx.beginPath();
+    ctx.moveTo(outerNodes[i].x, outerNodes[i].y);
+    ctx.lineTo(outerNodes[next].x, outerNodes[next].y);
+    ctx.stroke();
+  }
+}
+
+/**
+ * Draw a shield icon (defense/security)
+ */
+function drawShieldIcon(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
+  const w = size * 0.6;
+  const h = size * 0.75;
+  
+  // Draw shield shape
+  ctx.beginPath();
+  ctx.moveTo(x, y - h * 0.5); // Top center
+  ctx.lineTo(x + w * 0.5, y - h * 0.3); // Top right
+  ctx.lineTo(x + w * 0.5, y + h * 0.1); // Right side
+  ctx.quadraticCurveTo(x + w * 0.3, y + h * 0.4, x, y + h * 0.5); // Bottom right curve
+  ctx.quadraticCurveTo(x - w * 0.3, y + h * 0.4, x - w * 0.5, y + h * 0.1); // Bottom left curve
+  ctx.lineTo(x - w * 0.5, y - h * 0.3); // Left side
+  ctx.closePath();
+  ctx.stroke();
+  
+  // Draw checkmark inside
+  ctx.beginPath();
+  ctx.moveTo(x - w * 0.2, y);
+  ctx.lineTo(x - w * 0.05, y + h * 0.15);
+  ctx.lineTo(x + w * 0.25, y - h * 0.15);
+  ctx.stroke();
+}
+
+/**
+ * Draw a mobility/transportation icon (wheel with spokes)
+ */
+function drawMobilityIcon(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
+  const r = size * 0.55;
+  const innerR = size * 0.25;
+  
+  // Outer wheel
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.stroke();
+  
+  // Inner hub
+  ctx.beginPath();
+  ctx.arc(x, y, innerR, 0, Math.PI * 2);
+  ctx.stroke();
+  
+  // Center point
+  ctx.beginPath();
+  ctx.arc(x, y, size * 0.08, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Spokes
+  const spokeCount = 6;
+  for (let i = 0; i < spokeCount; i++) {
+    const angle = (i * Math.PI * 2 / spokeCount);
+    ctx.beginPath();
+    ctx.moveTo(x + innerR * Math.cos(angle), y + innerR * Math.sin(angle));
+    ctx.lineTo(x + r * Math.cos(angle), y + r * Math.sin(angle));
+    ctx.stroke();
+  }
+  
+  // Motion lines (speed indicator)
+  const originalLineWidth = ctx.lineWidth;
+  ctx.lineWidth = originalLineWidth * 0.6;
+  for (let i = 0; i < 3; i++) {
+    const lineY = y - size * 0.1 + i * size * 0.15;
+    const lineX = x + r + size * 0.15;
+    ctx.beginPath();
+    ctx.moveTo(lineX, lineY);
+    ctx.lineTo(lineX + size * 0.3 - i * size * 0.08, lineY);
+    ctx.stroke();
+  }
+  ctx.lineWidth = originalLineWidth; // Restore original lineWidth
+}
+
+/**
+ * Draw a default star icon
+ */
+function drawDefaultStarIcon(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
+  const outerR = size * 0.5;
+  const innerR = size * 0.2;
+  const points = 5;
+  
+  ctx.beginPath();
+  for (let i = 0; i < points * 2; i++) {
+    const angle = (i * Math.PI / points) - Math.PI / 2;
+    const r = i % 2 === 0 ? outerR : innerR;
+    const px = x + r * Math.cos(angle);
+    const py = y + r * Math.sin(angle);
+    if (i === 0) {
+      ctx.moveTo(px, py);
+    } else {
+      ctx.lineTo(px, py);
+    }
+  }
+  ctx.closePath();
+  ctx.fill();
 }
