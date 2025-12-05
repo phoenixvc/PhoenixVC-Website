@@ -230,27 +230,47 @@ export const checkPlanetHover = (
 ): boolean => {
   if (!planets || !planets.length) return false;
 
-  let hoveredPlanet: Planet | null = null;
-  let closestDistance = Infinity;
+  const hoverRadius = 30 * planetSize;
 
-  // First pass: Find the closest planet to the mouse
-  // This ensures only ONE planet can be "caught" at a time
+  // First, check if there's a currently hovered planet and if cursor is still within its radius
+  // This prevents "stealing" the hover when another planet moves closer
+  let currentlyHoveredPlanet: Planet | null = null;
   for (const planet of planets) {
-    const dist = Math.sqrt(
-      Math.pow(mouseX - planet.x, 2) +
-      Math.pow(mouseY - planet.y, 2)
-    );
-
-    // Hover radius for detection
-    const hoverRadius = 30 * planetSize;
-
-    if (dist < hoverRadius && dist < closestDistance) {
-      closestDistance = dist;
-      hoveredPlanet = planet;
+    if (planet.isHovered) {
+      const dist = Math.sqrt(
+        Math.pow(mouseX - planet.x, 2) +
+        Math.pow(mouseY - planet.y, 2)
+      );
+      // If cursor is still within the currently hovered planet's radius, keep it hovered
+      if (dist < hoverRadius) {
+        currentlyHoveredPlanet = planet;
+      }
+      break; // Only one planet should be hovered at a time
     }
   }
 
-  // Second pass: Reset ALL planets that are NOT the closest one
+  let hoveredPlanet: Planet | null = currentlyHoveredPlanet;
+
+  // Only look for a new planet to hover if there's no currently hovered planet
+  // or if the cursor has moved outside the currently hovered planet's radius
+  if (!hoveredPlanet) {
+    let closestDistance = Infinity;
+
+    // Find the closest planet to the mouse
+    for (const planet of planets) {
+      const dist = Math.sqrt(
+        Math.pow(mouseX - planet.x, 2) +
+        Math.pow(mouseY - planet.y, 2)
+      );
+
+      if (dist < hoverRadius && dist < closestDistance) {
+        closestDistance = dist;
+        hoveredPlanet = planet;
+      }
+    }
+  }
+
+  // Reset ALL planets that are NOT the hovered one
   // This prevents multiple planets from being "caught" simultaneously
   for (const planet of planets) {
     if (planet !== hoveredPlanet && planet.isHovered) {
