@@ -728,6 +728,22 @@ function drawSuns(
   focusedSunId?: string | null,
   planets?: Planet[]
 ): void {
+  // Sun rendering constants
+  const SUN_SIZE_MULTIPLIER = 0.35;
+  const SUN_MIN_SIZE = 20;
+  
+  // Solar particle constants
+  const PARTICLE_COUNT_HIGHLIGHTED = 24;
+  const PARTICLE_COUNT_DEFAULT = 16;
+  const PARTICLE_ORBIT_BASE_RADIUS = 1.3;
+  const PARTICLE_ORBIT_RADIUS_STEP = 0.4;
+  const PARTICLE_ORBIT_SPEED_BASE = 0.0001;
+  const PARTICLE_ORBIT_SPEED_VARIATION = 0.00003;
+  
+  // Ejected particle constants
+  const EJECT_COUNT_HIGHLIGHTED = 8;
+  const EJECT_COUNT_DEFAULT = 5;
+  
   // Initialize sun system if needed
   if (!sunSystemInitialized) {
     initializeSunStates();
@@ -756,7 +772,7 @@ function drawSuns(
     const x = sunState.x * width;
     const y = sunState.y * height;
     // Slightly reduced sun size for better proportion
-    const baseSize = Math.max(20, Math.min(width, height) * sunState.size * 0.35);
+    const baseSize = Math.max(SUN_MIN_SIZE, Math.min(width, height) * sunState.size * SUN_SIZE_MULTIPLIER);
     
     // Check if this sun is hovered or focused
     const isHovered = hoveredSunId === sunState.id;
@@ -936,13 +952,13 @@ function drawSuns(
     }
     
     // ===== LAYER 5.5: Solar particles (orbiting plasma dots) =====
-    const particleCount = isHighlighted ? 24 : 16;
+    const particleCount = isHighlighted ? PARTICLE_COUNT_HIGHLIGHTED : PARTICLE_COUNT_DEFAULT;
     ctx.globalAlpha = isDarkMode ? (isHighlighted ? 0.85 : 0.65) : (isHighlighted ? 0.7 : 0.5);
     
     for (let i = 0; i < particleCount; i++) {
       // Create particles orbiting at different distances and speeds
-      const orbitRadius = size * (1.3 + (i % 4) * 0.4); // Multiple orbit rings
-      const orbitSpeed = 0.0001 + (i % 3) * 0.00003; // Varying speeds
+      const orbitRadius = size * (PARTICLE_ORBIT_BASE_RADIUS + (i % 4) * PARTICLE_ORBIT_RADIUS_STEP); // Multiple orbit rings
+      const orbitSpeed = PARTICLE_ORBIT_SPEED_BASE + (i % 3) * PARTICLE_ORBIT_SPEED_VARIATION; // Varying speeds
       const particleAngle = (i * Math.PI * 2 / particleCount) + time * orbitSpeed + sunState.rotationAngle * 0.3;
       
       // Add slight wobble to particle path
@@ -993,7 +1009,7 @@ function drawSuns(
     }
     
     // ===== LAYER 5.6: Ejected particles (escaping plasma) =====
-    const ejectCount = isHighlighted ? 8 : 5;
+    const ejectCount = isHighlighted ? EJECT_COUNT_HIGHLIGHTED : EJECT_COUNT_DEFAULT;
     for (let i = 0; i < ejectCount; i++) {
       // Particles that appear to be ejected outward
       const ejectAngle = (i * Math.PI * 2 / ejectCount) + time * 0.00008 + sunState.rotationAngle;
