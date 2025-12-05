@@ -20,7 +20,8 @@ import {
   Code,
   Globe,
   ChevronRight,
-  Home
+  Home,
+  Bot
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import {
@@ -42,6 +43,7 @@ const projectIcons: Record<string, React.ReactNode> = {
   hop: <Car size={48} />,
   chaufher: <Users size={48} />,
   veritasvault: <Vault size={48} />,
+  autopr: <Bot size={48} />,
   "phoenixvc-website": <Globe size={48} />,
   "design-system": <Code size={48} />,
 };
