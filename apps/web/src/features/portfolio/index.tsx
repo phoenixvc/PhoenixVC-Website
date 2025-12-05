@@ -1,6 +1,6 @@
 // /features/portfolio/index.tsx
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTheme } from "@/theme";
 import { motion } from "framer-motion";
 import { ExternalLink, Github, Cpu, Network, BookOpen, Shield, FileText, Key, Car, Users, Vault, Eye, EyeOff, ArrowRight } from "lucide-react";
@@ -143,9 +143,15 @@ export const Portfolio = () => {
   const { themeMode } = useTheme();
   const isDarkMode = themeMode === "dark";
   const [showComingSoon, setShowComingSoon] = useState(true);
+  const navigate = useNavigate();
 
   // Determine if a project is "coming soon" (no public links available)
   const isComingSoon = (project: Project) => !project.website && !project.github && !project.docs;
+
+  // Handle card click - navigate to project detail page
+  const handleCardClick = (projectId: string) => {
+    void navigate(`/portfolio/${projectId}`);
+  };
 
   // Filter projects based on toggle state
   const visibleProjects = showComingSoon
@@ -197,14 +203,24 @@ export const Portfolio = () => {
 
           {/* Projects Grid */}
           <motion.div className={styles.projectsGrid} variants={animations.item}>
-            {visibleProjects.map((project, index) => (
+            {visibleProjects.map((project) => (
               <motion.div
                 key={project.id}
-                className={styles.projectCard}
+                className={`${styles.projectCard} ${styles.clickableCard}`}
                 variants={animations.card}
                 whileHover={{ y: -8, transition: { duration: 0.2 } }}
+                onClick={() => handleCardClick(project.id)}
+                role="article"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleCardClick(project.id);
+                  }
+                }}
+                aria-label={`View details for ${project.name}`}
               >
-                <Link to={`/portfolio/${project.id}`} className={styles.cardLink}>
+                <div className={styles.cardContent}>
                   <div className={styles.cardHeader}>
                     <div className={styles.projectIcon}>
                       {project.icon}
@@ -231,12 +247,13 @@ export const Portfolio = () => {
                       </span>
                     ))}
                   </div>
-                </Link>
+                </div>
 
                 <div className={styles.cardActions}>
                   <Link
                     to={`/portfolio/${project.id}`}
                     className={`${styles.actionButton} ${styles.detailsButton}`}
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <ArrowRight size={18} />
                     View Details
