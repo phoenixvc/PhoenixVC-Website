@@ -6,8 +6,8 @@
  * Controls the overall speed of all physics simulations
  */
 export const GLOBAL_PHYSICS = {
-  /** Master speed multiplier for all animations (0.15 = 15% speed) */
-  speedMultiplier: 0.15,
+  /** Master speed multiplier for all animations (0.05 = 5% speed, reduced for slower movement) */
+  speedMultiplier: 0.05,
   /** Maximum delta time before capping (prevents physics explosion on tab return) */
   maxDeltaTime: 32,
   /** Default delta time when invalid value detected */

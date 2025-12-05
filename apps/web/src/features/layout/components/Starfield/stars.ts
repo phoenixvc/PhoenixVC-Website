@@ -552,15 +552,15 @@ export const drawConnections = (
         if (staggerProgress <= 0) return;
         
         // Create a slow, smooth pulse with unique timing per connection
-        // Slower frequencies for smoother animation
-        const frequency1 = 0.00015 + (uniqueSeed % 100) / 200000;
-        const frequency2 = 0.0001 + (uniqueSeed % 50) / 150000;
+        // Slower frequencies for smoother animation (reduced for less blinking)
+        const frequency1 = 0.00005 + (uniqueSeed % 100) / 500000;
+        const frequency2 = 0.00003 + (uniqueSeed % 50) / 400000;
         
         const pulse1 = Math.sin(time * frequency1 + phaseOffset);
         const pulse2 = Math.sin(time * frequency2 + phaseOffset * 1.3);
         
-        // Combine pulses for smoother animation (0.6 to 1.0 range - less variation)
-        const pulseMultiplier = 0.7 + (pulse1 * 0.15 + pulse2 * 0.15);
+        // Combine pulses for smoother animation (0.85 to 1.0 range - minimal variation for reduced blinking)
+        const pulseMultiplier = 0.9 + (pulse1 * 0.05 + pulse2 * 0.05);
         
         // Calculate opacity based on distance with smoother falloff
         const distanceRatio = dist / maxDistance;
@@ -583,7 +583,7 @@ export const drawConnections = (
         ctx.moveTo(star1.x, star1.y);
         ctx.lineTo(star2.x, star2.y);
         ctx.strokeStyle = gradient;
-        ctx.lineWidth = 0.8 + pulseMultiplier * 0.4; // Slightly variable width for organic feel
+        ctx.lineWidth = 0.6 + pulseMultiplier * 0.2; // Reduced variable width for less flicker
         ctx.stroke();
       }
     });
