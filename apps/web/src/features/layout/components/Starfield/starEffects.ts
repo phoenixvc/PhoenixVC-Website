@@ -3,6 +3,74 @@
 import { hexToRgb } from "./starUtils";
 import { Planet, PortfolioProject } from "./types";
 import { getFrameTime } from "./frameCache";
+import { SUNS } from "./cosmos/cosmicHierarchy";
+
+/**
+ * Get the sun color for a planet based on its focus area
+ */
+function getSunColorForPlanet(planet: Planet): { r: number; g: number; b: number } {
+  const focusArea = planet.project?.focusArea;
+  if (focusArea) {
+    const matchingSun = SUNS.find(sun =>
+      sun.parentId === "focus-areas-galaxy" &&
+      sun.id.includes(focusArea.replace(/-/g, "-"))
+    );
+    if (matchingSun?.color) {
+      const rgb = hexToRgb(matchingSun.color);
+      if (rgb) return rgb;
+    }
+  }
+  return { r: 255, g: 255, b: 255 };
+}
+
+/**
+ * Create a secondary/complementary color for visual variety
+ */
+function getSecondaryColorRgb(rgb: { r: number; g: number; b: number }): { r: number; g: number; b: number } {
+  // Convert to HSL, shift hue
+  const r = rgb.r / 255;
+  const g = rgb.g / 255;
+  const b = rgb.b / 255;
+  
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  
+  let h = 0;
+  let s = 0;
+  
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+      case g: h = ((b - r) / d + 2) / 6; break;
+      case b: h = ((r - g) / d + 4) / 6; break;
+    }
+  }
+  
+  // Shift hue by ~40 degrees
+  h = (h + 0.11) % 1;
+  
+  const hue2rgb = (p: number, q: number, t: number): number => {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 1/6) return p + (q - p) * 6 * t;
+    if (t < 1/2) return q;
+    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+    return p;
+  };
+  
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  
+  return {
+    r: Math.round(hue2rgb(p, q, h + 1/3) * 255),
+    g: Math.round(hue2rgb(p, q, h) * 255),
+    b: Math.round(hue2rgb(p, q, h - 1/3) * 255)
+  };
+}
 
 // Draw star glow and core
 // Draw star glow and core
@@ -84,7 +152,7 @@ export function drawStarGlow(
     ctx.fill();
   }
 
-// Draw comet trail
+// Draw comet trail with sun-aligned colors and realistic particle debris
 export function drawStarTrail(
   ctx: CanvasRenderingContext2D,
   planet: Planet,
@@ -93,14 +161,14 @@ export function drawStarTrail(
   planetSize: number,
   scaleFactor: number
 ): void {
-  const trailLength = planet.trailLength || 180;
+  const trailLength = planet.trailLength || 200;
+  
+  // Get sun color for enhanced trail coloring
+  const sunRgb = getSunColorForPlanet(planet);
+  const secondaryRgb = getSecondaryColorRgb(sunRgb);
+  const time = getFrameTime();
 
-  // Add wobble to comet path for more natural movement - slower wobble
-  const wobbleTime = getFrameTime() * 0.0003; // Reduced from 0.0005
-  const wobbleAmount = 4 * Math.sin(wobbleTime); // Reduced from 5
-
-  ctx.beginPath();
-
+  // Calculate movement direction (opposite to travel direction for trail)
   const dx = -Math.sin(planet.angle) * (planet.orbitalDirection === "clockwise" ? 1 : -1);
   const dy = Math.cos(planet.angle) * (planet.orbitalDirection === "clockwise" ? 1 : -1);
 
@@ -114,124 +182,250 @@ export function drawStarTrail(
   const perpDx = -normalizedDy;
   const perpDy = normalizedDx;
 
-  // Wider trail for better visibility with wobble effect
-  const startWidth = 15 * planetSize * scaleFactor;
-  const endWidth = 1 * planetSize * scaleFactor;
+  // Color setup
+  const sr = sunRgb.r;
+  const sg = sunRgb.g;
+  const sb = sunRgb.b;
+  const scr = secondaryRgb.r;
+  const scg = secondaryRgb.g;
+  const scb = secondaryRgb.b;
 
-  // Create curved trail path with wobble
+  // ===== LAYER 1: Main glowing trail body =====
+  const startWidth = 12 * planetSize * scaleFactor;
+  
+  // Subtle wobble for organic feel
+  const wobbleTime = time * 0.0002;
+  const wobbleAmount = 2 * Math.sin(wobbleTime);
+
+  ctx.save();
+  ctx.beginPath();
   ctx.moveTo(planet.x + perpDx * startWidth/2, planet.y + perpDy * startWidth/2);
 
-  // Create control points for curved trail
-  const cp1x = planet.x - normalizedDx * trailLength * 0.3 + perpDx * startWidth/3 + wobbleAmount;
-  const cp1y = planet.y - normalizedDy * trailLength * 0.3 + perpDy * startWidth/3 - wobbleAmount/2;
+  // Create smooth curved trail path
+  const cp1x = planet.x - normalizedDx * trailLength * 0.25 + perpDx * startWidth/3 + wobbleAmount;
+  const cp1y = planet.y - normalizedDy * trailLength * 0.25 + perpDy * startWidth/3;
+  const cp2x = planet.x - normalizedDx * trailLength * 0.5 + perpDx * 2;
+  const cp2y = planet.y - normalizedDy * trailLength * 0.5 + perpDy * 2;
 
-  const cp2x = planet.x - normalizedDx * trailLength * 0.6 + perpDx * endWidth + wobbleAmount/2;
-  const cp2y = planet.y - normalizedDy * trailLength * 0.6 + perpDy * endWidth - wobbleAmount;
-
-  ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, trailEndX + perpDx * endWidth/2, trailEndY + perpDy * endWidth/2);
-  ctx.lineTo(trailEndX - perpDx * endWidth/2, trailEndY - perpDy * endWidth/2);
-
-  const cp3x = planet.x - normalizedDx * trailLength * 0.6 - perpDx * endWidth - wobbleAmount/2;
-  const cp3y = planet.y - normalizedDy * trailLength * 0.6 - perpDy * endWidth + wobbleAmount;
-
-  const cp4x = planet.x - normalizedDx * trailLength * 0.3 - perpDx * startWidth/3 - wobbleAmount;
-  const cp4y = planet.y - normalizedDy * trailLength * 0.3 - perpDy * startWidth/3 + wobbleAmount/2;
+  ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, trailEndX, trailEndY);
+  
+  const cp3x = planet.x - normalizedDx * trailLength * 0.5 - perpDx * 2;
+  const cp3y = planet.y - normalizedDy * trailLength * 0.5 - perpDy * 2;
+  const cp4x = planet.x - normalizedDx * trailLength * 0.25 - perpDx * startWidth/3 - wobbleAmount;
+  const cp4y = planet.y - normalizedDy * trailLength * 0.25 - perpDy * startWidth/3;
 
   ctx.bezierCurveTo(cp3x, cp3y, cp4x, cp4y, planet.x - perpDx * startWidth/2, planet.y - perpDy * startWidth/2);
   ctx.closePath();
 
-  const gradient = ctx.createLinearGradient(
-    planet.x, planet.y,
-    trailEndX, trailEndY
-  );
+  // Gradient from bright head to fading tail
+  const trailGradient = ctx.createLinearGradient(planet.x, planet.y, trailEndX, trailEndY);
+  trailGradient.addColorStop(0, "rgba(255, 255, 255, 0.95)");
+  trailGradient.addColorStop(0.05, `rgba(${sr}, ${sg}, ${sb}, 0.85)`);
+  trailGradient.addColorStop(0.2, `rgba(${sr}, ${sg}, ${sb}, 0.6)`);
+  trailGradient.addColorStop(0.4, `rgba(${scr}, ${scg}, ${scb}, 0.35)`);
+  trailGradient.addColorStop(0.7, `rgba(${sr}, ${sg}, ${sb}, 0.15)`);
+  trailGradient.addColorStop(1, `rgba(${scr}, ${scg}, ${scb}, 0)`);
 
-  // Softer color variations in the comet trail
-  const r = softRgb.r;
-  const g = softRgb.g;
-  const b = softRgb.b;
-
-  // Create softer color variations
-  const colorVar1 = `rgba(${Math.min(255, r + 20)}, ${Math.min(255, g + 20)}, ${Math.min(255, b)}, 0.9)`; // Reduced opacity
-  const colorVar2 = `rgba(${r}, ${g}, ${b}, 0.7)`; // Reduced opacity
-  const colorVar3 = `rgba(${Math.max(0, r - 20)}, ${Math.max(0, g - 20)}, ${Math.max(0, b + 20)}, 0.4)`; // Reduced opacity
-  const colorVar4 = `rgba(${r}, ${g}, ${b}, 0.2)`; // Reduced opacity
-  const colorVar5 = `rgba(${r}, ${g}, ${b}, 0)`;
-
-  gradient.addColorStop(0, colorVar1);
-  gradient.addColorStop(0.2, colorVar2);
-  gradient.addColorStop(0.5, colorVar3);
-  gradient.addColorStop(0.8, colorVar4);
-  gradient.addColorStop(1, colorVar5);
-
-  ctx.fillStyle = gradient;
+  ctx.fillStyle = trailGradient;
   ctx.fill();
-
-  // Enhanced glow effect with softer glow
-  ctx.save();
-  ctx.shadowColor = `rgba(${r}, ${g}, ${b}, 0.8)`; // Softer shadow
-  ctx.shadowBlur = 15; // Slightly reduced from 18
-
-  ctx.beginPath();
-  ctx.moveTo(planet.x, planet.y);
-  ctx.lineTo(trailEndX, trailEndY);
-  ctx.lineWidth = 3 * planetSize * scaleFactor;
-  ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, 0.6)`; // Reduced opacity
-  ctx.stroke();
-
   ctx.restore();
 
-  // Add small particles that break off from the comet trail - slower and less frequent
-  const particleCount = 4; // Reduced from 5
-  const particleTime = getFrameTime() * 0.0007; // Reduced from 0.001
-
+  // ===== LAYER 2: Inner bright core trail =====
   ctx.save();
-  for (let i = 0; i < particleCount; i++) {
-    const particlePos = 0.2 + (i / particleCount) * 0.6; // Position along trail (0-1)
-    const particleX = planet.x - normalizedDx * trailLength * particlePos;
-    const particleY = planet.y - normalizedDy * trailLength * particlePos;
+  ctx.beginPath();
+  const coreWidth = startWidth * 0.4;
+  ctx.moveTo(planet.x, planet.y);
+  ctx.lineTo(planet.x - normalizedDx * trailLength * 0.6, planet.y - normalizedDy * trailLength * 0.6);
+  
+  const coreGradient = ctx.createLinearGradient(
+    planet.x, planet.y,
+    planet.x - normalizedDx * trailLength * 0.6, planet.y - normalizedDy * trailLength * 0.6
+  );
+  coreGradient.addColorStop(0, "rgba(255, 255, 255, 0.9)");
+  coreGradient.addColorStop(0.3, `rgba(${sr}, ${sg}, ${sb}, 0.6)`);
+  coreGradient.addColorStop(1, `rgba(${sr}, ${sg}, ${sb}, 0)`);
+  
+  ctx.strokeStyle = coreGradient;
+  ctx.lineWidth = coreWidth;
+  ctx.lineCap = "round";
+  ctx.stroke();
+  ctx.restore();
 
-    // Add some randomness to particle position - with slower movement
-    const particleOffsetX = (Math.sin(particleTime * (i + 2) * 0.5) * trailLength * 0.04); // Reduced frequency and amount
-    const particleOffsetY = (Math.cos(particleTime * (i + 1) * 0.4) * trailLength * 0.04); // Reduced frequency and amount
+  // ===== LAYER 3: Debris particles left behind (the "wake") =====
+  // These simulate material shed by the comet
+  const debrisCount = 25;
+  ctx.save();
+  
+  for (let i = 0; i < debrisCount; i++) {
+    // Debris spreads out more as it gets further from the comet
+    const progress = (i / debrisCount);
+    const distanceAlongTrail = progress * trailLength * 1.2; // Extend past main trail
+    
+    // Use deterministic "randomness" based on index and time for consistent positioning
+    const seed1 = Math.sin(i * 127.1 + time * 0.00005);
+    const seed2 = Math.cos(i * 311.7 + time * 0.00004);
+    const seed3 = Math.sin(i * 74.3 + time * 0.00003);
+    
+    // Debris spreads wider as it trails behind
+    const spreadFactor = progress * progress * trailLength * 0.25;
+    const spreadX = seed1 * spreadFactor;
+    const spreadY = seed2 * spreadFactor;
+    
+    // Base position along the trail
+    const debrisX = planet.x - normalizedDx * distanceAlongTrail + perpDx * spreadX + spreadY * 0.3;
+    const debrisY = planet.y - normalizedDy * distanceAlongTrail + perpDy * spreadX + spreadY * 0.3;
+    
+    // Size decreases and varies with distance
+    const sizeVariation = 0.5 + seed3 * 0.5;
+    const debrisSize = starSize * 0.12 * (1 - progress * 0.7) * sizeVariation;
+    
+    // Opacity fades with distance
+    const debrisOpacity = (1 - progress) * 0.7 * (0.5 + Math.abs(seed1) * 0.5);
+    
+    if (debrisSize > 0.3 && debrisOpacity > 0.05) {
+      // Draw debris particle with glow
+      const debrisGlow = ctx.createRadialGradient(
+        debrisX, debrisY, 0,
+        debrisX, debrisY, debrisSize * 2.5
+      );
+      
+      // Alternate between sun and secondary colors
+      const useSecondary = i % 3 === 0;
+      const dr = useSecondary ? scr : sr;
+      const dg = useSecondary ? scg : sg;
+      const db = useSecondary ? scb : sb;
+      
+      debrisGlow.addColorStop(0, `rgba(255, 255, 255, ${debrisOpacity * 0.8})`);
+      debrisGlow.addColorStop(0.3, `rgba(${dr}, ${dg}, ${db}, ${debrisOpacity * 0.6})`);
+      debrisGlow.addColorStop(1, `rgba(${dr}, ${dg}, ${db}, 0)`);
+      
+      ctx.beginPath();
+      ctx.arc(debrisX, debrisY, debrisSize * 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = debrisGlow;
+      ctx.fill();
+      
+      // Bright core
+      ctx.beginPath();
+      ctx.arc(debrisX, debrisY, debrisSize * 0.5, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 255, 255, ${debrisOpacity * 0.9})`;
+      ctx.fill();
+    }
+  }
+  ctx.restore();
 
-    const particleSize = (0.5 + Math.sin(particleTime * (i + 1) * 1) * 0.2) * starSize * 0.2; // Reduced frequency
-    const particleOpacity = 0.25 + Math.sin(particleTime * (i + 3) * 0.8) * 0.15; // Reduced opacity and frequency
+  // ===== LAYER 4: Fine dust particles (very small, numerous) =====
+  const dustCount = 40;
+  ctx.save();
+  
+  for (let i = 0; i < dustCount; i++) {
+    const progress = i / dustCount;
+    const distanceAlongTrail = progress * trailLength * 1.3;
+    
+    // More chaotic movement for dust
+    const dustSeed1 = Math.sin(i * 73.1 + time * 0.00008);
+    const dustSeed2 = Math.cos(i * 157.3 + time * 0.00006);
+    
+    // Wider spread for dust
+    const dustSpread = progress * trailLength * 0.35;
+    const dustOffsetX = dustSeed1 * dustSpread;
+    const dustOffsetY = dustSeed2 * dustSpread;
+    
+    const dustX = planet.x - normalizedDx * distanceAlongTrail + dustOffsetX;
+    const dustY = planet.y - normalizedDy * distanceAlongTrail + dustOffsetY;
+    
+    const dustSize = starSize * 0.04 * (1 - progress * 0.5);
+    const dustOpacity = (1 - progress * 0.8) * 0.5 * Math.abs(dustSeed1);
+    
+    if (dustSize > 0.2 && dustOpacity > 0.03) {
+      ctx.beginPath();
+      ctx.arc(dustX, dustY, dustSize, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${sr}, ${sg}, ${sb}, ${dustOpacity})`;
+      ctx.fill();
+    }
+  }
+  ctx.restore();
 
+  // ===== LAYER 5: Bright sparkles (occasional flashes) =====
+  const sparkleCount = 8;
+  ctx.save();
+  
+  for (let i = 0; i < sparkleCount; i++) {
+    const progress = (i + 0.5) / sparkleCount;
+    const distanceAlongTrail = progress * trailLength * 0.8;
+    
+    // Sparkles twinkle in and out
+    const twinkle = Math.sin(time * 0.002 + i * 2.7);
+    if (twinkle < 0.3) continue; // Only show when "bright"
+    
+    const sparkleSeed = Math.sin(i * 43.7);
+    const sparkleSpread = progress * trailLength * 0.12;
+    
+    const sparkleX = planet.x - normalizedDx * distanceAlongTrail + perpDx * sparkleSeed * sparkleSpread;
+    const sparkleY = planet.y - normalizedDy * distanceAlongTrail + perpDy * sparkleSeed * sparkleSpread;
+    
+    const sparkleSize = starSize * 0.08 * twinkle;
+    const sparkleOpacity = twinkle * (1 - progress * 0.5) * 0.9;
+    
+    // Draw sparkle with glow
+    const sparkleGradient = ctx.createRadialGradient(
+      sparkleX, sparkleY, 0,
+      sparkleX, sparkleY, sparkleSize * 3
+    );
+    sparkleGradient.addColorStop(0, `rgba(255, 255, 255, ${sparkleOpacity})`);
+    sparkleGradient.addColorStop(0.2, `rgba(${sr}, ${sg}, ${sb}, ${sparkleOpacity * 0.7})`);
+    sparkleGradient.addColorStop(1, `rgba(${sr}, ${sg}, ${sb}, 0)`);
+    
     ctx.beginPath();
-    ctx.arc(
-      particleX + particleOffsetX,
-      particleY + particleOffsetY,
-      particleSize,
-      0, Math.PI * 2
-    );
-    ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${particleOpacity})`;
+    ctx.arc(sparkleX, sparkleY, sparkleSize * 3, 0, Math.PI * 2);
+    ctx.fillStyle = sparkleGradient;
     ctx.fill();
-
-    // Add glow to particles - softer glow
+    
+    // Cross-flare for sparkle effect
     ctx.beginPath();
-    ctx.arc(
-      particleX + particleOffsetX,
-      particleY + particleOffsetY,
-      particleSize * 2,
-      0, Math.PI * 2
-    );
-    const particleGradient = ctx.createRadialGradient(
-      particleX + particleOffsetX,
-      particleY + particleOffsetY,
-      0,
-      particleX + particleOffsetX,
-      particleY + particleOffsetY,
-      particleSize * 2
-    );
-    particleGradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${particleOpacity * 0.8})`); // Reduced opacity
-    particleGradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
-    ctx.fillStyle = particleGradient;
-    ctx.fill();
+    ctx.moveTo(sparkleX - sparkleSize * 2, sparkleY);
+    ctx.lineTo(sparkleX + sparkleSize * 2, sparkleY);
+    ctx.moveTo(sparkleX, sparkleY - sparkleSize * 2);
+    ctx.lineTo(sparkleX, sparkleY + sparkleSize * 2);
+    ctx.strokeStyle = `rgba(255, 255, 255, ${sparkleOpacity * 0.6})`;
+    ctx.lineWidth = sparkleSize * 0.3;
+    ctx.lineCap = "round";
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // ===== LAYER 6: Ice/gas jets (erupting from comet head) =====
+  const jetCount = 3;
+  ctx.save();
+  
+  for (let i = 0; i < jetCount; i++) {
+    // Jets spray out at angles from the comet
+    const jetAngle = (i - 1) * 0.4 + Math.sin(time * 0.001 + i) * 0.15;
+    const jetDirX = normalizedDx * Math.cos(jetAngle) - perpDx * Math.sin(jetAngle);
+    const jetDirY = normalizedDy * Math.cos(jetAngle) - perpDy * Math.sin(jetAngle);
+    
+    const jetLength = trailLength * (0.3 + Math.sin(time * 0.0008 + i * 2) * 0.1);
+    const jetWidth = startWidth * 0.3;
+    
+    const jetEndX = planet.x - jetDirX * jetLength;
+    const jetEndY = planet.y - jetDirY * jetLength;
+    
+    const jetGradient = ctx.createLinearGradient(planet.x, planet.y, jetEndX, jetEndY);
+    jetGradient.addColorStop(0, `rgba(${scr}, ${scg}, ${scb}, 0.4)`);
+    jetGradient.addColorStop(0.3, `rgba(${sr}, ${sg}, ${sb}, 0.25)`);
+    jetGradient.addColorStop(1, `rgba(${sr}, ${sg}, ${sb}, 0)`);
+    
+    ctx.beginPath();
+    ctx.moveTo(planet.x, planet.y);
+    ctx.lineTo(jetEndX, jetEndY);
+    ctx.strokeStyle = jetGradient;
+    ctx.lineWidth = jetWidth;
+    ctx.lineCap = "round";
+    ctx.stroke();
   }
   ctx.restore();
 }
 
-// Draw satellites
+// Draw satellites with sun-aligned colors
 export function drawSatellites(
     ctx: CanvasRenderingContext2D,
     planet: Planet,
@@ -240,12 +434,21 @@ export function drawSatellites(
     deltaTime: number
   ): void {
     const fixedDelta = planet.useSimpleRendering ? 0.2 : 0.5;
+    
+    // Get sun color for this planet's focus area
+    const sunRgb = getSunColorForPlanet(planet);
+    const secondaryRgb = getSecondaryColorRgb(sunRgb);
+    const time = getFrameTime();
 
-    // Draw orbit paths for satellites (optional visual enhancement) - more subtle
+    // Draw orbit paths for satellites with sun-aligned gradient colors
     if (planet.satellites && planet.satellites.length > 0 && !planet.useSimpleRendering) {
-      planet.satellites.forEach(satellite => {
+      planet.satellites.forEach((satellite, index) => {
         const a = satellite.distance * scaleFactor;
         const b = satellite.distance * (1 - satellite.eccentricity) * scaleFactor;
+        
+        // Animated orbit ring with sun color
+        const orbitPhase = Math.sin(time * 0.0003 + index * 0.5) * 0.5 + 0.5;
+        const orbitOpacity = 0.15 + orbitPhase * 0.1;
 
         ctx.beginPath();
         ctx.ellipse(
@@ -257,90 +460,126 @@ export function drawSatellites(
           0,
           Math.PI * 2
         );
-        // Use rgba format for orbit path to avoid color parsing issues - more subtle
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.15)"; // Reduced from 0.2
-        ctx.lineWidth = 0.5;
+        
+        // Use sun's secondary color for orbit rings with gradient effect
+        const orbitGradient = ctx.createLinearGradient(
+          planet.x - a, planet.y,
+          planet.x + a, planet.y
+        );
+        orbitGradient.addColorStop(0, `rgba(${secondaryRgb.r}, ${secondaryRgb.g}, ${secondaryRgb.b}, ${orbitOpacity})`);
+        orbitGradient.addColorStop(0.5, `rgba(${sunRgb.r}, ${sunRgb.g}, ${sunRgb.b}, ${orbitOpacity * 0.7})`);
+        orbitGradient.addColorStop(1, `rgba(${secondaryRgb.r}, ${secondaryRgb.g}, ${secondaryRgb.b}, ${orbitOpacity})`);
+        
+        ctx.strokeStyle = orbitGradient;
+        ctx.lineWidth = 1 + orbitPhase * 0.5;
+        ctx.lineCap = "round";
+        ctx.stroke();
+        
+        // Add subtle glow to orbit
+        ctx.beginPath();
+        ctx.ellipse(planet.x, planet.y, a, b, 0, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(${sunRgb.r}, ${sunRgb.g}, ${sunRgb.b}, ${orbitOpacity * 0.3})`;
+        ctx.lineWidth = 3;
         ctx.stroke();
       });
     }
 
-    // Update and draw satellites with smoother patterns
+    // Update and draw satellites with sun-aligned colors
     if (planet.satellites && planet.satellites.length > 0) {
       planet.satellites.forEach((satellite, index) => {
         // Independent pulsation for satellites - smoother and slower
-        const satelliteTime = getFrameTime() * 0.0005; // Reduced from 0.001
-        const satellitePulse = 0.9 + Math.sin(satelliteTime * (index + 1) * 0.3) * 0.1; // Reduced amplitude
+        const satelliteTime = time * 0.0004;
+        const satellitePulse = 0.92 + Math.sin(satelliteTime * (index + 1) * 0.25) * 0.08;
 
-        // Update satellite position - key fix here
-        const directionMult = index % 2 === 0 ? 1 : -1; // Alternate directions
+        // Update satellite position
+        const directionMult = index % 2 === 0 ? 1 : -1;
         satellite.angle += satellite.speed * fixedDelta * directionMult;
 
         const eccentricity = satellite.eccentricity || 0.1;
         const a = satellite.distance * scaleFactor;
         const b = satellite.distance * (1 - eccentricity) * scaleFactor;
 
-        // Calculate satellite position relative to the employee star
+        // Calculate satellite position relative to the planet
         const satX = planet.x + a * Math.cos(satellite.angle);
         const satY = planet.y + b * Math.sin(satellite.angle);
-
-        // Draw satellite glow with independent pulsation - softer glow
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(satX, satY, satellite.size * 1.8 * scaleFactor * satellitePulse, 0, Math.PI * 2); // Reduced from 2.0
-        const glowGradient = ctx.createRadialGradient(
-          satX, satY, 0,
-          satX, satY, satellite.size * 1.8 * scaleFactor * satellitePulse // Reduced from 2.0
-        );
-
-        // Use rgba format for satellite glow to avoid color parsing issues - softer colors
-        const satRgb = hexToRgb(satellite.color) || { r: 255, g: 255, b: 255 };
-        const softSatRgb = {
-          r: Math.round(satRgb.r * 0.85 + 38),
-          g: Math.round(satRgb.g * 0.85 + 38),
-          b: Math.round(satRgb.b * 0.85 + 38)
+        
+        // Use sun's secondary color for satellites (moons)
+        const moonRgb = index % 2 === 0 ? secondaryRgb : sunRgb;
+        const softMoonRgb = {
+          r: Math.round(moonRgb.r * 0.85 + 38),
+          g: Math.round(moonRgb.g * 0.85 + 38),
+          b: Math.round(moonRgb.b * 0.85 + 38)
         };
 
-        glowGradient.addColorStop(0, `rgba(${softSatRgb.r}, ${softSatRgb.g}, ${softSatRgb.b}, 0.9)`); // Reduced opacity
-        glowGradient.addColorStop(0.5, `rgba(${softSatRgb.r}, ${softSatRgb.g}, ${softSatRgb.b}, 0.4)`); // Reduced opacity
-        glowGradient.addColorStop(1, `rgba(${softSatRgb.r}, ${softSatRgb.g}, ${softSatRgb.b}, 0)`);
+        // Draw satellite outer glow
+        ctx.save();
+        const glowSize = satellite.size * 2.2 * scaleFactor * satellitePulse;
+        ctx.beginPath();
+        ctx.arc(satX, satY, glowSize, 0, Math.PI * 2);
+        const glowGradient = ctx.createRadialGradient(
+          satX, satY, 0,
+          satX, satY, glowSize
+        );
+
+        glowGradient.addColorStop(0, `rgba(${softMoonRgb.r}, ${softMoonRgb.g}, ${softMoonRgb.b}, 0.85)`);
+        glowGradient.addColorStop(0.4, `rgba(${softMoonRgb.r}, ${softMoonRgb.g}, ${softMoonRgb.b}, 0.35)`);
+        glowGradient.addColorStop(0.7, `rgba(${sunRgb.r}, ${sunRgb.g}, ${sunRgb.b}, 0.15)`);
+        glowGradient.addColorStop(1, `rgba(${softMoonRgb.r}, ${softMoonRgb.g}, ${softMoonRgb.b}, 0)`);
 
         ctx.fillStyle = glowGradient;
         ctx.fill();
         ctx.restore();
 
-        // Draw satellite core
+        // Draw satellite core with gradient
+        const coreSize = satellite.size * scaleFactor * satellitePulse;
+        const coreGradient = ctx.createRadialGradient(
+          satX - coreSize * 0.2, satY - coreSize * 0.2, 0,
+          satX, satY, coreSize
+        );
+        coreGradient.addColorStop(0, "#ffffff");
+        coreGradient.addColorStop(0.3, `rgba(${softMoonRgb.r}, ${softMoonRgb.g}, ${softMoonRgb.b}, 1)`);
+        coreGradient.addColorStop(0.7, `rgba(${moonRgb.r}, ${moonRgb.g}, ${moonRgb.b}, 0.95)`);
+        coreGradient.addColorStop(1, `rgba(${moonRgb.r}, ${moonRgb.g}, ${moonRgb.b}, 0.8)`);
+        
         ctx.beginPath();
-        ctx.arc(satX, satY, satellite.size * scaleFactor * satellitePulse, 0, Math.PI * 2);
-
-        // Use softer satellite color
-        const softSatColor = `rgba(${softSatRgb.r}, ${softSatRgb.g}, ${softSatRgb.b}, 0.9)`;
-        ctx.fillStyle = softSatColor;
+        ctx.arc(satX, satY, coreSize, 0, Math.PI * 2);
+        ctx.fillStyle = coreGradient;
         ctx.fill();
 
+        // Draw bright center highlight
         ctx.save();
-        ctx.shadowColor = softSatColor;
-        ctx.shadowBlur = 3; // Reduced from 4
+        const highlightGradient = ctx.createRadialGradient(
+          satX - coreSize * 0.15, satY - coreSize * 0.15, 0,
+          satX, satY, coreSize * 0.5
+        );
+        highlightGradient.addColorStop(0, "rgba(255, 255, 255, 0.95)");
+        highlightGradient.addColorStop(0.5, "rgba(255, 255, 255, 0.4)");
+        highlightGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+        
         ctx.beginPath();
-        ctx.arc(satX, satY, satellite.size * 0.6 * scaleFactor * satellitePulse, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(255, 255, 255, 0.9)"; // Slightly reduced opacity
+        ctx.arc(satX, satY, coreSize * 0.5, 0, Math.PI * 2);
+        ctx.fillStyle = highlightGradient;
         ctx.fill();
         ctx.restore();
 
-        // Add occasional particle effects from satellites - less frequent
-        if (Math.random() < 0.01) { // Reduced from 0.02 to 0.01 (1% chance each frame)
-          const particleCount = 2 + Math.floor(Math.random() * 2); // Reduced from 3+3
+        // Add trailing particles with sun color
+        if (Math.random() < 0.008) {
+          const particleCount = 2 + Math.floor(Math.random() * 2);
 
           ctx.save();
           for (let i = 0; i < particleCount; i++) {
             const particleAngle = Math.random() * Math.PI * 2;
-            const particleDistance = satellite.size * (2 + Math.random() * 2); // Reduced range
+            const particleDistance = satellite.size * (1.8 + Math.random() * 2);
             const particleX = satX + Math.cos(particleAngle) * particleDistance;
             const particleY = satY + Math.sin(particleAngle) * particleDistance;
-            const particleSize = satellite.size * 0.25 * Math.random(); // Reduced from 0.3
+            const particleSize = satellite.size * 0.2 * Math.random();
+            
+            // Use sun color for particles
+            const particleRgb = i % 2 === 0 ? sunRgb : secondaryRgb;
 
             ctx.beginPath();
             ctx.arc(particleX, particleY, particleSize, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(${softSatRgb.r}, ${softSatRgb.g}, ${softSatRgb.b}, ${0.2 + Math.random() * 0.3})`; // Reduced opacity
+            ctx.fillStyle = `rgba(${particleRgb.r}, ${particleRgb.g}, ${particleRgb.b}, ${0.3 + Math.random() * 0.3})`;
             ctx.fill();
           }
           ctx.restore();

@@ -663,6 +663,60 @@ function lightenColor(hex: string, amount: number): string {
  * Draw suns (focus area orbital centers) on the canvas
  * Enhanced graphics with multiple layers, corona effects, and realistic appearance
  */
+/**
+ * Create a complementary/secondary color from a base color
+ * Shifts the hue for visual variety while maintaining harmony
+ */
+function getSecondaryColor(hex: string): string {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return hex;
+  
+  // Convert to HSL, shift hue by 30-60 degrees for analogous harmony
+  const r = rgb.r / 255;
+  const g = rgb.g / 255;
+  const b = rgb.b / 255;
+  
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  
+  let h = 0;
+  let s = 0;
+  
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+      case g: h = ((b - r) / d + 2) / 6; break;
+      case b: h = ((r - g) / d + 4) / 6; break;
+    }
+  }
+  
+  // Shift hue by ~40 degrees (for analogous color)
+  h = (h + 0.11) % 1;
+  
+  // Convert back to RGB
+  const hue2rgb = (p: number, q: number, t: number): number => {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 1/6) return p + (q - p) * 6 * t;
+    if (t < 1/2) return q;
+    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+    return p;
+  };
+  
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  
+  const newR = Math.round(hue2rgb(p, q, h + 1/3) * 255);
+  const newG = Math.round(hue2rgb(p, q, h) * 255);
+  const newB = Math.round(hue2rgb(p, q, h - 1/3) * 255);
+  
+  return `rgb(${newR}, ${newG}, ${newB})`;
+}
+
 function drawSuns(
   ctx: CanvasRenderingContext2D,
   width: number,
@@ -692,13 +746,17 @@ function drawSuns(
   const sunStates = getSunStates();
   
   ctx.save();
+  
+  // Enable smooth rendering
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
 
   sunStates.forEach((sunState) => {
     // Use dynamic position from sun system
     const x = sunState.x * width;
     const y = sunState.y * height;
-    // Adjusted sun size for better proportions (increased from 0.35 to 0.38)
-    const baseSize = Math.max(20, Math.min(width, height) * sunState.size * 0.38);
+    // Increased sun size for more impressive appearance
+    const baseSize = Math.max(25, Math.min(width, height) * sunState.size * 0.45);
     
     // Check if this sun is hovered or focused
     const isHovered = hoveredSunId === sunState.id;
@@ -708,56 +766,117 @@ function drawSuns(
     // Check if sun is in propel mode (avoiding collision)
     const isPropelling = sunState.isPropelling;
     
-    // Multi-layered pulsating effect
-    const pulseSpeed1 = isHighlighted ? 0.0005 : 0.00025;
-    const pulseSpeed2 = isHighlighted ? 0.00035 : 0.00018;
-    const pulseAmount = isHighlighted ? 0.18 : (isPropelling ? 0.15 : 0.1);
+    // Smoother multi-layered pulsating effect
+    const pulseSpeed1 = isHighlighted ? 0.0003 : 0.00015;
+    const pulseSpeed2 = isHighlighted ? 0.00022 : 0.00011;
+    const pulseSpeed3 = isHighlighted ? 0.00017 : 0.00008;
+    const pulseAmount = isHighlighted ? 0.12 : (isPropelling ? 0.1 : 0.06);
     const pulse1 = 1 + pulseAmount * Math.sin(time * pulseSpeed1);
-    const pulse2 = 1 + (pulseAmount * 0.5) * Math.sin(time * pulseSpeed2 + Math.PI / 3);
-    const pulse = (pulse1 + pulse2) / 2;
-    const size = baseSize * pulse * (isHighlighted ? 1.2 : 1);
+    const pulse2 = 1 + (pulseAmount * 0.6) * Math.sin(time * pulseSpeed2 + Math.PI / 3);
+    const pulse3 = 1 + (pulseAmount * 0.4) * Math.sin(time * pulseSpeed3 + Math.PI / 1.5);
+    const pulse = (pulse1 + pulse2 + pulse3) / 3;
+    const size = baseSize * pulse * (isHighlighted ? 1.15 : 1);
     
     const rgb = hexToRgb(sunState.color);
     const rgbStr = rgb ? `${rgb.r}, ${rgb.g}, ${rgb.b}` : "255, 200, 100";
+    const secondaryColor = getSecondaryColor(sunState.color);
+    const secondaryRgb = hexToRgb(secondaryColor.replace("rgb(", "").replace(")", "").split(",").map(n => parseInt(n.trim())).reduce((acc, v, i) => {
+      const keys = ["r", "g", "b"];
+      return { ...acc, [keys[i]]: v };
+    }, { r: 255, g: 200, b: 100 }) as unknown as string) || { r: 255, g: 200, b: 100 };
+    const secondaryRgbStr = `${secondaryRgb.r}, ${secondaryRgb.g}, ${secondaryRgb.b}`;
     
-    // ===== LAYER 1: Outer atmospheric glow =====
-    const atmosphereSize = size * (isHighlighted ? 8 : 6);
-    const atmosphereGradient = ctx.createRadialGradient(x, y, size * 0.5, x, y, atmosphereSize);
-    atmosphereGradient.addColorStop(0, `rgba(${rgbStr}, ${isHighlighted ? 0.4 : 0.25})`);
-    atmosphereGradient.addColorStop(0.3, `rgba(${rgbStr}, ${isHighlighted ? 0.2 : 0.12})`);
-    atmosphereGradient.addColorStop(0.6, `rgba(${rgbStr}, ${isHighlighted ? 0.08 : 0.05})`);
+    // ===== LAYER 0: Outer halo (very soft, large) =====
+    const haloSize = size * (isHighlighted ? 12 : 9);
+    const haloGradient = ctx.createRadialGradient(x, y, size * 0.3, x, y, haloSize);
+    haloGradient.addColorStop(0, `rgba(${rgbStr}, ${isHighlighted ? 0.15 : 0.08})`);
+    haloGradient.addColorStop(0.3, `rgba(${rgbStr}, ${isHighlighted ? 0.08 : 0.04})`);
+    haloGradient.addColorStop(0.6, `rgba(${rgbStr}, ${isHighlighted ? 0.03 : 0.015})`);
+    haloGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
+    
+    ctx.beginPath();
+    ctx.fillStyle = haloGradient;
+    ctx.globalAlpha = isDarkMode ? 1 : 0.8;
+    ctx.arc(x, y, haloSize, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // ===== LAYER 1: Outer atmospheric glow with color gradient =====
+    const atmosphereSize = size * (isHighlighted ? 7 : 5);
+    const atmosphereGradient = ctx.createRadialGradient(x, y, size * 0.4, x, y, atmosphereSize);
+    atmosphereGradient.addColorStop(0, `rgba(${rgbStr}, ${isHighlighted ? 0.5 : 0.35})`);
+    atmosphereGradient.addColorStop(0.2, `rgba(${rgbStr}, ${isHighlighted ? 0.3 : 0.2})`);
+    atmosphereGradient.addColorStop(0.5, `rgba(${secondaryRgbStr}, ${isHighlighted ? 0.12 : 0.08})`);
+    atmosphereGradient.addColorStop(0.8, `rgba(${rgbStr}, ${isHighlighted ? 0.05 : 0.03})`);
     atmosphereGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
     
     ctx.beginPath();
     ctx.fillStyle = atmosphereGradient;
-    ctx.globalAlpha = isDarkMode ? 1 : 0.7;
+    ctx.globalAlpha = isDarkMode ? 1 : 0.75;
     ctx.arc(x, y, atmosphereSize, 0, Math.PI * 2);
     ctx.fill();
     
-    // ===== LAYER 2: Corona rays (long, tapered) =====
-    const rayCount = isHighlighted ? 16 : 12;
-    ctx.globalAlpha = isDarkMode ? (isHighlighted ? 0.6 : 0.4) : (isHighlighted ? 0.4 : 0.25);
+    // ===== LAYER 2: Dynamic solar flares (curved, organic) =====
+    const flareCount = isHighlighted ? 8 : 5;
+    ctx.globalAlpha = isDarkMode ? (isHighlighted ? 0.7 : 0.5) : (isHighlighted ? 0.5 : 0.35);
+    
+    for (let i = 0; i < flareCount; i++) {
+      const baseAngle = (i * Math.PI * 2 / flareCount) + sunState.rotationAngle * 0.5;
+      const waveOffset = Math.sin(time * 0.0002 + i * 0.7) * 0.15;
+      const angle = baseAngle + waveOffset;
+      
+      // Vary flare lengths with smooth animation
+      const flarePhase = Math.sin(time * 0.00015 + i * 1.5);
+      const flareLength = size * (isHighlighted ? 3.5 : 2.5) * (0.7 + 0.3 * flarePhase);
+      
+      // Draw curved flare using bezier curve
+      const startDist = size * 0.85;
+      const startX = x + Math.cos(angle) * startDist;
+      const startY = y + Math.sin(angle) * startDist;
+      const endX = x + Math.cos(angle) * flareLength;
+      const endY = y + Math.sin(angle) * flareLength;
+      
+      // Control point for curve
+      const curveFactor = Math.sin(time * 0.0003 + i) * size * 0.5;
+      const perpAngle = angle + Math.PI / 2;
+      const cpX = (startX + endX) / 2 + Math.cos(perpAngle) * curveFactor;
+      const cpY = (startY + endY) / 2 + Math.sin(perpAngle) * curveFactor;
+      
+      // Create gradient for flare
+      const flareGradient = ctx.createLinearGradient(startX, startY, endX, endY);
+      flareGradient.addColorStop(0, lightenColor(sunState.color, 0.6));
+      flareGradient.addColorStop(0.3, `rgba(${rgbStr}, 0.6)`);
+      flareGradient.addColorStop(0.6, `rgba(${secondaryRgbStr}, 0.3)`);
+      flareGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
+      
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+      ctx.quadraticCurveTo(cpX, cpY, endX, endY);
+      ctx.strokeStyle = flareGradient;
+      ctx.lineWidth = size * (isHighlighted ? 0.12 : 0.08) * (1 + 0.3 * flarePhase);
+      ctx.lineCap = "round";
+      ctx.stroke();
+    }
+    
+    // ===== LAYER 3: Corona rays (refined, smoother) =====
+    const rayCount = isHighlighted ? 20 : 14;
+    ctx.globalAlpha = isDarkMode ? (isHighlighted ? 0.5 : 0.35) : (isHighlighted ? 0.35 : 0.22);
     
     for (let i = 0; i < rayCount; i++) {
       const baseAngle = (i * Math.PI * 2 / rayCount) + sunState.rotationAngle;
-      // Add slight wave to rays
-      const waveOffset = Math.sin(time * 0.0003 + i * 0.5) * 0.1;
+      const waveOffset = Math.sin(time * 0.00025 + i * 0.4) * 0.08;
       const angle = baseAngle + waveOffset;
       
-      // Vary ray lengths
-      const rayLengthVariation = 0.7 + 0.3 * Math.sin(time * 0.0002 + i * 1.2);
-      const rayLength = size * (isHighlighted ? 4.5 : 3.5) * rayLengthVariation;
+      const rayLengthVariation = 0.75 + 0.25 * Math.sin(time * 0.00018 + i * 1.1);
+      const rayLength = size * (isHighlighted ? 3.8 : 2.8) * rayLengthVariation;
       
       const endX = x + Math.cos(angle) * rayLength;
       const endY = y + Math.sin(angle) * rayLength;
       
-      // Tapered ray using a path
       ctx.beginPath();
-      const rayWidth = size * (isHighlighted ? 0.15 : 0.12);
+      const rayWidth = size * (isHighlighted ? 0.1 : 0.07);
       const perpAngle = angle + Math.PI / 2;
       
-      // Start point (at sun surface)
-      const startDist = size * 0.8;
+      const startDist = size * 0.75;
       const startX = x + Math.cos(angle) * startDist;
       const startY = y + Math.sin(angle) * startDist;
       
@@ -773,102 +892,101 @@ function drawSuns(
       ctx.closePath();
       
       const rayGradient = ctx.createLinearGradient(startX, startY, endX, endY);
-      rayGradient.addColorStop(0, `rgba(${rgbStr}, 0.8)`);
-      rayGradient.addColorStop(0.3, `rgba(${rgbStr}, 0.4)`);
+      rayGradient.addColorStop(0, `rgba(${rgbStr}, 0.9)`);
+      rayGradient.addColorStop(0.4, `rgba(${rgbStr}, 0.4)`);
+      rayGradient.addColorStop(0.7, `rgba(${secondaryRgbStr}, 0.15)`);
       rayGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
       
       ctx.fillStyle = rayGradient;
       ctx.fill();
     }
     
-    // ===== LAYER 3: Short spiky corona =====
-    const spikeCount = isHighlighted ? 24 : 18;
-    ctx.globalAlpha = isDarkMode ? 0.7 : 0.5;
+    // ===== LAYER 4: Chromosphere ring =====
+    ctx.globalAlpha = isDarkMode ? 0.6 : 0.45;
+    const chromosphereGradient = ctx.createRadialGradient(x, y, size * 0.95, x, y, size * 1.4);
+    chromosphereGradient.addColorStop(0, `rgba(${rgbStr}, 0.8)`);
+    chromosphereGradient.addColorStop(0.3, `rgba(${secondaryRgbStr}, 0.5)`);
+    chromosphereGradient.addColorStop(0.6, `rgba(${rgbStr}, 0.3)`);
+    chromosphereGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
     
-    for (let i = 0; i < spikeCount; i++) {
-      const angle = (i * Math.PI * 2 / spikeCount) + sunState.rotationAngle * 1.5 + Math.PI / spikeCount;
-      const spikeLength = size * (1.3 + 0.3 * Math.sin(time * 0.0004 + i * 0.8));
-      
-      const startX = x + Math.cos(angle) * size * 0.9;
-      const startY = y + Math.sin(angle) * size * 0.9;
-      const endX = x + Math.cos(angle) * spikeLength;
-      const endY = y + Math.sin(angle) * spikeLength;
-      
-      ctx.beginPath();
-      ctx.moveTo(startX, startY);
-      ctx.lineTo(endX, endY);
-      
-      const spikeGradient = ctx.createLinearGradient(startX, startY, endX, endY);
-      spikeGradient.addColorStop(0, lightenColor(sunState.color, 0.5));
-      spikeGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
-      
-      ctx.strokeStyle = spikeGradient;
-      ctx.lineWidth = size * 0.08;
-      ctx.lineCap = "round";
-      ctx.stroke();
-    }
+    ctx.beginPath();
+    ctx.fillStyle = chromosphereGradient;
+    ctx.arc(x, y, size * 1.4, 0, Math.PI * 2);
+    ctx.fill();
     
-    // ===== LAYER 4: Propel/collision effect rings =====
+    // ===== LAYER 5: Propel/collision effect rings =====
     if (isPropelling) {
-      const propelRingCount = 4;
+      const propelRingCount = 5;
       for (let r = 0; r < propelRingCount; r++) {
-        const ringRadius = size * (1.8 + r * 0.6);
-        const ringAlpha = 0.4 - r * 0.08;
-        const ringPhase = Math.sin(time * 0.002 + r * Math.PI / 2);
+        const ringRadius = size * (1.6 + r * 0.5);
+        const ringAlpha = 0.5 - r * 0.09;
+        const ringPhase = Math.sin(time * 0.0015 + r * Math.PI / 2.5);
         
         ctx.beginPath();
-        ctx.strokeStyle = sunState.color;
-        ctx.lineWidth = 2 - r * 0.3;
-        ctx.globalAlpha = ringAlpha * (0.6 + 0.4 * ringPhase);
+        const ringGradient = ctx.createRadialGradient(x, y, ringRadius - 2, x, y, ringRadius + 2);
+        ringGradient.addColorStop(0, `rgba(${rgbStr}, 0)`);
+        ringGradient.addColorStop(0.5, sunState.color);
+        ringGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
+        ctx.strokeStyle = ringGradient;
+        ctx.lineWidth = 2.5 - r * 0.4;
+        ctx.globalAlpha = ringAlpha * (0.5 + 0.5 * ringPhase);
         ctx.arc(x, y, ringRadius, 0, Math.PI * 2);
         ctx.stroke();
       }
     }
     
-    // ===== LAYER 5: Hover/focus ring indicator =====
+    // ===== LAYER 6: Hover/focus ring indicator =====
     if (isHighlighted) {
-      // Outer dashed ring
-      ctx.setLineDash([10, 5]);
+      // Outer animated ring
+      const dashOffset = time * 0.02;
+      ctx.setLineDash([12, 6]);
+      ctx.lineDashOffset = dashOffset;
       ctx.beginPath();
-      ctx.strokeStyle = lightenColor(sunState.color, 0.3);
-      ctx.lineWidth = 2;
-      ctx.globalAlpha = 0.5 + 0.3 * Math.sin(time * 0.001);
-      ctx.arc(x, y, size * 3.5, 0, Math.PI * 2);
+      ctx.strokeStyle = lightenColor(sunState.color, 0.4);
+      ctx.lineWidth = 2.5;
+      ctx.globalAlpha = 0.6 + 0.25 * Math.sin(time * 0.0008);
+      ctx.arc(x, y, size * 3, 0, Math.PI * 2);
       ctx.stroke();
       ctx.setLineDash([]);
       
       // Inner solid pulsing ring
       ctx.beginPath();
-      ctx.strokeStyle = lightenColor(sunState.color, 0.5);
-      ctx.lineWidth = 3;
-      ctx.globalAlpha = 0.7 + 0.2 * Math.sin(time * 0.0012);
-      ctx.arc(x, y, size * 2.2, 0, Math.PI * 2);
+      const innerRingGradient = ctx.createRadialGradient(x, y, size * 1.9, x, y, size * 2.1);
+      innerRingGradient.addColorStop(0, `rgba(${rgbStr}, 0)`);
+      innerRingGradient.addColorStop(0.5, lightenColor(sunState.color, 0.5));
+      innerRingGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
+      ctx.strokeStyle = innerRingGradient;
+      ctx.lineWidth = 4;
+      ctx.globalAlpha = 0.75 + 0.2 * Math.sin(time * 0.001);
+      ctx.arc(x, y, size * 2, 0, Math.PI * 2);
       ctx.stroke();
     }
     
-    // ===== LAYER 6: Main photosphere (outer glow of core) =====
-    const photosphereGradient = ctx.createRadialGradient(x, y, size * 0.3, x, y, size * 1.2);
-    photosphereGradient.addColorStop(0, lightenColor(sunState.color, 0.8));
-    photosphereGradient.addColorStop(0.4, sunState.color);
-    photosphereGradient.addColorStop(0.7, `rgba(${rgbStr}, 0.8)`);
-    photosphereGradient.addColorStop(1, `rgba(${rgbStr}, 0.3)`);
+    // ===== LAYER 7: Main photosphere (outer glow of core) =====
+    const photosphereGradient = ctx.createRadialGradient(x, y, size * 0.25, x, y, size * 1.15);
+    photosphereGradient.addColorStop(0, lightenColor(sunState.color, 0.85));
+    photosphereGradient.addColorStop(0.3, lightenColor(sunState.color, 0.5));
+    photosphereGradient.addColorStop(0.5, sunState.color);
+    photosphereGradient.addColorStop(0.75, `rgba(${rgbStr}, 0.85)`);
+    photosphereGradient.addColorStop(1, `rgba(${rgbStr}, 0.4)`);
     
     ctx.beginPath();
     ctx.fillStyle = photosphereGradient;
-    ctx.globalAlpha = isDarkMode ? 1 : 0.85;
-    ctx.arc(x, y, size * 1.2, 0, Math.PI * 2);
+    ctx.globalAlpha = isDarkMode ? 1 : 0.9;
+    ctx.arc(x, y, size * 1.15, 0, Math.PI * 2);
     ctx.fill();
     
-    // ===== LAYER 7: Main sun body =====
+    // ===== LAYER 8: Main sun body with 3D depth =====
     const bodyGradient = ctx.createRadialGradient(
-      x - size * 0.2, y - size * 0.2, 0, 
-      x, y, size
+      x - size * 0.25, y - size * 0.25, 0, 
+      x + size * 0.1, y + size * 0.1, size
     );
     bodyGradient.addColorStop(0, "#ffffff");
-    bodyGradient.addColorStop(0.15, lightenColor(sunState.color, 0.7));
-    bodyGradient.addColorStop(0.4, lightenColor(sunState.color, 0.3));
-    bodyGradient.addColorStop(0.7, sunState.color);
-    bodyGradient.addColorStop(1, `rgba(${rgbStr}, 0.9)`);
+    bodyGradient.addColorStop(0.1, lightenColor(sunState.color, 0.8));
+    bodyGradient.addColorStop(0.3, lightenColor(sunState.color, 0.5));
+    bodyGradient.addColorStop(0.55, sunState.color);
+    bodyGradient.addColorStop(0.8, `rgba(${rgbStr}, 0.95)`);
+    bodyGradient.addColorStop(1, `rgba(${rgbStr}, 0.85)`);
     
     ctx.beginPath();
     ctx.fillStyle = bodyGradient;
@@ -876,18 +994,20 @@ function drawSuns(
     ctx.arc(x, y, size, 0, Math.PI * 2);
     ctx.fill();
     
-    // ===== LAYER 8: Surface texture (subtle noise-like spots) =====
-    ctx.globalAlpha = 0.15;
-    const spotCount = 6;
+    // ===== LAYER 9: Surface granulation (subtle texture) =====
+    ctx.globalAlpha = 0.12;
+    const spotCount = 8;
     for (let i = 0; i < spotCount; i++) {
-      const spotAngle = (time * 0.00005 + i * Math.PI * 2 / spotCount) % (Math.PI * 2);
-      const spotDist = size * (0.3 + 0.4 * Math.sin(i * 2.1));
+      const spotAngle = (time * 0.00004 + i * Math.PI * 2 / spotCount) % (Math.PI * 2);
+      const spotDist = size * (0.25 + 0.45 * Math.sin(i * 2.3 + time * 0.00003));
       const spotX = x + Math.cos(spotAngle) * spotDist;
       const spotY = y + Math.sin(spotAngle) * spotDist;
-      const spotSize = size * (0.15 + 0.1 * Math.sin(i * 1.7));
+      const spotSize = size * (0.12 + 0.08 * Math.sin(i * 1.9));
       
       const spotGradient = ctx.createRadialGradient(spotX, spotY, 0, spotX, spotY, spotSize);
-      spotGradient.addColorStop(0, `rgba(${rgbStr}, 0.5)`);
+      const isLightSpot = i % 2 === 0;
+      const spotColor = isLightSpot ? "rgba(255, 255, 255, 0.4)" : `rgba(${rgbStr}, 0.6)`;
+      spotGradient.addColorStop(0, spotColor);
       spotGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
       
       ctx.beginPath();
@@ -896,35 +1016,51 @@ function drawSuns(
       ctx.fill();
     }
     
-    // ===== LAYER 9: Bright center hotspot =====
+    // ===== LAYER 10: Bright center hotspot =====
     const hotspotGradient = ctx.createRadialGradient(
-      x - size * 0.15, y - size * 0.15, 0,
-      x, y, size * 0.5
+      x - size * 0.12, y - size * 0.12, 0,
+      x, y, size * 0.45
     );
     hotspotGradient.addColorStop(0, "#ffffff");
-    hotspotGradient.addColorStop(0.3, "rgba(255, 255, 255, 0.9)");
-    hotspotGradient.addColorStop(0.6, "rgba(255, 255, 255, 0.4)");
+    hotspotGradient.addColorStop(0.2, "rgba(255, 255, 255, 0.95)");
+    hotspotGradient.addColorStop(0.5, "rgba(255, 255, 255, 0.5)");
+    hotspotGradient.addColorStop(0.8, "rgba(255, 255, 255, 0.15)");
     hotspotGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
     
     ctx.beginPath();
     ctx.fillStyle = hotspotGradient;
-    ctx.globalAlpha = isHighlighted ? 1 : 0.9;
-    ctx.arc(x, y, size * 0.5, 0, Math.PI * 2);
+    ctx.globalAlpha = isHighlighted ? 1 : 0.92;
+    ctx.arc(x, y, size * 0.45, 0, Math.PI * 2);
     ctx.fill();
     
-    // ===== LAYER 10: Specular highlight =====
+    // ===== LAYER 11: Specular highlight (glass-like reflection) =====
     const highlightGradient = ctx.createRadialGradient(
-      x - size * 0.3, y - size * 0.3, 0,
-      x - size * 0.2, y - size * 0.2, size * 0.4
+      x - size * 0.35, y - size * 0.35, 0,
+      x - size * 0.25, y - size * 0.25, size * 0.35
     );
-    highlightGradient.addColorStop(0, "rgba(255, 255, 255, 0.9)");
-    highlightGradient.addColorStop(0.5, "rgba(255, 255, 255, 0.3)");
+    highlightGradient.addColorStop(0, "rgba(255, 255, 255, 0.95)");
+    highlightGradient.addColorStop(0.4, "rgba(255, 255, 255, 0.4)");
     highlightGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
     
     ctx.beginPath();
     ctx.fillStyle = highlightGradient;
-    ctx.globalAlpha = 0.7;
-    ctx.arc(x - size * 0.25, y - size * 0.25, size * 0.35, 0, Math.PI * 2);
+    ctx.globalAlpha = 0.8;
+    ctx.arc(x - size * 0.3, y - size * 0.3, size * 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // ===== LAYER 12: Secondary highlight (subtle rim light) =====
+    const rimGradient = ctx.createRadialGradient(
+      x + size * 0.4, y + size * 0.4, 0,
+      x + size * 0.3, y + size * 0.3, size * 0.25
+    );
+    rimGradient.addColorStop(0, `rgba(${secondaryRgbStr}, 0.4)`);
+    rimGradient.addColorStop(0.5, `rgba(${secondaryRgbStr}, 0.15)`);
+    rimGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+    
+    ctx.beginPath();
+    ctx.fillStyle = rimGradient;
+    ctx.globalAlpha = 0.5;
+    ctx.arc(x + size * 0.35, y + size * 0.35, size * 0.2, 0, Math.PI * 2);
     ctx.fill();
   });
   
