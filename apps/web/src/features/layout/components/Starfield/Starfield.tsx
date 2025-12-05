@@ -76,6 +76,10 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     restartAnimation: () => {}
   });
 
+  // Track if starfield initialization is complete (hide initial positioning animation)
+  const [isStarfieldReady, setIsStarfieldReady] = useState(false);
+  const initializationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // FPS tracking state
   const [currentFps, setCurrentFps] = useState<number>(0);
   const [timestamp, setTimestamp] = useState<number>(0);
@@ -737,6 +741,27 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     };
   }, []);
 
+  // Delay showing starfield until initialization is complete
+  // This prevents users from seeing the initial movement to designated positions
+  useEffect(() => {
+    // Clear any existing timer
+    if (initializationTimerRef.current) {
+      clearTimeout(initializationTimerRef.current);
+    }
+    
+    // Wait for stars, planets, and suns to reach their initial positions
+    // 500ms is enough time for the physics engine to position elements
+    initializationTimerRef.current = setTimeout(() => {
+      setIsStarfieldReady(true);
+    }, 500);
+    
+    return () => {
+      if (initializationTimerRef.current) {
+        clearTimeout(initializationTimerRef.current);
+      }
+    };
+  }, []); // Run once on mount
+
   // Update employee stars when orbit speed changes
   const handleEmployeeOrbitSpeedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newSpeed = parseFloat(e.target.value);
@@ -986,10 +1011,10 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
         <div className={`${styles.frontierAccent} ${isDarkMode ? "" : styles.light}`}></div>
         <div className={`${styles.purpleAccent} ${isDarkMode ? "" : styles.light}`}></div>
 
-        {/* Canvas for interactive elements */}
+        {/* Canvas for interactive elements - fade in after initialization */}
         <canvas
           ref={canvasRef}
-          className={styles.starfieldCanvas}
+          className={`${styles.starfieldCanvas} ${isStarfieldReady ? styles.starfieldReady : styles.starfieldInitializing}`}
           aria-hidden="true"
           onClick={(e) => {
             e.stopPropagation(); // Stop event propagation

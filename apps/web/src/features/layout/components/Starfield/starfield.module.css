@@ -11,6 +11,25 @@
   z-index: 0;
 }
 
+/* Initial loading state - hide while elements position themselves */
+.starfieldInitializing {
+  opacity: 0;
+}
+
+/* Fade in after initialization is complete */
+.starfieldReady {
+  animation: starfieldFadeIn 0.8s ease-out forwards;
+}
+
+@keyframes starfieldFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .starfieldCanvas {
   position: fixed;
   top: 0;
