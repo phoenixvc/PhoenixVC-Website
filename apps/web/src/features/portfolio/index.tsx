@@ -1,9 +1,9 @@
 // /features/portfolio/index.tsx
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTheme } from "@/theme";
 import { motion } from "framer-motion";
-import { ExternalLink, Github, Cpu, Network, BookOpen, Shield, FileText, Key, Car, Users, Vault, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { ExternalLink, Github, Cpu, Network, BookOpen, Shield, FileText, Key, Car, Users, Vault, Eye, EyeOff, ArrowRight, Bot, Filter, X } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import styles from "./Portfolio.module.css";
 
@@ -18,6 +18,7 @@ interface Project {
   docs?: string;
   status: "live" | "development" | "beta" | "alpha" | "pre-alpha" | "seed" | "early-stage" | "growth";
   tags: string[];
+  focusArea: "ai-ml" | "fintech-blockchain" | "defense-security" | "mobility-transportation" | "infrastructure";
 }
 
 const projects: Project[] = [
@@ -30,6 +31,19 @@ const projects: Project[] = [
     website: "https://mystira.app",
     status: "alpha",
     tags: ["Storytelling", "Children", "Interactive", "Education"],
+    focusArea: "ai-ml",
+  },
+  {
+    id: "autopr",
+    name: "AutoPR",
+    description: "AI-powered GitHub PR automation and issue management",
+    longDescription: "AutoPR Engine is a comprehensive AI-powered automation platform that transforms GitHub pull request workflows through intelligent analysis, issue creation, and multi-agent collaboration. Features CodeRabbit, GitHub Copilot integration, platform detection for 25+ development platforms, and supports Linear, Slack, and other integrations.",
+    icon: <Bot size={32} />,
+    website: "https://autopr.io",
+    github: "https://github.com/JustAGhosT/autopr-engine",
+    status: "pre-alpha",
+    tags: ["AI", "Automation", "GitHub", "DevOps", "Python"],
+    focusArea: "ai-ml",
   },
   {
     id: "phoenixrooivalk",
@@ -42,6 +56,7 @@ const projects: Project[] = [
     github: "https://github.com/JustAGhosT/PhoenixRooivalk",
     status: "pre-alpha",
     tags: ["Counter-Drone", "AI", "Defense", "Security"],
+    focusArea: "defense-security",
   },
   {
     id: "cognitivemesh",
@@ -52,6 +67,7 @@ const projects: Project[] = [
     github: "https://github.com/justaghost/cognitive-mesh",
     status: "pre-alpha",
     tags: ["Multi-Agent", "Enterprise", "Security", "Governance", "Azure", ".NET"],
+    focusArea: "ai-ml",
   },
   {
     id: "airkey",
@@ -61,6 +77,7 @@ const projects: Project[] = [
     icon: <Key size={32} />,
     status: "seed",
     tags: ["Access Control", "Security", "IoT", "Mobile"],
+    focusArea: "defense-security",
   },
   {
     id: "hop",
@@ -70,6 +87,7 @@ const projects: Project[] = [
     icon: <Car size={32} />,
     status: "seed",
     tags: ["Connectivity", "Mobility", "Hardware", "Internet"],
+    focusArea: "mobility-transportation",
   },
   {
     id: "chaufher",
@@ -79,6 +97,7 @@ const projects: Project[] = [
     icon: <Users size={32} />,
     status: "seed",
     tags: ["Transportation", "Safety", "Women-Focused", "Ride-Sharing"],
+    focusArea: "mobility-transportation",
   },
   {
     id: "veritasvault",
@@ -90,6 +109,7 @@ const projects: Project[] = [
     github: "https://github.com/justAGhosT/vv",
     status: "pre-alpha",
     tags: ["DeFi", "Blockchain", "Staking", "Crypto", "Web3"],
+    focusArea: "fintech-blockchain",
   },
 ];
 
@@ -102,6 +122,14 @@ const statusColors: Record<Project["status"], { bg: string; text: string; label:
   "early-stage": { bg: "rgba(230, 126, 34, 0.2)", text: "#e67e22", label: "Early Stage" },
   growth: { bg: "rgba(231, 76, 60, 0.2)", text: "#e74c3c", label: "Growth Stage" },
   development: { bg: "rgba(33, 150, 243, 0.2)", text: "#2196f3", label: "In Development" },
+};
+
+const focusAreaConfig: Record<Project["focusArea"], { label: string; color: string }> = {
+  "ai-ml": { label: "AI & ML", color: "#3498db" },
+  "fintech-blockchain": { label: "Fintech", color: "#f39c12" },
+  "defense-security": { label: "Defense", color: "#e74c3c" },
+  "mobility-transportation": { label: "Mobility", color: "#2ecc71" },
+  "infrastructure": { label: "Infrastructure", color: "#6b7280" },
 };
 
 const animations = {
@@ -143,6 +171,8 @@ export const Portfolio = () => {
   const { themeMode } = useTheme();
   const isDarkMode = themeMode === "dark";
   const [showComingSoon, setShowComingSoon] = useState(true);
+  const [selectedStatus, setSelectedStatus] = useState<Project["status"] | "all">("all");
+  const [selectedFocusArea, setSelectedFocusArea] = useState<Project["focusArea"] | "all">("all");
   const navigate = useNavigate();
 
   // Determine if a project is "coming soon" (no public links available)
@@ -153,12 +183,37 @@ export const Portfolio = () => {
     void navigate(`/portfolio/${projectId}`);
   };
 
-  // Filter projects based on toggle state
-  const visibleProjects = showComingSoon
-    ? projects
-    : projects.filter(project => !isComingSoon(project));
+  // Get unique statuses and focus areas from projects
+  const uniqueStatuses = useMemo(() => {
+    const statuses = new Set(projects.map(p => p.status));
+    return Array.from(statuses);
+  }, []);
+
+  const uniqueFocusAreas = useMemo(() => {
+    const areas = new Set(projects.map(p => p.focusArea));
+    return Array.from(areas);
+  }, []);
+
+  // Filter projects based on all filters
+  const visibleProjects = useMemo(() => {
+    return projects.filter(project => {
+      // Coming soon filter
+      if (!showComingSoon && isComingSoon(project)) return false;
+      // Status filter
+      if (selectedStatus !== "all" && project.status !== selectedStatus) return false;
+      // Focus area filter
+      if (selectedFocusArea !== "all" && project.focusArea !== selectedFocusArea) return false;
+      return true;
+    });
+  }, [showComingSoon, selectedStatus, selectedFocusArea]);
 
   const comingSoonCount = projects.filter(isComingSoon).length;
+  const hasActiveFilters = selectedStatus !== "all" || selectedFocusArea !== "all";
+
+  const clearFilters = () => {
+    setSelectedStatus("all");
+    setSelectedFocusArea("all");
+  };
 
   return (
     <>
@@ -185,20 +240,107 @@ export const Portfolio = () => {
             <p className={styles.subtitle}>
               Pioneering the future through innovative projects and cutting-edge technology initiatives.
             </p>
+          </motion.div>
+
+          {/* Filter Section */}
+          <motion.div className={styles.filterSection} variants={animations.item}>
+            <div className={styles.filterHeader}>
+              <div className={styles.filterLabel}>
+                <Filter size={18} />
+                <span>Filter by</span>
+              </div>
+              {hasActiveFilters && (
+                <button className={styles.clearFilters} onClick={clearFilters}>
+                  <X size={14} />
+                  Clear filters
+                </button>
+              )}
+            </div>
+
+            {/* Focus Area Pills */}
+            <div className={styles.filterGroup}>
+              <span className={styles.filterGroupLabel}>Focus Area</span>
+              <div className={styles.pillGroup}>
+                <button
+                  className={`${styles.pill} ${selectedFocusArea === "all" ? styles.pillActive : ""}`}
+                  onClick={() => setSelectedFocusArea("all")}
+                >
+                  All Areas
+                </button>
+                {uniqueFocusAreas.map(area => (
+                  <button
+                    key={area}
+                    className={`${styles.pill} ${selectedFocusArea === area ? styles.pillActive : ""}`}
+                    onClick={() => setSelectedFocusArea(area)}
+                    style={{
+                      ...(selectedFocusArea === area && {
+                        backgroundColor: `${focusAreaConfig[area].color}20`,
+                        borderColor: focusAreaConfig[area].color,
+                        color: focusAreaConfig[area].color,
+                      })
+                    }}
+                  >
+                    <span
+                      className={styles.pillDot}
+                      style={{ backgroundColor: focusAreaConfig[area].color }}
+                    />
+                    {focusAreaConfig[area].label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Status Pills */}
+            <div className={styles.filterGroup}>
+              <span className={styles.filterGroupLabel}>Stage</span>
+              <div className={styles.pillGroup}>
+                <button
+                  className={`${styles.pill} ${selectedStatus === "all" ? styles.pillActive : ""}`}
+                  onClick={() => setSelectedStatus("all")}
+                >
+                  All Stages
+                </button>
+                {uniqueStatuses.map(status => (
+                  <button
+                    key={status}
+                    className={`${styles.pill} ${selectedStatus === status ? styles.pillActive : ""}`}
+                    onClick={() => setSelectedStatus(status)}
+                    style={{
+                      ...(selectedStatus === status && {
+                        backgroundColor: statusColors[status].bg,
+                        borderColor: statusColors[status].text,
+                        color: statusColors[status].text,
+                      })
+                    }}
+                  >
+                    {statusColors[status].label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Show/Hide Coming Soon Toggle */}
             {comingSoonCount > 0 && (
-              <button
-                className={styles.toggleButton}
-                onClick={() => setShowComingSoon(!showComingSoon)}
-                aria-label={showComingSoon ? "Hide coming soon projects" : "Show coming soon projects"}
-              >
-                {showComingSoon ? <EyeOff size={18} /> : <Eye size={18} />}
-                <span>
-                  {showComingSoon
-                    ? `Hide Coming Soon (${comingSoonCount})`
-                    : `Show Coming Soon (${comingSoonCount})`}
-                </span>
-              </button>
+              <div className={styles.filterGroup}>
+                <button
+                  className={styles.toggleButton}
+                  onClick={() => setShowComingSoon(!showComingSoon)}
+                  aria-label={showComingSoon ? "Hide coming soon projects" : "Show coming soon projects"}
+                >
+                  {showComingSoon ? <EyeOff size={18} /> : <Eye size={18} />}
+                  <span>
+                    {showComingSoon
+                      ? `Hide Coming Soon (${comingSoonCount})`
+                      : `Show Coming Soon (${comingSoonCount})`}
+                  </span>
+                </button>
+              </div>
             )}
+
+            {/* Results Count */}
+            <div className={styles.resultsCount}>
+              Showing {visibleProjects.length} of {projects.length} projects
+            </div>
           </motion.div>
 
           {/* Projects Grid */}

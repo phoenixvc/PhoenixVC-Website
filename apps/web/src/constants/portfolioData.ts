@@ -287,6 +287,30 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     focusArea: "mobility-transportation"
   },
 
+  // AI & Machine Learning Focus Area - AutoPR
+  {
+    id: "autopr",
+    name: "AutoPR",
+    initials: "AP",
+    position: "PR Automation",
+    mass: 180,
+    color: "#3498db",
+    image: "/themes/autopr-icon.svg",
+    fullName: "AutoPR Engine",
+    speed: 0.000021,
+    title: "AI-Powered PR Automation Platform (Pre-Alpha)",
+    status: "pre-alpha",
+    bio: "AutoPR Engine is a comprehensive AI-powered automation platform that transforms GitHub pull request workflows through intelligent analysis, issue creation, and multi-agent collaboration. Features CodeRabbit, GitHub Copilot integration, and 25+ platform detection.",
+    department: "Developer Tools",
+    experience: 0,
+    expertise: "AI, Automation, GitHub, DevOps",
+    projects: ["PR Analysis", "Issue Management", "Multi-Agent Collaboration"],
+    skills: ["AI", "Automation", "GitHub", "DevOps", "Python"],
+    relatedProjects: ["cognitivemesh", "mystira"],
+    product: "https://autopr.io",
+    focusArea: "ai-ml"
+  },
+
   // Infrastructure (Supporting Projects)
   {
     id: "phoenixvc-website",
