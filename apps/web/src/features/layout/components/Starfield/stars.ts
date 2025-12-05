@@ -10,6 +10,7 @@ import {
   CONNECTION_CONFIG,
 } from "./physicsConfig";
 import { getFrameTime } from "./frameCache";
+import { getSunStates } from "./sunSystem";
 
 // ==========================================
 // Star Rendering Constants
@@ -68,7 +69,8 @@ export const initStars = (
     const y = Math.random() * height;
 
     // Random size with weighted distribution (more small stars, crisper appearance)
-    const sizeMultiplier = Math.pow(Math.random(), 2.5) * 1.5 + 0.3; // Reduced from 2+0.5 for smaller stars
+    // Use higher exponent for more small stars, and reduce max size for sharper appearance
+    const sizeMultiplier = Math.pow(Math.random(), 3.0) * 0.8 + 0.15; // Smaller, crisper stars
     const size = sizeMultiplier * starSize;
 
     // Random color from palette
@@ -127,6 +129,9 @@ export function updateStarPositions(
   // Scale time based on animation speed AND global multiplier
   const timeScale = 0.1 * animationSpeed * GLOBAL_SPEED_MULTIPLIER;
 
+  // Get sun states for gravitational pull
+  const sunStates = getSunStates();
+
   // Update each star
   for (let i = 0; i < stars.length; i++) {
     const star = stars[i];
@@ -135,6 +140,32 @@ export function updateStarPositions(
     if (enableFlowEffect) {
       star.vx += (Math.random() - 0.5) * flowStrength * normalizedDelta * timeScale * 0.3;
       star.vy += (Math.random() - 0.5) * flowStrength * normalizedDelta * timeScale * 0.3;
+    }
+
+    // Apply sun gravitational pull - creates natural movement toward suns
+    if (sunStates && sunStates.length > 0) {
+      for (let j = 0; j < sunStates.length; j++) {
+        const sun = sunStates[j];
+        // Convert normalized sun position to canvas coordinates
+        const sunX = sun.x * width;
+        const sunY = sun.y * height;
+        const dx = sunX - star.x;
+        const dy = sunY - star.y;
+        const distSq = Math.max(dx * dx + dy * dy, 400); // Prevent division by tiny numbers
+        const dist = Math.sqrt(distSq);
+
+        // Suns have a large influence range based on their size
+        const sunInfluenceRange = Math.max(width, height) * sun.size * 8;
+        if (dist < sunInfluenceRange) {
+          // Gentle gravitational pull with smooth falloff
+          const falloff = 1 - (dist / sunInfluenceRange);
+          // Sun mass approximated from size (larger suns = more gravity)
+          const sunMass = sun.size * 2000;
+          const force = gravitationalPull * sunMass * falloff * 0.3 / distSq;
+          star.vx += dx / dist * force * normalizedDelta * timeScale * 2;
+          star.vy += dy / dist * force * normalizedDelta * timeScale * 2;
+        }
+      }
     }
 
     // Apply black hole gravitational pull with much larger influence
@@ -340,43 +371,44 @@ export const drawStars = (
       ctx.fillStyle = brighterColorStr;
       ctx.fill();
     } else {
-      // Smoother star rendering with subtle twinkling effect
+      // Crisp star rendering with very subtle twinkling effect
       // Create unique twinkle timing for each star based on position
-      const uniqueSeed = (star.x * 127.1 + star.y * 311.7) % 1000;
-      // Slower twinkle speeds for smoother animation
-      const twinkleSpeed1 = 0.0008 + (uniqueSeed % 100) / 80000;
-      const twinkleSpeed2 = 0.0006 + (uniqueSeed % 50) / 60000;
+      // Use prime-like multipliers to avoid line patterns
+      const uniqueSeed = (star.x * 73.13 + star.y * 157.79 + i * 31.41) % 1000;
+      // Very slow twinkle speeds for minimal flickering
+      const twinkleSpeed1 = 0.0003 + (uniqueSeed % 100) / 150000;
+      const twinkleSpeed2 = 0.0002 + (uniqueSeed % 50) / 120000;
 
-      // Smoother multi-frequency twinkle with reduced variation
-      const twinkle1 = Math.sin(now * twinkleSpeed1 + uniqueSeed * 0.1);
-      const twinkle2 = Math.sin(now * twinkleSpeed2 + uniqueSeed * 0.2);
-      // Narrower twinkle range for smoother appearance (0.85 to 1.0)
-      const twinkleFactor = 0.85 + (twinkle1 * 0.075 + twinkle2 * 0.075);
+      // Very subtle twinkle with minimal variation to reduce flickering
+      const twinkle1 = Math.sin(now * twinkleSpeed1 + uniqueSeed * 0.05);
+      const twinkle2 = Math.sin(now * twinkleSpeed2 * 1.3 + uniqueSeed * 0.08);
+      // Very narrow twinkle range for stable appearance (0.92 to 1.0)
+      const twinkleFactor = 0.92 + (twinkle1 * 0.04 + twinkle2 * 0.04);
 
-      // Very subtle size variation for smoother appearance
-      const twinkleSize = star.size * (0.95 + twinkleFactor * 0.1);
+      // Minimal size variation for crisp, stable stars
+      const twinkleSize = star.size * (0.98 + twinkleFactor * 0.04);
 
       // Parse color once for this star (cached)
       const parsed = parseRgbaColor(star.color);
 
-      // Add subtle soft glow for all stars using smooth gradient
-      const glowRadius = twinkleSize * 2.5;
+      // Very subtle soft glow - reduced radius for crisper stars
+      const glowRadius = twinkleSize * 1.5;
       const glowGradient = ctx.createRadialGradient(
         star.x, star.y, 0,
         star.x, star.y, glowRadius
       );
 
-      // Soft glow with multiple color stops for smooth falloff
-      const glowOpacity = twinkleFactor * 0.2;
+      // Reduced glow opacity for crisper appearance
+      const glowOpacity = twinkleFactor * 0.12;
       const glowColor = parsed
         ? colorWithAlpha(parsed, glowOpacity)
         : star.color;
       const glowColorMid = parsed
-        ? colorWithAlpha(parsed, glowOpacity * 0.5)
+        ? colorWithAlpha(parsed, glowOpacity * 0.4)
         : star.color;
 
       glowGradient.addColorStop(0, glowColor);
-      glowGradient.addColorStop(0.4, glowColorMid);
+      glowGradient.addColorStop(0.5, glowColorMid);
       glowGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
 
       ctx.beginPath();
@@ -384,44 +416,25 @@ export const drawStars = (
       ctx.fillStyle = glowGradient;
       ctx.fill();
 
-      // Draw star core with smooth gradient for better anti-aliasing
-      const coreGradient = ctx.createRadialGradient(
-        star.x, star.y, 0,
-        star.x, star.y, twinkleSize
-      );
-
-      // Stable alpha for core (less flickering)
-      const alpha = 0.7 + twinkleFactor * 0.3; // Range: 0.7 to 1.0
+      // Draw solid star core for crisp appearance (no gradient)
+      // Stable alpha for core (minimal flickering)
+      const alpha = 0.85 + twinkleFactor * 0.15; // Range: 0.85 to 1.0
       const coreColor = parsed
         ? colorWithAlpha(parsed, alpha)
         : star.color;
-      const coreColorMid = parsed
-        ? colorWithAlpha(parsed, alpha * 0.8)
-        : star.color;
-
-      coreGradient.addColorStop(0, coreColor);
-      coreGradient.addColorStop(0.6, coreColorMid);
-      coreGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
 
       ctx.beginPath();
-      ctx.arc(star.x, star.y, twinkleSize, 0, Math.PI * 2);
-      ctx.fillStyle = coreGradient;
+      ctx.arc(star.x, star.y, twinkleSize * 0.7, 0, Math.PI * 2);
+      ctx.fillStyle = coreColor;
       ctx.fill();
 
-      // Very subtle white center for brightest stars only
-      if (twinkleFactor > STAR_CENTER_HIGHLIGHT_THRESHOLD && star.size > STAR_CENTER_HIGHLIGHT_MIN_SIZE) {
-        const centerGradient = ctx.createRadialGradient(
-          star.x, star.y, 0,
-          star.x, star.y, twinkleSize * 0.3
-        );
-        // Calculate opacity: when twinkleFactor is 0.9-1.0, this produces 0-0.5 range
-        const centerOpacity = (twinkleFactor - STAR_CENTER_HIGHLIGHT_THRESHOLD) * STAR_CENTER_OPACITY_MULTIPLIER;
-        centerGradient.addColorStop(0, `rgba(255, 255, 255, ${centerOpacity})`);
-        centerGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
-
+      // Very subtle white center for only the largest/brightest stars
+      if (twinkleFactor > STAR_CENTER_HIGHLIGHT_THRESHOLD && star.size > STAR_CENTER_HIGHLIGHT_MIN_SIZE * 1.5) {
+        // Calculate opacity: minimal effect
+        const centerOpacity = (twinkleFactor - STAR_CENTER_HIGHLIGHT_THRESHOLD) * STAR_CENTER_OPACITY_MULTIPLIER * 0.5;
         ctx.beginPath();
-        ctx.arc(star.x, star.y, twinkleSize * 0.3, 0, Math.PI * 2);
-        ctx.fillStyle = centerGradient;
+        ctx.arc(star.x, star.y, twinkleSize * 0.2, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${centerOpacity})`;
         ctx.fill();
       }
     }
