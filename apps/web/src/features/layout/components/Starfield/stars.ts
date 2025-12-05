@@ -164,6 +164,16 @@ export function updateStarPositions(
   for (let i = 0; i < stars.length; i++) {
     const star = stars[i];
 
+    // Skip consumed stars
+    if (star.isConsumed) continue;
+
+    // Add natural autonomous drift - stars slowly move on their own
+    // Each star has a unique drift direction based on its index
+    const driftAngle = (i * 137.508) % 360 * (Math.PI / 180); // Golden angle for variety
+    const driftSpeed = 0.02 + (i % 10) * 0.003; // Vary drift speed slightly
+    star.vx += Math.cos(driftAngle) * driftSpeed * normalizedDelta * timeScale;
+    star.vy += Math.sin(driftAngle) * driftSpeed * normalizedDelta * timeScale;
+
     // Apply flow effect if enabled (reduced intensity to minimize flicker)
     if (enableFlowEffect) {
       star.vx += (Math.random() - 0.5) * flowStrength * normalizedDelta * timeScale * 0.3;
@@ -357,6 +367,10 @@ export const drawStars = (
 
   for (let i = 0; i < stars.length; i++) {
     const star = stars[i];
+    
+    // Skip consumed stars (they're hidden while waiting to respawn)
+    if (star.isConsumed) continue;
+    
     // Check if star was recently pushed (within glow duration)
     const timeSincePush = now - star.lastPushed;
     const recentlyPushed = star.isActive && (timeSincePush < glowDuration);

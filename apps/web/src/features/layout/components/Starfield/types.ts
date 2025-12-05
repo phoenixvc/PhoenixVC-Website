@@ -133,6 +133,10 @@ export interface Star {
   targetVy?: number;
   isActive: boolean;
   lastPushed: number;
+  /** Timestamp when star was consumed by blackhole (0 = not consumed) */
+  consumedAt?: number;
+  /** Whether star is currently hidden (consumed and waiting to respawn) */
+  isConsumed?: boolean;
 }
 
 // Black hole types
