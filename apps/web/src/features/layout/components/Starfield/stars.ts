@@ -11,6 +11,33 @@ import {
 } from "./physicsConfig";
 import { getFrameTime } from "./frameCache";
 
+// ==========================================
+// Star Rendering Constants
+// ==========================================
+
+/** Threshold for showing center highlight on stars (twinkleFactor must exceed this) */
+const STAR_CENTER_HIGHLIGHT_THRESHOLD = 0.9;
+
+/** Multiplier to convert twinkle factor difference to opacity (creates 0-0.5 range when factor is 0.9-1.0) */
+const STAR_CENTER_OPACITY_MULTIPLIER = 5;
+
+/** Minimum star size to show center highlight */
+const STAR_CENTER_HIGHLIGHT_MIN_SIZE = 1.2;
+
+// ==========================================
+// Utility Functions
+// ==========================================
+
+/**
+ * Smooth step interpolation function (Hermite interpolation)
+ * Creates smooth transitions at the boundaries
+ * @param t - Progress value (0-1)
+ * @returns Smoothly interpolated value (0-1)
+ */
+function smoothStep(t: number): number {
+  return t * t * (3 - 2 * t);
+}
+
 // Re-export physics config values as constants for backward compatibility
 const GLOBAL_SPEED_MULTIPLIER = GLOBAL_PHYSICS.speedMultiplier;
 const ACTIVE_STAR_MOVEMENT_MULTIPLIER = STAR_PHYSICS.activeMovementMultiplier;
@@ -382,12 +409,13 @@ export const drawStars = (
       ctx.fill();
 
       // Very subtle white center for brightest stars only
-      if (twinkleFactor > 0.9 && star.size > 1.2) {
+      if (twinkleFactor > STAR_CENTER_HIGHLIGHT_THRESHOLD && star.size > STAR_CENTER_HIGHLIGHT_MIN_SIZE) {
         const centerGradient = ctx.createRadialGradient(
           star.x, star.y, 0,
           star.x, star.y, twinkleSize * 0.3
         );
-        const centerOpacity = (twinkleFactor - 0.9) * 5; // 0 to 0.5 range
+        // Calculate opacity: when twinkleFactor is 0.9-1.0, this produces 0-0.5 range
+        const centerOpacity = (twinkleFactor - STAR_CENTER_HIGHLIGHT_THRESHOLD) * STAR_CENTER_OPACITY_MULTIPLIER;
         centerGradient.addColorStop(0, `rgba(255, 255, 255, ${centerOpacity})`);
         centerGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
 
@@ -481,11 +509,12 @@ export const drawConnections = (
         
         // Calculate opacity based on distance with smoother falloff
         const distanceRatio = dist / maxDistance;
-        // Use cubic falloff for smoother fade at edges
-        const distanceFade = 1 - (distanceRatio * distanceRatio * distanceRatio);
+        // Use cubic falloff for smoother fade at edges (optimized calculation)
+        const distanceRatioSquared = distanceRatio * distanceRatio;
+        const distanceFade = 1 - (distanceRatioSquared * distanceRatio);
         const baseLineOpacity = opacity * distanceFade;
-        // Apply stagger progress with easing for smooth fade-in
-        const easedProgress = staggerProgress * staggerProgress * (3 - 2 * staggerProgress); // Smooth step
+        // Apply stagger progress with smooth step easing for smooth fade-in
+        const easedProgress = smoothStep(staggerProgress);
         const lineOpacity = baseLineOpacity * pulseMultiplier * easedProgress;
 
         // Use gradient for smoother line appearance
