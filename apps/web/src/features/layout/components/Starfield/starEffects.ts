@@ -4,6 +4,7 @@ import { hexToRgb } from "./starUtils";
 import { Planet, PortfolioProject } from "./types";
 import { getFrameTime } from "./frameCache";
 import { SUNS } from "./cosmos/cosmicHierarchy";
+import { COMET_CONFIG } from "./physicsConfig";
 
 /**
  * Get the sun color for a planet based on its focus area
@@ -191,7 +192,8 @@ export function drawStarTrail(
   const scb = secondaryRgb.b;
 
   // ===== LAYER 1: Main glowing trail body =====
-  const startWidth = 12 * planetSize * scaleFactor;
+  // Use configurable width multiplier for trail visibility
+  const startWidth = COMET_CONFIG.trailWidthMultiplier * planetSize * scaleFactor;
   
   // Subtle wobble for organic feel
   const wobbleTime = time * 0.0002;
@@ -217,13 +219,13 @@ export function drawStarTrail(
   ctx.bezierCurveTo(cp3x, cp3y, cp4x, cp4y, planet.x - perpDx * startWidth/2, planet.y - perpDy * startWidth/2);
   ctx.closePath();
 
-  // Gradient from bright head to fading tail
+  // Gradient from bright head to fading tail - increased opacity
   const trailGradient = ctx.createLinearGradient(planet.x, planet.y, trailEndX, trailEndY);
-  trailGradient.addColorStop(0, "rgba(255, 255, 255, 0.95)");
-  trailGradient.addColorStop(0.05, `rgba(${sr}, ${sg}, ${sb}, 0.85)`);
-  trailGradient.addColorStop(0.2, `rgba(${sr}, ${sg}, ${sb}, 0.6)`);
-  trailGradient.addColorStop(0.4, `rgba(${scr}, ${scg}, ${scb}, 0.35)`);
-  trailGradient.addColorStop(0.7, `rgba(${sr}, ${sg}, ${sb}, 0.15)`);
+  trailGradient.addColorStop(0, "rgba(255, 255, 255, 1)");
+  trailGradient.addColorStop(0.05, `rgba(${sr}, ${sg}, ${sb}, 0.95)`);
+  trailGradient.addColorStop(0.2, `rgba(${sr}, ${sg}, ${sb}, 0.75)`);
+  trailGradient.addColorStop(0.4, `rgba(${scr}, ${scg}, ${scb}, 0.5)`);
+  trailGradient.addColorStop(0.7, `rgba(${sr}, ${sg}, ${sb}, 0.25)`);
   trailGradient.addColorStop(1, `rgba(${scr}, ${scg}, ${scb}, 0)`);
 
   ctx.fillStyle = trailGradient;
@@ -233,16 +235,16 @@ export function drawStarTrail(
   // ===== LAYER 2: Inner bright core trail =====
   ctx.save();
   ctx.beginPath();
-  const coreWidth = startWidth * 0.4;
+  const coreWidth = startWidth * COMET_CONFIG.coreWidthFraction;
   ctx.moveTo(planet.x, planet.y);
-  ctx.lineTo(planet.x - normalizedDx * trailLength * 0.6, planet.y - normalizedDy * trailLength * 0.6);
+  ctx.lineTo(planet.x - normalizedDx * trailLength * COMET_CONFIG.coreLengthFraction, planet.y - normalizedDy * trailLength * COMET_CONFIG.coreLengthFraction);
   
   const coreGradient = ctx.createLinearGradient(
     planet.x, planet.y,
-    planet.x - normalizedDx * trailLength * 0.6, planet.y - normalizedDy * trailLength * 0.6
+    planet.x - normalizedDx * trailLength * COMET_CONFIG.coreLengthFraction, planet.y - normalizedDy * trailLength * COMET_CONFIG.coreLengthFraction
   );
-  coreGradient.addColorStop(0, "rgba(255, 255, 255, 0.9)");
-  coreGradient.addColorStop(0.3, `rgba(${sr}, ${sg}, ${sb}, 0.6)`);
+  coreGradient.addColorStop(0, "rgba(255, 255, 255, 1)");
+  coreGradient.addColorStop(0.3, `rgba(${sr}, ${sg}, ${sb}, 0.8)`);
   coreGradient.addColorStop(1, `rgba(${sr}, ${sg}, ${sb}, 0)`);
   
   ctx.strokeStyle = coreGradient;
@@ -252,14 +254,14 @@ export function drawStarTrail(
   ctx.restore();
 
   // ===== LAYER 3: Debris particles left behind (the "wake") =====
-  // These simulate material shed by the comet
-  const debrisCount = 25;
+  // These simulate material shed by the comet - increased count for more visible trail
+  const debrisCount = 45;
   ctx.save();
   
   for (let i = 0; i < debrisCount; i++) {
     // Debris spreads out more as it gets further from the comet
     const progress = (i / debrisCount);
-    const distanceAlongTrail = progress * trailLength * 1.2; // Extend past main trail
+    const distanceAlongTrail = progress * trailLength * 1.4; // Extend further past main trail
     
     // Use deterministic "randomness" based on index and time for consistent positioning
     const seed1 = Math.sin(i * 127.1 + time * 0.00005);
@@ -267,7 +269,7 @@ export function drawStarTrail(
     const seed3 = Math.sin(i * 74.3 + time * 0.00003);
     
     // Debris spreads wider as it trails behind
-    const spreadFactor = progress * progress * trailLength * 0.25;
+    const spreadFactor = progress * progress * trailLength * 0.35;
     const spreadX = seed1 * spreadFactor;
     const spreadY = seed2 * spreadFactor;
     
@@ -275,12 +277,12 @@ export function drawStarTrail(
     const debrisX = planet.x - normalizedDx * distanceAlongTrail + perpDx * spreadX + spreadY * 0.3;
     const debrisY = planet.y - normalizedDy * distanceAlongTrail + perpDy * spreadX + spreadY * 0.3;
     
-    // Size decreases and varies with distance
+    // Size decreases and varies with distance - increased base size for visibility
     const sizeVariation = 0.5 + seed3 * 0.5;
-    const debrisSize = starSize * 0.12 * (1 - progress * 0.7) * sizeVariation;
+    const debrisSize = starSize * 0.18 * (1 - progress * 0.6) * sizeVariation;
     
-    // Opacity fades with distance
-    const debrisOpacity = (1 - progress) * 0.7 * (0.5 + Math.abs(seed1) * 0.5);
+    // Opacity fades with distance - increased for visibility
+    const debrisOpacity = (1 - progress) * 0.85 * (0.5 + Math.abs(seed1) * 0.5);
     
     if (debrisSize > 0.3 && debrisOpacity > 0.05) {
       // Draw debris particle with glow
@@ -314,27 +316,27 @@ export function drawStarTrail(
   ctx.restore();
 
   // ===== LAYER 4: Fine dust particles (very small, numerous) =====
-  const dustCount = 40;
+  const dustCount = 60;
   ctx.save();
   
   for (let i = 0; i < dustCount; i++) {
     const progress = i / dustCount;
-    const distanceAlongTrail = progress * trailLength * 1.3;
+    const distanceAlongTrail = progress * trailLength * 1.5;
     
     // More chaotic movement for dust
     const dustSeed1 = Math.sin(i * 73.1 + time * 0.00008);
     const dustSeed2 = Math.cos(i * 157.3 + time * 0.00006);
     
     // Wider spread for dust
-    const dustSpread = progress * trailLength * 0.35;
+    const dustSpread = progress * trailLength * 0.45;
     const dustOffsetX = dustSeed1 * dustSpread;
     const dustOffsetY = dustSeed2 * dustSpread;
     
     const dustX = planet.x - normalizedDx * distanceAlongTrail + dustOffsetX;
     const dustY = planet.y - normalizedDy * distanceAlongTrail + dustOffsetY;
     
-    const dustSize = starSize * 0.04 * (1 - progress * 0.5);
-    const dustOpacity = (1 - progress * 0.8) * 0.5 * Math.abs(dustSeed1);
+    const dustSize = starSize * 0.06 * (1 - progress * 0.4);
+    const dustOpacity = (1 - progress * 0.7) * 0.6 * Math.abs(dustSeed1);
     
     if (dustSize > 0.2 && dustOpacity > 0.03) {
       ctx.beginPath();

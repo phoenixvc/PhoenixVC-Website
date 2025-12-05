@@ -23,6 +23,7 @@ import { applyClickForce, createClickExplosion } from "./stars";
 import { checkSunHover } from "./hooks/animation/animate";
 import { applyClickRepulsionToSunsCanvas, getSunPosition } from "./sunSystem";
 import SunTooltip, { SunInfo } from "./sunTooltip";
+import { EFFECT_TIMING } from "./physicsConfig";
 
 // Define the ref type
 export type StarfieldRef = {
@@ -45,7 +46,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   gravitationalPull = 0.05,
   particleSpeed = 0.00001,
   employeeStarSize = 0.7,
-  employeeDisplayStyle = "initials",
+  employeeDisplayStyle = "avatar",
   blackHoleSize = 1.0,
   heroMode = false,
   containerRef = null,
@@ -75,6 +76,10 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     cancelAnimation: () => {},
     restartAnimation: () => {}
   });
+
+  // Track if starfield initialization is complete (hide initial positioning animation)
+  const [isStarfieldReady, setIsStarfieldReady] = useState(false);
+  const initializationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // FPS tracking state
   const [currentFps, setCurrentFps] = useState<number>(0);
@@ -535,12 +540,18 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
       setMousePosition(newPosition);
       mousePositionRef.current = newPosition;
 
-      // Check for sun hover
+      // Check for sun hover - but only if mouse is directly over the canvas (not over content on top)
       if (canvasRef.current) {
         const rect = canvasRef.current.getBoundingClientRect();
         const canvasX = e.clientX - rect.left;
         const canvasY = e.clientY - rect.top;
-        const sunHoverResult = checkSunHover(canvasX, canvasY, rect.width, rect.height);
+        
+        // Check if the actual element under the cursor is the canvas itself
+        // This prevents sun tooltips from showing when hovering over cards/content above the canvas
+        const elementUnderCursor = document.elementFromPoint(e.clientX, e.clientY);
+        const isOverCanvas = elementUnderCursor === canvasRef.current;
+        
+        const sunHoverResult = isOverCanvas ? checkSunHover(canvasX, canvasY, rect.width, rect.height) : null;
 
         if (sunHoverResult) {
           // Clear any pending hide timeout since we're hovering over a sun
@@ -736,6 +747,27 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
       cancelAnimationRef.current();
     };
   }, []);
+
+  // Delay showing starfield until initialization is complete
+  // This prevents users from seeing the initial movement to designated positions
+  useEffect(() => {
+    // Clear any existing timer
+    if (initializationTimerRef.current) {
+      clearTimeout(initializationTimerRef.current);
+    }
+    
+    // Wait for stars, planets, and suns to reach their initial positions
+    // The delay allows the physics engine to position elements before showing
+    initializationTimerRef.current = setTimeout(() => {
+      setIsStarfieldReady(true);
+    }, EFFECT_TIMING.starfieldInitializationDelay);
+    
+    return () => {
+      if (initializationTimerRef.current) {
+        clearTimeout(initializationTimerRef.current);
+      }
+    };
+  }, []); // Run once on mount
 
   // Update employee stars when orbit speed changes
   const handleEmployeeOrbitSpeedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -986,10 +1018,10 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
         <div className={`${styles.frontierAccent} ${isDarkMode ? "" : styles.light}`}></div>
         <div className={`${styles.purpleAccent} ${isDarkMode ? "" : styles.light}`}></div>
 
-        {/* Canvas for interactive elements */}
+        {/* Canvas for interactive elements - fade in after initialization */}
         <canvas
           ref={canvasRef}
-          className={styles.starfieldCanvas}
+          className={`${styles.starfieldCanvas} ${isStarfieldReady ? styles.starfieldReady : styles.starfieldInitializing}`}
           aria-hidden="true"
           onClick={(e) => {
             e.stopPropagation(); // Stop event propagation

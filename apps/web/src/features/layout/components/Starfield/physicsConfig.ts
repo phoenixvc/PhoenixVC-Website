@@ -6,8 +6,8 @@
  * Controls the overall speed of all physics simulations
  */
 export const GLOBAL_PHYSICS = {
-  /** Master speed multiplier for all animations (0.15 = 15% speed) */
-  speedMultiplier: 0.15,
+  /** Master speed multiplier for all animations (0.05 = 5% speed, reduced for slower movement) */
+  speedMultiplier: 0.05,
   /** Maximum delta time before capping (prevents physics explosion on tab return) */
   maxDeltaTime: 32,
   /** Default delta time when invalid value detected */
@@ -192,6 +192,26 @@ export const EFFECT_TIMING = {
   clickExplosionDuration: 800,
   /** Duration of reset animation (ms) */
   resetAnimationDuration: 1000,
+  /** Base delay before consumed star respawns (ms) */
+  starRespawnDelayBase: 3000,
+  /** Random additional delay for star respawn (ms) */
+  starRespawnDelayRandom: 3000,
+  /** Delay before starfield canvas fades in after initialization (ms) */
+  starfieldInitializationDelay: 500,
+} as const;
+
+/**
+ * Comet trail visual configuration
+ */
+export const COMET_CONFIG = {
+  /** Trail width multiplier relative to planet size */
+  trailWidthMultiplier: 24,
+  /** Trail core width as fraction of main trail */
+  coreWidthFraction: 0.6,
+  /** Trail core length as fraction of main trail */
+  coreLengthFraction: 0.8,
+  /** Trail opacity boost */
+  opacityBoost: 1.3,
 } as const;
 
 // Type exports for type safety
@@ -204,3 +224,4 @@ export type FlowPhysics = typeof FLOW_PHYSICS;
 export type ConnectionConfig = typeof CONNECTION_CONFIG;
 export type ExplosionPhysics = typeof EXPLOSION_PHYSICS;
 export type EffectTiming = typeof EFFECT_TIMING;
+export type CometConfig = typeof COMET_CONFIG;

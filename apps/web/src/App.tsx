@@ -68,7 +68,6 @@ const App = (): React.JSX.Element => {
             <Suspense fallback={<PageLoader isDarkMode={isDarkMode} />}>
               <LazyInvestmentFocus />
               <LazyAbout />
-              <LazyTeam />
               <LazyContact />
             </Suspense>
           </Layout>

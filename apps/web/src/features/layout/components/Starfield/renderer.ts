@@ -1,6 +1,74 @@
 // components/Layout/Starfield/renderer.ts
 import { BlackHole, CenterPosition, ContainerBounds, Explosion, MousePosition, Planet, Star } from "./types";
 import { calculateCenter } from "./utils";
+import { getFrameTime } from "./frameCache";
+import { EFFECT_TIMING } from "./physicsConfig";
+
+// Star birthplace indicator positions (along edges where stars respawn)
+const BIRTHPLACE_INDICATORS = [
+  { edge: "top", count: 5 },
+  { edge: "right", count: 4 },
+  { edge: "bottom", count: 5 },
+  { edge: "left", count: 4 }
+];
+
+// Draw star birthplace indicators at edges
+export const drawStarBirthplaces = (
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number
+): void => {
+  const time = getFrameTime();
+  const pulse = 0.3 + Math.sin(time * 0.001) * 0.15; // Subtle pulse effect
+  
+  ctx.save();
+  
+  BIRTHPLACE_INDICATORS.forEach(({ edge, count }) => {
+    for (let i = 0; i < count; i++) {
+      let x: number, y: number;
+      const offset = (i + 0.5) / count; // Distribute evenly along edge
+      
+      switch (edge) {
+        case "top":
+          x = width * offset;
+          y = 5;
+          break;
+        case "right":
+          x = width - 5;
+          y = height * offset;
+          break;
+        case "bottom":
+          x = width * offset;
+          y = height - 5;
+          break;
+        case "left":
+        default:
+          x = 5;
+          y = height * offset;
+          break;
+      }
+      
+      // Draw subtle glowing dot as birthplace indicator
+      const gradient = ctx.createRadialGradient(x, y, 0, x, y, 12);
+      gradient.addColorStop(0, `rgba(147, 112, 219, ${pulse * 0.4})`); // Soft purple center
+      gradient.addColorStop(0.4, `rgba(138, 43, 226, ${pulse * 0.2})`);
+      gradient.addColorStop(1, "rgba(138, 43, 226, 0)");
+      
+      ctx.beginPath();
+      ctx.arc(x, y, 12, 0, Math.PI * 2);
+      ctx.fillStyle = gradient;
+      ctx.fill();
+      
+      // Small bright core
+      ctx.beginPath();
+      ctx.arc(x, y, 2, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(200, 180, 255, ${pulse * 0.6})`;
+      ctx.fill();
+    }
+  });
+  
+  ctx.restore();
+};
 
 // Draw a single star
 export const drawStar = (ctx: CanvasRenderingContext2D, star: Star) => {
@@ -244,10 +312,10 @@ export const updateStar = (
     }
   }
 
-  // Check if consumed star should respawn (after 1.5-3 second delay)
+  // Check if consumed star should respawn (after configurable delay with randomization)
   if (star.isConsumed && star.consumedAt) {
     const now = performance.now();
-    const respawnDelay = 1500 + Math.random() * 1500; // 1.5-3 seconds
+    const respawnDelay = EFFECT_TIMING.starRespawnDelayBase + Math.random() * EFFECT_TIMING.starRespawnDelayRandom;
     if (now - star.consumedAt > respawnDelay) {
       // Respawn at edge of screen (spawn point effect)
       const edge = Math.floor(Math.random() * 4);
@@ -472,7 +540,7 @@ export const drawMouseEffect = (
     ctx.fill();
   };
 
-// Draw connections between stars (for hero mode)
+// Draw connections between stars (for hero mode) - duller lines
 export const drawStarConnections = (
     ctx: CanvasRenderingContext2D,
     stars: Star[],
@@ -480,7 +548,13 @@ export const drawStarConnections = (
     opacity: number,
     color: string
   ) => {
-    ctx.strokeStyle = color;
+    // Use a duller version of the color - reduce brightness
+    const dullerColor = color.includes("rgba") 
+      ? color.replace(/rgba\((\d+),\s*(\d+),\s*(\d+)/, (_, r, g, b) => 
+          `rgba(${Math.floor(Number(r) * 0.6)}, ${Math.floor(Number(g) * 0.6)}, ${Math.floor(Number(b) * 0.7)}`)
+      : "rgba(120, 100, 140, 0.3)"; // Default duller purple-gray
+    
+    ctx.strokeStyle = dullerColor;
 
     for (let i = 0; i < stars.length; i++) {
       // Skip consumed stars
@@ -495,8 +569,8 @@ export const drawStarConnections = (
         const distance = Math.sqrt(dx * dx + dy * dy);
 
         if (distance < maxDistance) {
-          // Calculate opacity based on distance - reduced for less flickering
-          const lineOpacity = opacity * (1 - distance / maxDistance) * 0.4; // Added 0.4 multiplier
+          // Calculate opacity based on distance - reduced for duller appearance
+          const lineOpacity = opacity * (1 - distance / maxDistance) * 0.25; // Reduced from 0.4 to 0.25
           ctx.globalAlpha = lineOpacity;
 
           ctx.beginPath();

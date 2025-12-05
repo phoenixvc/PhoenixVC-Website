@@ -94,8 +94,8 @@ export const initStars = (
     const y = Math.random() * height;
 
     // Random size with weighted distribution (more small stars, crisper appearance)
-    // Use higher exponent for more small stars, and reduce max size for sharper appearance
-    const sizeMultiplier = Math.pow(Math.random(), 3.0) * 0.8 + 0.15; // Smaller, crisper stars
+    // Use higher exponent for smaller stars as requested
+    const sizeMultiplier = Math.pow(Math.random(), 3.5) * 0.6 + 0.08; // Smaller background stars
     const size = sizeMultiplier * starSize;
 
     // Random color from palette
@@ -501,7 +501,8 @@ export const drawConnections = (
   opacity: number,
   colorScheme: string
 ): void => {
-  const baseColor = colorScheme === "white" ? "255, 255, 255" : "147, 51, 234"; // White or purple
+  // Use slightly muted colors for connection lines (balanced brightness)
+  const baseColor = colorScheme === "white" ? "210, 210, 230" : "130, 80, 170"; // Slightly brighter than before but not fully white
 
   // For performance, check only every 10th star
   const connectionSources = stars.filter((_, i) => i % 10 === 0);
@@ -552,38 +553,38 @@ export const drawConnections = (
         if (staggerProgress <= 0) return;
         
         // Create a slow, smooth pulse with unique timing per connection
-        // Slower frequencies for smoother animation
-        const frequency1 = 0.00015 + (uniqueSeed % 100) / 200000;
-        const frequency2 = 0.0001 + (uniqueSeed % 50) / 150000;
+        // Slower frequencies for smoother animation (reduced for less blinking)
+        const frequency1 = 0.00005 + (uniqueSeed % 100) / 500000;
+        const frequency2 = 0.00003 + (uniqueSeed % 50) / 400000;
         
         const pulse1 = Math.sin(time * frequency1 + phaseOffset);
         const pulse2 = Math.sin(time * frequency2 + phaseOffset * 1.3);
         
-        // Combine pulses for smoother animation (0.6 to 1.0 range - less variation)
-        const pulseMultiplier = 0.7 + (pulse1 * 0.15 + pulse2 * 0.15);
+        // Combine pulses for smoother animation (0.92 to 1.0 range - very minimal variation)
+        const pulseMultiplier = 0.95 + (pulse1 * 0.025 + pulse2 * 0.025);
         
-        // Calculate opacity based on distance with smoother falloff
+        // Calculate opacity based on distance with smoother falloff - reduced overall opacity
         const distanceRatio = dist / maxDistance;
         // Use cubic falloff for smoother fade at edges (optimized calculation)
         const distanceRatioSquared = distanceRatio * distanceRatio;
         const distanceFade = 1 - (distanceRatioSquared * distanceRatio);
-        const baseLineOpacity = opacity * distanceFade;
+        const baseLineOpacity = opacity * distanceFade * 0.65; // Slightly brighter than before (was 0.5)
         // Apply stagger progress with smooth step easing for smooth fade-in
         const easedProgress = smoothStep(staggerProgress);
         const lineOpacity = baseLineOpacity * pulseMultiplier * easedProgress;
 
         // Use gradient for smoother line appearance
         const gradient = ctx.createLinearGradient(star1.x, star1.y, star2.x, star2.y);
-        gradient.addColorStop(0, `rgba(${baseColor}, ${lineOpacity * 0.8})`);
+        gradient.addColorStop(0, `rgba(${baseColor}, ${lineOpacity * 0.7})`);
         gradient.addColorStop(0.5, `rgba(${baseColor}, ${lineOpacity})`);
-        gradient.addColorStop(1, `rgba(${baseColor}, ${lineOpacity * 0.8})`);
+        gradient.addColorStop(1, `rgba(${baseColor}, ${lineOpacity * 0.7})`);
 
         // Draw line with smooth gradient and slightly thicker line for better visibility
         ctx.beginPath();
         ctx.moveTo(star1.x, star1.y);
         ctx.lineTo(star2.x, star2.y);
         ctx.strokeStyle = gradient;
-        ctx.lineWidth = 0.8 + pulseMultiplier * 0.4; // Slightly variable width for organic feel
+        ctx.lineWidth = 0.5 + pulseMultiplier * 0.15; // Thinner lines for subtler appearance
         ctx.stroke();
       }
     });

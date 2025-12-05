@@ -2,6 +2,7 @@
 import { SetStateAction } from "react";
 import { drawBlackHole } from "../../blackHoles";
 import { drawConnections, drawStars, updateStarActivity, updateStarPositions } from "../../stars";
+import { drawStarBirthplaces } from "../../renderer";
 import { logger } from "@/utils/logger";
 import { updateFrameCache, getFrameTime } from "../../frameCache";
 import {
@@ -139,6 +140,9 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
 
     // Always draw stars first - this ensures they always appear
     drawStars(ctx, currentStars);
+    
+    // Draw star birthplace indicators at the edges where stars respawn
+    drawStarBirthplaces(ctx, canvas.width, canvas.height);
 
     // Get planets for sun size calculation
     const currentPlanets: Planet[] = props.planetsRef?.current ? [...props.planetsRef.current] : [];
