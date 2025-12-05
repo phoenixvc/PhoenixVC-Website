@@ -226,16 +226,61 @@ export const updateStar = (
         ax += dx / dist * force;
         ay += dy / dist * force;
 
-        // If star is too close to black hole, reset it
+        // If star is too close to black hole, mark it as consumed with delay
         if (dist < blackHole.radius * 0.8) {
-          star.x = Math.random() * canvas.width;
-          star.y = Math.random() * canvas.height;
-          star.vx = 0;
-          star.vy = 0;
-          star.originalX = star.x;
-          star.originalY = star.y;
+          const now = performance.now();
+          // Mark star as consumed if not already
+          if (!star.isConsumed) {
+            star.isConsumed = true;
+            star.consumedAt = now;
+            // Move star off-screen while waiting to respawn
+            star.x = -1000;
+            star.y = -1000;
+            star.vx = 0;
+            star.vy = 0;
+          }
         }
       }
+    }
+  }
+
+  // Check if consumed star should respawn (after 1.5-3 second delay)
+  if (star.isConsumed && star.consumedAt) {
+    const now = performance.now();
+    const respawnDelay = 1500 + Math.random() * 1500; // 1.5-3 seconds
+    if (now - star.consumedAt > respawnDelay) {
+      // Respawn at edge of screen (spawn point effect)
+      const edge = Math.floor(Math.random() * 4);
+      switch (edge) {
+        case 0: // Top
+          star.x = Math.random() * canvas.width;
+          star.y = -10;
+          star.vy = Math.random() * 0.5 + 0.2;
+          star.vx = (Math.random() - 0.5) * 0.3;
+          break;
+        case 1: // Right
+          star.x = canvas.width + 10;
+          star.y = Math.random() * canvas.height;
+          star.vx = -(Math.random() * 0.5 + 0.2);
+          star.vy = (Math.random() - 0.5) * 0.3;
+          break;
+        case 2: // Bottom
+          star.x = Math.random() * canvas.width;
+          star.y = canvas.height + 10;
+          star.vy = -(Math.random() * 0.5 + 0.2);
+          star.vx = (Math.random() - 0.5) * 0.3;
+          break;
+        case 3: // Left
+          star.x = -10;
+          star.y = Math.random() * canvas.height;
+          star.vx = Math.random() * 0.5 + 0.2;
+          star.vy = (Math.random() - 0.5) * 0.3;
+          break;
+      }
+      star.originalX = star.x;
+      star.originalY = star.y;
+      star.isConsumed = false;
+      star.consumedAt = 0;
     }
   }
 
@@ -438,14 +483,20 @@ export const drawStarConnections = (
     ctx.strokeStyle = color;
 
     for (let i = 0; i < stars.length; i++) {
+      // Skip consumed stars
+      if (stars[i].isConsumed) continue;
+      
       for (let j = i + 1; j < stars.length; j++) {
+        // Skip consumed stars
+        if (stars[j].isConsumed) continue;
+        
         const dx = stars[i].x - stars[j].x;
         const dy = stars[i].y - stars[j].y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
         if (distance < maxDistance) {
-          // Calculate opacity based on distance
-          const lineOpacity = opacity * (1 - distance / maxDistance);
+          // Calculate opacity based on distance - reduced for less flickering
+          const lineOpacity = opacity * (1 - distance / maxDistance) * 0.4; // Added 0.4 multiplier
           ctx.globalAlpha = lineOpacity;
 
           ctx.beginPath();

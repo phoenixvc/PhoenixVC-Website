@@ -786,25 +786,25 @@ export function drawHoverEffects(
       ctx.save();
 
       relatedStars.forEach(relatedStar => {
-        // Draw connection line with animated dash pattern - slower animation
-        const dashOffset = getFrameTime() * 0.005; // Reduced from 0.01
+        // Draw connection line with animated dash pattern - much slower animation to reduce flicker
+        const dashOffset = getFrameTime() * 0.001; // Reduced from 0.005 for much slower animation
 
         ctx.beginPath();
         ctx.moveTo(planet.x, planet.y);
         ctx.lineTo(relatedStar.x, relatedStar.y);
 
-        // Create gradient for connection line - softer
+        // Create gradient for connection line - much softer and less visible
         const connectionGradient = ctx.createLinearGradient(
           planet.x, planet.y,
           relatedStar.x, relatedStar.y
         );
 
-        connectionGradient.addColorStop(0, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.6)`); // Reduced from 0.7
-        connectionGradient.addColorStop(1, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.25)`); // Reduced from 0.3
+        connectionGradient.addColorStop(0, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.3)`); // Reduced from 0.6
+        connectionGradient.addColorStop(1, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.1)`); // Reduced from 0.25
 
         ctx.strokeStyle = connectionGradient;
-        ctx.lineWidth = 1.2; // Reduced from 1.5
-        ctx.setLineDash([5, 5]);
+        ctx.lineWidth = 0.8; // Reduced from 1.2 for thinner lines
+        ctx.setLineDash([8, 8]); // Longer dashes for less flickering
         ctx.lineDashOffset = dashOffset;
         ctx.stroke();
 
@@ -813,8 +813,8 @@ export function drawHoverEffects(
         const midY = (planet.y + relatedStar.y) / 2;
 
         ctx.beginPath();
-        ctx.arc(midX, midY, 2.5, 0, Math.PI * 2); // Reduced from 3
-        ctx.fillStyle = `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.7)`; // Reduced from 0.8
+        ctx.arc(midX, midY, 1.5, 0, Math.PI * 2); // Reduced from 2.5
+        ctx.fillStyle = `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.4)`; // Reduced from 0.7
         ctx.fill();
       });
 

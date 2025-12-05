@@ -728,6 +728,22 @@ function drawSuns(
   focusedSunId?: string | null,
   planets?: Planet[]
 ): void {
+  // Sun rendering constants
+  const SUN_SIZE_MULTIPLIER = 0.35;
+  const SUN_MIN_SIZE = 20;
+  
+  // Solar particle constants
+  const PARTICLE_COUNT_HIGHLIGHTED = 24;
+  const PARTICLE_COUNT_DEFAULT = 16;
+  const PARTICLE_ORBIT_BASE_RADIUS = 1.3;
+  const PARTICLE_ORBIT_RADIUS_STEP = 0.4;
+  const PARTICLE_ORBIT_SPEED_BASE = 0.0001;
+  const PARTICLE_ORBIT_SPEED_VARIATION = 0.00003;
+  
+  // Ejected particle constants
+  const EJECT_COUNT_HIGHLIGHTED = 8;
+  const EJECT_COUNT_DEFAULT = 5;
+  
   // Initialize sun system if needed
   if (!sunSystemInitialized) {
     initializeSunStates();
@@ -755,8 +771,8 @@ function drawSuns(
     // Use dynamic position from sun system
     const x = sunState.x * width;
     const y = sunState.y * height;
-    // Increased sun size for more impressive appearance
-    const baseSize = Math.max(25, Math.min(width, height) * sunState.size * 0.45);
+    // Slightly reduced sun size for better proportion
+    const baseSize = Math.max(SUN_MIN_SIZE, Math.min(width, height) * sunState.size * SUN_SIZE_MULTIPLIER);
     
     // Check if this sun is hovered or focused
     const isHovered = hoveredSunId === sunState.id;
@@ -932,6 +948,94 @@ function drawSuns(
         ctx.globalAlpha = ringAlpha * (0.5 + 0.5 * ringPhase);
         ctx.arc(x, y, ringRadius, 0, Math.PI * 2);
         ctx.stroke();
+      }
+    }
+    
+    // ===== LAYER 5.5: Solar particles (orbiting plasma dots) =====
+    const particleCount = isHighlighted ? PARTICLE_COUNT_HIGHLIGHTED : PARTICLE_COUNT_DEFAULT;
+    ctx.globalAlpha = isDarkMode ? (isHighlighted ? 0.85 : 0.65) : (isHighlighted ? 0.7 : 0.5);
+    
+    for (let i = 0; i < particleCount; i++) {
+      // Create particles orbiting at different distances and speeds
+      const orbitRadius = size * (PARTICLE_ORBIT_BASE_RADIUS + (i % 4) * PARTICLE_ORBIT_RADIUS_STEP); // Multiple orbit rings
+      const orbitSpeed = PARTICLE_ORBIT_SPEED_BASE + (i % 3) * PARTICLE_ORBIT_SPEED_VARIATION; // Varying speeds
+      const particleAngle = (i * Math.PI * 2 / particleCount) + time * orbitSpeed + sunState.rotationAngle * 0.3;
+      
+      // Add slight wobble to particle path
+      const wobble = Math.sin(time * 0.0003 + i * 1.7) * size * 0.08;
+      const particleX = x + Math.cos(particleAngle) * (orbitRadius + wobble);
+      const particleY = y + Math.sin(particleAngle) * (orbitRadius + wobble);
+      
+      // Particle size varies with pulsing
+      const particlePulse = 0.7 + 0.3 * Math.sin(time * 0.0004 + i * 2.1);
+      const particleSize = (size * 0.04 + (i % 3) * size * 0.015) * particlePulse;
+      
+      // Create glowing particle
+      const particleGradient = ctx.createRadialGradient(
+        particleX, particleY, 0,
+        particleX, particleY, particleSize * 2.5
+      );
+      
+      // Alternate between sun color and lighter particles
+      if (i % 3 === 0) {
+        particleGradient.addColorStop(0, "#ffffff");
+        particleGradient.addColorStop(0.3, lightenColor(sunState.color, 0.7));
+        particleGradient.addColorStop(0.6, `rgba(${rgbStr}, 0.5)`);
+        particleGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
+      } else if (i % 3 === 1) {
+        particleGradient.addColorStop(0, lightenColor(sunState.color, 0.8));
+        particleGradient.addColorStop(0.4, `rgba(${rgbStr}, 0.7)`);
+        particleGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
+      } else {
+        particleGradient.addColorStop(0, `rgba(${secondaryRgbStr}, 0.9)`);
+        particleGradient.addColorStop(0.5, `rgba(${secondaryRgbStr}, 0.4)`);
+        particleGradient.addColorStop(1, `rgba(${secondaryRgbStr}, 0)`);
+      }
+      
+      ctx.beginPath();
+      ctx.fillStyle = particleGradient;
+      ctx.arc(particleX, particleY, particleSize * 2.5, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Add a bright core to larger particles
+      if (i % 4 === 0) {
+        ctx.beginPath();
+        ctx.fillStyle = "#ffffff";
+        ctx.globalAlpha = (isDarkMode ? 0.9 : 0.7) * particlePulse;
+        ctx.arc(particleX, particleY, particleSize * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = isDarkMode ? (isHighlighted ? 0.85 : 0.65) : (isHighlighted ? 0.7 : 0.5);
+      }
+    }
+    
+    // ===== LAYER 5.6: Ejected particles (escaping plasma) =====
+    const ejectCount = isHighlighted ? EJECT_COUNT_HIGHLIGHTED : EJECT_COUNT_DEFAULT;
+    for (let i = 0; i < ejectCount; i++) {
+      // Particles that appear to be ejected outward
+      const ejectAngle = (i * Math.PI * 2 / ejectCount) + time * 0.00008 + sunState.rotationAngle;
+      const ejectPhase = (time * 0.0002 + i * 1.5) % 1; // 0-1 cycle
+      const ejectDist = size * (1.5 + ejectPhase * 3.5); // Move outward
+      const ejectX = x + Math.cos(ejectAngle) * ejectDist;
+      const ejectY = y + Math.sin(ejectAngle) * ejectDist;
+      
+      // Fade out as particle moves away
+      const ejectAlpha = Math.max(0, 1 - ejectPhase) * (isDarkMode ? 0.6 : 0.4);
+      const ejectSize = size * 0.06 * (1 - ejectPhase * 0.5);
+      
+      if (ejectAlpha > 0.05) {
+        const ejectGradient = ctx.createRadialGradient(
+          ejectX, ejectY, 0,
+          ejectX, ejectY, ejectSize * 3
+        );
+        ejectGradient.addColorStop(0, lightenColor(sunState.color, 0.6));
+        ejectGradient.addColorStop(0.4, `rgba(${rgbStr}, ${ejectAlpha})`);
+        ejectGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
+        
+        ctx.beginPath();
+        ctx.fillStyle = ejectGradient;
+        ctx.globalAlpha = ejectAlpha;
+        ctx.arc(ejectX, ejectY, ejectSize * 3, 0, Math.PI * 2);
+        ctx.fill();
       }
     }
     
