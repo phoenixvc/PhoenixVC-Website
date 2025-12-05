@@ -232,4 +232,208 @@ function drawProjectIdentifier(
       ctx.stroke();
     }
   }
+  
+  // Draw focus area vector icon on the planet
+  if (!planet.useSimpleRendering && planet.project?.focusArea) {
+    drawPlanetFocusAreaIcon(ctx, planet.x, planet.y, starSize, planet.project.focusArea);
+  }
+}
+
+/**
+ * Draw a focus area vector icon on a planet/comet
+ * The icon is drawn as a small overlay on the planet body
+ */
+function drawPlanetFocusAreaIcon(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  starSize: number,
+  focusArea: string
+): void {
+  ctx.save();
+  
+  // Position the icon at the bottom-right of the planet
+  const iconSize = starSize * 0.35;
+  const offsetX = starSize * 0.5;
+  const offsetY = starSize * 0.5;
+  const iconX = x + offsetX;
+  const iconY = y + offsetY;
+  
+  // Draw a small circular background for the icon
+  ctx.beginPath();
+  ctx.arc(iconX, iconY, iconSize * 1.2, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  
+  // Set icon drawing styles
+  ctx.strokeStyle = "#ffffff";
+  ctx.fillStyle = "#ffffff";
+  ctx.lineWidth = Math.max(1, iconSize * 0.1);
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  
+  // Draw the appropriate icon based on focus area
+  switch (focusArea) {
+    case "ai-ml":
+      drawPlanetAIIcon(ctx, iconX, iconY, iconSize);
+      break;
+    case "fintech-blockchain":
+      drawPlanetBlockchainIcon(ctx, iconX, iconY, iconSize);
+      break;
+    case "defense-security":
+      drawPlanetShieldIcon(ctx, iconX, iconY, iconSize);
+      break;
+    case "mobility-transportation":
+      drawPlanetMobilityIcon(ctx, iconX, iconY, iconSize);
+      break;
+    default:
+      // Draw a simple star for unknown focus areas
+      drawPlanetDefaultIcon(ctx, iconX, iconY, iconSize);
+  }
+  
+  ctx.restore();
+}
+
+/**
+ * Draw AI/ML icon (brain/circuit pattern) for planet
+ */
+function drawPlanetAIIcon(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
+  const r = size * 0.6;
+  
+  // Central node
+  ctx.beginPath();
+  ctx.arc(x, y, size * 0.15, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Outer nodes
+  const nodeCount = 4;
+  for (let i = 0; i < nodeCount; i++) {
+    const angle = (i * Math.PI * 2 / nodeCount) - Math.PI / 4;
+    const px = x + r * Math.cos(angle);
+    const py = y + r * Math.sin(angle);
+    
+    // Draw node
+    ctx.beginPath();
+    ctx.arc(px, py, size * 0.1, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Connect to center
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(px, py);
+    ctx.stroke();
+  }
+}
+
+/**
+ * Draw blockchain/fintech icon (hexagon with nodes) for planet
+ */
+function drawPlanetBlockchainIcon(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
+  const r = size * 0.6;
+  
+  // Draw hexagon
+  ctx.beginPath();
+  for (let i = 0; i < 6; i++) {
+    const angle = (i * Math.PI / 3) - Math.PI / 2;
+    const px = x + r * Math.cos(angle);
+    const py = y + r * Math.sin(angle);
+    if (i === 0) {
+      ctx.moveTo(px, py);
+    } else {
+      ctx.lineTo(px, py);
+    }
+  }
+  ctx.closePath();
+  ctx.stroke();
+  
+  // Draw center node
+  ctx.beginPath();
+  ctx.arc(x, y, size * 0.12, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+/**
+ * Draw shield icon (defense/security) for planet
+ */
+function drawPlanetShieldIcon(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
+  const w = size * 0.55;
+  const h = size * 0.7;
+  
+  // Draw shield shape
+  ctx.beginPath();
+  ctx.moveTo(x, y - h * 0.5); // Top center
+  ctx.lineTo(x + w * 0.5, y - h * 0.25); // Top right
+  ctx.lineTo(x + w * 0.5, y + h * 0.1); // Right side
+  ctx.quadraticCurveTo(x + w * 0.25, y + h * 0.4, x, y + h * 0.5); // Bottom right curve
+  ctx.quadraticCurveTo(x - w * 0.25, y + h * 0.4, x - w * 0.5, y + h * 0.1); // Bottom left curve
+  ctx.lineTo(x - w * 0.5, y - h * 0.25); // Left side
+  ctx.closePath();
+  ctx.stroke();
+  
+  // Draw checkmark inside
+  ctx.beginPath();
+  ctx.moveTo(x - w * 0.2, y);
+  ctx.lineTo(x - w * 0.05, y + h * 0.12);
+  ctx.lineTo(x + w * 0.2, y - h * 0.1);
+  ctx.stroke();
+}
+
+/**
+ * Draw mobility/transportation icon (wheel) for planet
+ */
+function drawPlanetMobilityIcon(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
+  const r = size * 0.55;
+  const innerR = size * 0.2;
+  
+  // Outer wheel
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.stroke();
+  
+  // Inner hub
+  ctx.beginPath();
+  ctx.arc(x, y, innerR, 0, Math.PI * 2);
+  ctx.stroke();
+  
+  // Center point
+  ctx.beginPath();
+  ctx.arc(x, y, size * 0.06, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Spokes
+  const spokeCount = 4;
+  for (let i = 0; i < spokeCount; i++) {
+    const angle = (i * Math.PI * 2 / spokeCount) + Math.PI / 4;
+    ctx.beginPath();
+    ctx.moveTo(x + innerR * Math.cos(angle), y + innerR * Math.sin(angle));
+    ctx.lineTo(x + r * Math.cos(angle), y + r * Math.sin(angle));
+    ctx.stroke();
+  }
+}
+
+/**
+ * Draw default icon (star) for planet
+ */
+function drawPlanetDefaultIcon(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
+  const outerR = size * 0.5;
+  const innerR = size * 0.2;
+  const points = 4;
+  
+  ctx.beginPath();
+  for (let i = 0; i < points * 2; i++) {
+    const angle = (i * Math.PI / points) - Math.PI / 2;
+    const r = i % 2 === 0 ? outerR : innerR;
+    const px = x + r * Math.cos(angle);
+    const py = y + r * Math.sin(angle);
+    if (i === 0) {
+      ctx.moveTo(px, py);
+    } else {
+      ctx.lineTo(px, py);
+    }
+  }
+  ctx.closePath();
+  ctx.fill();
 }

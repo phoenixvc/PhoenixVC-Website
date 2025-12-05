@@ -1177,7 +1177,7 @@ function drawSuns(
     const iconSize = size * 0.45;
     
     // Draw icon based on sun type
-    drawSunIcon(ctx, x, y, iconSize, sunState.id, sunState.color);
+    drawSunIcon(ctx, x, y, iconSize, sunState.id);
   });
   
   ctx.globalAlpha = 1;
@@ -1192,8 +1192,7 @@ function drawSunIcon(
   x: number,
   y: number,
   iconSize: number,
-  sunId: string,
-  color: string
+  sunId: string
 ): void {
   ctx.save();
   ctx.strokeStyle = "#ffffff";
@@ -1263,7 +1262,8 @@ function drawBlockchainIcon(ctx: CanvasRenderingContext2D, x: number, y: number,
   ctx.arc(x, y, size * 0.15, 0, Math.PI * 2);
   ctx.fill();
   
-  // Draw connecting lines to center
+  // Draw connecting lines from center to alternate vertices (0, 2, 4)
+  // This creates a triangular pattern for visual balance
   for (let i = 0; i < 6; i += 2) {
     const angle = (i * Math.PI / 3) - Math.PI / 2;
     const px = x + r * Math.cos(angle);
@@ -1377,7 +1377,8 @@ function drawMobilityIcon(ctx: CanvasRenderingContext2D, x: number, y: number, s
   }
   
   // Motion lines (speed indicator)
-  ctx.lineWidth *= 0.6;
+  const originalLineWidth = ctx.lineWidth;
+  ctx.lineWidth = originalLineWidth * 0.6;
   for (let i = 0; i < 3; i++) {
     const lineY = y - size * 0.1 + i * size * 0.15;
     const lineX = x + r + size * 0.15;
@@ -1386,6 +1387,7 @@ function drawMobilityIcon(ctx: CanvasRenderingContext2D, x: number, y: number, s
     ctx.lineTo(lineX + size * 0.3 - i * size * 0.08, lineY);
     ctx.stroke();
   }
+  ctx.lineWidth = originalLineWidth; // Restore original lineWidth
 }
 
 /**
