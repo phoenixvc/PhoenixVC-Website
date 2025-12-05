@@ -25,6 +25,28 @@ const STAR_CENTER_OPACITY_MULTIPLIER = 5;
 /** Minimum star size to show center highlight */
 const STAR_CENTER_HIGHLIGHT_MIN_SIZE = 1.2;
 
+/** Enhanced minimum size threshold for star center highlight (1.5x larger stars only) */
+const STAR_CENTER_HIGHLIGHT_ENHANCED_MIN_SIZE = STAR_CENTER_HIGHLIGHT_MIN_SIZE * 1.5;
+
+/** Reduction factor for center opacity in enhanced mode */
+const CENTER_OPACITY_REDUCTION_FACTOR = 0.5;
+
+// ==========================================
+// Sun Gravitational Physics Constants
+// ==========================================
+
+/** Multiplier for sun influence range based on canvas size and sun size */
+const SUN_INFLUENCE_MULTIPLIER = 8;
+
+/** Multiplier to approximate sun mass from sun size */
+const SUN_MASS_MULTIPLIER = 2000;
+
+/** Damping factor for sun gravitational force */
+const SUN_FORCE_DAMPING = 0.3;
+
+/** Velocity multiplier for gravitational force application */
+const GRAVITATIONAL_VELOCITY_MULTIPLIER = 2;
+
 // ==========================================
 // Utility Functions
 // ==========================================
@@ -117,7 +139,7 @@ export function updateStarPositions(
   mouseEffectRadius: number,
   maxVelocity: number = 0.5,
   animationSpeed: number = 1.0
-) {
+): void {
   // Safety check for deltaTime
   if (!deltaTime || isNaN(deltaTime) || deltaTime > 100) {
     deltaTime = 16; // Use a reasonable default if deltaTime is invalid
@@ -155,15 +177,15 @@ export function updateStarPositions(
         const dist = Math.sqrt(distSq);
 
         // Suns have a large influence range based on their size
-        const sunInfluenceRange = Math.max(width, height) * sun.size * 8;
+        const sunInfluenceRange = Math.max(width, height) * sun.size * SUN_INFLUENCE_MULTIPLIER;
         if (dist < sunInfluenceRange) {
           // Gentle gravitational pull with smooth falloff
           const falloff = 1 - (dist / sunInfluenceRange);
           // Sun mass approximated from size (larger suns = more gravity)
-          const sunMass = sun.size * 2000;
-          const force = gravitationalPull * sunMass * falloff * 0.3 / distSq;
-          star.vx += dx / dist * force * normalizedDelta * timeScale * 2;
-          star.vy += dy / dist * force * normalizedDelta * timeScale * 2;
+          const sunMass = sun.size * SUN_MASS_MULTIPLIER;
+          const force = gravitationalPull * sunMass * falloff * SUN_FORCE_DAMPING / distSq;
+          star.vx += dx / dist * force * normalizedDelta * timeScale * GRAVITATIONAL_VELOCITY_MULTIPLIER;
+          star.vy += dy / dist * force * normalizedDelta * timeScale * GRAVITATIONAL_VELOCITY_MULTIPLIER;
         }
       }
     }
@@ -429,9 +451,9 @@ export const drawStars = (
       ctx.fill();
 
       // Very subtle white center for only the largest/brightest stars
-      if (twinkleFactor > STAR_CENTER_HIGHLIGHT_THRESHOLD && star.size > STAR_CENTER_HIGHLIGHT_MIN_SIZE * 1.5) {
+      if (twinkleFactor > STAR_CENTER_HIGHLIGHT_THRESHOLD && star.size > STAR_CENTER_HIGHLIGHT_ENHANCED_MIN_SIZE) {
         // Calculate opacity: minimal effect
-        const centerOpacity = (twinkleFactor - STAR_CENTER_HIGHLIGHT_THRESHOLD) * STAR_CENTER_OPACITY_MULTIPLIER * 0.5;
+        const centerOpacity = (twinkleFactor - STAR_CENTER_HIGHLIGHT_THRESHOLD) * STAR_CENTER_OPACITY_MULTIPLIER * CENTER_OPACITY_REDUCTION_FACTOR;
         ctx.beginPath();
         ctx.arc(star.x, star.y, twinkleSize * 0.2, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255, 255, 255, ${centerOpacity})`;
@@ -566,7 +588,7 @@ export const createExplosion = (
   const adjustedDuration = duration / GLOBAL_SPEED_MULTIPLIER;
 
   const startTime = performance.now();
-  const animate = () => {
+  const animate = (): void => {
     const elapsed = performance.now() - startTime;
     const progress = Math.min(elapsed / adjustedDuration, 1);
 
@@ -658,7 +680,7 @@ export const resetStars = (
     star.vy = 0;
 
     // Create animation function for this star
-    const animate = () => {
+    const animate = (): void => {
       const elapsed = performance.now() - startTime;
       const progress = Math.min(elapsed / adjustedDuration, 1);
 
@@ -767,8 +789,11 @@ export const createClickExplosion = (
   // Don"t apply global speed multiplier to make effect more visible
   const adjustedDuration = duration;
 
+  // Parse color for use in gradients (extract base color without alpha)
+  const baseColor = color.replace(/rgba?\(([^)]+)\).*/, "$1").split(",").slice(0, 3).join(",");
+
   const startTime = performance.now();
-  const animate = () => {
+  const animate = (): void => {
     const elapsed = performance.now() - startTime;
     const progress = Math.min(elapsed / adjustedDuration, 1);
 
@@ -779,17 +804,17 @@ export const createClickExplosion = (
     const currentRadius = radius * Math.pow(progress, 0.5); // Square root for faster initial expansion
     const opacity = (1 - progress) * 0.8; // Higher opacity
 
-    // Draw expanding ring
+    // Draw expanding ring using the provided color
     ctx.save();
     ctx.beginPath();
     ctx.arc(x, y, currentRadius, 0, Math.PI * 2);
     ctx.lineWidth = 3 * (1 - progress); // Thicker line
-    ctx.strokeStyle = "rgba(255, 255, 255, " + opacity + ")"; // White ring
+    ctx.strokeStyle = `rgba(${baseColor}, ${opacity})`;
     ctx.stroke();
 
     // Draw inner glow
     const gradient = ctx.createRadialGradient(x, y, 0, x, y, currentRadius * 0.8);
-    gradient.addColorStop(0, "rgba(255, 255, 255, " + opacity * 0.7 + ")");
+    gradient.addColorStop(0, `rgba(${baseColor}, ${opacity * 0.7})`);
     gradient.addColorStop(1, "rgba(138, 43, 226, 0)"); // Purple fade
 
     ctx.fillStyle = gradient;
@@ -801,7 +826,7 @@ export const createClickExplosion = (
       const flashOpacity = (0.3 - progress) / 0.3;
       ctx.beginPath();
       ctx.arc(x, y, 30, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255, 255, 255, ${flashOpacity})`;
+      ctx.fillStyle = `rgba(${baseColor}, ${flashOpacity})`;
       ctx.fill();
     }
 
