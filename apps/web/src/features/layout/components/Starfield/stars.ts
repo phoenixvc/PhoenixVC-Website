@@ -47,6 +47,9 @@ const SUN_FORCE_DAMPING = 0.3;
 /** Velocity multiplier for gravitational force application */
 const GRAVITATIONAL_VELOCITY_MULTIPLIER = 2;
 
+/** Purple glow fade color for click explosion effect */
+const EXPLOSION_GLOW_FADE_COLOR = "rgba(138, 43, 226, 0)";
+
 // ==========================================
 // Utility Functions
 // ==========================================
@@ -154,6 +157,9 @@ export function updateStarPositions(
   // Get sun states for gravitational pull
   const sunStates = getSunStates();
 
+  // Pre-calculate canvas max dimension for sun influence range (optimization)
+  const canvasMaxDimension = Math.max(width, height);
+
   // Update each star
   for (let i = 0; i < stars.length; i++) {
     const star = stars[i];
@@ -177,7 +183,7 @@ export function updateStarPositions(
         const dist = Math.sqrt(distSq);
 
         // Suns have a large influence range based on their size
-        const sunInfluenceRange = Math.max(width, height) * sun.size * SUN_INFLUENCE_MULTIPLIER;
+        const sunInfluenceRange = canvasMaxDimension * sun.size * SUN_INFLUENCE_MULTIPLIER;
         if (dist < sunInfluenceRange) {
           // Gentle gravitational pull with smooth falloff
           const falloff = 1 - (dist / sunInfluenceRange);
@@ -395,7 +401,7 @@ export const drawStars = (
     } else {
       // Crisp star rendering with very subtle twinkling effect
       // Create unique twinkle timing for each star based on position
-      // Use prime-like multipliers to avoid line patterns
+      // Use non-integer multipliers to break up repeating patterns and avoid visual line artifacts
       const uniqueSeed = (star.x * 73.13 + star.y * 157.79 + i * 31.41) % 1000;
       // Very slow twinkle speeds for minimal flickering
       const twinkleSpeed1 = 0.0003 + (uniqueSeed % 100) / 150000;
@@ -815,7 +821,7 @@ export const createClickExplosion = (
     // Draw inner glow
     const gradient = ctx.createRadialGradient(x, y, 0, x, y, currentRadius * 0.8);
     gradient.addColorStop(0, `rgba(${baseColor}, ${opacity * 0.7})`);
-    gradient.addColorStop(1, "rgba(138, 43, 226, 0)"); // Purple fade
+    gradient.addColorStop(1, EXPLOSION_GLOW_FADE_COLOR);
 
     ctx.fillStyle = gradient;
     ctx.fill();
