@@ -1,16 +1,14 @@
 import { lazy, Suspense, useEffect } from "react";
+import React from "react";
 import { Layout } from "@/features/layout";
 import { Hero } from "@/features/hero";
-import { InvestmentFocus } from "@/features/investment-focus";
-import { Contact } from "@/features/contact";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { useTheme } from "@/theme";
-import { About } from "./features/about";
 import { ErrorBoundary, NotFound } from "./features/error";
 import { PageSkeleton } from "@/components/ui/Skeleton";
 
 // Component to handle hash scroll restoration after navigation
-const ScrollToHash = () => {
+const ScrollToHash = (): null => {
   const location = useLocation();
 
   useEffect(() => {
@@ -27,7 +25,7 @@ const ScrollToHash = () => {
       }
     }, 100);
 
-    return () => clearTimeout(timeoutId);
+    return (): void => clearTimeout(timeoutId);
   }, [location]);
 
   return null;
@@ -40,12 +38,18 @@ const ProjectDetail = lazy(() => import("./features/portfolio/ProjectDetail").th
 const AboutPage = lazy(() => import("./features/about-page").then(m => ({ default: m.AboutPage })));
 const ThemeDesigner = lazy(() => import("./features/theme-designer").then(m => ({ default: m.ThemeDesigner })));
 
+// Lazy load homepage sections
+const LazyInvestmentFocus = lazy(() => import("./features/investment-focus").then(m => ({ default: m.InvestmentFocus })));
+const LazyAbout = lazy(() => import("./features/about").then(m => ({ default: m.About })));
+const LazyTeam = lazy(() => import("./features/team").then(m => ({ default: m.Team })));
+const LazyContact = lazy(() => import("./features/contact").then(m => ({ default: m.Contact })));
+
 // Loading fallback component using skeleton
-const PageLoader = ({ isDarkMode = false }: { isDarkMode?: boolean }) => (
+const PageLoader = ({ isDarkMode = false }: { isDarkMode?: boolean }): React.JSX.Element => (
   <PageSkeleton isDarkMode={isDarkMode} />
 );
 
-const App = () => {
+const App = (): React.JSX.Element => {
   const { themeMode } = useTheme(); // Get current theme mode
   const isDarkMode = themeMode === "dark";
 
@@ -59,12 +63,14 @@ const App = () => {
             <Hero
               title="Shaping Tomorrow's Technology"
               subtitle="Strategic investments and partnerships empowering innovation across the globe"
-              isDarkMode={isDarkMode}
               enableMouseTracking={true}
             />
-            <InvestmentFocus isDarkMode={isDarkMode} />
-            <About isDarkMode={isDarkMode} />
-            <Contact isDarkMode={isDarkMode} />
+            <Suspense fallback={<PageLoader isDarkMode={isDarkMode} />}>
+              <LazyInvestmentFocus />
+              <LazyAbout />
+              <LazyTeam />
+              <LazyContact />
+            </Suspense>
           </Layout>
         } />
 

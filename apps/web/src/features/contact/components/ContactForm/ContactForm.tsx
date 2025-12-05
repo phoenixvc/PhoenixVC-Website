@@ -5,6 +5,7 @@ import { contactAnimations } from "../../animations";
 import styles from "./ContactForm.module.css";
 import type { ContactFormData, ContactIntent } from "../../types";
 import { logger } from "@/utils/logger";
+import { useTheme } from "@/theme";
 
 const INTENT_OPTIONS: { value: ContactIntent; label: string }[] = [
   { value: "general", label: "General Inquiry" },
@@ -27,15 +28,15 @@ interface ContactFormProps {
   onSubmit: (data: ContactFormData) => void;
   isLoading: boolean;
   isSuccess: boolean;
-  isDarkMode: boolean;
 }
 
 const ContactForm: FC<ContactFormProps> = memo(({
   onSubmit,
   isLoading,
   isSuccess,
-  isDarkMode
 }) => {
+  const { themeMode } = useTheme();
+  const isDarkMode = themeMode === "dark";
   const [formData, setFormData] = useState<ContactFormData>({
     name: "",
     email: "",

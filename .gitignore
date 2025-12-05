@@ -55,3 +55,6 @@ poetry.lock
 *.swo
 .cache
 __pycache__/
+
+*storybook.log
+storybook-static

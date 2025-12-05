@@ -1,0 +1,161 @@
+/* features/hero/components/HeroSkeleton/HeroSkeleton.module.css */
+
+.skeletonContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.skeletonContent {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.skeletonLine {
+  border-radius: 0.5rem;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.dark .skeletonLine {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.light .skeletonLine {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.08) 0%,
+    rgba(0, 0, 0, 0.15) 50%,
+    rgba(0, 0, 0, 0.08) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.titleSkeleton {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.titleLine {
+  width: 60%;
+  height: 3rem;
+}
+
+.subtitleSkeleton {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.subtitleLine1 {
+  width: 80%;
+  height: 1rem;
+}
+
+.subtitleLine2 {
+  width: 50%;
+  height: 1rem;
+}
+
+.buttonsSkeleton {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.skeletonButton {
+  border-radius: 0.5rem;
+  height: 2.5rem;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.dark .skeletonButton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.light .skeletonButton {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.08) 0%,
+    rgba(0, 0, 0, 0.15) 50%,
+    rgba(0, 0, 0, 0.08) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.primaryButton {
+  width: 140px;
+}
+
+.secondaryButton {
+  width: 120px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .titleLine {
+    width: 80%;
+    height: 2.5rem;
+  }
+
+  .subtitleLine1 {
+    width: 90%;
+  }
+
+  .subtitleLine2 {
+    width: 70%;
+  }
+
+  .buttonsSkeleton {
+    flex-direction: column;
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    width: 160px;
+  }
+}

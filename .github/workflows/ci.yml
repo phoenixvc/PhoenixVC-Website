@@ -1,0 +1,36 @@
+# .github/workflows/ci.yml
+name: Continuous Integration
+
+# TODO: Production hardening:
+# 1. Add a build step to ensure the project builds successfully.
+# 2. Add a test step to run the full test suite.
+# 3. Add steps for security scanning (e.g., Snyk, CodeQL).
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint-and-format:
+    name: Lint and Format Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run Prettier Format Check
+        run: npm run format-check

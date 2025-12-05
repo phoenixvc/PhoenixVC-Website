@@ -1,0 +1,3 @@
+
+> phoenixvc-modernized@1.0.1 web
+> npm run dev --workspace=@phoenixvc/web

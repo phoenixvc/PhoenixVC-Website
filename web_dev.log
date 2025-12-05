@@ -1,0 +1,7 @@
+
+> phoenixvc-modernized@1.0.1 web
+> npm run dev --workspace=@phoenixvc/web
+
+
+> @phoenixvc/web@0.0.0 dev
+> vite

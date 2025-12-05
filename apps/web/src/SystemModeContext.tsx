@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { ThemeMode } from "@/theme/types";
+import type { ThemeMode } from "@/theme/types";
 
 type SystemModeContextType = {
   systemMode: ThemeMode;
@@ -29,12 +29,12 @@ export const SystemModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       // Modern API
       if (mediaQuery.addEventListener) {
         mediaQuery.addEventListener("change", handleSystemModeChange);
-        return () => mediaQuery.removeEventListener("change", handleSystemModeChange);
+        return (): void => mediaQuery.removeEventListener("change", handleSystemModeChange);
       }
       // Legacy API for older browsers
       else if (mediaQuery.addListener) {
         mediaQuery.addListener(handleSystemModeChange);
-        return () => mediaQuery.removeListener(handleSystemModeChange);
+        return (): void => mediaQuery.removeListener(handleSystemModeChange);
       }
     }
   }, [handleSystemModeChange]);
@@ -50,7 +50,7 @@ export const SystemModeProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   );
 };
 
-export const useSystemModeContext = () => {
+export const useSystemModeContext = (): SystemModeContextType => {
   const context = useContext(SystemModeContext);
   if (!context) {
     throw new Error("useSystemModeContext must be used within a SystemModeProvider");

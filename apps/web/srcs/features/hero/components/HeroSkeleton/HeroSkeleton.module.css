@@ -1,0 +1,23 @@
+/* apps/web/src/features/hero/components/HeroSkeleton/HeroSkeleton.module.css */
+.skeletonContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 2rem;
+}
+
+.title {
+  margin-bottom: 1.5rem;
+}
+
+.subtitle {
+  margin-bottom: 2.5rem;
+}
+
+.buttonContainer {
+  display: flex;
+  gap: 1rem;
+}

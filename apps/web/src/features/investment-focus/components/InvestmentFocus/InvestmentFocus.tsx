@@ -5,14 +5,13 @@ import { investmentFocusAnimations } from "../../animations/animations";
 import InvestmentCard from "../InvestmentCard/InvestmentCard";
 import styles from "./InvestmentFocus.module.css";
 import { useSectionObserver } from "@/hooks/useSectionObserver";
-import { FC, useState } from "react";
+import { useTheme } from "@/theme";
+import { FC, useState, useRef, useEffect } from "react";
 import { FocusArea } from "../../types";
 import { X } from "lucide-react";
 import { logger } from "@/utils/logger";
 
-interface InvestmentFocusProps {
-  isDarkMode?: boolean;
-}
+interface InvestmentFocusProps {}
 
 // Extended details for each focus area
 const focusAreaDetails: Record<string, { longDescription: string; highlights: string[] }> = {
@@ -34,13 +33,58 @@ const focusAreaDetails: Record<string, { longDescription: string; highlights: st
   }
 };
 
-export const InvestmentFocus: FC<InvestmentFocusProps> = ({ isDarkMode = true }) => {
+export const InvestmentFocus: FC<InvestmentFocusProps> = () => {
+  const { themeMode } = useTheme();
+  const isDarkMode = themeMode === "dark";
   const [selectedArea, setSelectedArea] = useState<FocusArea | null>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   // Use our observer hook and log when the section becomes visible
   const sectionRef = useSectionObserver("focus-areas", (id) => {
     logger.debug(`[Focus] Section "${id}" is now visible`);
   });
+
+  // TODO: Production hardening:
+  // 1. Replace this with a more robust, battle-tested focus-trapping library
+  //    like `focus-trap-react` to handle all edge cases.
+  // 2. Add focus management to return focus to the originally clicked card
+  //    when the modal is closed.
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        handleCloseModal();
+      }
+
+      if (event.key === "Tab" && modalRef.current) {
+        const focusableElements = modalRef.current.querySelectorAll<HTMLElement>(
+          "button, [href], input, select, textarea, [tabindex]:not([tabindex=\"-1\"])"
+        );
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (event.shiftKey) {
+          if (document.activeElement === firstElement) {
+            lastElement.focus();
+            event.preventDefault();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            firstElement.focus();
+            event.preventDefault();
+          }
+        }
+      }
+    };
+
+    if (selectedArea) {
+      document.addEventListener("keydown", handleKeyDown);
+      modalRef.current?.focus();
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [selectedArea]);
 
   const handleCardClick = (area: FocusArea) => {
     setSelectedArea(area);
@@ -78,10 +122,9 @@ export const InvestmentFocus: FC<InvestmentFocusProps> = ({ isDarkMode = true })
         >
           {FOCUS_AREAS.map((area, index) => (
             <InvestmentCard
-              key={index}
+              key={area.title} // Use a unique identifier for the key
               area={area}
               index={index}
-              isDarkMode={isDarkMode}
               onClick={() => handleCardClick(area)}
             />
           ))}
@@ -91,14 +134,20 @@ export const InvestmentFocus: FC<InvestmentFocusProps> = ({ isDarkMode = true })
       {/* Modal */}
       <AnimatePresence>
         {selectedArea && (
-          <motion.div
+          <motion.button
             className={styles.modalOverlay}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={handleCloseModal}
+            aria-label="Close modal"
           >
             <motion.div
+              ref={modalRef}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="modal-title"
+              tabIndex={-1}
               className={`${styles.modal} ${isDarkMode ? styles.darkMode : styles.lightMode}`}
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -136,7 +185,7 @@ export const InvestmentFocus: FC<InvestmentFocusProps> = ({ isDarkMode = true })
                 Discuss Opportunities
               </a>
             </motion.div>
-          </motion.div>
+          </motion.button>
         )}
       </AnimatePresence>
     </section>
