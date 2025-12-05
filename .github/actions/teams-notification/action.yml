@@ -175,13 +175,14 @@ runs:
         # Escape special characters in user-provided content for sed and JSON
         # Function to escape special characters for sed replacement with | delimiter
         escape_for_sed() {
-          # For sed replacement, we need to:
-          # 1. Escape \ which are special in sed replacement
-          # 2. Escape & which is special in sed replacement
-          # 3. Escape | since we're using it as delimiter
-          # 4. Escape " for valid JSON (need \\\\ to output literal \\")
-          # 5. Replace newlines with spaces (tr) to avoid sed issues
-          printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/&/\\&/g' -e 's/|/\\|/g' -e 's/"/\\\\"/g' | tr '\n' ' '
+          # Use jq to properly escape the string for JSON (handles all control characters)
+          # jq -Rs wraps in quotes and escapes, we remove the surrounding quotes
+          # Then we double backslashes so they survive sed substitution
+          local json_escaped
+          json_escaped=$(printf '%s' "$1" | jq -Rs '.' | sed 's/^"//;s/"$//')
+          # Double the backslashes so they survive sed substitution
+          # Also escape & and | for sed replacement
+          printf '%s' "$json_escaped" | sed -e 's/\\/\\\\/g' -e 's/&/\\&/g' -e 's/|/\\|/g'
         }
 
         # Escape user-provided content that may contain special characters
