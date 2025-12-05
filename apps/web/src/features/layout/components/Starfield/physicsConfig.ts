@@ -205,11 +205,13 @@ export const EFFECT_TIMING = {
  */
 export const COMET_CONFIG = {
   /** Trail width multiplier relative to planet size */
-  trailWidthMultiplier: 18,
+  trailWidthMultiplier: 24,
   /** Trail core width as fraction of main trail */
-  coreWidthFraction: 0.5,
+  coreWidthFraction: 0.6,
   /** Trail core length as fraction of main trail */
-  coreLengthFraction: 0.7,
+  coreLengthFraction: 0.8,
+  /** Trail opacity boost */
+  opacityBoost: 1.3,
 } as const;
 
 // Type exports for type safety

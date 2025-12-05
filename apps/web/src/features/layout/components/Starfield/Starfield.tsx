@@ -540,12 +540,18 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
       setMousePosition(newPosition);
       mousePositionRef.current = newPosition;
 
-      // Check for sun hover
+      // Check for sun hover - but only if mouse is directly over the canvas (not over content on top)
       if (canvasRef.current) {
         const rect = canvasRef.current.getBoundingClientRect();
         const canvasX = e.clientX - rect.left;
         const canvasY = e.clientY - rect.top;
-        const sunHoverResult = checkSunHover(canvasX, canvasY, rect.width, rect.height);
+        
+        // Check if the actual element under the cursor is the canvas itself
+        // This prevents sun tooltips from showing when hovering over cards/content above the canvas
+        const elementUnderCursor = document.elementFromPoint(e.clientX, e.clientY);
+        const isOverCanvas = elementUnderCursor === canvasRef.current;
+        
+        const sunHoverResult = isOverCanvas ? checkSunHover(canvasX, canvasY, rect.width, rect.height) : null;
 
         if (sunHoverResult) {
           // Clear any pending hide timeout since we're hovering over a sun
