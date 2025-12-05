@@ -191,7 +191,8 @@ export function drawStarTrail(
   const scb = secondaryRgb.b;
 
   // ===== LAYER 1: Main glowing trail body =====
-  const startWidth = 12 * planetSize * scaleFactor;
+  // Increased width multiplier for more visible trails
+  const startWidth = 18 * planetSize * scaleFactor;
   
   // Subtle wobble for organic feel
   const wobbleTime = time * 0.0002;
@@ -217,13 +218,13 @@ export function drawStarTrail(
   ctx.bezierCurveTo(cp3x, cp3y, cp4x, cp4y, planet.x - perpDx * startWidth/2, planet.y - perpDy * startWidth/2);
   ctx.closePath();
 
-  // Gradient from bright head to fading tail
+  // Gradient from bright head to fading tail - increased opacity
   const trailGradient = ctx.createLinearGradient(planet.x, planet.y, trailEndX, trailEndY);
-  trailGradient.addColorStop(0, "rgba(255, 255, 255, 0.95)");
-  trailGradient.addColorStop(0.05, `rgba(${sr}, ${sg}, ${sb}, 0.85)`);
-  trailGradient.addColorStop(0.2, `rgba(${sr}, ${sg}, ${sb}, 0.6)`);
-  trailGradient.addColorStop(0.4, `rgba(${scr}, ${scg}, ${scb}, 0.35)`);
-  trailGradient.addColorStop(0.7, `rgba(${sr}, ${sg}, ${sb}, 0.15)`);
+  trailGradient.addColorStop(0, "rgba(255, 255, 255, 1)");
+  trailGradient.addColorStop(0.05, `rgba(${sr}, ${sg}, ${sb}, 0.95)`);
+  trailGradient.addColorStop(0.2, `rgba(${sr}, ${sg}, ${sb}, 0.75)`);
+  trailGradient.addColorStop(0.4, `rgba(${scr}, ${scg}, ${scb}, 0.5)`);
+  trailGradient.addColorStop(0.7, `rgba(${sr}, ${sg}, ${sb}, 0.25)`);
   trailGradient.addColorStop(1, `rgba(${scr}, ${scg}, ${scb}, 0)`);
 
   ctx.fillStyle = trailGradient;
@@ -233,16 +234,16 @@ export function drawStarTrail(
   // ===== LAYER 2: Inner bright core trail =====
   ctx.save();
   ctx.beginPath();
-  const coreWidth = startWidth * 0.4;
+  const coreWidth = startWidth * 0.5; // Increased from 0.4
   ctx.moveTo(planet.x, planet.y);
-  ctx.lineTo(planet.x - normalizedDx * trailLength * 0.6, planet.y - normalizedDy * trailLength * 0.6);
+  ctx.lineTo(planet.x - normalizedDx * trailLength * 0.7, planet.y - normalizedDy * trailLength * 0.7); // Extended from 0.6
   
   const coreGradient = ctx.createLinearGradient(
     planet.x, planet.y,
-    planet.x - normalizedDx * trailLength * 0.6, planet.y - normalizedDy * trailLength * 0.6
+    planet.x - normalizedDx * trailLength * 0.7, planet.y - normalizedDy * trailLength * 0.7
   );
-  coreGradient.addColorStop(0, "rgba(255, 255, 255, 0.9)");
-  coreGradient.addColorStop(0.3, `rgba(${sr}, ${sg}, ${sb}, 0.6)`);
+  coreGradient.addColorStop(0, "rgba(255, 255, 255, 1)");
+  coreGradient.addColorStop(0.3, `rgba(${sr}, ${sg}, ${sb}, 0.8)`);
   coreGradient.addColorStop(1, `rgba(${sr}, ${sg}, ${sb}, 0)`);
   
   ctx.strokeStyle = coreGradient;
