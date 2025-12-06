@@ -230,26 +230,49 @@ export const checkPlanetHover = (
 ): boolean => {
   if (!planets || !planets.length) return false;
 
-  let hoveredPlanet = null;
-  let closestDistance = Infinity;
+  // Shared hover radius constant for consistent detection
+  const hoverRadius = 30 * planetSize;
 
-  // Find the closest planet to the mouse
-  for (const planet of planets) {
-    const dist = Math.sqrt(
+  // Helper function to calculate distance between mouse and planet
+  const getDistanceToPlanet = (planet: Planet): number => {
+    return Math.sqrt(
       Math.pow(mouseX - planet.x, 2) +
       Math.pow(mouseY - planet.y, 2)
     );
+  };
 
-    // Increased hover radius for better detection
-    const hoverRadius = 30 * planetSize; // Increased from 25 to 30
+  // First, check if there's a currently hovered planet and if cursor is still within its radius
+  // This prevents "stealing" the hover when another planet moves closer
+  // Note: Only ONE planet can be hovered at a time by design
+  const currentlyHoveredPlanet = planets.find((planet) => {
+    if (!planet.isHovered) return false;
+    const dist = getDistanceToPlanet(planet);
+    // Keep this planet hovered if cursor is still within its radius
+    return dist < hoverRadius;
+  }) ?? null;
 
-    if (dist < hoverRadius && dist < closestDistance) {
-      closestDistance = dist;
-      hoveredPlanet = planet;
+  let hoveredPlanet: Planet | null = currentlyHoveredPlanet;
+
+  // Only look for a new planet to hover if there's no currently hovered planet
+  // or if the cursor has moved outside the currently hovered planet's radius
+  if (!hoveredPlanet) {
+    let closestDistance = Infinity;
+
+    // Find the closest planet to the mouse
+    for (const planet of planets) {
+      const dist = getDistanceToPlanet(planet);
+
+      if (dist < hoverRadius && dist < closestDistance) {
+        closestDistance = dist;
+        hoveredPlanet = planet;
+      }
     }
+  }
 
-    // If this planet was previously hovered but now isn't
-    if (planet.isHovered && planet !== hoveredPlanet) {
+  // Reset ALL planets that are NOT the hovered one
+  // This prevents multiple planets from being "caught" simultaneously
+  for (const planet of planets) {
+    if (planet !== hoveredPlanet && planet.isHovered) {
       // Restore original orbit speed if it was stored
       if (planet.originalOrbitSpeed !== undefined) {
         planet.orbitSpeed = planet.originalOrbitSpeed;
@@ -268,7 +291,7 @@ export const checkPlanetHover = (
     }
   }
 
-  // Update the hovered planet
+  // Update the hovered planet (only if we found one)
   if (hoveredPlanet) {
     // If this planet wasn't hovered before, store its original orbit speed
     if (!hoveredPlanet.isHovered) {
