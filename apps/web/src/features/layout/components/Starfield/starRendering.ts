@@ -149,69 +149,63 @@ function drawProjectIdentifier(
   starSize: number,
   displayStyle: "initials" | "avatar" | "both"
 ): void {
-  if (!planet.useSimpleRendering && displayStyle === "avatar" && planet.project.image) {
-    const img = getCachedImage(planet.project.image);
-
+  // Try to get the project image first - always attempt to show it if available
+  const hasProjectImage = !planet.useSimpleRendering && planet.project.image;
+  const img = hasProjectImage ? getCachedImage(planet.project.image) : null;
+  
+  // If we have a loaded image, display it prominently on the planet
+  if (img) {
     ctx.save();
-    ctx.beginPath();
-    ctx.arc(planet.x, planet.y, starSize * 0.8, 0, Math.PI * 2);
-    ctx.clip();
-
-    if (img) {
-      const imgSize = starSize * 1.6;
-      ctx.drawImage(img, planet.x - imgSize/2, planet.y - imgSize/2, imgSize, imgSize);
-    } else {
-      // Show initials while image loads
-      ctx.font = `bold ${Math.floor(starSize * 0.8)}px Arial`;
-      ctx.fillStyle = "#ffffff";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(planet.project.initials || "?", planet.x, planet.y);
-    }
-
-    ctx.restore();
-
-    // Add a subtle ring around the avatar
+    
+    // Draw a circular clip for the image
     ctx.beginPath();
     ctx.arc(planet.x, planet.y, starSize * 0.85, 0, Math.PI * 2);
-    ctx.lineWidth = 1.5;
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
-    ctx.stroke();
-  } else if (!planet.useSimpleRendering && displayStyle === "both" && planet.project.image) {
-    const img = getCachedImage(planet.project.image);
-
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(planet.x, planet.y - starSize * 0.3, starSize * 0.6, 0, Math.PI * 2);
     ctx.clip();
 
-    if (img) {
-      const imgSize = starSize * 1.2;
-      ctx.drawImage(img, planet.x - imgSize/2, planet.y - starSize * 0.3 - imgSize/2, imgSize, imgSize);
-    }
+    // Draw the project icon image centered on the planet
+    const imgSize = starSize * 1.7;
+    ctx.drawImage(img, planet.x - imgSize/2, planet.y - imgSize/2, imgSize, imgSize);
 
     ctx.restore();
 
-    // Enhanced name display with better readability
-    ctx.shadowColor = "rgba(0, 0, 0, 0.8)"; // Reduced from 0.9
-    ctx.shadowBlur = 4; // Reduced from 5
-    ctx.font = `bold ${Math.floor(starSize * 0.6)}px Arial`;
+    // Add a subtle ring around the icon
+    ctx.beginPath();
+    ctx.arc(planet.x, planet.y, starSize * 0.9, 0, Math.PI * 2);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.7)";
+    ctx.stroke();
+  } else if (!planet.useSimpleRendering && displayStyle === "both" && planet.project.image) {
+    // Image exists but not loaded yet - show initials with loading indicator
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(planet.x, planet.y, starSize * 0.7, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+    ctx.fill();
+    ctx.restore();
+
+    ctx.font = `bold ${Math.floor(starSize * 0.8)}px Arial`;
     ctx.fillStyle = "#ffffff";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(planet.project.name || planet.project.initials || "?", planet.x, planet.y + starSize * 0.7);
-    ctx.shadowBlur = 0;
+    ctx.fillText(planet.project.initials || "?", planet.x, planet.y);
+
+    // Add ring to indicate loading
+    ctx.beginPath();
+    ctx.arc(planet.x, planet.y, starSize * 0.85, 0, Math.PI * 2);
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+    ctx.stroke();
   } else {
-    // Improved initials display with better visibility
+    // No image or simple rendering - show initials
     if (!planet.useSimpleRendering) {
       // Add a subtle background circle for better text visibility
       ctx.beginPath();
       ctx.arc(planet.x, planet.y, starSize * 0.7, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(0, 0, 0, 0.25)"; // Reduced from 0.3
+      ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
       ctx.fill();
 
-      ctx.shadowColor = "rgba(0, 0, 0, 0.7)"; // Reduced from 0.8
-      ctx.shadowBlur = 3; // Reduced from 4
+      ctx.shadowColor = "rgba(0, 0, 0, 0.7)";
+      ctx.shadowBlur = 3;
     }
 
     // Larger, bolder font for initials
@@ -227,13 +221,13 @@ function drawProjectIdentifier(
       // Add a subtle ring around the initials
       ctx.beginPath();
       ctx.arc(planet.x, planet.y, starSize * 0.85, 0, Math.PI * 2);
-      ctx.lineWidth = 1.2; // Reduced from 1.5
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.45)"; // Reduced from 0.53
+      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
       ctx.stroke();
     }
   }
   
-  // Only draw focus area vector icon when there's NO project image
+  // Draw focus area vector icon when there's NO project image
   // The project image/icon takes precedence as the primary visual identifier
   // Focus area icons are only shown as fallback for projects without images
   if (!planet.useSimpleRendering && planet.project?.focusArea && !planet.project.image) {
