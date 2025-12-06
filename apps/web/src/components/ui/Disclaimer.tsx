@@ -33,8 +33,14 @@ export const Disclaimer: FC<DisclaimerProps> = ({
     }
   };
 
+  // Convert kebab-case type to camelCase for CSS class
+  const getTypeClass = (): string => {
+    if (type === "coming-soon") return "comingSoon";
+    return type;
+  };
+
   return (
-    <div className={`${styles.disclaimer} ${styles[type]}`}>
+    <div className={`${styles.disclaimer} ${styles[getTypeClass()]}`}>
       <div className={styles.content}>
         <div className={styles.icon}>{getIcon()}</div>
         <div className={styles.text}>
