@@ -132,7 +132,7 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     initials: "MY",
     position: "Interactive Storytelling",
     mass: 500,
-    color: "#3498db", // Blue - matches AI & ML focus area
+    color: "#9b59b6", // Purple variant - AI & ML focus area (slightly different from pure blue)
     image: "/themes/mystira-icon.svg",
     fullName: "Mystira",
     speed: 0.000025,
@@ -154,7 +154,7 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     initials: "CM",
     position: "AI Framework",
     mass: 150,
-    color: "#3498db", // Blue - matches AI & ML focus area
+    color: "#3498db", // Blue - AI & ML focus area
     image: "/themes/cognitivemesh-icon.svg",
     fullName: "Cognitive Mesh",
     speed: 0.000022,
@@ -178,7 +178,7 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     initials: "PR",
     position: "Counter-Drone Platform",
     mass: 200,
-    color: "#e74c3c", // Red - matches Defense & Security focus area
+    color: "#c0392b", // Darker red variant - Defense & Security focus area
     image: "/themes/rooivalk-icon.svg",
     fullName: "Phoenix Rooivalk",
     speed: 0.00002,
@@ -200,7 +200,7 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     initials: "AK",
     position: "Access Management",
     mass: 150,
-    color: "#e74c3c", // Red - matches Defense & Security focus area
+    color: "#e74c3c", // Red - Defense & Security focus area
     image: "/themes/airkey-icon.svg",
     fullName: "Airkey Ltd",
     speed: 0.000019,
@@ -224,7 +224,7 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     initials: "VV",
     position: "DeFi Platform",
     mass: 80,
-    color: "#f39c12", // Orange - matches Fintech & Blockchain focus area
+    color: "#f39c12", // Orange - Fintech & Blockchain focus area
     image: "/themes/veritasvault-icon.svg",
     fullName: "VeritasVault",
     speed: 0.000020,
@@ -248,7 +248,7 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     initials: "HP",
     position: "Connectivity Tech",
     mass: 150,
-    color: "#2ecc71", // Green - matches Mobility & Transportation focus area
+    color: "#27ae60", // Darker green variant - Mobility & Transportation focus area
     image: "/themes/hop-icon.svg",
     fullName: "Hop Pty Ltd",
     speed: 0.000017,
@@ -270,7 +270,7 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     initials: "CH",
     position: "Women's Ridehail",
     mass: 180,
-    color: "#2ecc71", // Green - matches Mobility & Transportation focus area
+    color: "#2ecc71", // Green - Mobility & Transportation focus area
     image: "/themes/chaufher-icon.svg",
     fullName: "Chaufher Pty Ltd",
     speed: 0.000016,
@@ -294,7 +294,7 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     initials: "AP",
     position: "PR Automation",
     mass: 180,
-    color: "#3498db", // Blue - matches AI & ML focus area
+    color: "#5dade2", // Lighter blue variant - AI & ML focus area
     image: "/themes/autopr-icon.svg",
     fullName: "AutoPR Engine",
     speed: 0.000021,

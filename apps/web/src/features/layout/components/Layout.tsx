@@ -7,6 +7,7 @@ import styles from "./layout.module.css";
 import Starfield, { StarfieldRef } from "./Starfield/Starfield";
 import { CosmicNavigationState, Star } from "./Starfield/types";
 import { logger } from "@/utils/logger";
+import Disclaimer from "@/components/ui/Disclaimer";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -35,6 +36,10 @@ const Layout = ({ children }: LayoutProps) => {
   const [gameMode, setGameMode] = useState(false);
   // Load debug mode from localStorage to persist setting
   const [debugMode, setDebugMode] = useState(loadDebugModeFromStorage);
+  // Disclaimer states
+  const [showGameModeDisclaimer, setShowGameModeDisclaimer] = useState(false);
+  const [showMobileDisclaimer, setShowMobileDisclaimer] = useState(false);
+  const [hasShownMobileDisclaimer, setHasShownMobileDisclaimer] = useState(false);
   // Cosmic navigation state
   const [cosmicNavigation, setCosmicNavigation] = useState<CosmicNavigationState>({
     currentLevel: "universe",
@@ -49,6 +54,12 @@ const Layout = ({ children }: LayoutProps) => {
     const checkIfMobile = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
+
+      // Show mobile disclaimer once per session when on mobile
+      if (mobile && !hasShownMobileDisclaimer) {
+        setShowMobileDisclaimer(true);
+        setHasShownMobileDisclaimer(true);
+      }
 
       // Auto-close sidebar on mobile, keep open on desktop
       if (mobile) {
@@ -69,7 +80,7 @@ const Layout = ({ children }: LayoutProps) => {
 
     // Cleanup
     return () => window.removeEventListener("resize", checkIfMobile);
-  }, [isCollapsed]);
+  }, [hasShownMobileDisclaimer, isCollapsed]);
 
   // Update sidebar width when collapse state changes
   useEffect(() => {
@@ -107,7 +118,14 @@ const Layout = ({ children }: LayoutProps) => {
 
   // Toggle game mode
   const toggleGameMode = () => {
-    setGameMode((prev: boolean): boolean => !prev);
+    setGameMode((prev: boolean): boolean => {
+      const newValue = !prev;
+      // Show disclaimer when enabling game mode
+      if (newValue) {
+        setShowGameModeDisclaimer(true);
+      }
+      return newValue;
+    });
   };
 
   // Toggle debug mode
@@ -257,6 +275,26 @@ const Layout = ({ children }: LayoutProps) => {
 
         <Footer isDarkMode={isDarkMode} />
       </div>
+
+      {/* Game Mode Disclaimer */}
+      {showGameModeDisclaimer && (
+        <Disclaimer
+          type="warning"
+          title="Experimental Feature"
+          message="Game mode adds interactive elements and may affect site performance. Recommended for desktop browsers. You can disable this at any time."
+          onDismiss={() => setShowGameModeDisclaimer(false)}
+        />
+      )}
+
+      {/* Mobile Optimization Disclaimer */}
+      {showMobileDisclaimer && (
+        <Disclaimer
+          type="coming-soon"
+          title="Mobile Optimization"
+          message="For the best experience on mobile devices, some interactive features are simplified. Full comet interactions coming soon! Visit us on desktop for the complete interactive experience."
+          onDismiss={() => setShowMobileDisclaimer(false)}
+        />
+      )}
     </div>
   );
 };
