@@ -178,17 +178,17 @@ export const CONNECTION_CONFIG = {
  */
 export const SIZE_CONFIG = {
   // Background stars
-  /** Master size multiplier for background stars (0.125 = 12.5% of original size) */
-  backgroundStarMultiplier: 0.125,
+  /** Master size multiplier for background stars (0.06 = 6% of original size, reduced from 0.125) */
+  backgroundStarMultiplier: 0.06,
   /** Random size variation exponent (higher = more small stars) */
-  sizeVariationExponent: 3.5,
-  /** Base size range (min + random * range) - reduced max from 0.6 to 0.3 for smaller stars */
-  sizeRangeMin: 0.08,
-  sizeRangeMax: 0.3,
+  sizeVariationExponent: 4.0,
+  /** Base size range (min + random * range) - reduced for smaller, crisper stars */
+  sizeRangeMin: 0.05,
+  sizeRangeMax: 0.2,
   
   // Planet/comet rendering
-  /** Base planet size multiplier */
-  planetBaseSize: 2.5,
+  /** Base planet size multiplier - increased from 2.5 for larger planets with more visible icons */
+  planetBaseSize: 8,
   /** Planet hover scale factor */
   planetHoverScale: 1.15,
   /** Planet glow radius multiplier */
@@ -202,9 +202,9 @@ export const SIZE_CONFIG = {
   /** Ring radius around project icon */
   projectIconRingRadius: 0.9,
   /** Initials background circle radius */
-  initialsBackgroundRadius: 0.7,
+  initialsBackgroundRadius: 0.75,
   /** Initials font size relative to star size */
-  initialsFontSize: 0.9,
+  initialsFontSize: 0.95,
 } as const;
 
 /**
@@ -249,6 +249,23 @@ export const COMET_CONFIG = {
   opacityBoost: 1.3,
 } as const;
 
+/**
+ * Camera animation configuration
+ * Controls zoom and pan animations for sun focus
+ */
+export const CAMERA_CONFIG = {
+  /** Minimum icon size in pixels for planet focus area icons */
+  minIconSize: 12,
+  /** Camera lerp smoothing factor (lower = smoother, higher = faster) */
+  cameraSmoothingFactor: 0.08,
+  /** Threshold for camera position convergence */
+  positionConvergenceThreshold: 0.001,
+  /** Threshold for camera zoom convergence */
+  zoomConvergenceThreshold: 0.01,
+  /** Target zoom level when focusing on a sun */
+  sunFocusZoom: 2.5,
+} as const;
+
 // Type exports for type safety
 export type GlobalPhysics = typeof GLOBAL_PHYSICS;
 export type StarPhysics = typeof STAR_PHYSICS;
@@ -261,3 +278,4 @@ export type SizeConfig = typeof SIZE_CONFIG;
 export type ExplosionPhysics = typeof EXPLOSION_PHYSICS;
 export type EffectTiming = typeof EFFECT_TIMING;
 export type CometConfig = typeof COMET_CONFIG;
+export type CameraConfig = typeof CAMERA_CONFIG;

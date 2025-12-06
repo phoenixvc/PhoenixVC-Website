@@ -19,11 +19,11 @@ import { useParticleEffects } from "./hooks/useParticleEffects";
 import { useDebugControls } from "./hooks/useDebugControls";
 import DebugControlsOverlay from "./DebugControlsOverlay";
 import { useStarInitialization } from "./hooks/useStarInitialization";
-import { applyClickForce, createClickExplosion } from "./stars";
-import { checkSunHover } from "./hooks/animation/animate";
-import { applyClickRepulsionToSunsCanvas, getSunPosition } from "./sunSystem";
+import { applyClickForce, createClickExplosion, resetConnectionStagger } from "./stars";
+import { checkSunHover, resetAnimationModuleState } from "./hooks/animation/animate";
+import { applyClickRepulsionToSunsCanvas, getSunPosition, resetSunSystem } from "./sunSystem";
 import SunTooltip, { SunInfo } from "./sunTooltip";
-import { EFFECT_TIMING } from "./physicsConfig";
+import { EFFECT_TIMING, CAMERA_CONFIG } from "./physicsConfig";
 
 // Define the ref type
 export type StarfieldRef = {
@@ -762,6 +762,40 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     };
   }, []);
 
+  // Clean up module-level state on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      // Reset all module-level states when component unmounts
+      // This prevents stale state and memory leaks on remount
+      resetSunSystem();
+      resetAnimationModuleState();
+      resetConnectionStagger();
+      
+      // Clear any lingering timeouts
+      if (sunHideTimeoutRef.current) {
+        clearTimeout(sunHideTimeoutRef.current);
+        sunHideTimeoutRef.current = null;
+      }
+      if (projectTooltipHideTimeoutRef.current) {
+        clearTimeout(projectTooltipHideTimeoutRef.current);
+        projectTooltipHideTimeoutRef.current = null;
+      }
+      if (cameraAnimationRef.current) {
+        cancelAnimationFrame(cameraAnimationRef.current);
+        cameraAnimationRef.current = null;
+      }
+      if (focusAnimationRef.current) {
+        cancelAnimationFrame(focusAnimationRef.current);
+        focusAnimationRef.current = null;
+      }
+      
+      // Clean up global API
+      if (window.starfieldAPI) {
+        delete window.starfieldAPI;
+      }
+    };
+  }, []);
+
   // Delay showing starfield until initialization is complete
   // This prevents users from seeing the initial movement to designated positions
   useEffect(() => {
@@ -859,7 +893,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
       target: {
         cx: sunPosition.x,
         cy: sunPosition.y,
-        zoom: 2.5 // Zoom in 2.5x when focused on a sun
+        zoom: CAMERA_CONFIG.sunFocusZoom
       }
     }));
     
@@ -870,6 +904,12 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   const targetKey = internalCamera.target 
     ? `${internalCamera.target.cx}-${internalCamera.target.cy}-${internalCamera.target.zoom}` 
     : null;
+  
+  // Store current camera state in a ref for animation loop access
+  const cameraStateRef = useRef(internalCamera);
+  useEffect(() => {
+    cameraStateRef.current = internalCamera;
+  }, [internalCamera]);
   
   useEffect(() => {
     // Only start animation if there's an active target
@@ -889,46 +929,53 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
       cameraAnimationRef.current = null;
     }
     
+    // Store the target for this animation cycle
+    const targetCx = internalCamera.target.cx;
+    const targetCy = internalCamera.target.cy;
+    const targetZoom = internalCamera.target.zoom;
+    
     const animateCamera = (): void => {
-      setInternalCamera(prev => {
-        if (!prev.target) {
-          // Target was cleared, stop animation
-          cameraAnimationRef.current = null;
-          return prev;
-        }
-        
-        const smoothing = 0.08;
-        const newCx = prev.cx + (prev.target.cx - prev.cx) * smoothing;
-        const newCy = prev.cy + (prev.target.cy - prev.cy) * smoothing;
-        const newZoom = prev.zoom + (prev.target.zoom - prev.zoom) * smoothing;
-        
-        // Check if we're close enough to target
-        const isCloseEnough = 
-          Math.abs(newCx - prev.target.cx) < 0.001 &&
-          Math.abs(newCy - prev.target.cy) < 0.001 &&
-          Math.abs(newZoom - prev.target.zoom) < 0.01;
-        
-        if (isCloseEnough) {
-          // Reached target, clear it and stop animation
-          cameraAnimationRef.current = null;
-          return {
-            cx: prev.target.cx,
-            cy: prev.target.cy,
-            zoom: prev.target.zoom,
-            target: undefined
-          };
-        }
-        
-        // Continue animation for next frame
-        cameraAnimationRef.current = requestAnimationFrame(animateCamera);
-        
-        return {
-          cx: newCx,
-          cy: newCy,
-          zoom: newZoom,
-          target: prev.target
-        };
-      });
+      const currentCamera = cameraStateRef.current;
+      
+      // If target was cleared during animation, stop
+      if (!currentCamera.target) {
+        cameraAnimationRef.current = null;
+        return;
+      }
+      
+      const smoothing = CAMERA_CONFIG.cameraSmoothingFactor;
+      const newCx = currentCamera.cx + (targetCx - currentCamera.cx) * smoothing;
+      const newCy = currentCamera.cy + (targetCy - currentCamera.cy) * smoothing;
+      const newZoom = currentCamera.zoom + (targetZoom - currentCamera.zoom) * smoothing;
+      
+      // Check if we're close enough to target
+      const isCloseEnough = 
+        Math.abs(newCx - targetCx) < CAMERA_CONFIG.positionConvergenceThreshold &&
+        Math.abs(newCy - targetCy) < CAMERA_CONFIG.positionConvergenceThreshold &&
+        Math.abs(newZoom - targetZoom) < CAMERA_CONFIG.zoomConvergenceThreshold;
+      
+      if (isCloseEnough) {
+        // Reached target, set final values and clear target
+        setInternalCamera({
+          cx: targetCx,
+          cy: targetCy,
+          zoom: targetZoom,
+          target: undefined
+        });
+        cameraAnimationRef.current = null;
+        return;
+      }
+      
+      // Update camera state
+      setInternalCamera(prev => ({
+        cx: newCx,
+        cy: newCy,
+        zoom: newZoom,
+        target: prev.target // Keep the target
+      }));
+      
+      // Continue animation for next frame
+      cameraAnimationRef.current = requestAnimationFrame(animateCamera);
     };
     
     // Start the animation

@@ -564,6 +564,15 @@ function drawMouseEffects(
 let sunSystemInitialized = false;
 let sunSizesCalculated = false;
 
+/**
+ * Reset animation module state - call this when unmounting the starfield component
+ * to prevent memory leaks and stale state on remount
+ */
+export function resetAnimationModuleState(): void {
+  sunSystemInitialized = false;
+  sunSizesCalculated = false;
+}
+
 // Get the focus area suns for external use
 export function getFocusAreaSuns(): typeof SUNS {
   return SUNS.filter(sun => sun.parentId === "focus-areas-galaxy");

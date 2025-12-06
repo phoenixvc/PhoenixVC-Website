@@ -434,8 +434,8 @@ export const drawStars = (
       // Parse color once for this star (cached)
       const parsed = parseRgbaColor(star.color);
 
-      // Very subtle soft glow - reduced radius for crisper stars
-      const glowRadius = twinkleSize * 1.5;
+      // Very subtle soft glow - further reduced radius for much crisper, smaller stars
+      const glowRadius = twinkleSize * 1.0;
       const glowGradient = ctx.createRadialGradient(
         star.x, star.y, 0,
         star.x, star.y, glowRadius
