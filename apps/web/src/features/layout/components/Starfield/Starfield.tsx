@@ -906,10 +906,8 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     : null;
   
   // Store current camera state in a ref for animation loop access
-  const cameraStateRef = useRef(internalCamera);
-  useEffect(() => {
-    cameraStateRef.current = internalCamera;
-  }, [internalCamera]);
+  // This ref holds the ANIMATED camera position (not the target)
+  const cameraStateRef = useRef({ cx: 0.5, cy: 0.5, zoom: 1 });
   
   useEffect(() => {
     // Only start animation if there's an active target
@@ -935,18 +933,18 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     const targetZoom = internalCamera.target.zoom;
     
     const animateCamera = (): void => {
-      const currentCamera = cameraStateRef.current;
-      
-      // If target was cleared during animation, stop
-      if (!currentCamera.target) {
-        cameraAnimationRef.current = null;
-        return;
-      }
+      // Read the current animated position from ref (updated each frame)
+      const currentCx = cameraStateRef.current.cx;
+      const currentCy = cameraStateRef.current.cy;
+      const currentZoom = cameraStateRef.current.zoom;
       
       const smoothing = CAMERA_CONFIG.cameraSmoothingFactor;
-      const newCx = currentCamera.cx + (targetCx - currentCamera.cx) * smoothing;
-      const newCy = currentCamera.cy + (targetCy - currentCamera.cy) * smoothing;
-      const newZoom = currentCamera.zoom + (targetZoom - currentCamera.zoom) * smoothing;
+      const newCx = currentCx + (targetCx - currentCx) * smoothing;
+      const newCy = currentCy + (targetCy - currentCy) * smoothing;
+      const newZoom = currentZoom + (targetZoom - currentZoom) * smoothing;
+      
+      // Update the ref with the new animated position (for next frame)
+      cameraStateRef.current = { cx: newCx, cy: newCy, zoom: newZoom };
       
       // Check if we're close enough to target
       const isCloseEnough = 
@@ -956,6 +954,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
       
       if (isCloseEnough) {
         // Reached target, set final values and clear target
+        cameraStateRef.current = { cx: targetCx, cy: targetCy, zoom: targetZoom };
         setInternalCamera({
           cx: targetCx,
           cy: targetCy,
@@ -966,7 +965,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
         return;
       }
       
-      // Update camera state
+      // Update React state for rendering (this triggers re-render which passes to animation loop)
       setInternalCamera(prev => ({
         cx: newCx,
         cy: newCy,
