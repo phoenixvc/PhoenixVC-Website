@@ -20,15 +20,15 @@ export const GLOBAL_PHYSICS = {
 export const STAR_PHYSICS = {
   // Velocity limits
   /** Base maximum velocity for stars */
-  maxVelocity: 0.5,
+  maxVelocity: 0.6,
   /** Velocity multiplier for active (clicked) stars */
-  activeVelocityMultiplier: 32,
+  activeVelocityMultiplier: 40,
   /** Movement multiplier for active stars during position update */
-  activeMovementMultiplier: 2.0,
+  activeMovementMultiplier: 2.5,
 
   // Damping (friction)
   /** Damping factor for active stars (less friction = travel further) */
-  dampingActive: 0.985,
+  dampingActive: 0.98,
   /** Damping factor for inactive stars (more friction = settle quickly) */
   dampingInactive: 0.99,
   /** Damping factor for force integration mode */
@@ -40,7 +40,7 @@ export const STAR_PHYSICS = {
 
   // Deactivation
   /** Time in ms after which a pushed star becomes inactive */
-  deactivationTime: 1500,
+  deactivationTime: 2000,
 } as const;
 
 /**
@@ -48,19 +48,19 @@ export const STAR_PHYSICS = {
  */
 export const MOUSE_PHYSICS = {
   /** Default radius of mouse effect area */
-  effectRadius: 250,
+  effectRadius: 350,
   /** Base repulsion force from mouse hover */
-  hoverRepelForce: 0.15,
+  hoverRepelForce: 0.25,
 
-  // Click effect (reduced for less excessive animation)
+  // Click effect (increased for more dramatic stacking effect)
   /** Default click force multiplier */
-  clickForce: 12,
+  clickForce: 25,
   /** Additional force multiplier for dramatic effect */
-  clickForceMultiplier: 2.5,
+  clickForceMultiplier: 4.0,
   /** Tangential force component for spiral effect on click */
-  tangentialStrength: 0.12,
+  tangentialStrength: 0.2,
   /** Random variance for click effect */
-  randomVariance: 0.1,
+  randomVariance: 0.15,
 } as const;
 
 /**
@@ -112,15 +112,15 @@ export const SUN_PHYSICS = {
   /** Rotation speed increase when suns are close */
   rotationSpeedBoost: 0.00008,
 
-  // Click repulsion
+  // Click repulsion (increased for more dramatic stacking effect)
   /** Normalized radius for click effect on suns */
-  clickRepulsionRadius: 0.25,
+  clickRepulsionRadius: 0.35,
   /** Base force applied per click */
-  clickRepulsionForce: 0.015,
+  clickRepulsionForce: 0.025,
   /** Maximum accumulated repulsion */
-  maxClickRepulsion: 0.08,
-  /** How fast repulsion decays each frame (0.97 = 3% decay) */
-  clickRepulsionDecay: 0.97,
+  maxClickRepulsion: 0.15,
+  /** How fast repulsion decays each frame (0.95 = 5% decay, slower = longer effect) */
+  clickRepulsionDecay: 0.95,
 
   // Staggered activation (startup animation)
   /** Minimum delay before a sun starts moving (ms) */
