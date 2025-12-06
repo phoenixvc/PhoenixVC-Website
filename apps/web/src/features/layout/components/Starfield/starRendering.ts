@@ -13,7 +13,7 @@ import {
 import { calculatePulsation, createSoftenedColor, hexToRgb, updateStarPosition } from "./starUtils";
 import { Planet } from "./types";
 import { SUNS } from "./cosmos/cosmicHierarchy";
-import { SIZE_CONFIG } from "./physicsConfig";
+import { SIZE_CONFIG, CAMERA_CONFIG } from "./physicsConfig";
 
 // Image cache to avoid creating new Image objects every frame
 const imageCache = new Map<string, HTMLImageElement>();
@@ -285,26 +285,30 @@ function drawPlanetFocusAreaIcon(
   ctx.save();
   
   // Position the icon at the center of the planet (overlaid on top)
-  // Base size for better visibility, with larger size when hovered
-  const hoverScale = isHovered ? 1.5 : 1.0; // 50% larger when hovered
-  const iconSize = starSize * 0.55 * hoverScale;
+  // SIGNIFICANTLY increased base size for better visibility on small planets
+  // The icon size is now based on a minimum pixel size plus scaling from starSize
+  const hoverScale = isHovered ? 1.4 : 1.0; // 40% larger when hovered
+  // Minimum icon size from config, plus scaling from starSize
+  // This ensures icons are always visible even on small planets
+  const baseIconSize = Math.max(CAMERA_CONFIG.minIconSize, starSize * 1.2);
+  const iconSize = baseIconSize * hoverScale;
   const iconX = x;
   const iconY = y;
   
   // Draw a semi-transparent circular background for the icon
   // More visible background, brighter when hovered
   ctx.beginPath();
-  ctx.arc(iconX, iconY, iconSize * 1.3, 0, Math.PI * 2);
-  ctx.fillStyle = isHovered ? "rgba(0, 0, 0, 0.6)" : "rgba(0, 0, 0, 0.45)";
+  ctx.arc(iconX, iconY, iconSize * 1.2, 0, Math.PI * 2);
+  ctx.fillStyle = isHovered ? "rgba(0, 0, 0, 0.7)" : "rgba(0, 0, 0, 0.5)";
   ctx.fill();
-  ctx.strokeStyle = isHovered ? "rgba(255, 255, 255, 0.9)" : "rgba(255, 255, 255, 0.7)";
-  ctx.lineWidth = isHovered ? 2.5 : 1.5;
+  ctx.strokeStyle = isHovered ? "rgba(255, 255, 255, 0.95)" : "rgba(255, 255, 255, 0.8)";
+  ctx.lineWidth = isHovered ? 2.5 : 2.0;
   ctx.stroke();
   
-  // Set icon drawing styles with increased stroke width
+  // Set icon drawing styles with increased stroke width for better visibility
   ctx.strokeStyle = "#ffffff";
   ctx.fillStyle = "#ffffff";
-  ctx.lineWidth = Math.max(isHovered ? 2.0 : 1.5, iconSize * 0.12);
+  ctx.lineWidth = Math.max(isHovered ? 2.5 : 2.0, iconSize * 0.15);
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   

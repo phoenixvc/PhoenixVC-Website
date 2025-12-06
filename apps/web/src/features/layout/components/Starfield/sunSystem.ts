@@ -160,6 +160,15 @@ export function initializeSunStates(): void {
   });
 }
 
+/**
+ * Reset sun system state - call this when unmounting the starfield component
+ * to prevent memory leaks and stale state on remount
+ */
+export function resetSunSystem(): void {
+  sunStates = [];
+  systemStartTime = 0;
+}
+
 // Update sun physics
 export function updateSunPhysics(deltaTime: number): void {
   if (sunStates.length === 0) {

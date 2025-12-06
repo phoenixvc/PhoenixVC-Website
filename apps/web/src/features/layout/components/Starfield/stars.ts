@@ -228,7 +228,7 @@ export function updateStarPositions(
       }
     }
 
-    // Apply mouse interaction
+    // Apply mouse interaction with stronger repulsion
     if (enableMouseInteraction && mousePosition.isOnScreen) {
       const dx = mousePosition.x - star.x;
       const dy = mousePosition.y - star.y;
@@ -236,7 +236,8 @@ export function updateStarPositions(
       const dist = Math.sqrt(distSq);
 
       if (dist < mouseEffectRadius) {
-        const repelForce = 0.2 * (mouseEffectRadius - dist) / mouseEffectRadius;
+        // Increased repulsion force for more dramatic hover effect
+        const repelForce = 0.35 * (mouseEffectRadius - dist) / mouseEffectRadius;
         star.vx -= dx / dist * repelForce * normalizedDelta * timeScale;
         star.vy -= dy / dist * repelForce * normalizedDelta * timeScale;
       }
@@ -434,8 +435,8 @@ export const drawStars = (
       // Parse color once for this star (cached)
       const parsed = parseRgbaColor(star.color);
 
-      // Very subtle soft glow - reduced radius for crisper stars
-      const glowRadius = twinkleSize * 1.5;
+      // Very subtle soft glow - further reduced radius for much crisper, smaller stars
+      const glowRadius = twinkleSize * 1.0;
       const glowGradient = ctx.createRadialGradient(
         star.x, star.y, 0,
         star.x, star.y, glowRadius
@@ -724,16 +725,16 @@ export const resetStars = (
 };
 
 // Replace the existing applyClickForce function in stars.ts
-// Enhanced click repulsion with much stronger force and visible effect
+// Enhanced click repulsion with much stronger force and visible effect that stacks
 export const applyClickForce = (
   stars: Star[],
   clickX: number,
   clickY: number,
-  radius: number = 350,
-  force: number = 25
+  radius: number = 400,
+  force: number = 40
 ): number => {
-  // Much stronger force multiplier for visible repulsion effect
-  const adjustedForce = force * 5;
+  // Much stronger force multiplier for visible repulsion effect that stacks
+  const adjustedForce = force * 8;
 
   let affectedCount = 0;
 
@@ -751,21 +752,21 @@ export const applyClickForce = (
 
       // Use cubic easing for stronger effect at center
       const normalizedDist = dist / radius;
-      const easeOut = Math.pow(1 - normalizedDist, 2); // Stronger at center
+      const easeOut = Math.pow(1 - normalizedDist, 2.5); // Stronger at center with more dramatic falloff
       const strength = adjustedForce * easeOut;
 
-      // Apply strong radial force
+      // Apply strong radial force (stacks with existing velocity)
       star.vx += dirX * strength;
       star.vy += dirY * strength;
 
-      // Add slight tangential component for spiral effect
-      const tangentStrength = strength * 0.2;
+      // Add more tangential component for dramatic spiral effect
+      const tangentStrength = strength * 0.3;
       star.vx += -dirY * tangentStrength;
       star.vy += dirX * tangentStrength;
 
-      // Small random component for variety
-      star.vx += (Math.random() - 0.5) * strength * 0.15;
-      star.vy += (Math.random() - 0.5) * strength * 0.15;
+      // More random component for variety and chaos
+      star.vx += (Math.random() - 0.5) * strength * 0.2;
+      star.vy += (Math.random() - 0.5) * strength * 0.2;
 
       // Mark star as "pushed" for visual effects
       star.lastPushed = getFrameTime();

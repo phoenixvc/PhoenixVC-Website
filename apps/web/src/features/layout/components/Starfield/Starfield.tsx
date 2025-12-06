@@ -19,11 +19,12 @@ import { useParticleEffects } from "./hooks/useParticleEffects";
 import { useDebugControls } from "./hooks/useDebugControls";
 import DebugControlsOverlay from "./DebugControlsOverlay";
 import { useStarInitialization } from "./hooks/useStarInitialization";
-import { applyClickForce, createClickExplosion } from "./stars";
-import { checkSunHover } from "./hooks/animation/animate";
-import { applyClickRepulsionToSunsCanvas, getSunPosition } from "./sunSystem";
+import { applyClickForce, createClickExplosion, resetConnectionStagger } from "./stars";
+import { checkSunHover, resetAnimationModuleState } from "./hooks/animation/animate";
+import { applyClickRepulsionToSunsCanvas, getSunPosition, resetSunSystem } from "./sunSystem";
+import { applyClickRepulsionToPlanets } from "./Planets";
 import SunTooltip, { SunInfo } from "./sunTooltip";
-import { EFFECT_TIMING } from "./physicsConfig";
+import { EFFECT_TIMING, CAMERA_CONFIG } from "./physicsConfig";
 
 // Define the ref type
 export type StarfieldRef = {
@@ -150,9 +151,9 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   
   // Internal camera state for sun zoom functionality
   const [internalCamera, setInternalCamera] = useState<Camera>({
-    cx: 0.5,
-    cy: 0.5,
-    zoom: 1,
+    cx: CAMERA_CONFIG.defaultCenterX,
+    cy: CAMERA_CONFIG.defaultCenterY,
+    zoom: CAMERA_CONFIG.defaultZoom,
     target: undefined
   });
   const cameraAnimationRef = useRef<number | null>(null);
@@ -762,6 +763,40 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     };
   }, []);
 
+  // Clean up module-level state on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      // Reset all module-level states when component unmounts
+      // This prevents stale state and memory leaks on remount
+      resetSunSystem();
+      resetAnimationModuleState();
+      resetConnectionStagger();
+      
+      // Clear any lingering timeouts
+      if (sunHideTimeoutRef.current) {
+        clearTimeout(sunHideTimeoutRef.current);
+        sunHideTimeoutRef.current = null;
+      }
+      if (projectTooltipHideTimeoutRef.current) {
+        clearTimeout(projectTooltipHideTimeoutRef.current);
+        projectTooltipHideTimeoutRef.current = null;
+      }
+      if (cameraAnimationRef.current) {
+        cancelAnimationFrame(cameraAnimationRef.current);
+        cameraAnimationRef.current = null;
+      }
+      if (focusAnimationRef.current) {
+        cancelAnimationFrame(focusAnimationRef.current);
+        focusAnimationRef.current = null;
+      }
+      
+      // Clean up global API
+      if (window.starfieldAPI) {
+        delete window.starfieldAPI;
+      }
+    };
+  }, []);
+
   // Delay showing starfield until initialization is complete
   // This prevents users from seeing the initial movement to designated positions
   useEffect(() => {
@@ -859,7 +894,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
       target: {
         cx: sunPosition.x,
         cy: sunPosition.y,
-        zoom: 2.5 // Zoom in 2.5x when focused on a sun
+        zoom: CAMERA_CONFIG.sunFocusZoom
       }
     }));
     
@@ -870,6 +905,14 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   const targetKey = internalCamera.target 
     ? `${internalCamera.target.cx}-${internalCamera.target.cy}-${internalCamera.target.zoom}` 
     : null;
+  
+  // Store current camera state in a ref for animation loop access
+  // This ref holds the ANIMATED camera position (not the target)
+  const cameraStateRef = useRef({ 
+    cx: CAMERA_CONFIG.defaultCenterX, 
+    cy: CAMERA_CONFIG.defaultCenterY, 
+    zoom: CAMERA_CONFIG.defaultZoom 
+  });
   
   useEffect(() => {
     // Only start animation if there's an active target
@@ -889,46 +932,53 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
       cameraAnimationRef.current = null;
     }
     
+    // Store the target for this animation cycle
+    const targetCx = internalCamera.target.cx;
+    const targetCy = internalCamera.target.cy;
+    const targetZoom = internalCamera.target.zoom;
+    
     const animateCamera = (): void => {
-      setInternalCamera(prev => {
-        if (!prev.target) {
-          // Target was cleared, stop animation
-          cameraAnimationRef.current = null;
-          return prev;
-        }
-        
-        const smoothing = 0.08;
-        const newCx = prev.cx + (prev.target.cx - prev.cx) * smoothing;
-        const newCy = prev.cy + (prev.target.cy - prev.cy) * smoothing;
-        const newZoom = prev.zoom + (prev.target.zoom - prev.zoom) * smoothing;
-        
-        // Check if we're close enough to target
-        const isCloseEnough = 
-          Math.abs(newCx - prev.target.cx) < 0.001 &&
-          Math.abs(newCy - prev.target.cy) < 0.001 &&
-          Math.abs(newZoom - prev.target.zoom) < 0.01;
-        
-        if (isCloseEnough) {
-          // Reached target, clear it and stop animation
-          cameraAnimationRef.current = null;
-          return {
-            cx: prev.target.cx,
-            cy: prev.target.cy,
-            zoom: prev.target.zoom,
-            target: undefined
-          };
-        }
-        
-        // Continue animation for next frame
-        cameraAnimationRef.current = requestAnimationFrame(animateCamera);
-        
-        return {
-          cx: newCx,
-          cy: newCy,
-          zoom: newZoom,
-          target: prev.target
-        };
-      });
+      // Read the current animated position from ref (updated each frame)
+      const { cx: currentCx, cy: currentCy, zoom: currentZoom } = cameraStateRef.current;
+      
+      const smoothing = CAMERA_CONFIG.cameraSmoothingFactor;
+      const newCx = currentCx + (targetCx - currentCx) * smoothing;
+      const newCy = currentCy + (targetCy - currentCy) * smoothing;
+      const newZoom = currentZoom + (targetZoom - currentZoom) * smoothing;
+      
+      // Update the ref with the new animated position (for next frame)
+      cameraStateRef.current = { cx: newCx, cy: newCy, zoom: newZoom };
+      
+      // Check if we're close enough to target
+      const isCloseEnough = 
+        Math.abs(newCx - targetCx) < CAMERA_CONFIG.positionConvergenceThreshold &&
+        Math.abs(newCy - targetCy) < CAMERA_CONFIG.positionConvergenceThreshold &&
+        Math.abs(newZoom - targetZoom) < CAMERA_CONFIG.zoomConvergenceThreshold;
+      
+      if (isCloseEnough) {
+        // Reached target, set final values and clear target
+        cameraStateRef.current = { cx: targetCx, cy: targetCy, zoom: targetZoom };
+        setInternalCamera({
+          cx: targetCx,
+          cy: targetCy,
+          zoom: targetZoom,
+          target: undefined
+        });
+        cameraAnimationRef.current = null;
+        return;
+      }
+      
+      // Update React state to trigger re-render for visual updates
+      // (The animation loop reads from cameraStateRef, not React state)
+      setInternalCamera(prev => ({
+        cx: newCx,
+        cy: newCy,
+        zoom: newZoom,
+        target: prev.target // Keep the target
+      }));
+      
+      // Continue animation for next frame
+      cameraAnimationRef.current = requestAnimationFrame(animateCamera);
     };
     
     // Start the animation
@@ -974,6 +1024,11 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     // Apply repulsive force to suns (this stacks up with multiple clicks)
     applyClickRepulsionToSunsCanvas(x, y, rect.width, rect.height);
 
+    // Apply repulsive force to planets/comets (orbiting portfolio items)
+    if (employeeStarsRef.current && employeeStarsRef.current.length > 0) {
+      applyClickRepulsionToPlanets(employeeStarsRef.current, x, y);
+    }
+
     // Use the unified function for regular click repulsion
     applyStarfieldRepulsion(x, y);
 
@@ -987,7 +1042,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
         clickTime: Date.now()
       }));
     }
-  }, [canvasRef, setMousePosition, applyStarfieldRepulsion, zoomToSun]);
+  }, [canvasRef, setMousePosition, applyStarfieldRepulsion, zoomToSun, employeeStarsRef]);
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -1012,6 +1067,12 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
 
         // Only apply repulsion effects if we didn't click on a sun
         applyClickRepulsionToSunsCanvas(x, y, rect.width, rect.height);
+        
+        // Apply repulsion to planets/comets
+        if (employeeStarsRef.current && employeeStarsRef.current.length > 0) {
+          applyClickRepulsionToPlanets(employeeStarsRef.current, x, y);
+        }
+        
         applyStarfieldRepulsion(x, y);
       };
 
@@ -1021,7 +1082,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
         canvas.removeEventListener("click", clickHandler);
       };
     }
-  }, [canvasRef, applyStarfieldRepulsion, zoomToSun]);
+  }, [canvasRef, applyStarfieldRepulsion, zoomToSun, employeeStarsRef]);
 
   return (
     <>
@@ -1062,6 +1123,12 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
                 } else {
                   // Only apply repulsion if we didn't touch a sun
                   applyClickRepulsionToSunsCanvas(x, y, rect.width, rect.height);
+                  
+                  // Apply repulsion to planets/comets
+                  if (employeeStarsRef.current && employeeStarsRef.current.length > 0) {
+                    applyClickRepulsionToPlanets(employeeStarsRef.current, x, y);
+                  }
+                  
                   applyStarfieldRepulsion(x, y);
                 }
               }

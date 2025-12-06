@@ -20,15 +20,15 @@ export const GLOBAL_PHYSICS = {
 export const STAR_PHYSICS = {
   // Velocity limits
   /** Base maximum velocity for stars */
-  maxVelocity: 0.5,
+  maxVelocity: 0.6,
   /** Velocity multiplier for active (clicked) stars */
-  activeVelocityMultiplier: 32,
+  activeVelocityMultiplier: 40,
   /** Movement multiplier for active stars during position update */
-  activeMovementMultiplier: 2.0,
+  activeMovementMultiplier: 2.5,
 
   // Damping (friction)
   /** Damping factor for active stars (less friction = travel further) */
-  dampingActive: 0.985,
+  dampingActive: 0.98,
   /** Damping factor for inactive stars (more friction = settle quickly) */
   dampingInactive: 0.99,
   /** Damping factor for force integration mode */
@@ -40,7 +40,7 @@ export const STAR_PHYSICS = {
 
   // Deactivation
   /** Time in ms after which a pushed star becomes inactive */
-  deactivationTime: 1500,
+  deactivationTime: 2000,
 } as const;
 
 /**
@@ -48,19 +48,19 @@ export const STAR_PHYSICS = {
  */
 export const MOUSE_PHYSICS = {
   /** Default radius of mouse effect area */
-  effectRadius: 250,
+  effectRadius: 350,
   /** Base repulsion force from mouse hover */
-  hoverRepelForce: 0.15,
+  hoverRepelForce: 0.25,
 
-  // Click effect (reduced for less excessive animation)
+  // Click effect (increased for more dramatic stacking effect)
   /** Default click force multiplier */
-  clickForce: 12,
+  clickForce: 25,
   /** Additional force multiplier for dramatic effect */
-  clickForceMultiplier: 2.5,
+  clickForceMultiplier: 4.0,
   /** Tangential force component for spiral effect on click */
-  tangentialStrength: 0.12,
+  tangentialStrength: 0.2,
   /** Random variance for click effect */
-  randomVariance: 0.1,
+  randomVariance: 0.15,
 } as const;
 
 /**
@@ -112,15 +112,15 @@ export const SUN_PHYSICS = {
   /** Rotation speed increase when suns are close */
   rotationSpeedBoost: 0.00008,
 
-  // Click repulsion
+  // Click repulsion (increased for more dramatic stacking effect)
   /** Normalized radius for click effect on suns */
-  clickRepulsionRadius: 0.25,
+  clickRepulsionRadius: 0.35,
   /** Base force applied per click */
-  clickRepulsionForce: 0.015,
+  clickRepulsionForce: 0.025,
   /** Maximum accumulated repulsion */
-  maxClickRepulsion: 0.08,
-  /** How fast repulsion decays each frame (0.97 = 3% decay) */
-  clickRepulsionDecay: 0.97,
+  maxClickRepulsion: 0.15,
+  /** How fast repulsion decays each frame (0.95 = 5% decay, slower = longer effect) */
+  clickRepulsionDecay: 0.95,
 
   // Staggered activation (startup animation)
   /** Minimum delay before a sun starts moving (ms) */
@@ -145,6 +145,29 @@ export const SUN_PHYSICS = {
   velocityDamping: 0.98,
   /** Minimum distance to avoid division by zero */
   minDistanceThreshold: 0.001,
+} as const;
+
+/**
+ * Planet/comet physics configuration
+ * Controls click repulsion for orbiting portfolio items
+ */
+export const PLANET_PHYSICS = {
+  /** Radius for click effect on planets (in pixels) */
+  clickRepulsionRadius: 300,
+  /** Base force applied per click to planets */
+  clickRepulsionForce: 15,
+  /** Maximum accumulated velocity from clicks */
+  maxClickVelocity: 50,
+  /** How fast planet repulsion decays (0.94 = 6% decay per frame) */
+  clickRepulsionDecay: 0.94,
+  /** Orbit speed boost when clicked (temporary speed increase, restored when velocity decays) */
+  orbitSpeedBoost: 3.0,
+  /** Orbit stabilization - force to pull planets back to their original orbit */
+  orbitStabilizationForce: 0.02,
+  /** How far from orbit radius before stabilization kicks in (as fraction of orbit radius) */
+  orbitStabilizationThreshold: 0.1,
+  /** Maximum stabilization force to prevent jerky movement */
+  maxStabilizationForce: 0.5,
 } as const;
 
 /**
@@ -178,17 +201,17 @@ export const CONNECTION_CONFIG = {
  */
 export const SIZE_CONFIG = {
   // Background stars
-  /** Master size multiplier for background stars (0.125 = 12.5% of original size) */
-  backgroundStarMultiplier: 0.125,
+  /** Master size multiplier for background stars (0.06 = 6% of original size, reduced from 0.125) */
+  backgroundStarMultiplier: 0.06,
   /** Random size variation exponent (higher = more small stars) */
-  sizeVariationExponent: 3.5,
-  /** Base size range (min + random * range) - reduced max from 0.6 to 0.3 for smaller stars */
-  sizeRangeMin: 0.08,
-  sizeRangeMax: 0.3,
+  sizeVariationExponent: 4.0,
+  /** Base size range (min + random * range) - reduced for smaller, crisper stars */
+  sizeRangeMin: 0.05,
+  sizeRangeMax: 0.2,
   
   // Planet/comet rendering
-  /** Base planet size multiplier */
-  planetBaseSize: 2.5,
+  /** Base planet size multiplier - increased from 2.5 for larger planets with more visible icons */
+  planetBaseSize: 8,
   /** Planet hover scale factor */
   planetHoverScale: 1.15,
   /** Planet glow radius multiplier */
@@ -202,9 +225,9 @@ export const SIZE_CONFIG = {
   /** Ring radius around project icon */
   projectIconRingRadius: 0.9,
   /** Initials background circle radius */
-  initialsBackgroundRadius: 0.7,
+  initialsBackgroundRadius: 0.75,
   /** Initials font size relative to star size */
-  initialsFontSize: 0.9,
+  initialsFontSize: 0.95,
 } as const;
 
 /**
@@ -249,15 +272,40 @@ export const COMET_CONFIG = {
   opacityBoost: 1.3,
 } as const;
 
+/**
+ * Camera animation configuration
+ * Controls zoom and pan animations for sun focus
+ */
+export const CAMERA_CONFIG = {
+  /** Default camera center X position (normalized 0-1) */
+  defaultCenterX: 0.5,
+  /** Default camera center Y position (normalized 0-1) */
+  defaultCenterY: 0.5,
+  /** Default camera zoom level */
+  defaultZoom: 1,
+  /** Minimum icon size in pixels for planet focus area icons */
+  minIconSize: 12,
+  /** Camera lerp smoothing factor (lower = smoother, higher = faster) */
+  cameraSmoothingFactor: 0.08,
+  /** Threshold for camera position convergence */
+  positionConvergenceThreshold: 0.001,
+  /** Threshold for camera zoom convergence */
+  zoomConvergenceThreshold: 0.01,
+  /** Target zoom level when focusing on a sun */
+  sunFocusZoom: 2.5,
+} as const;
+
 // Type exports for type safety
 export type GlobalPhysics = typeof GLOBAL_PHYSICS;
 export type StarPhysics = typeof STAR_PHYSICS;
 export type MousePhysics = typeof MOUSE_PHYSICS;
 export type BlackHolePhysics = typeof BLACK_HOLE_PHYSICS;
 export type SunPhysics = typeof SUN_PHYSICS;
+export type PlanetPhysics = typeof PLANET_PHYSICS;
 export type FlowPhysics = typeof FLOW_PHYSICS;
 export type ConnectionConfig = typeof CONNECTION_CONFIG;
 export type SizeConfig = typeof SIZE_CONFIG;
 export type ExplosionPhysics = typeof EXPLOSION_PHYSICS;
 export type EffectTiming = typeof EFFECT_TIMING;
 export type CometConfig = typeof COMET_CONFIG;
+export type CameraConfig = typeof CAMERA_CONFIG;

@@ -4,6 +4,7 @@
 import { getObjectById, SUNS } from "./cosmos/cosmicHierarchy";
 import { worldToScreen } from "./cosmos/cosmicNavigation";
 import { Camera } from "./cosmos/types";
+import { PLANET_PHYSICS } from "./physicsConfig";
 import { drawPlanet } from "./starRendering";
 import { getSunStates } from "./sunSystem";
 import { PortfolioProject, HoverInfo, Planet, Satellite } from "./types";
@@ -410,6 +411,9 @@ export const updatePlanets = (
 ): void => {
   if (!ctx || !planets || !planets.length) return;
 
+  // Update planet velocities from click repulsion (apply accumulated forces)
+  updatePlanetVelocities(planets);
+
   const cappedDeltaTime = Math.min(deltaTime, 100);
   const width = ctx.canvas.width;
   const height = ctx.canvas.height;
@@ -480,3 +484,137 @@ export const updatePlanets = (
     drawPlanet(ctx, planet, cappedDeltaTime, planetSize, employeeDisplayStyle);
   });
 };
+
+
+/**
+ * Apply click repulsion to planets/comets
+ * This pushes planets away from the click point and temporarily boosts their orbit speed
+ * @param planets - Array of planets to affect
+ * @param clickX - Click X position in canvas coordinates
+ * @param clickY - Click Y position in canvas coordinates
+ * @returns Number of affected planets
+ */
+export function applyClickRepulsionToPlanets(
+  planets: Planet[],
+  clickX: number,
+  clickY: number
+): number {
+  if (!planets || planets.length === 0) return 0;
+  
+  let affectedCount = 0;
+  
+  for (const planet of planets) {
+    const dx = planet.x - clickX;
+    const dy = planet.y - clickY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    
+    // Only affect planets within the click repulsion radius
+    if (dist < PLANET_PHYSICS.clickRepulsionRadius && dist > 1) {
+      // Calculate force based on distance (closer = stronger)
+      const normalizedDist = dist / PLANET_PHYSICS.clickRepulsionRadius;
+      const forceFactor = Math.pow(1 - normalizedDist, 2); // Quadratic falloff
+      const force = PLANET_PHYSICS.clickRepulsionForce * forceFactor;
+      
+      // Normalize direction (away from click)
+      const nx = dx / dist;
+      const ny = dy / dist;
+      
+      // Apply velocity (stacking effect - adds to existing velocity)
+      planet.vx = (planet.vx || 0) + nx * force;
+      planet.vy = (planet.vy || 0) + ny * force;
+      
+      // Clamp velocity to max
+      const speed = Math.sqrt(planet.vx * planet.vx + planet.vy * planet.vy);
+      if (speed > PLANET_PHYSICS.maxClickVelocity) {
+        const scale = PLANET_PHYSICS.maxClickVelocity / speed;
+        planet.vx *= scale;
+        planet.vy *= scale;
+      }
+      
+      // Store original orbit speed if not already stored (for restoration when velocity decays)
+      if (planet.originalOrbitSpeed === undefined) {
+        planet.originalOrbitSpeed = planet.orbitSpeed;
+      }
+      // Temporarily boost orbit speed for dramatic effect
+      planet.orbitSpeed = planet.originalOrbitSpeed * PLANET_PHYSICS.orbitSpeedBoost;
+      
+      affectedCount++;
+    }
+  }
+  
+  return affectedCount;
+}
+
+/**
+ * Update planet positions based on velocity (called each frame)
+ * This applies the accumulated click repulsion velocity and orbit stabilization
+ * @param planets - Array of planets to update
+ */
+export function updatePlanetVelocities(planets: Planet[]): void {
+  if (!planets || planets.length === 0) return;
+  
+  for (const planet of planets) {
+    // Apply velocity to position
+    if (planet.vx || planet.vy) {
+      planet.x += planet.vx || 0;
+      planet.y += planet.vy || 0;
+      
+      // Also shift the orbit center slightly for a more dramatic effect
+      if (planet.orbitCenter) {
+        planet.orbitCenter.x += (planet.vx || 0) * 0.3;
+        planet.orbitCenter.y += (planet.vy || 0) * 0.3;
+      }
+      
+      // Apply decay
+      planet.vx = (planet.vx || 0) * PLANET_PHYSICS.clickRepulsionDecay;
+      planet.vy = (planet.vy || 0) * PLANET_PHYSICS.clickRepulsionDecay;
+      
+      // Zero out very small velocities and restore orbit speed when velocity has decayed
+      const velocityMagnitude = Math.sqrt((planet.vx || 0) ** 2 + (planet.vy || 0) ** 2);
+      if (velocityMagnitude < 0.01) {
+        planet.vx = 0;
+        planet.vy = 0;
+        // Restore original orbit speed when velocity has fully decayed
+        if (planet.originalOrbitSpeed !== undefined) {
+          planet.orbitSpeed = planet.originalOrbitSpeed;
+          planet.originalOrbitSpeed = undefined;
+        }
+      }
+    }
+    
+    // Apply orbit stabilization - gradually pull planet back to its orbit radius
+    if (planet.orbitCenter && planet.orbitRadius > 0) {
+      const dx = planet.x - planet.orbitCenter.x;
+      const dy = planet.y - planet.orbitCenter.y;
+      const currentDistance = Math.sqrt(dx * dx + dy * dy);
+      
+      // Calculate how far the planet is from its intended orbit
+      const distanceFromOrbit = currentDistance - planet.orbitRadius;
+      const relativeDeviation = Math.abs(distanceFromOrbit) / planet.orbitRadius;
+      
+      // Only apply stabilization if significantly off orbit
+      if (relativeDeviation > PLANET_PHYSICS.orbitStabilizationThreshold) {
+        // Calculate direction toward/away from orbit center
+        const nx = dx / currentDistance;
+        const ny = dy / currentDistance;
+        
+        // Calculate stabilization force (proportional to deviation, capped at max)
+        const stabilizationStrength = Math.min(
+          PLANET_PHYSICS.orbitStabilizationForce * relativeDeviation,
+          PLANET_PHYSICS.maxStabilizationForce
+        );
+        
+        // If too far from sun, pull closer; if too close, push away
+        if (distanceFromOrbit > 0) {
+          // Planet is too far - pull toward center
+          planet.vx = (planet.vx || 0) - nx * stabilizationStrength;
+          planet.vy = (planet.vy || 0) - ny * stabilizationStrength;
+        } else {
+          // Planet is too close - push away from center
+          planet.vx = (planet.vx || 0) + nx * stabilizationStrength;
+          planet.vy = (planet.vy || 0) + ny * stabilizationStrength;
+        }
+      }
+    }
+  }
+}
