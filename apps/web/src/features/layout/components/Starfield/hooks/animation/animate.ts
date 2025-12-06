@@ -128,14 +128,13 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       const cameraCenterX = props.camera.cx * canvas.width;
       const cameraCenterY = props.camera.cy * canvas.height;
       
-      // Apply transformation: translate to center, scale, then translate back
-      // This keeps the zoom centered on the camera target point
+      // Apply transformation to center the camera target in the viewport
+      // 1. Translate so camera target is at origin
+      // 2. Scale around origin
+      // 3. Translate to center of viewport
       ctx.translate(canvas.width / 2, canvas.height / 2);
       ctx.scale(props.camera.zoom, props.camera.zoom);
-      ctx.translate(
-        -cameraCenterX,
-        -cameraCenterY
-      );
+      ctx.translate(-cameraCenterX, -cameraCenterY);
     }
 
     // Draw background stars with reduced opacity when focused on a sun
