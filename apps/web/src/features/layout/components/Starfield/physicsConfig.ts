@@ -160,10 +160,8 @@ export const PLANET_PHYSICS = {
   maxClickVelocity: 50,
   /** How fast planet repulsion decays (0.94 = 6% decay per frame) */
   clickRepulsionDecay: 0.94,
-  /** Orbit speed boost when clicked (temporary speed increase) */
+  /** Orbit speed boost when clicked (temporary speed increase, restored when velocity decays) */
   orbitSpeedBoost: 3.0,
-  /** Duration of orbit speed boost in ms */
-  orbitSpeedBoostDuration: 2000,
 } as const;
 
 /**

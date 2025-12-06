@@ -502,7 +502,6 @@ export function applyClickRepulsionToPlanets(
   if (!planets || planets.length === 0) return 0;
   
   let affectedCount = 0;
-  const now = Date.now();
   
   for (const planet of planets) {
     const dx = planet.x - clickX;
@@ -532,18 +531,12 @@ export function applyClickRepulsionToPlanets(
         planet.vy *= scale;
       }
       
-      // Temporarily boost orbit speed for dramatic effect
-      if (!planet.originalOrbitSpeed) {
+      // Store original orbit speed if not already stored (for restoration when velocity decays)
+      if (planet.originalOrbitSpeed === undefined) {
         planet.originalOrbitSpeed = planet.orbitSpeed;
       }
+      // Temporarily boost orbit speed for dramatic effect
       planet.orbitSpeed = planet.originalOrbitSpeed * PLANET_PHYSICS.orbitSpeedBoost;
-      
-      // Schedule orbit speed reset
-      setTimeout(() => {
-        if (planet.originalOrbitSpeed !== undefined) {
-          planet.orbitSpeed = planet.originalOrbitSpeed;
-        }
-      }, PLANET_PHYSICS.orbitSpeedBoostDuration);
       
       affectedCount++;
     }
@@ -576,9 +569,17 @@ export function updatePlanetVelocities(planets: Planet[]): void {
       planet.vx = (planet.vx || 0) * PLANET_PHYSICS.clickRepulsionDecay;
       planet.vy = (planet.vy || 0) * PLANET_PHYSICS.clickRepulsionDecay;
       
-      // Zero out very small velocities
-      if (Math.abs(planet.vx || 0) < 0.01) planet.vx = 0;
-      if (Math.abs(planet.vy || 0) < 0.01) planet.vy = 0;
+      // Zero out very small velocities and restore orbit speed when velocity has decayed
+      const velocityMagnitude = Math.sqrt((planet.vx || 0) ** 2 + (planet.vy || 0) ** 2);
+      if (velocityMagnitude < 0.01) {
+        planet.vx = 0;
+        planet.vy = 0;
+        // Restore original orbit speed when velocity has fully decayed
+        if (planet.originalOrbitSpeed !== undefined) {
+          planet.orbitSpeed = planet.originalOrbitSpeed;
+          planet.originalOrbitSpeed = undefined;
+        }
+      }
     }
   }
 }
