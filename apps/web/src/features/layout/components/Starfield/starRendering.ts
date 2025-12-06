@@ -18,13 +18,28 @@ import { SIZE_CONFIG } from "./physicsConfig";
 // Image cache to avoid creating new Image objects every frame
 const imageCache = new Map<string, HTMLImageElement>();
 
+// Track images that failed to load
+const failedImages = new Set<string>();
+
 // Preload and cache an image
 function getCachedImage(src: string): HTMLImageElement | null {
   if (!src) return null;
+  
+  // Don't retry failed images
+  if (failedImages.has(src)) return null;
 
   let img = imageCache.get(src);
   if (!img) {
     img = new Image();
+    // Add crossOrigin for CORS support
+    img.crossOrigin = "anonymous";
+    
+    // Track load failures
+    img.onerror = () => {
+      failedImages.add(src);
+      console.warn(`Failed to load image: ${src}`);
+    };
+    
     img.src = src;
     imageCache.set(src, img);
   }
@@ -32,6 +47,18 @@ function getCachedImage(src: string): HTMLImageElement | null {
   // Check both complete AND naturalWidth to ensure image actually loaded successfully
   // (complete is true even for failed loads, but naturalWidth would be 0)
   return (img.complete && img.naturalWidth > 0) ? img : null;
+}
+
+/**
+ * Preload all project images to ensure they're ready for rendering
+ * Call this early during initialization
+ */
+export function preloadProjectImages(projects: Array<{ image?: string }>): void {
+  projects.forEach(project => {
+    if (project.image) {
+      getCachedImage(project.image);
+    }
+  });
 }
 
 // Get the color a planet should use based on its focus area (matching its sun)
@@ -181,8 +208,8 @@ function drawProjectIdentifier(
     ctx.lineWidth = 2;
     ctx.strokeStyle = "rgba(255, 255, 255, 0.7)";
     ctx.stroke();
-  } else if (projectImagePath && displayStyle === "both") {
-    // Image path exists but image not loaded yet - show initials with loading indicator
+  } else if (projectImagePath) {
+    // Image path exists but image not loaded yet - always show initials while loading
     ctx.save();
     ctx.beginPath();
     ctx.arc(planet.x, planet.y, bgRadius, 0, Math.PI * 2);

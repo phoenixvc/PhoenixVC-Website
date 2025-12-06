@@ -182,9 +182,9 @@ export const SIZE_CONFIG = {
   backgroundStarMultiplier: 0.125,
   /** Random size variation exponent (higher = more small stars) */
   sizeVariationExponent: 3.5,
-  /** Base size range (min + random * range) */
+  /** Base size range (min + random * range) - reduced max from 0.6 to 0.3 for smaller stars */
   sizeRangeMin: 0.08,
-  sizeRangeMax: 0.6,
+  sizeRangeMax: 0.3,
   
   // Planet/comet rendering
   /** Base planet size multiplier */

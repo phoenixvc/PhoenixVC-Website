@@ -4,6 +4,10 @@ import { BlackHoleData, PortfolioProject } from "./types";
 import { PORTFOLIO_PROJECTS } from "@/constants/portfolioData";
 import { getDailySeededRandom } from "./utils";
 import { BLACK_HOLE_PHYSICS } from "./physicsConfig";
+import { preloadProjectImages } from "./starRendering";
+
+// Preload project images early for smooth rendering
+preloadProjectImages(PORTFOLIO_PROJECTS);
 
 /**
  * Generate randomized black hole positions with proper spacing.
