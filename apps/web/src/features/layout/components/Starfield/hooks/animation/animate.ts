@@ -302,9 +302,14 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
     }
 
     // Draw portfolio comets/planets
+    // Filter planets if a sun is focused (show only planets orbiting that sun)
+    const planetsToRender = props.focusedSunId 
+      ? currentPlanets.filter(planet => planet.orbitParentId === props.focusedSunId)
+      : currentPlanets;
+    
     updatePlanets(
       ctx,
-      currentPlanets,
+      planetsToRender,
       deltaTime,
       props.planetSize,
       props.employeeDisplayStyle,
@@ -781,6 +786,11 @@ function drawSuns(
   ctx.imageSmoothingQuality = "high";
 
   sunStates.forEach((sunState) => {
+    // If a sun is focused, only render that sun (hide others for cleaner zoom view)
+    if (focusedSunId && focusedSunId !== sunState.id) {
+      return; // Skip rendering this sun
+    }
+    
     // Use dynamic position from sun system
     const x = sunState.x * width;
     const y = sunState.y * height;
