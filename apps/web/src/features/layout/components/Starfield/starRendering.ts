@@ -13,6 +13,7 @@ import {
 import { calculatePulsation, createSoftenedColor, hexToRgb, updateStarPosition } from "./starUtils";
 import { Planet } from "./types";
 import { SUNS } from "./cosmos/cosmicHierarchy";
+import { SIZE_CONFIG } from "./physicsConfig";
 
 // Image cache to avoid creating new Image objects every frame
 const imageCache = new Map<string, HTMLImageElement>();
@@ -91,7 +92,7 @@ export const drawPlanet = (
   const massScale = Math.sqrt(projectMass / baseMass); // Square root for gentler scaling
   const clampedMassScale = Math.max(0.7, Math.min(1.5, massScale)); // Clamp between 0.7x and 1.5x
 
-  const starSize = 2.5 * planetSize * scaleFactor * clampedMassScale; // Base size with mass scaling (reduced from 3 to 2.5 for 5/6 size)
+  const starSize = SIZE_CONFIG.planetBaseSize * planetSize * scaleFactor * clampedMassScale;
 
   // Draw nebula effects for important stars
   drawNebulaEffects(ctx, planet, starSize, softRgb);
@@ -119,7 +120,7 @@ export const drawPlanet = (
   // Draw outer ring in sun color (shows focus area affiliation)
   if (!planet.useSimpleRendering && projectColor !== sunColor) {
     ctx.beginPath();
-    ctx.arc(planet.x, planet.y, starSize * 1.15, 0, Math.PI * 2);
+    ctx.arc(planet.x, planet.y, starSize * SIZE_CONFIG.planetHoverScale, 0, Math.PI * 2);
     ctx.strokeStyle = `rgba(${softGlowRgb.r}, ${softGlowRgb.g}, ${softGlowRgb.b}, 0.5)`;
     ctx.lineWidth = 2;
     ctx.stroke();
@@ -151,7 +152,14 @@ function drawProjectIdentifier(
 ): void {
   // Try to get the project image first - always attempt to show it if available
   const hasProjectImage = !planet.useSimpleRendering && planet.project.image;
-  const img = hasProjectImage ? getCachedImage(planet.project.image) : null;
+  const img = hasProjectImage && planet.project.image ? getCachedImage(planet.project.image) : null;
+  
+  // Use SIZE_CONFIG for consistent sizing
+  const clipRadius = starSize * SIZE_CONFIG.projectIconClipRadius;
+  const imgSize = starSize * SIZE_CONFIG.projectIconImageSize;
+  const ringRadius = starSize * SIZE_CONFIG.projectIconRingRadius;
+  const bgRadius = starSize * SIZE_CONFIG.initialsBackgroundRadius;
+  const fontSize = Math.floor(starSize * SIZE_CONFIG.initialsFontSize);
   
   // If we have a loaded image, display it prominently on the planet
   if (img) {
@@ -159,18 +167,17 @@ function drawProjectIdentifier(
     
     // Draw a circular clip for the image
     ctx.beginPath();
-    ctx.arc(planet.x, planet.y, starSize * 0.85, 0, Math.PI * 2);
+    ctx.arc(planet.x, planet.y, clipRadius, 0, Math.PI * 2);
     ctx.clip();
 
     // Draw the project icon image centered on the planet
-    const imgSize = starSize * 1.7;
     ctx.drawImage(img, planet.x - imgSize/2, planet.y - imgSize/2, imgSize, imgSize);
 
     ctx.restore();
 
     // Add a subtle ring around the icon
     ctx.beginPath();
-    ctx.arc(planet.x, planet.y, starSize * 0.9, 0, Math.PI * 2);
+    ctx.arc(planet.x, planet.y, ringRadius, 0, Math.PI * 2);
     ctx.lineWidth = 2;
     ctx.strokeStyle = "rgba(255, 255, 255, 0.7)";
     ctx.stroke();
@@ -178,12 +185,12 @@ function drawProjectIdentifier(
     // Image exists but not loaded yet - show initials with loading indicator
     ctx.save();
     ctx.beginPath();
-    ctx.arc(planet.x, planet.y, starSize * 0.7, 0, Math.PI * 2);
+    ctx.arc(planet.x, planet.y, bgRadius, 0, Math.PI * 2);
     ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
     ctx.fill();
     ctx.restore();
 
-    ctx.font = `bold ${Math.floor(starSize * 0.8)}px Arial`;
+    ctx.font = `bold ${fontSize}px Arial`;
     ctx.fillStyle = "#ffffff";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -191,7 +198,7 @@ function drawProjectIdentifier(
 
     // Add ring to indicate loading
     ctx.beginPath();
-    ctx.arc(planet.x, planet.y, starSize * 0.85, 0, Math.PI * 2);
+    ctx.arc(planet.x, planet.y, clipRadius, 0, Math.PI * 2);
     ctx.lineWidth = 1.5;
     ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
     ctx.stroke();
@@ -200,7 +207,7 @@ function drawProjectIdentifier(
     if (!planet.useSimpleRendering) {
       // Add a subtle background circle for better text visibility
       ctx.beginPath();
-      ctx.arc(planet.x, planet.y, starSize * 0.7, 0, Math.PI * 2);
+      ctx.arc(planet.x, planet.y, bgRadius, 0, Math.PI * 2);
       ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
       ctx.fill();
 
@@ -209,7 +216,7 @@ function drawProjectIdentifier(
     }
 
     // Larger, bolder font for initials
-    ctx.font = `bold ${Math.floor(starSize * 0.9)}px Arial`;
+    ctx.font = `bold ${fontSize}px Arial`;
     ctx.fillStyle = "#ffffff";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -220,7 +227,7 @@ function drawProjectIdentifier(
 
       // Add a subtle ring around the initials
       ctx.beginPath();
-      ctx.arc(planet.x, planet.y, starSize * 0.85, 0, Math.PI * 2);
+      ctx.arc(planet.x, planet.y, clipRadius, 0, Math.PI * 2);
       ctx.lineWidth = 1.2;
       ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
       ctx.stroke();

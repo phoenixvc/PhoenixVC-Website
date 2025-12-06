@@ -8,6 +8,7 @@ import {
   EXPLOSION_PHYSICS,
   EFFECT_TIMING,
   CONNECTION_CONFIG,
+  SIZE_CONFIG,
 } from "./physicsConfig";
 import { getFrameTime } from "./frameCache";
 import { getSunStates } from "./sunSystem";
@@ -94,9 +95,8 @@ export const initStars = (
     const y = Math.random() * height;
 
     // Random size with weighted distribution (more small stars, crisper appearance)
-    // Use higher exponent for smaller stars as requested
-    // Stars are now 1/4 of previous size: 0.5 * 0.5 * 0.5 = 0.125 of original
-    const sizeMultiplier = (Math.pow(Math.random(), 3.5) * 0.6 + 0.08) * 0.125; // Background stars at 12.5% of original size (half of previous 25%)
+    // Use SIZE_CONFIG for consolidated size parameters
+    const sizeMultiplier = (Math.pow(Math.random(), SIZE_CONFIG.sizeVariationExponent) * SIZE_CONFIG.sizeRangeMax + SIZE_CONFIG.sizeRangeMin) * SIZE_CONFIG.backgroundStarMultiplier;
     const size = sizeMultiplier * starSize;
 
     // Random color from palette

@@ -5,18 +5,15 @@
     "paths": {
       "@/*": ["src/*"]
     },
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "noEmit": true
   },
   "include": [
-    "vite.config.ts",
-    "vite.config.d.ts",
-    "vite.config.js",
     "src/**/*.ts",
     "src/**/*.tsx",
-    "apps/design-system/src/**/*.ts",
-    "apps/design-system/src/**/*.tsx",
-    "**/*.config.js",
-    "**/*.config.ts"
+    "node_modules/vite/client.d.ts"
   ],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "dist", "vite.config.ts", "**/*.config.ts", "**/*.config.js"]
 }
