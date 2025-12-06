@@ -32,6 +32,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 2rem; /* Add gap between sections */
 }
 
 .headerLeft {
@@ -86,6 +87,7 @@
 .nav {
   display: flex;
   align-items: center;
+  flex: 1; /* Allow nav to grow and take available space */
 }
 
 .navList {
@@ -94,6 +96,7 @@
   margin: 0;
   padding: 0;
   gap: 2rem;
+  /* Left-align with good spacing */
 }
 
 .navItem {
