@@ -21,7 +21,7 @@ import DebugControlsOverlay from "./DebugControlsOverlay";
 import { useStarInitialization } from "./hooks/useStarInitialization";
 import { applyClickForce, createClickExplosion, resetConnectionStagger } from "./stars";
 import { checkSunHover, resetAnimationModuleState } from "./hooks/animation/animate";
-import { applyClickRepulsionToSunsCanvas, getSunPosition, resetSunSystem } from "./sunSystem";
+import { applyClickRepulsionToSunsCanvas, getSunPosition, getSunStates, resetSunSystem } from "./sunSystem";
 import { applyClickRepulsionToPlanets } from "./Planets";
 import SunTooltip, { SunInfo } from "./sunTooltip";
 import { EFFECT_TIMING, CAMERA_CONFIG } from "./physicsConfig";
@@ -1235,6 +1235,24 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
           }}
         />
       )}
+
+      {/* Vignette overlay when focused on a sun */}
+      {focusedSunId && (
+        <div className={`${styles.cameraVignette} ${!isDarkMode ? styles.cameraVignetteLight : ""}`} />
+      )}
+
+      {/* Focus area indicator when zoomed into a sun */}
+      {focusedSunId && (() => {
+        const sunState = getSunStates().find(s => s.id === focusedSunId);
+        return sunState ? (
+          <div className={`${styles.focusAreaIndicator} ${!isDarkMode ? styles.focusAreaIndicatorLight : ""}`}>
+            <div className={styles.focusAreaLabel}>
+              <span className={styles.focusAreaIcon}>🔍</span>
+              <span className={styles.focusAreaName}>{sunState.name}</span>
+            </div>
+          </div>
+        ) : null;
+      })()}
 
       {/* Zoom out button when focused on a sun */}
       {focusedSunId && (
