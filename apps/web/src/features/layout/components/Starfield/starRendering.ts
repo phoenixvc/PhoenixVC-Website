@@ -233,44 +233,50 @@ function drawProjectIdentifier(
     }
   }
   
-  // Draw focus area vector icon on the planet
-  if (!planet.useSimpleRendering && planet.project?.focusArea) {
-    drawPlanetFocusAreaIcon(ctx, planet.x, planet.y, starSize, planet.project.focusArea);
+  // Only draw focus area vector icon when there's NO project image
+  // The project image/icon takes precedence as the primary visual identifier
+  // Focus area icons are only shown as fallback for projects without images
+  if (!planet.useSimpleRendering && planet.project?.focusArea && !planet.project.image) {
+    drawPlanetFocusAreaIcon(ctx, planet.x, planet.y, starSize, planet.project.focusArea, planet.isHovered);
   }
 }
 
 /**
  * Draw a focus area vector icon on a planet/comet
  * The icon is drawn as a small overlay on the planet body
+ * Icon is always visible and enlarges when hovered
  */
 function drawPlanetFocusAreaIcon(
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
   starSize: number,
-  focusArea: string
+  focusArea: string,
+  isHovered: boolean = false
 ): void {
   ctx.save();
   
   // Position the icon at the center of the planet (overlaid on top)
-  // Increased size for better visibility
-  const iconSize = starSize * 0.55;
+  // Base size for better visibility, with larger size when hovered
+  const hoverScale = isHovered ? 1.5 : 1.0; // 50% larger when hovered
+  const iconSize = starSize * 0.55 * hoverScale;
   const iconX = x;
   const iconY = y;
   
   // Draw a semi-transparent circular background for the icon
+  // More visible background, brighter when hovered
   ctx.beginPath();
   ctx.arc(iconX, iconY, iconSize * 1.3, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+  ctx.fillStyle = isHovered ? "rgba(0, 0, 0, 0.6)" : "rgba(0, 0, 0, 0.45)";
   ctx.fill();
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.7)";
-  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = isHovered ? "rgba(255, 255, 255, 0.9)" : "rgba(255, 255, 255, 0.7)";
+  ctx.lineWidth = isHovered ? 2.5 : 1.5;
   ctx.stroke();
   
   // Set icon drawing styles with increased stroke width
   ctx.strokeStyle = "#ffffff";
   ctx.fillStyle = "#ffffff";
-  ctx.lineWidth = Math.max(1.5, iconSize * 0.12);
+  ctx.lineWidth = Math.max(isHovered ? 2.0 : 1.5, iconSize * 0.12);
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   

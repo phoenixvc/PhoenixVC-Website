@@ -550,8 +550,16 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
         // This allows sun tooltips to show when hovering over the canvas or its background elements
         // but not when hovering over content cards or other UI elements above the starfield
         const elementUnderCursor = document.elementFromPoint(e.clientX, e.clientY);
-        const isWithinStarfield = elementUnderCursor === canvasRef.current || 
-                                  elementUnderCursor?.closest("[data-starfield]") !== null;
+        
+        // Expanded check: allow interaction when hovering over:
+        // 1. The canvas itself
+        // 2. Elements with data-starfield attribute
+        // 3. Elements with data-starfield-passthrough attribute (transparent overlays like hero section)
+        const isCanvas = elementUnderCursor === canvasRef.current;
+        const isWithinStarfieldData = elementUnderCursor?.closest("[data-starfield]") !== null;
+        const isWithinStarfieldPassthrough = elementUnderCursor?.closest("[data-starfield-passthrough]") !== null;
+        const isWithinStarfield = isCanvas || isWithinStarfieldData || isWithinStarfieldPassthrough;
+        
         // Also check if we're within canvas bounds
         const isWithinBounds = canvasX >= 0 && canvasX <= rect.width && 
                                canvasY >= 0 && canvasY <= rect.height;
