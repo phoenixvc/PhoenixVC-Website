@@ -254,6 +254,12 @@ export const COMET_CONFIG = {
  * Controls zoom and pan animations for sun focus
  */
 export const CAMERA_CONFIG = {
+  /** Default camera center X position (normalized 0-1) */
+  defaultCenterX: 0.5,
+  /** Default camera center Y position (normalized 0-1) */
+  defaultCenterY: 0.5,
+  /** Default camera zoom level */
+  defaultZoom: 1,
   /** Minimum icon size in pixels for planet focus area icons */
   minIconSize: 12,
   /** Camera lerp smoothing factor (lower = smoother, higher = faster) */

@@ -150,9 +150,9 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   
   // Internal camera state for sun zoom functionality
   const [internalCamera, setInternalCamera] = useState<Camera>({
-    cx: 0.5,
-    cy: 0.5,
-    zoom: 1,
+    cx: CAMERA_CONFIG.defaultCenterX,
+    cy: CAMERA_CONFIG.defaultCenterY,
+    zoom: CAMERA_CONFIG.defaultZoom,
     target: undefined
   });
   const cameraAnimationRef = useRef<number | null>(null);
@@ -907,7 +907,11 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   
   // Store current camera state in a ref for animation loop access
   // This ref holds the ANIMATED camera position (not the target)
-  const cameraStateRef = useRef({ cx: 0.5, cy: 0.5, zoom: 1 });
+  const cameraStateRef = useRef({ 
+    cx: CAMERA_CONFIG.defaultCenterX, 
+    cy: CAMERA_CONFIG.defaultCenterY, 
+    zoom: CAMERA_CONFIG.defaultZoom 
+  });
   
   useEffect(() => {
     // Only start animation if there's an active target
@@ -934,9 +938,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     
     const animateCamera = (): void => {
       // Read the current animated position from ref (updated each frame)
-      const currentCx = cameraStateRef.current.cx;
-      const currentCy = cameraStateRef.current.cy;
-      const currentZoom = cameraStateRef.current.zoom;
+      const { cx: currentCx, cy: currentCy, zoom: currentZoom } = cameraStateRef.current;
       
       const smoothing = CAMERA_CONFIG.cameraSmoothingFactor;
       const newCx = currentCx + (targetCx - currentCx) * smoothing;
@@ -965,7 +967,8 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
         return;
       }
       
-      // Update React state for rendering (this triggers re-render which passes to animation loop)
+      // Update React state to trigger re-render for visual updates
+      // (The animation loop reads from cameraStateRef, not React state)
       setInternalCamera(prev => ({
         cx: newCx,
         cy: newCy,
