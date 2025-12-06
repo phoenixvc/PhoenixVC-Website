@@ -906,16 +906,21 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     // Default to sunFocusZoom if no planets, otherwise calculate dynamically
     // Base zoom is 2.5, but we reduce it if planets orbit far from the sun
     // Normalized maxOrbitRadius (typical range: 50-200 pixels on a 1000px canvas)
-    const canvasSize = Math.min(
-      dimensionsRef.current.width, 
-      dimensionsRef.current.height
-    );
+    const canvasSize = dimensionsRef.current 
+      ? Math.min(dimensionsRef.current.width, dimensionsRef.current.height)
+      : 1000; // Default fallback size
     const normalizedOrbitRadius = maxOrbitRadius / canvasSize;
     
     // Calculate zoom: larger orbits = less zoom to fit everything in view
-    // Zoom range: 1.8 to 3.0 depending on orbit size
+    // Zoom range: minSunFocusZoom to maxSunFocusZoom depending on orbit size
     const calculatedZoom = normalizedOrbitRadius > 0 
-      ? Math.max(1.8, Math.min(3.0, 2.8 / (1 + normalizedOrbitRadius * 3)))
+      ? Math.max(
+          CAMERA_CONFIG.minSunFocusZoom, 
+          Math.min(
+            CAMERA_CONFIG.maxSunFocusZoom, 
+            CAMERA_CONFIG.sunFocusZoomDivisor / (1 + normalizedOrbitRadius * CAMERA_CONFIG.sunFocusOrbitMultiplier)
+          )
+        )
       : CAMERA_CONFIG.sunFocusZoom;
     
     // Set camera target to zoom in on the sun
