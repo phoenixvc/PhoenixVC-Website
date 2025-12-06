@@ -95,8 +95,8 @@ export const initStars = (
 
     // Random size with weighted distribution (more small stars, crisper appearance)
     // Use higher exponent for smaller stars as requested
-    // Reduced to 2/3 of original size (multiplied by 0.667)
-    const sizeMultiplier = (Math.pow(Math.random(), 3.5) * 0.6 + 0.08) * 0.667; // Smaller background stars (2/3 size)
+    // Stars are now 3/4 of their previous size: previous was 0.667, now 0.667 * 0.75 ≈ 0.5
+    const sizeMultiplier = (Math.pow(Math.random(), 3.5) * 0.6 + 0.08) * 0.5; // Background stars at 50% of original size (was 67%)
     const size = sizeMultiplier * starSize;
 
     // Random color from palette
