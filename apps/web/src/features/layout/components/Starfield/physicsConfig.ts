@@ -148,6 +148,25 @@ export const SUN_PHYSICS = {
 } as const;
 
 /**
+ * Planet/comet physics configuration
+ * Controls click repulsion for orbiting portfolio items
+ */
+export const PLANET_PHYSICS = {
+  /** Radius for click effect on planets (in pixels) */
+  clickRepulsionRadius: 300,
+  /** Base force applied per click to planets */
+  clickRepulsionForce: 15,
+  /** Maximum accumulated velocity from clicks */
+  maxClickVelocity: 50,
+  /** How fast planet repulsion decays (0.94 = 6% decay per frame) */
+  clickRepulsionDecay: 0.94,
+  /** Orbit speed boost when clicked (temporary speed increase) */
+  orbitSpeedBoost: 3.0,
+  /** Duration of orbit speed boost in ms */
+  orbitSpeedBoostDuration: 2000,
+} as const;
+
+/**
  * Flow effect configuration
  * Adds subtle random movement to stars
  */
@@ -278,6 +297,7 @@ export type StarPhysics = typeof STAR_PHYSICS;
 export type MousePhysics = typeof MOUSE_PHYSICS;
 export type BlackHolePhysics = typeof BLACK_HOLE_PHYSICS;
 export type SunPhysics = typeof SUN_PHYSICS;
+export type PlanetPhysics = typeof PLANET_PHYSICS;
 export type FlowPhysics = typeof FLOW_PHYSICS;
 export type ConnectionConfig = typeof CONNECTION_CONFIG;
 export type SizeConfig = typeof SIZE_CONFIG;

@@ -22,6 +22,7 @@ import { useStarInitialization } from "./hooks/useStarInitialization";
 import { applyClickForce, createClickExplosion, resetConnectionStagger } from "./stars";
 import { checkSunHover, resetAnimationModuleState } from "./hooks/animation/animate";
 import { applyClickRepulsionToSunsCanvas, getSunPosition, resetSunSystem } from "./sunSystem";
+import { applyClickRepulsionToPlanets } from "./Planets";
 import SunTooltip, { SunInfo } from "./sunTooltip";
 import { EFFECT_TIMING, CAMERA_CONFIG } from "./physicsConfig";
 
@@ -1023,6 +1024,11 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     // Apply repulsive force to suns (this stacks up with multiple clicks)
     applyClickRepulsionToSunsCanvas(x, y, rect.width, rect.height);
 
+    // Apply repulsive force to planets/comets (orbiting portfolio items)
+    if (employeeStarsRef.current && employeeStarsRef.current.length > 0) {
+      applyClickRepulsionToPlanets(employeeStarsRef.current, x, y);
+    }
+
     // Use the unified function for regular click repulsion
     applyStarfieldRepulsion(x, y);
 
@@ -1036,7 +1042,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
         clickTime: Date.now()
       }));
     }
-  }, [canvasRef, setMousePosition, applyStarfieldRepulsion, zoomToSun]);
+  }, [canvasRef, setMousePosition, applyStarfieldRepulsion, zoomToSun, employeeStarsRef]);
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -1061,6 +1067,12 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
 
         // Only apply repulsion effects if we didn't click on a sun
         applyClickRepulsionToSunsCanvas(x, y, rect.width, rect.height);
+        
+        // Apply repulsion to planets/comets
+        if (employeeStarsRef.current && employeeStarsRef.current.length > 0) {
+          applyClickRepulsionToPlanets(employeeStarsRef.current, x, y);
+        }
+        
         applyStarfieldRepulsion(x, y);
       };
 
@@ -1070,7 +1082,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
         canvas.removeEventListener("click", clickHandler);
       };
     }
-  }, [canvasRef, applyStarfieldRepulsion, zoomToSun]);
+  }, [canvasRef, applyStarfieldRepulsion, zoomToSun, employeeStarsRef]);
 
   return (
     <>
@@ -1111,6 +1123,12 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
                 } else {
                   // Only apply repulsion if we didn't touch a sun
                   applyClickRepulsionToSunsCanvas(x, y, rect.width, rect.height);
+                  
+                  // Apply repulsion to planets/comets
+                  if (employeeStarsRef.current && employeeStarsRef.current.length > 0) {
+                    applyClickRepulsionToPlanets(employeeStarsRef.current, x, y);
+                  }
+                  
                   applyStarfieldRepulsion(x, y);
                 }
               }
