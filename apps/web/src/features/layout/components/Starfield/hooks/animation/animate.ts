@@ -138,11 +138,23 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       );
     }
 
-    // Always draw stars first - this ensures they always appear
-    drawStars(ctx, currentStars);
+    // Draw background stars with reduced opacity when focused on a sun
+    // This makes the focused area more prominent
+    if (props.focusedSunId) {
+      ctx.save();
+      ctx.globalAlpha = 0.2; // Dim background stars significantly
+      drawStars(ctx, currentStars);
+      ctx.restore();
+    } else {
+      // Always draw stars first - this ensures they always appear
+      drawStars(ctx, currentStars);
+    }
     
     // Draw star birthplace indicators at the edges where stars respawn
-    drawStarBirthplaces(ctx, canvas.width, canvas.height);
+    // Hide these when focused on a sun for cleaner view
+    if (!props.focusedSunId) {
+      drawStarBirthplaces(ctx, canvas.width, canvas.height);
+    }
 
     // Get planets for sun size calculation
     const currentPlanets: Planet[] = props.planetsRef?.current ? [...props.planetsRef.current] : [];
@@ -294,8 +306,8 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
     // Note: handleBoundaries removed - updateStarPositions already handles wrapping
     // Adding it here caused double-wrapping and potential oscillation at edges
 
-    // Draw black holes if enabled
-    if (props.enableBlackHole) {
+    // Draw black holes if enabled (hide when focused on a sun for cleaner view)
+    if (props.enableBlackHole && !props.focusedSunId) {
       currentBlackHoles.forEach((blackHole: BlackHole) => {
         drawBlackHole(ctx, blackHole, deltaTime, props.particleSpeed * 0.01);
       });

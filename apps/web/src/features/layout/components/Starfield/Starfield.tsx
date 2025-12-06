@@ -887,6 +887,37 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     
     setFocusedSunId(sunId);
     
+    // Calculate the maximum orbit radius of planets around this sun
+    // This helps determine the optimal zoom level
+    const planetsForSun = employeeStarsRef.current.filter(
+      planet => planet.orbitParentId === sunId
+    );
+    
+    let maxOrbitRadius = 0;
+    if (planetsForSun.length > 0) {
+      planetsForSun.forEach(planet => {
+        if (planet.orbitRadius) {
+          maxOrbitRadius = Math.max(maxOrbitRadius, planet.orbitRadius);
+        }
+      });
+    }
+    
+    // Calculate zoom level based on orbit size
+    // Default to sunFocusZoom if no planets, otherwise calculate dynamically
+    // Base zoom is 2.5, but we reduce it if planets orbit far from the sun
+    // Normalized maxOrbitRadius (typical range: 50-200 pixels on a 1000px canvas)
+    const canvasSize = Math.min(
+      dimensionsRef.current.width, 
+      dimensionsRef.current.height
+    );
+    const normalizedOrbitRadius = maxOrbitRadius / canvasSize;
+    
+    // Calculate zoom: larger orbits = less zoom to fit everything in view
+    // Zoom range: 1.8 to 3.0 depending on orbit size
+    const calculatedZoom = normalizedOrbitRadius > 0 
+      ? Math.max(1.8, Math.min(3.0, 2.8 / (1 + normalizedOrbitRadius * 3)))
+      : CAMERA_CONFIG.sunFocusZoom;
+    
     // Set camera target to zoom in on the sun
     // Sun position is normalized (0-1), camera uses same coordinates
     setInternalCamera(prev => ({
@@ -894,11 +925,11 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
       target: {
         cx: sunPosition.x,
         cy: sunPosition.y,
-        zoom: CAMERA_CONFIG.sunFocusZoom
+        zoom: calculatedZoom
       }
     }));
     
-  }, [focusedSunId]);
+  }, [focusedSunId, employeeStarsRef, dimensionsRef]);
 
   // Smooth camera lerp animation - only runs when there's an active target
   // Use a serialized target key to detect when target changes
