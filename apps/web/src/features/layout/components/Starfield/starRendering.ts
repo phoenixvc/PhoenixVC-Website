@@ -150,9 +150,9 @@ function drawProjectIdentifier(
   starSize: number,
   displayStyle: "initials" | "avatar" | "both"
 ): void {
-  // Try to get the project image first - always attempt to show it if available
-  const hasProjectImage = !planet.useSimpleRendering && planet.project.image;
-  const img = hasProjectImage && planet.project.image ? getCachedImage(planet.project.image) : null;
+  // Extract project image path for cleaner logic
+  const projectImagePath = !planet.useSimpleRendering ? planet.project.image : undefined;
+  const img = projectImagePath ? getCachedImage(projectImagePath) : null;
   
   // Use SIZE_CONFIG for consistent sizing
   const clipRadius = starSize * SIZE_CONFIG.projectIconClipRadius;
@@ -181,8 +181,8 @@ function drawProjectIdentifier(
     ctx.lineWidth = 2;
     ctx.strokeStyle = "rgba(255, 255, 255, 0.7)";
     ctx.stroke();
-  } else if (!planet.useSimpleRendering && displayStyle === "both" && planet.project.image) {
-    // Image exists but not loaded yet - show initials with loading indicator
+  } else if (projectImagePath && displayStyle === "both") {
+    // Image path exists but image not loaded yet - show initials with loading indicator
     ctx.save();
     ctx.beginPath();
     ctx.arc(planet.x, planet.y, bgRadius, 0, Math.PI * 2);
@@ -237,7 +237,7 @@ function drawProjectIdentifier(
   // Draw focus area vector icon when there's NO project image
   // The project image/icon takes precedence as the primary visual identifier
   // Focus area icons are only shown as fallback for projects without images
-  if (!planet.useSimpleRendering && planet.project?.focusArea && !planet.project.image) {
+  if (!planet.useSimpleRendering && planet.project?.focusArea && !projectImagePath) {
     drawPlanetFocusAreaIcon(ctx, planet.x, planet.y, starSize, planet.project.focusArea, planet.isHovered);
   }
 }

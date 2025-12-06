@@ -173,9 +173,6 @@ export const CONNECTION_CONFIG = {
 } as const;
 
 /**
- * Explosion effect configuration
- */
-/**
  * Starfield size configuration
  * Consolidated size parameters for background stars, planets, and visual elements
  */
@@ -210,6 +207,9 @@ export const SIZE_CONFIG = {
   initialsFontSize: 0.9,
 } as const;
 
+/**
+ * Explosion effect configuration
+ */
 export const EXPLOSION_PHYSICS = {
   /** Force reduction for explosion effects */
   forceMultiplier: 0.1,
