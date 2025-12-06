@@ -54,6 +54,7 @@
   background-position: 0 0, 40px 60px, 130px 270px, 70px 100px;
   animation: starfieldMotion 200s linear infinite;
   z-index: 1; /* Changed from -2 to 1 */
+  pointer-events: none; /* Allow clicks to pass through to canvas */
 }
 
 @keyframes slowDrift {
@@ -116,6 +117,7 @@
   filter: blur(70px);
   z-index: 2;
   animation: slowDrift 90s ease-in-out infinite;
+  pointer-events: none; /* Allow clicks to pass through to canvas */
 }
 
 .frontierAccent {
@@ -134,6 +136,7 @@
   z-index: 2;
   transform: rotate(-15deg);
   animation: slowDrift2 120s ease-in-out infinite;
+  pointer-events: none; /* Allow clicks to pass through to canvas */
 }
 
 .purpleAccent {
@@ -150,6 +153,7 @@
   filter: blur(80px);
   z-index: 1;
   animation: slowDrift3 105s ease-in-out infinite;
+  pointer-events: none; /* Allow clicks to pass through to canvas */
 }
 
 /* Add an additional accent */
@@ -162,6 +166,7 @@
   background: radial-gradient(ellipse at center, rgba(76, 0, 153, 0.08) 0%, transparent 70%);
   filter: blur(80px);
   z-index: 1;
+  pointer-events: none; /* Allow clicks to pass through to canvas */
 }
 
 /* Canvas styles consolidated in first .starfieldCanvas definition */

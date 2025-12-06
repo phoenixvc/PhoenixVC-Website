@@ -546,10 +546,16 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
         const canvasX = e.clientX - rect.left;
         const canvasY = e.clientY - rect.top;
         
-        // Check if the actual element under the cursor is the canvas itself
-        // This prevents sun tooltips from showing when hovering over cards/content above the canvas
+        // Check if the actual element under the cursor is within the starfield area
+        // This allows sun tooltips to show when hovering over the canvas or its background elements
+        // but not when hovering over content cards or other UI elements above the starfield
         const elementUnderCursor = document.elementFromPoint(e.clientX, e.clientY);
-        const isOverCanvas = elementUnderCursor === canvasRef.current;
+        const isWithinStarfield = elementUnderCursor === canvasRef.current || 
+                                  elementUnderCursor?.closest("[data-starfield]") !== null;
+        // Also check if we're within canvas bounds
+        const isWithinBounds = canvasX >= 0 && canvasX <= rect.width && 
+                               canvasY >= 0 && canvasY <= rect.height;
+        const isOverCanvas = isWithinStarfield && isWithinBounds;
         
         const sunHoverResult = isOverCanvas ? checkSunHover(canvasX, canvasY, rect.width, rect.height) : null;
 
