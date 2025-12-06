@@ -1,8 +1,8 @@
 // components/ui/Disclaimer.tsx
-import { FC, ReactNode } from 'react';
-import styles from './Disclaimer.module.css';
+import { FC, ReactNode } from "react";
+import styles from "./Disclaimer.module.css";
 
-export type DisclaimerType = 'info' | 'warning' | 'coming-soon';
+export type DisclaimerType = "info" | "warning" | "coming-soon";
 
 interface DisclaimerProps {
   type?: DisclaimerType;
@@ -13,23 +13,23 @@ interface DisclaimerProps {
 }
 
 export const Disclaimer: FC<DisclaimerProps> = ({
-  type = 'info',
+  type = "info",
   title,
   message,
   onDismiss,
   icon
-}) => {
-  const getIcon = () => {
+}): JSX.Element => {
+  const getIcon = (): ReactNode => {
     if (icon) return icon;
     
     switch (type) {
-      case 'warning':
-        return '⚠️';
-      case 'coming-soon':
-        return '🚧';
-      case 'info':
+      case "warning":
+        return "⚠️";
+      case "coming-soon":
+        return "🚧";
+      case "info":
       default:
-        return 'ℹ️';
+        return "ℹ️";
     }
   };
 

@@ -41,7 +41,7 @@ const ThemeDesigner = lazy(() => import("./features/theme-designer").then(m => (
 // Lazy load homepage sections
 const LazyInvestmentFocus = lazy(() => import("./features/investment-focus").then(m => ({ default: m.InvestmentFocus })));
 const LazyAbout = lazy(() => import("./features/about").then(m => ({ default: m.About })));
-const LazyTeam = lazy(() => import("./features/team").then(m => ({ default: m.Team })));
+// const LazyTeam = lazy(() => import("./features/team").then(m => ({ default: m.Team })));
 const LazyContact = lazy(() => import("./features/contact").then(m => ({ default: m.Contact })));
 
 // Loading fallback component using skeleton
