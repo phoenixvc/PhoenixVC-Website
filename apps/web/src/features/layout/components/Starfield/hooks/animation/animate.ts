@@ -128,21 +128,32 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       const cameraCenterX = props.camera.cx * canvas.width;
       const cameraCenterY = props.camera.cy * canvas.height;
       
-      // Apply transformation: translate to center, scale, then translate back
-      // This keeps the zoom centered on the camera target point
+      // Apply transformation to center the camera target in the viewport
+      // 1. Translate so camera target is at origin
+      // 2. Scale around origin
+      // 3. Translate to center of viewport
       ctx.translate(canvas.width / 2, canvas.height / 2);
       ctx.scale(props.camera.zoom, props.camera.zoom);
-      ctx.translate(
-        -cameraCenterX,
-        -cameraCenterY
-      );
+      ctx.translate(-cameraCenterX, -cameraCenterY);
     }
 
-    // Always draw stars first - this ensures they always appear
-    drawStars(ctx, currentStars);
+    // Draw background stars with reduced opacity when focused on a sun
+    // This makes the focused area more prominent
+    if (props.focusedSunId) {
+      ctx.save();
+      ctx.globalAlpha = 0.2; // Dim background stars significantly
+      drawStars(ctx, currentStars);
+      ctx.restore();
+    } else {
+      // Always draw stars first - this ensures they always appear
+      drawStars(ctx, currentStars);
+    }
     
     // Draw star birthplace indicators at the edges where stars respawn
-    drawStarBirthplaces(ctx, canvas.width, canvas.height);
+    // Hide these when focused on a sun for cleaner view
+    if (!props.focusedSunId) {
+      drawStarBirthplaces(ctx, canvas.width, canvas.height);
+    }
 
     // Get planets for sun size calculation
     const currentPlanets: Planet[] = props.planetsRef?.current ? [...props.planetsRef.current] : [];
@@ -294,17 +305,22 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
     // Note: handleBoundaries removed - updateStarPositions already handles wrapping
     // Adding it here caused double-wrapping and potential oscillation at edges
 
-    // Draw black holes if enabled
-    if (props.enableBlackHole) {
+    // Draw black holes if enabled (hide when focused on a sun for cleaner view)
+    if (props.enableBlackHole && !props.focusedSunId) {
       currentBlackHoles.forEach((blackHole: BlackHole) => {
         drawBlackHole(ctx, blackHole, deltaTime, props.particleSpeed * 0.01);
       });
     }
 
     // Draw portfolio comets/planets
+    // Filter planets if a sun is focused (show only planets orbiting that sun)
+    const planetsToRender = props.focusedSunId 
+      ? currentPlanets.filter(planet => planet.orbitParentId === props.focusedSunId)
+      : currentPlanets;
+    
     updatePlanets(
       ctx,
-      currentPlanets,
+      planetsToRender,
       deltaTime,
       props.planetSize,
       props.employeeDisplayStyle,
@@ -781,6 +797,11 @@ function drawSuns(
   ctx.imageSmoothingQuality = "high";
 
   sunStates.forEach((sunState) => {
+    // If a sun is focused, only render that sun (hide others for cleaner zoom view)
+    if (focusedSunId && focusedSunId !== sunState.id) {
+      return; // Skip rendering this sun
+    }
+    
     // Use dynamic position from sun system
     const x = sunState.x * width;
     const y = sunState.y * height;

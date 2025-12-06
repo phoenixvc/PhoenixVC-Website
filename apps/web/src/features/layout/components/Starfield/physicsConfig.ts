@@ -291,8 +291,16 @@ export const CAMERA_CONFIG = {
   positionConvergenceThreshold: 0.001,
   /** Threshold for camera zoom convergence */
   zoomConvergenceThreshold: 0.01,
-  /** Target zoom level when focusing on a sun */
+   /** Target zoom level when focusing on a sun */
   sunFocusZoom: 2.5,
+  /** Minimum zoom level for dynamic sun focus */
+  minSunFocusZoom: 1.8,
+  /** Maximum zoom level for dynamic sun focus */
+  maxSunFocusZoom: 3.0,
+  /** Base divisor for dynamic zoom calculation */
+  sunFocusZoomDivisor: 2.8,
+  /** Orbit multiplier for dynamic zoom calculation */
+  sunFocusOrbitMultiplier: 3,
 } as const;
 
 // Type exports for type safety
