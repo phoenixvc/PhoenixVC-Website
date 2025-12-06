@@ -1212,8 +1212,8 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
         />
       )}
 
-      {/* Sun tooltip when hovering over a focus area sun */}
-      {hoveredSun && (
+      {/* Sun tooltip when hovering over a focus area sun - only show if no project tooltip is visible */}
+      {hoveredSun && !pinnedProject && !hoverInfo.show && (
         <SunTooltip
           sun={hoveredSun}
           isDarkMode={isDarkMode}
