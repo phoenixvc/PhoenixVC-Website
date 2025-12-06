@@ -162,6 +162,12 @@ export const PLANET_PHYSICS = {
   clickRepulsionDecay: 0.94,
   /** Orbit speed boost when clicked (temporary speed increase, restored when velocity decays) */
   orbitSpeedBoost: 3.0,
+  /** Orbit stabilization - force to pull planets back to their original orbit */
+  orbitStabilizationForce: 0.02,
+  /** How far from orbit radius before stabilization kicks in (as fraction of orbit radius) */
+  orbitStabilizationThreshold: 0.1,
+  /** Maximum stabilization force to prevent jerky movement */
+  maxStabilizationForce: 0.5,
 } as const;
 
 /**

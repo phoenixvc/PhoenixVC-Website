@@ -547,7 +547,7 @@ export function applyClickRepulsionToPlanets(
 
 /**
  * Update planet positions based on velocity (called each frame)
- * This applies the accumulated click repulsion velocity
+ * This applies the accumulated click repulsion velocity and orbit stabilization
  * @param planets - Array of planets to update
  */
 export function updatePlanetVelocities(planets: Planet[]): void {
@@ -578,6 +578,41 @@ export function updatePlanetVelocities(planets: Planet[]): void {
         if (planet.originalOrbitSpeed !== undefined) {
           planet.orbitSpeed = planet.originalOrbitSpeed;
           planet.originalOrbitSpeed = undefined;
+        }
+      }
+    }
+    
+    // Apply orbit stabilization - gradually pull planet back to its orbit radius
+    if (planet.orbitCenter && planet.orbitRadius > 0) {
+      const dx = planet.x - planet.orbitCenter.x;
+      const dy = planet.y - planet.orbitCenter.y;
+      const currentDistance = Math.sqrt(dx * dx + dy * dy);
+      
+      // Calculate how far the planet is from its intended orbit
+      const distanceFromOrbit = currentDistance - planet.orbitRadius;
+      const relativeDeviation = Math.abs(distanceFromOrbit) / planet.orbitRadius;
+      
+      // Only apply stabilization if significantly off orbit
+      if (relativeDeviation > PLANET_PHYSICS.orbitStabilizationThreshold) {
+        // Calculate direction toward/away from orbit center
+        const nx = dx / currentDistance;
+        const ny = dy / currentDistance;
+        
+        // Calculate stabilization force (proportional to deviation, capped at max)
+        const stabilizationStrength = Math.min(
+          PLANET_PHYSICS.orbitStabilizationForce * relativeDeviation,
+          PLANET_PHYSICS.maxStabilizationForce
+        );
+        
+        // If too far from sun, pull closer; if too close, push away
+        if (distanceFromOrbit > 0) {
+          // Planet is too far - pull toward center
+          planet.vx = (planet.vx || 0) - nx * stabilizationStrength;
+          planet.vy = (planet.vy || 0) - ny * stabilizationStrength;
+        } else {
+          // Planet is too close - push away from center
+          planet.vx = (planet.vx || 0) + nx * stabilizationStrength;
+          planet.vy = (planet.vy || 0) + ny * stabilizationStrength;
         }
       }
     }
