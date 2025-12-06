@@ -871,7 +871,9 @@
 .zoomOutButton {
   position: fixed;
   top: 90px; /* Below header (70px) with 20px padding */
-  /* Center in viewport, not content area */
+  /* Center in visible content area (accounting for sidebar) */
+  /* Using CSS calc to center relative to visible area, not full viewport */
+  /* left offset will be set inline via style prop based on sidebar width */
   left: 50%;
   transform: translateX(-50%);
   z-index: 50; /* Below header (z-index: 1000) but above starfield */
