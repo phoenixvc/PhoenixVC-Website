@@ -20,9 +20,7 @@ const teamMembers: TeamMember[] = [
     name: "Eben Maré",
     role: "CEO",
     bio: "Eben is a quantitative finance and technology leader with over 15 years of experience in trading, investment banking, and venture building. As CEO, he combines deep analytical skills with strategic leadership to guide Phoenix VC's growth.",
-    // TODO: Update to new profile picture when available locally
-    // New image: https://github.com/user-attachments/assets/0f0a4942-5834-442f-9cf2-410b0f7c7b15
-    image: "/themes/Noster.png",
+    image: "/523257836-0f0a4942-5834-442f-9cf2-410b0f7c7b15.png",
     linkedin: "https://www.linkedin.com/in/ebenmare/",
     expertise: ["Business Strategy", "Finance", "Technology", "Venture Capital"],
   },
