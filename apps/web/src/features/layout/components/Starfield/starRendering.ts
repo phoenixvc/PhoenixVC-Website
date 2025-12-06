@@ -13,17 +13,33 @@ import {
 import { calculatePulsation, createSoftenedColor, hexToRgb, updateStarPosition } from "./starUtils";
 import { Planet } from "./types";
 import { SUNS } from "./cosmos/cosmicHierarchy";
+import { SIZE_CONFIG } from "./physicsConfig";
 
 // Image cache to avoid creating new Image objects every frame
 const imageCache = new Map<string, HTMLImageElement>();
 
+// Track images that failed to load
+const failedImages = new Set<string>();
+
 // Preload and cache an image
 function getCachedImage(src: string): HTMLImageElement | null {
   if (!src) return null;
+  
+  // Don't retry failed images
+  if (failedImages.has(src)) return null;
 
   let img = imageCache.get(src);
   if (!img) {
     img = new Image();
+    // Add crossOrigin for CORS support
+    img.crossOrigin = "anonymous";
+    
+    // Track load failures
+    img.onerror = () => {
+      failedImages.add(src);
+      console.warn(`Failed to load image: ${src}`);
+    };
+    
     img.src = src;
     imageCache.set(src, img);
   }
@@ -31,6 +47,18 @@ function getCachedImage(src: string): HTMLImageElement | null {
   // Check both complete AND naturalWidth to ensure image actually loaded successfully
   // (complete is true even for failed loads, but naturalWidth would be 0)
   return (img.complete && img.naturalWidth > 0) ? img : null;
+}
+
+/**
+ * Preload all project images to ensure they're ready for rendering
+ * Call this early during initialization
+ */
+export function preloadProjectImages(projects: Array<{ image?: string }>): void {
+  projects.forEach(project => {
+    if (project.image) {
+      getCachedImage(project.image);
+    }
+  });
 }
 
 // Get the color a planet should use based on its focus area (matching its sun)
@@ -91,7 +119,7 @@ export const drawPlanet = (
   const massScale = Math.sqrt(projectMass / baseMass); // Square root for gentler scaling
   const clampedMassScale = Math.max(0.7, Math.min(1.5, massScale)); // Clamp between 0.7x and 1.5x
 
-  const starSize = 2.5 * planetSize * scaleFactor * clampedMassScale; // Base size with mass scaling (reduced from 3 to 2.5 for 5/6 size)
+  const starSize = SIZE_CONFIG.planetBaseSize * planetSize * scaleFactor * clampedMassScale;
 
   // Draw nebula effects for important stars
   drawNebulaEffects(ctx, planet, starSize, softRgb);
@@ -119,7 +147,7 @@ export const drawPlanet = (
   // Draw outer ring in sun color (shows focus area affiliation)
   if (!planet.useSimpleRendering && projectColor !== sunColor) {
     ctx.beginPath();
-    ctx.arc(planet.x, planet.y, starSize * 1.15, 0, Math.PI * 2);
+    ctx.arc(planet.x, planet.y, starSize * SIZE_CONFIG.planetHoverScale, 0, Math.PI * 2);
     ctx.strokeStyle = `rgba(${softGlowRgb.r}, ${softGlowRgb.g}, ${softGlowRgb.b}, 0.5)`;
     ctx.lineWidth = 2;
     ctx.stroke();
@@ -149,73 +177,73 @@ function drawProjectIdentifier(
   starSize: number,
   displayStyle: "initials" | "avatar" | "both"
 ): void {
-  if (!planet.useSimpleRendering && displayStyle === "avatar" && planet.project.image) {
-    const img = getCachedImage(planet.project.image);
-
+  // Extract project image path for cleaner logic
+  const projectImagePath = !planet.useSimpleRendering ? planet.project.image : undefined;
+  const img = projectImagePath ? getCachedImage(projectImagePath) : null;
+  
+  // Use SIZE_CONFIG for consistent sizing
+  const clipRadius = starSize * SIZE_CONFIG.projectIconClipRadius;
+  const imgSize = starSize * SIZE_CONFIG.projectIconImageSize;
+  const ringRadius = starSize * SIZE_CONFIG.projectIconRingRadius;
+  const bgRadius = starSize * SIZE_CONFIG.initialsBackgroundRadius;
+  const fontSize = Math.floor(starSize * SIZE_CONFIG.initialsFontSize);
+  
+  // If we have a loaded image, display it prominently on the planet
+  if (img) {
     ctx.save();
+    
+    // Draw a circular clip for the image
     ctx.beginPath();
-    ctx.arc(planet.x, planet.y, starSize * 0.8, 0, Math.PI * 2);
+    ctx.arc(planet.x, planet.y, clipRadius, 0, Math.PI * 2);
     ctx.clip();
 
-    if (img) {
-      const imgSize = starSize * 1.6;
-      ctx.drawImage(img, planet.x - imgSize/2, planet.y - imgSize/2, imgSize, imgSize);
-    } else {
-      // Show initials while image loads
-      ctx.font = `bold ${Math.floor(starSize * 0.8)}px Arial`;
-      ctx.fillStyle = "#ffffff";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(planet.project.initials || "?", planet.x, planet.y);
-    }
+    // Draw the project icon image centered on the planet
+    ctx.drawImage(img, planet.x - imgSize/2, planet.y - imgSize/2, imgSize, imgSize);
 
     ctx.restore();
 
-    // Add a subtle ring around the avatar
+    // Add a subtle ring around the icon
     ctx.beginPath();
-    ctx.arc(planet.x, planet.y, starSize * 0.85, 0, Math.PI * 2);
-    ctx.lineWidth = 1.5;
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+    ctx.arc(planet.x, planet.y, ringRadius, 0, Math.PI * 2);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.7)";
     ctx.stroke();
-  } else if (!planet.useSimpleRendering && displayStyle === "both" && planet.project.image) {
-    const img = getCachedImage(planet.project.image);
-
+  } else if (projectImagePath) {
+    // Image path exists but image not loaded yet - always show initials while loading
     ctx.save();
     ctx.beginPath();
-    ctx.arc(planet.x, planet.y - starSize * 0.3, starSize * 0.6, 0, Math.PI * 2);
-    ctx.clip();
-
-    if (img) {
-      const imgSize = starSize * 1.2;
-      ctx.drawImage(img, planet.x - imgSize/2, planet.y - starSize * 0.3 - imgSize/2, imgSize, imgSize);
-    }
-
+    ctx.arc(planet.x, planet.y, bgRadius, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+    ctx.fill();
     ctx.restore();
 
-    // Enhanced name display with better readability
-    ctx.shadowColor = "rgba(0, 0, 0, 0.8)"; // Reduced from 0.9
-    ctx.shadowBlur = 4; // Reduced from 5
-    ctx.font = `bold ${Math.floor(starSize * 0.6)}px Arial`;
+    ctx.font = `bold ${fontSize}px Arial`;
     ctx.fillStyle = "#ffffff";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(planet.project.name || planet.project.initials || "?", planet.x, planet.y + starSize * 0.7);
-    ctx.shadowBlur = 0;
+    ctx.fillText(planet.project.initials || "?", planet.x, planet.y);
+
+    // Add ring to indicate loading
+    ctx.beginPath();
+    ctx.arc(planet.x, planet.y, clipRadius, 0, Math.PI * 2);
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+    ctx.stroke();
   } else {
-    // Improved initials display with better visibility
+    // No image or simple rendering - show initials
     if (!planet.useSimpleRendering) {
       // Add a subtle background circle for better text visibility
       ctx.beginPath();
-      ctx.arc(planet.x, planet.y, starSize * 0.7, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(0, 0, 0, 0.25)"; // Reduced from 0.3
+      ctx.arc(planet.x, planet.y, bgRadius, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
       ctx.fill();
 
-      ctx.shadowColor = "rgba(0, 0, 0, 0.7)"; // Reduced from 0.8
-      ctx.shadowBlur = 3; // Reduced from 4
+      ctx.shadowColor = "rgba(0, 0, 0, 0.7)";
+      ctx.shadowBlur = 3;
     }
 
     // Larger, bolder font for initials
-    ctx.font = `bold ${Math.floor(starSize * 0.9)}px Arial`;
+    ctx.font = `bold ${fontSize}px Arial`;
     ctx.fillStyle = "#ffffff";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -226,17 +254,17 @@ function drawProjectIdentifier(
 
       // Add a subtle ring around the initials
       ctx.beginPath();
-      ctx.arc(planet.x, planet.y, starSize * 0.85, 0, Math.PI * 2);
-      ctx.lineWidth = 1.2; // Reduced from 1.5
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.45)"; // Reduced from 0.53
+      ctx.arc(planet.x, planet.y, clipRadius, 0, Math.PI * 2);
+      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
       ctx.stroke();
     }
   }
   
-  // Only draw focus area vector icon when there's NO project image
+  // Draw focus area vector icon when there's NO project image
   // The project image/icon takes precedence as the primary visual identifier
   // Focus area icons are only shown as fallback for projects without images
-  if (!planet.useSimpleRendering && planet.project?.focusArea && !planet.project.image) {
+  if (!planet.useSimpleRendering && planet.project?.focusArea && !projectImagePath) {
     drawPlanetFocusAreaIcon(ctx, planet.x, planet.y, starSize, planet.project.focusArea, planet.isHovered);
   }
 }

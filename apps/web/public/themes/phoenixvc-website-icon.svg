@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- PhoenixVC Website: Corporate website - Phoenix rising from flames -->
+  <defs>
+    <linearGradient id="phoenix-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#9333ea"/>
+      <stop offset="50%" style="stop-color:#f59e0b"/>
+      <stop offset="100%" style="stop-color:#ef4444"/>
+    </linearGradient>
+    <linearGradient id="flame-grad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" style="stop-color:#f59e0b"/>
+      <stop offset="100%" style="stop-color:#ef4444"/>
+    </linearGradient>
+  </defs>
+  <!-- Phoenix body -->
+  <path d="M32 8 L38 18 L44 14 L40 24 L48 22 L42 30 L32 54 L22 30 L16 22 L24 24 L20 14 L26 18 Z" fill="url(#phoenix-grad)"/>
+  <!-- Wing left -->
+  <path d="M22 30 L8 26 L14 32 L6 34 L16 38 L22 36 Z" fill="url(#flame-grad)" opacity="0.9"/>
+  <!-- Wing right -->
+  <path d="M42 30 L56 26 L50 32 L58 34 L48 38 L42 36 Z" fill="url(#flame-grad)" opacity="0.9"/>
+  <!-- Flames base -->
+  <path d="M24 50 L28 44 L32 52 L36 44 L40 50 L36 56 L28 56 Z" fill="#f59e0b" opacity="0.8"/>
+  <!-- Eye -->
+  <circle cx="32" cy="20" r="3" fill="#ffffff"/>
+  <circle cx="32" cy="20" r="1.5" fill="#1f2937"/>
+</svg>

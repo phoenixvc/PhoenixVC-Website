@@ -173,6 +173,41 @@ export const CONNECTION_CONFIG = {
 } as const;
 
 /**
+ * Starfield size configuration
+ * Consolidated size parameters for background stars, planets, and visual elements
+ */
+export const SIZE_CONFIG = {
+  // Background stars
+  /** Master size multiplier for background stars (0.125 = 12.5% of original size) */
+  backgroundStarMultiplier: 0.125,
+  /** Random size variation exponent (higher = more small stars) */
+  sizeVariationExponent: 3.5,
+  /** Base size range (min + random * range) - reduced max from 0.6 to 0.3 for smaller stars */
+  sizeRangeMin: 0.08,
+  sizeRangeMax: 0.3,
+  
+  // Planet/comet rendering
+  /** Base planet size multiplier */
+  planetBaseSize: 2.5,
+  /** Planet hover scale factor */
+  planetHoverScale: 1.15,
+  /** Planet glow radius multiplier */
+  planetGlowRadius: 1.5,
+  
+  // Project identifier (icon/initials on planets)
+  /** Clip radius for project icon relative to star size */
+  projectIconClipRadius: 0.85,
+  /** Image size relative to star size */
+  projectIconImageSize: 1.7,
+  /** Ring radius around project icon */
+  projectIconRingRadius: 0.9,
+  /** Initials background circle radius */
+  initialsBackgroundRadius: 0.7,
+  /** Initials font size relative to star size */
+  initialsFontSize: 0.9,
+} as const;
+
+/**
  * Explosion effect configuration
  */
 export const EXPLOSION_PHYSICS = {
@@ -222,6 +257,7 @@ export type BlackHolePhysics = typeof BLACK_HOLE_PHYSICS;
 export type SunPhysics = typeof SUN_PHYSICS;
 export type FlowPhysics = typeof FLOW_PHYSICS;
 export type ConnectionConfig = typeof CONNECTION_CONFIG;
+export type SizeConfig = typeof SIZE_CONFIG;
 export type ExplosionPhysics = typeof EXPLOSION_PHYSICS;
 export type EffectTiming = typeof EFFECT_TIMING;
 export type CometConfig = typeof COMET_CONFIG;
