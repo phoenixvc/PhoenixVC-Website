@@ -252,26 +252,25 @@ function drawPlanetFocusAreaIcon(
 ): void {
   ctx.save();
   
-  // Position the icon at the bottom-right of the planet
-  const iconSize = starSize * 0.35;
-  const offsetX = starSize * 0.5;
-  const offsetY = starSize * 0.5;
-  const iconX = x + offsetX;
-  const iconY = y + offsetY;
+  // Position the icon at the center of the planet (overlaid on top)
+  // Increased size for better visibility
+  const iconSize = starSize * 0.55;
+  const iconX = x;
+  const iconY = y;
   
-  // Draw a small circular background for the icon
+  // Draw a semi-transparent circular background for the icon
   ctx.beginPath();
-  ctx.arc(iconX, iconY, iconSize * 1.2, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+  ctx.arc(iconX, iconY, iconSize * 1.3, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
   ctx.fill();
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
-  ctx.lineWidth = 1;
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.7)";
+  ctx.lineWidth = 1.5;
   ctx.stroke();
   
-  // Set icon drawing styles
+  // Set icon drawing styles with increased stroke width
   ctx.strokeStyle = "#ffffff";
   ctx.fillStyle = "#ffffff";
-  ctx.lineWidth = Math.max(1, iconSize * 0.1);
+  ctx.lineWidth = Math.max(1.5, iconSize * 0.12);
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   

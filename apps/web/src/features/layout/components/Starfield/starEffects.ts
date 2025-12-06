@@ -254,8 +254,8 @@ export function drawStarTrail(
   ctx.restore();
 
   // ===== LAYER 3: Debris particles left behind (the "wake") =====
-  // These simulate material shed by the comet - increased count for more visible trail
-  const debrisCount = 45;
+  // These simulate material shed by the comet - increased count and size for more visible trail
+  const debrisCount = 60;
   ctx.save();
   
   for (let i = 0; i < debrisCount; i++) {
@@ -269,7 +269,7 @@ export function drawStarTrail(
     const seed3 = Math.sin(i * 74.3 + time * 0.00003);
     
     // Debris spreads wider as it trails behind
-    const spreadFactor = progress * progress * trailLength * 0.35;
+    const spreadFactor = progress * progress * trailLength * 0.4;
     const spreadX = seed1 * spreadFactor;
     const spreadY = seed2 * spreadFactor;
     
@@ -277,14 +277,14 @@ export function drawStarTrail(
     const debrisX = planet.x - normalizedDx * distanceAlongTrail + perpDx * spreadX + spreadY * 0.3;
     const debrisY = planet.y - normalizedDy * distanceAlongTrail + perpDy * spreadX + spreadY * 0.3;
     
-    // Size decreases and varies with distance - increased base size for visibility
-    const sizeVariation = 0.5 + seed3 * 0.5;
-    const debrisSize = starSize * 0.18 * (1 - progress * 0.6) * sizeVariation;
+    // Size decreases and varies with distance - significantly increased base size for visibility
+    const sizeVariation = 0.6 + seed3 * 0.4;
+    const debrisSize = starSize * 0.28 * (1 - progress * 0.5) * sizeVariation;
     
     // Opacity fades with distance - increased for visibility
-    const debrisOpacity = (1 - progress) * 0.85 * (0.5 + Math.abs(seed1) * 0.5);
+    const debrisOpacity = (1 - progress) * 0.95 * (0.6 + Math.abs(seed1) * 0.4);
     
-    if (debrisSize > 0.3 && debrisOpacity > 0.05) {
+    if (debrisSize > 0.2 && debrisOpacity > 0.03) {
       // Draw debris particle with glow
       const debrisGlow = ctx.createRadialGradient(
         debrisX, debrisY, 0,
@@ -316,7 +316,7 @@ export function drawStarTrail(
   ctx.restore();
 
   // ===== LAYER 4: Fine dust particles (very small, numerous) =====
-  const dustCount = 60;
+  const dustCount = 80;
   ctx.save();
   
   for (let i = 0; i < dustCount; i++) {
@@ -328,17 +328,17 @@ export function drawStarTrail(
     const dustSeed2 = Math.cos(i * 157.3 + time * 0.00006);
     
     // Wider spread for dust
-    const dustSpread = progress * trailLength * 0.45;
+    const dustSpread = progress * trailLength * 0.5;
     const dustOffsetX = dustSeed1 * dustSpread;
     const dustOffsetY = dustSeed2 * dustSpread;
     
     const dustX = planet.x - normalizedDx * distanceAlongTrail + dustOffsetX;
     const dustY = planet.y - normalizedDy * distanceAlongTrail + dustOffsetY;
     
-    const dustSize = starSize * 0.06 * (1 - progress * 0.4);
-    const dustOpacity = (1 - progress * 0.7) * 0.6 * Math.abs(dustSeed1);
+    const dustSize = starSize * 0.1 * (1 - progress * 0.3);
+    const dustOpacity = (1 - progress * 0.6) * 0.7 * Math.abs(dustSeed1);
     
-    if (dustSize > 0.2 && dustOpacity > 0.03) {
+    if (dustSize > 0.15 && dustOpacity > 0.02) {
       ctx.beginPath();
       ctx.arc(dustX, dustY, dustSize, 0, Math.PI * 2);
       ctx.fillStyle = `rgba(${sr}, ${sg}, ${sb}, ${dustOpacity})`;
@@ -348,7 +348,7 @@ export function drawStarTrail(
   ctx.restore();
 
   // ===== LAYER 5: Bright sparkles (occasional flashes) =====
-  const sparkleCount = 8;
+  const sparkleCount = 12;
   ctx.save();
   
   for (let i = 0; i < sparkleCount; i++) {
@@ -357,39 +357,39 @@ export function drawStarTrail(
     
     // Sparkles twinkle in and out
     const twinkle = Math.sin(time * 0.002 + i * 2.7);
-    if (twinkle < 0.3) continue; // Only show when "bright"
+    if (twinkle < 0.2) continue; // Only show when "bright" - lowered threshold for more sparkles
     
     const sparkleSeed = Math.sin(i * 43.7);
-    const sparkleSpread = progress * trailLength * 0.12;
+    const sparkleSpread = progress * trailLength * 0.15;
     
     const sparkleX = planet.x - normalizedDx * distanceAlongTrail + perpDx * sparkleSeed * sparkleSpread;
     const sparkleY = planet.y - normalizedDy * distanceAlongTrail + perpDy * sparkleSeed * sparkleSpread;
     
-    const sparkleSize = starSize * 0.08 * twinkle;
-    const sparkleOpacity = twinkle * (1 - progress * 0.5) * 0.9;
+    const sparkleSize = starSize * 0.12 * twinkle;
+    const sparkleOpacity = twinkle * (1 - progress * 0.4) * 0.95;
     
     // Draw sparkle with glow
     const sparkleGradient = ctx.createRadialGradient(
       sparkleX, sparkleY, 0,
-      sparkleX, sparkleY, sparkleSize * 3
+      sparkleX, sparkleY, sparkleSize * 3.5
     );
     sparkleGradient.addColorStop(0, `rgba(255, 255, 255, ${sparkleOpacity})`);
-    sparkleGradient.addColorStop(0.2, `rgba(${sr}, ${sg}, ${sb}, ${sparkleOpacity * 0.7})`);
+    sparkleGradient.addColorStop(0.2, `rgba(${sr}, ${sg}, ${sb}, ${sparkleOpacity * 0.75})`);
     sparkleGradient.addColorStop(1, `rgba(${sr}, ${sg}, ${sb}, 0)`);
     
     ctx.beginPath();
-    ctx.arc(sparkleX, sparkleY, sparkleSize * 3, 0, Math.PI * 2);
+    ctx.arc(sparkleX, sparkleY, sparkleSize * 3.5, 0, Math.PI * 2);
     ctx.fillStyle = sparkleGradient;
     ctx.fill();
     
     // Cross-flare for sparkle effect
     ctx.beginPath();
-    ctx.moveTo(sparkleX - sparkleSize * 2, sparkleY);
-    ctx.lineTo(sparkleX + sparkleSize * 2, sparkleY);
-    ctx.moveTo(sparkleX, sparkleY - sparkleSize * 2);
-    ctx.lineTo(sparkleX, sparkleY + sparkleSize * 2);
-    ctx.strokeStyle = `rgba(255, 255, 255, ${sparkleOpacity * 0.6})`;
-    ctx.lineWidth = sparkleSize * 0.3;
+    ctx.moveTo(sparkleX - sparkleSize * 2.5, sparkleY);
+    ctx.lineTo(sparkleX + sparkleSize * 2.5, sparkleY);
+    ctx.moveTo(sparkleX, sparkleY - sparkleSize * 2.5);
+    ctx.lineTo(sparkleX, sparkleY + sparkleSize * 2.5);
+    ctx.strokeStyle = `rgba(255, 255, 255, ${sparkleOpacity * 0.7})`;
+    ctx.lineWidth = sparkleSize * 0.4;
     ctx.lineCap = "round";
     ctx.stroke();
   }

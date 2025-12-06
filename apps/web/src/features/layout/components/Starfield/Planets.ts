@@ -190,32 +190,51 @@ export const initPlanets = (
     }
   });
 
-  if (planets.length >= 2) {
-    // Make first portfolio item a bright comet with wide, vertically stretched orbit
-    planets[0].pathType = "comet";
-    planets[0].trailLength = 280;
-    planets[0].pathEccentricity = 0.7;
-    planets[0].orbitRadius = Math.min(width, height) * 0.18; // Reduced from 0.35 for closer orbit
-    planets[0].orbitSpeed = 0.0001;
-    planets[0].glowIntensity = 2.5;
-    planets[0].verticalFactor = 2.2; // Significant vertical stretch
+  // Group planets by their orbit parent (sun)
+  const planetsBySun: Record<string, Planet[]> = {};
+  planets.forEach(planet => {
+    const sunId = planet.orbitParentId || "default";
+    if (!planetsBySun[sunId]) {
+      planetsBySun[sunId] = [];
+    }
+    planetsBySun[sunId].push(planet);
+  });
 
-    // Make sure all comets have trails and proper speeds
-    planets.forEach(star => {
-      if (star.pathType === "comet") {
-        star.trailLength = star.trailLength || 180;
-        star.orbitSpeed = 0.0001;
-        star.verticalFactor = star.verticalFactor || 1.8;
-      }
+  // For each sun, find the biggest planet (by mass or orbit radius) and make it a comet
+  Object.values(planetsBySun).forEach(sunPlanets => {
+    if (sunPlanets.length > 0) {
+      // Find the biggest planet by mass (or orbit radius as fallback)
+      const biggestPlanet = sunPlanets.reduce((biggest, current) => {
+        const currentMass = current.project?.mass || current.orbitRadius || 0;
+        const biggestMass = biggest.project?.mass || biggest.orbitRadius || 0;
+        return currentMass > biggestMass ? current : biggest;
+      }, sunPlanets[0]);
 
-      // Ensure satellites have proper speeds
-      if (star.satellites && star.satellites.length > 0) {
-        star.satellites.forEach(satellite => {
-          satellite.speed = 0.005 + Math.random() * 0.01; // Increased speed for better visibility
-        });
-      }
-    });
-  }
+      // Make the biggest planet a comet with bright trail
+      biggestPlanet.pathType = "comet";
+      biggestPlanet.trailLength = 250 + Math.random() * 80;
+      biggestPlanet.pathEccentricity = 0.5 + Math.random() * 0.3;
+      biggestPlanet.orbitSpeed = 0.00008 + Math.random() * 0.00004;
+      biggestPlanet.glowIntensity = 2.0 + Math.random() * 0.8;
+      biggestPlanet.verticalFactor = 1.8 + Math.random() * 0.6;
+    }
+  });
+
+  // Ensure all comets have proper trail settings
+  planets.forEach(star => {
+    if (star.pathType === "comet") {
+      star.trailLength = star.trailLength || 200;
+      star.orbitSpeed = star.orbitSpeed || 0.0001;
+      star.verticalFactor = star.verticalFactor || 1.8;
+    }
+
+    // Ensure satellites have proper speeds
+    if (star.satellites && star.satellites.length > 0) {
+      star.satellites.forEach(satellite => {
+        satellite.speed = 0.005 + Math.random() * 0.01;
+      });
+    }
+  });
 
   return planets;
 };
