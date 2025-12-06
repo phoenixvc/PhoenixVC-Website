@@ -236,7 +236,7 @@ function drawProjectIdentifier(
   // Draw focus area vector icon on the planet
   // Pass isHovered state to enlarge the icon when hovered
   if (!planet.useSimpleRendering && planet.project?.focusArea) {
-    drawPlanetFocusAreaIcon(ctx, planet.x, planet.y, starSize, planet.project.focusArea, planet.isHovered || false);
+    drawPlanetFocusAreaIcon(ctx, planet.x, planet.y, starSize, planet.project.focusArea, planet.isHovered);
   }
 }
 

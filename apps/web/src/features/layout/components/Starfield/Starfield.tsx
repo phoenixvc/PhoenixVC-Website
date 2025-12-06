@@ -554,12 +554,11 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
         // Expanded check: allow interaction when hovering over:
         // 1. The canvas itself
         // 2. Elements with data-starfield attribute
-        // 3. The hero section (which is transparent and overlays the starfield)
-        // 4. Transparent overlays that don't block interaction
+        // 3. Elements with data-starfield-passthrough attribute (transparent overlays like hero section)
         const isCanvas = elementUnderCursor === canvasRef.current;
         const isWithinStarfieldData = elementUnderCursor?.closest("[data-starfield]") !== null;
-        const isWithinHeroSection = elementUnderCursor?.closest("section[aria-label=\"hero section\"]") !== null;
-        const isWithinStarfield = isCanvas || isWithinStarfieldData || isWithinHeroSection;
+        const isWithinStarfieldPassthrough = elementUnderCursor?.closest("[data-starfield-passthrough]") !== null;
+        const isWithinStarfield = isCanvas || isWithinStarfieldData || isWithinStarfieldPassthrough;
         
         // Also check if we're within canvas bounds
         const isWithinBounds = canvasX >= 0 && canvasX <= rect.width && 

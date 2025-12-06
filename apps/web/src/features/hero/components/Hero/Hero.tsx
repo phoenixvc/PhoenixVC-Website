@@ -126,6 +126,7 @@ const Hero: FC<ExtendedHeroProps> = memo(
         className={styles.heroSection}
         ref={sectionRef}
         aria-label="hero section"
+        data-starfield-passthrough="true"
         style={{
           backgroundPosition: `center ${scrollPosition * 0.05}px`,
         }}
