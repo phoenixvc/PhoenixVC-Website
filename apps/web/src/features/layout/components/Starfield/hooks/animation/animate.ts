@@ -119,19 +119,19 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       return;
     }
 
-    // Apply camera transformation if zoom is active (zoom > 1)
-    // This creates a smooth zoom effect centered on the camera target
-    const hasActiveCamera = props.camera && props.camera.zoom > 1;
-    if (hasActiveCamera && props.camera) {
+    // Apply camera transformation to show the camera's view
+    // This creates a smooth zoom and pan effect centered on the camera target
+    // The camera is always applied to ensure we're rendering from the camera's perspective
+    if (props.camera) {
       ctx.save();
       // Calculate the center point to zoom towards (in canvas coordinates)
       const cameraCenterX = props.camera.cx * canvas.width;
       const cameraCenterY = props.camera.cy * canvas.height;
       
       // Apply transformation to center the camera target in the viewport
-      // 1. Translate so camera target is at origin
-      // 2. Scale around origin
-      // 3. Translate to center of viewport
+      // 1. Translate to center of viewport
+      // 2. Scale around origin (zoom)
+      // 3. Translate so camera target becomes the origin
       ctx.translate(canvas.width / 2, canvas.height / 2);
       ctx.scale(props.camera.zoom, props.camera.zoom);
       ctx.translate(-cameraCenterX, -cameraCenterY);
@@ -427,7 +427,7 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       updateStarActivity(currentStars);
 
     // Restore canvas context if camera transformation was applied
-    if (hasActiveCamera) {
+    if (props.camera) {
       ctx.restore();
     }
 
