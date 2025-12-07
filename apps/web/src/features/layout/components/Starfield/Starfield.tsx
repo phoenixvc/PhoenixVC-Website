@@ -958,6 +958,12 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
         cancelAnimationFrame(cameraAnimationRef.current);
         cameraAnimationRef.current = null;
       }
+      // Sync cameraStateRef with current camera position when no target
+      cameraStateRef.current = {
+        cx: internalCamera.cx,
+        cy: internalCamera.cy,
+        zoom: internalCamera.zoom
+      };
       return;
     }
     
@@ -967,6 +973,14 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
       cancelAnimationFrame(cameraAnimationRef.current);
       cameraAnimationRef.current = null;
     }
+    
+    // Sync cameraStateRef with current camera position before starting new animation
+    // This ensures the animation starts from the current visible position
+    cameraStateRef.current = {
+      cx: internalCamera.cx,
+      cy: internalCamera.cy,
+      zoom: internalCamera.zoom
+    };
     
     // Store the target for this animation cycle
     const targetCx = internalCamera.target.cx;
