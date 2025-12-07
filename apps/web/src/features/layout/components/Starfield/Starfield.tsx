@@ -872,7 +872,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   // This ensures content appears centered in the visible viewport area
   const calculateAdjustedCameraCenter = useCallback((targetX: number, targetY: number): { cx: number; cy: number } => {
     const canvas = dimensionsRef.current;
-    if (!canvas || canvas.width === 0) {
+    if (!canvas || canvas.width === 0 || canvas.height === 0) {
       // If canvas dimensions not available, return unadjusted position
       // This is safe because it will be recalculated when dimensions are available
       return { cx: targetX, cy: targetY };
