@@ -307,6 +307,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     };
   }, [starsRef]);
 
+  // Initialize elements on mount - intentionally runs once
   useEffect(() => {
     const initTimeout = setTimeout(() => {
       if (!isStarsInitializedRef.current || starsRef.current.length === 0) {
@@ -322,6 +323,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     }, 100);
 
     return () => clearTimeout(initTimeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Detect debug mode changes
@@ -658,6 +660,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   }, [setMousePosition]);
 
   // Memoize animation loop parameters to prevent unnecessary re-renders
+  // Some deps intentionally excluded (internalCamera) for performance - uses ref instead
   const animationParams = useMemo(() => ({
     canvasRef,
     dimensions: dimensionsRef.current,
@@ -710,6 +713,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     setCamera: setInternalCamera, // Pass camera setter
     isMouseOverProjectTooltipRef, // Track if mouse is over project tooltip
     cameraRef: cameraStateRef // Pass camera ref for synchronous access during animation
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [
     mousePosition,
     enableFlowEffect,
@@ -741,7 +745,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     ensureStarsExist,
     updateFpsData,
     hoveredSunId,
-    focusedSunId
+    focusedSunId,
     // Note: internalCamera removed - we use cameraRef for synchronous access
     // This prevents useMemo recalculation 60x/sec during camera animation
   ]);
@@ -1021,14 +1025,16 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     
     // Start the animation
     cameraAnimationRef.current = requestAnimationFrame(animateCamera);
-    
+
     return () => {
       if (cameraAnimationRef.current) {
         cancelAnimationFrame(cameraAnimationRef.current);
         cameraAnimationRef.current = null;
       }
     };
-  }, [targetKey]); // Re-run when target changes (including switching between targets)
+    // targetKey is a stable serialized key derived from internalCamera.target
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [targetKey]);
 
   // Legacy function kept for backward compatibility
   const _scrollToFocusArea = useCallback((sunId: string, _sunX: number, _sunY: number): void => {

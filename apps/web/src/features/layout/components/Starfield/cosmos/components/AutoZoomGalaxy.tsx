@@ -72,6 +72,8 @@ const AutoZoomGalaxy: React.FC<AutoZoomGalaxyProps> = ({
         canvas.removeEventListener("mousemove", handleMouseMove);
       }
     };
+    // checkGalaxyHover uses component state in closure - intentionally using current values
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canvasWidth, canvasHeight, hoveredGalaxyId]);
 
   // Handle zooming when hovering over a galaxy

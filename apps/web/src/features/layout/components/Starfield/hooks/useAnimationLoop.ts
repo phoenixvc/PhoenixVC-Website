@@ -77,13 +77,14 @@ export const useAnimationLoop = (props: AnimationProps) => {
     }
   }, [props.mousePosition, props.hoverInfo, props.gameState]);
 
-  // Update FPS data callback
-  const updateFpsData = useCallback((fps: number, currentTimestamp: number) => {
+  // Update FPS data callback - uses props.updateFpsData directly which is stable
+  const updateFpsData = useCallback((fps: number, currentTimestamp: number): void => {
     setCurrentFps(fps);
     setTimestamp(currentTimestamp);
     if (props.updateFpsData) {
       props.updateFpsData(fps, currentTimestamp);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.updateFpsData]);
 
   // Create animation refs object with proper types
@@ -138,21 +139,24 @@ export const useAnimationLoop = (props: AnimationProps) => {
         });
       }
     }, 100);
-  }, [props]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.canvasRef, props.ensureStarsExist, props.starsRef]);
 
   // Start animation function
-  const startAnimationWithProps = useCallback(() => {
+  const startAnimationWithProps = useCallback((): void => {
     logger.debug("Starting animation with props");
 
     // Start animation – read from the ref each frame
-    const frame = (ts: number) => {
+    const frame = (ts: number): void => {
       if (DEBUG_LOG) logger.debug("→ frame", ts);
       animate(ts, { ...latestPropsRef.current, updateFpsData }, refs);
-  };
+    };
     animationRef.current = window.requestAnimationFrame(frame);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [updateFpsData]);
 
   // Set up animation loop
+  // Props are destructured in deps - latestPropsRef used for current values in callbacks
   useEffect(() => {
     logger.debug("Setting up animation loop with dimensions", props.dimensions);
 
@@ -181,7 +185,7 @@ export const useAnimationLoop = (props: AnimationProps) => {
     }, 100);
 
     // Cleanup function
-    return () => {
+    return (): void => {
       clearTimeout(startTimeout);
       isAnimatingRef.current = false;
       if (animationRef.current) {
@@ -193,6 +197,7 @@ export const useAnimationLoop = (props: AnimationProps) => {
         animationWatchdogRef.current = null;
       }
 };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     // Only include stable dependencies that won't change every render
     props.canvasRef,
@@ -202,16 +207,15 @@ export const useAnimationLoop = (props: AnimationProps) => {
     props.enableBlackHole,
     props.enableMouseInteraction,
     props.enablePlanets,
-    props.enableCosmicNavigation, // << ADDED
+    props.enableCosmicNavigation,
     props.heroMode,
     props.colorScheme,
     props.gameMode,
     props.isDarkMode,
     props.ensureStarsExist,
-    // Add starsRef as a dependency since we're checking it
     props.starsRef,
     startAnimationWithProps,
-    props.debugSettings         // << allows loop restart when sliders move
+    props.debugSettings
   ]);
 
   return {

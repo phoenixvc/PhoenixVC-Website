@@ -47,13 +47,14 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [themeMode]);
 
-  // Apply initial theme class on mount
+  // Apply initial theme class on mount - intentionally runs once
   useEffect(() => {
     if (themeMode === "dark") {
       document.documentElement.classList.add("dark");
     } else {
       document.documentElement.classList.remove("dark");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const toggleTheme = () => {

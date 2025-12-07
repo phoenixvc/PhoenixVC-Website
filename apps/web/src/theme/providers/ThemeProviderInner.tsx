@@ -178,7 +178,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
     if (state.useSystem && systemMode !== state.mode) {
       setMode(systemMode);
     }
-  }, [systemMode, state.useSystem, themeManagerReady]);
+  }, [systemMode, state.useSystem, state.mode, setMode, themeManagerReady]);
 
   // Effect to sync useSystem preference with context
   useEffect(() => {
@@ -603,12 +603,12 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
     state,
     systemMode,
     getCssVariable,
-    loadingTheme,
     setThemeClasses,
     setMode,
     toggleMode,
     setUseSystemMode,
     isThemeLoading,
+    isThemeCached,
     preloadThemeHandler,
     clearThemeCache,
     getCacheStatus,
@@ -616,6 +616,8 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
     isThemeSupported,
     getThemeState,
     resetTheme,
+    toggleUseSystem,
+    typography,
     getComponentStyle,
     themes,
     components
