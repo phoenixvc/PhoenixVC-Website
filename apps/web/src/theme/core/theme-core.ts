@@ -354,7 +354,7 @@ export class ThemeCore {
     return this.stateManager ? this.stateManager.isThemeCached(scheme) : false;
   }
 
-  preloadTheme(scheme: ThemeName, config?: Partial<ThemeAcquisitionConfig>): Promise<void> {
+  preloadTheme(scheme: ThemeName, _config?: Partial<ThemeAcquisitionConfig>): Promise<void> {
     if (!this.stateManager) {
       console.warn("[ThemeCore] Cannot preload theme because state manager is not connected yet");
       return Promise.reject(new Error("State manager not connected yet"));

@@ -39,7 +39,7 @@ export const NavLink = ({
   style,
 }: ExtendedNavLinkProps) => {
   const themeContext = useTheme();
-  const { themeName } = themeContext;
+  const { themeName: _themeName } = themeContext;
 
   // Get component styles from the theme system
   const navLinkStyle = themeContext.getComponentStyle?.("navLink", variant) || {};

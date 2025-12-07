@@ -240,7 +240,7 @@ export class ThemeStyleManager {
     if (typeof obj !== "object") return;
 
     if (Array.isArray(obj)) {
-      obj.forEach((item, index) => {
+      obj.forEach((item, _index) => {
         this.checkForNaN(item, path ? "${path}[${index}]" : "[${index}]");
       });
       return;

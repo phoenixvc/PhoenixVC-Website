@@ -90,7 +90,7 @@ export interface ThemeConstantsType {
 }
 
 // Define ThemeCore interface to avoid the undefined error
-interface ThemeCore {
+interface _ThemeCore {
   getTheme: (themeName: ThemeName) => ThemeColors | undefined;
 }
 

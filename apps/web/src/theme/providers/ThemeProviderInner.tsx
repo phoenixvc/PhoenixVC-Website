@@ -66,7 +66,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
 
   // Initialize registries
   const [themes, setThemes] = useState(() => createThemeRegistry(themeRegistry));
-  const [components, setComponents] = useState(() => createComponentRegistry(componentRegistry));
+  const [components, _setComponents] = useState(() => createComponentRegistry(componentRegistry));
 
   // Get systemMode from context instead of using useSystemMode hook
   const { systemMode, useSystemMode, setUseSystemMode: setUseSystemModeContext } = useSystemModeContext();
@@ -220,7 +220,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
         }
 
         if (themeData) {
-          const semantics = generateSchemeSemantics(themeData, state.mode);
+          const _semantics = generateSchemeSemantics(themeData, state.mode);
           logger.debug("[ThemeProvider] Generated semantics");
 
           const variables = generateThemeVariables(themeData, state.mode);
@@ -563,7 +563,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
     setMode,
     toggleMode,
     setUseSystemMode,
-    getCssVariable: (name: string, config?: Partial<CssVariableConfig>) => getCssVariable(name),
+    getCssVariable: (name: string, _config?: Partial<CssVariableConfig>) => getCssVariable(name),
     getAllThemeClasses,
     isThemeClass,
 

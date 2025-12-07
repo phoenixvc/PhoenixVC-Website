@@ -12,7 +12,6 @@ import {
   InitialBaseColors,
   TransformedColorObject,
   ShadeLevel,
-  REQUIRED_MODE_COLORS,
   REQUIRED_SEMANTIC_COLORS,
   SemanticColors,
   TransformationConfig,
@@ -108,9 +107,9 @@ export class ThemeTransformationManager {
         console.log(`[ThemeTransformationManager] Processing initial scheme as "${schemeName}"`);
 
         // Extract metadata if available
-        let metadata = undefined;
+        let _metadata = undefined;
         if (this.config.preserveMetadata && "metadata" in input) {
-          metadata = input.metadata;
+          _metadata = input.metadata;
         }
 
         // Apply custom transform config if provided
