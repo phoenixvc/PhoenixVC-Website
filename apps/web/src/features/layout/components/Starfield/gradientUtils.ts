@@ -1,7 +1,7 @@
 // gradientUtils.ts - Consolidated gradient creation utilities
 // Eliminates repeated gradient patterns across animate.ts, stars.ts, Planets.ts, etc.
 
-import { RGB, rgba, rgbToString } from "./colorUtils";
+import { rgba, rgbToString } from "./colorUtils";
 
 /**
  * Color stop definition for gradients

@@ -6,7 +6,7 @@ import { CosmicNavigationState, CosmicObject } from "../types";
 
 interface MobileCosmicStreamProps {
   navigationState: CosmicNavigationState;
-  onSelectObject: (object: CosmicObject) => void;
+  onSelectObject: (_object: CosmicObject) => void;
 }
 
 const MobileCosmicStream: React.FC<MobileCosmicStreamProps> = ({

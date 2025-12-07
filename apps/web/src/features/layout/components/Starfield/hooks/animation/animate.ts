@@ -28,7 +28,6 @@ import { getSunStates, initializeSunStates, updateSunPhysics, updateSunSizesFrom
 // Import centralized utilities
 import { lightenColor } from "../../colorUtils";
 import {
-  MOUSE_EFFECT_CONFIG,
   SUN_RENDERING_CONFIG,
   STAR_RENDERING_CONFIG,
   ANIMATION_TIMING_CONFIG,

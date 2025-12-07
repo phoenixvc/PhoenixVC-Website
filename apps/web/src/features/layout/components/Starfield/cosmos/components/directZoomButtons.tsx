@@ -5,7 +5,7 @@ import { GALAXIES } from "../cosmicHierarchy";
 import { CosmicObject } from "../types";
 
 interface DirectZoomButtonsProps {
-  onZoom: (object: CosmicObject) => void;
+  onZoom: (_object: CosmicObject) => void;
   className?: string;
 }
 

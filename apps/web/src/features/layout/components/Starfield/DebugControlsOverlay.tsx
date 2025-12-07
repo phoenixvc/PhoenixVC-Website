@@ -7,7 +7,7 @@ import { DebugSettings, MousePosition, Star } from "./types"; // Adjust the impo
 
 interface DebugControlsProps {
   debugSettings: DebugSettings;
-  updateDebugSetting: <K extends keyof DebugSettings>(key: K, value: DebugSettings[K]) => void;
+  updateDebugSetting: <K extends keyof DebugSettings>(_key: K, _value: DebugSettings[K]) => void;
   resetStars: () => void;
   sidebarWidth: number;
   // Add new props for debug info
@@ -16,10 +16,10 @@ interface DebugControlsProps {
   fps?: number;
   timestamp?: number;
   // Add new prop for setting mouse position
-  setMousePosition?: (position: MousePosition) => void;
+  setMousePosition?: (_position: MousePosition) => void;
   // Add isDarkMode prop
   isDarkMode?: boolean;
-  onEmployeeOrbitSpeedChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onEmployeeOrbitSpeedChange?: (_e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
@@ -30,7 +30,7 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
   stars = [],
   mousePosition = { x: 0, y: 0, isOnScreen: false, isClicked: false },
   fps = 0,
-  timestamp,
+  timestamp: _timestamp,
   setMousePosition,
   isDarkMode = true,
   onEmployeeOrbitSpeedChange

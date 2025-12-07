@@ -13,7 +13,7 @@ import {
 /* ────────────────────────────────────────────────────────────
    Utility: visibility check (unchanged)
    ────────────────────────────────────────────────────────── */
-const isObjectVisible = (
+const _isObjectVisible = (
   obj: CosmicObject,
   camera: Camera,
   width: number,

@@ -248,7 +248,7 @@ export const checkPlanetHover = (
   planets: Planet[],
   planetSize: number,
   currentHoverInfo: HoverInfo,
-  setHoverInfo: (info: HoverInfo) => void
+  setHoverInfo: (_info: HoverInfo) => void
 ): boolean => {
   if (!planets || !planets.length) return false;
 

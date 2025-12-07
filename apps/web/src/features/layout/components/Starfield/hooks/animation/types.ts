@@ -60,7 +60,7 @@ export interface AnimationProps {
     isDarkMode: boolean;
     debugMode?: boolean; // Make optional
     gameMode: boolean;
-    setHoverInfo: (info: SetStateAction<HoverInfo>) => void;
+    setHoverInfo: (_info: SetStateAction<HoverInfo>) => void;
     setClickBursts: (bursts: ClickBurst[]) => void;
     setGameState: (state: SetStateAction<GameState>) => void;
     setCollisionEffects: (effects: SetStateAction<CollisionEffect[]>) => void;

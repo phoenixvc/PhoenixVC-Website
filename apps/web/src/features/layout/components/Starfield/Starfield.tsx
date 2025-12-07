@@ -28,7 +28,7 @@ import { EFFECT_TIMING, CAMERA_CONFIG } from "./physicsConfig";
 
 // Define the ref type
 export type StarfieldRef = {
-  updateDebugSetting: <K extends keyof DebugSettings>(key: K, value: DebugSettings[K]) => void;
+  updateDebugSetting: <K extends keyof DebugSettings>(_key: K, _value: DebugSettings[K]) => void;
 };
 
 // Convert to forwardRef

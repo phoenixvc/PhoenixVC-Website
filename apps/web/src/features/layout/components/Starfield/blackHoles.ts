@@ -15,9 +15,9 @@ export const initBlackHoles = (
   centerOffsetX: number,
   centerOffsetY: number,
   blackHoleSize: number,
-  particleSpeed: number,
-  colorScheme: string,
-  starSize: number
+  _particleSpeed: number,
+  _colorScheme: string,
+  _starSize: number
 ): BlackHole[] => {
   if (!enableBlackHole) return [];
 

@@ -21,7 +21,7 @@ export const checkCollisions = (
   stars: Star[],
   planets: Planet[],
   gameState: GameState,
-  setGameState: (state: GameState) => void,
+  setGameState: (_state: GameState) => void,
   createCollisionEffect?: (x: number, y: number, color: string, score: number) => void
 ): void => {
   if (!stars.length || !planets.length) return;
