@@ -15,7 +15,7 @@ interface AutoZoomGalaxyProps {
 const AutoZoomGalaxy: React.FC<AutoZoomGalaxyProps> = ({
   camera: _camera,
   setCamera,
-  navigationState,
+  navigationState: _navigationState,
   setNavigationState,
   canvasWidth,
   canvasHeight

@@ -63,7 +63,7 @@ export const drawBlackHole = (
   deltaTime: number,
   particleSpeed: number
 ): void => {
-  const { x, y, radius, color, particles } = blackHole;
+  const { x, y, radius, color: _color, particles } = blackHole;
 
   // Update rotation
   blackHole.rotation += blackHole.rotationSpeed * deltaTime;

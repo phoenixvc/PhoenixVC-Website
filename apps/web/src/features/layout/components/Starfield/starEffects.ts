@@ -384,8 +384,8 @@ export function drawSatellites(
     ctx: CanvasRenderingContext2D,
     planet: Planet,
     scaleFactor: number,
-    softRgb: {r: number, g: number, b: number},
-    deltaTime: number
+    _softRgb: {r: number, g: number, b: number},
+    _deltaTime: number
   ): void {
     const fixedDelta = planet.useSimpleRendering ? 0.2 : 0.5;
     

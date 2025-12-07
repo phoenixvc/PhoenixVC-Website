@@ -176,7 +176,7 @@ function drawProjectIdentifier(
   ctx: CanvasRenderingContext2D,
   planet: Planet,
   starSize: number,
-  displayStyle: "initials" | "avatar" | "both"
+  _displayStyle: "initials" | "avatar" | "both"
 ): void {
   // Extract project image path for cleaner logic
   const projectImagePath = !planet.useSimpleRendering ? planet.project.image : undefined;

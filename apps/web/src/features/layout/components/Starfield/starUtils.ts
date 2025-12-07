@@ -67,7 +67,7 @@ export function createSoftenedColor(
     return scaleFactor;
   }
 
-  export function updateStarPosition(empStar: Planet, deltaTime: number): void {
+  export function updateStarPosition(empStar: Planet, _deltaTime: number): void {
     const fixedDelta = empStar.useSimpleRendering ? 0.2 : 0.5;
     const directionMultiplier = empStar.orbitalDirection === "clockwise" ? 1 : -1;
 

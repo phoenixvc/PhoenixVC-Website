@@ -83,8 +83,8 @@ export const useStarInitialization = ({
     height: number,
     starCount: number,
     sidebarWidth: number = 0,
-    centerOffsetX: number = 0,
-    centerOffsetY: number = 0,
+    _centerOffsetX: number = 0,
+    _centerOffsetY: number = 0,
     starSize: number = 1.0,
     colorScheme: string = "white"
   ): Star[] => {
