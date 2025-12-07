@@ -5,6 +5,7 @@ import { PORTFOLIO_PROJECTS } from "@/constants/portfolioData";
 import { getDailySeededRandom } from "./utils";
 import { BLACK_HOLE_PHYSICS } from "./physicsConfig";
 import { preloadProjectImages } from "./starRendering";
+import { distance as calcDistance } from "./math";
 
 // Preload project images early for smooth rendering
 preloadProjectImages(PORTFOLIO_PROJECTS);
@@ -36,10 +37,7 @@ function generateRandomBlackHolePositions(): Array<{ x: number; y: number; radiu
       // Check distance from existing black holes
       validPosition = true;
       for (const pos of positions) {
-        const dx = x - pos.x;
-        const dy = y - pos.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance < minDistance) {
+        if (calcDistance(x, y, pos.x, pos.y) < minDistance) {
           validPosition = false;
           break;
         }
