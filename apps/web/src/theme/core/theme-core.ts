@@ -2,7 +2,7 @@ import { ColorMapping, TypographyScale } from "../mappings";
 import { ColorDefinition, ThemeName, ThemeMode, ThemeState, ThemeColors, Theme, ThemeAcquisitionConfig, StorageOptions, TransitionOptions } from "../types";
 import { ComponentRegistryManager } from "../registry/component-registry-manager";
 import { ComponentManager } from "../managers/component-manager";
-import { ThemeStateManager } from "../managers/theme-state-manager";
+import type { ThemeStateManager } from "../managers/theme-state-manager";
 import { ThemeStyleManager } from "../managers/theme-style-manager";
 import { TypographyManager } from "../managers/typography-manager";
 import { ComponentVariantType } from "../types/mappings/component-variants";
@@ -66,13 +66,8 @@ export class ThemeCore {
       this.transformationManager.setRegistry(this.themeRegistry);
     }
 
-    // Try to initialize state manager, but don't fail if it's not available yet
-    try {
-      this.stateManager = ThemeStateManager.getInstance();
-      this.connectStateManager(this.stateManager);
-    } catch (error) {
-      console.warn("[ThemeCore] State manager not available yet, will connect later:", error);
-    }
+    // DO NOT initialize state manager here to avoid circular dependency
+    // The state manager will be connected later via connectStateManager()
   }
 
   // Method to connect the state manager after both are initialized
@@ -545,28 +540,5 @@ export class ThemeCore {
   }
 }
 
-// Lazy singleton instance - only created when first accessed
-let _instance: ThemeCore | null = null;
-
-/**
- * Get the singleton instance of ThemeCore.
- * This is a lazy getter to avoid circular dependency issues during module initialization.
- */
-export function getThemeCore(): ThemeCore {
-  if (!_instance) {
-    _instance = ThemeCore.getInstance();
-  }
-  return _instance;
-}
-
-// Export singleton instance using a Proxy for lazy initialization
-// This prevents the instance from being created during module initialization
-export const themeCore = new Proxy({} as ThemeCore, {
-  get(_target, prop): unknown {
-    return getThemeCore()[prop as keyof ThemeCore];
-  },
-  set(_target, prop, value): boolean {
-    (getThemeCore() as Record<string, unknown>)[prop as string] = value;
-    return true;
-  }
-});
+// Export the class for explicit getInstance() calls
+// Do NOT export a singleton instance to avoid circular dependency issues during module initialization

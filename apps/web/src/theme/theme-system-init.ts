@@ -1,10 +1,14 @@
 // theme-system-init.ts
 
-import { themeStateManager } from "./core";
-import { themeCore } from "./core/theme-core";
+import { ThemeStateManager } from "./core";
+import { ThemeCore } from "./core/theme-core";
 
 
 export function initializeThemeSystem(): void {
+  // Get the singleton instances
+  const themeCore = ThemeCore.getInstance();
+  const themeStateManager = ThemeStateManager.getInstance();
+  
   // Connect the components
   themeCore.connectStateManager(themeStateManager);
 

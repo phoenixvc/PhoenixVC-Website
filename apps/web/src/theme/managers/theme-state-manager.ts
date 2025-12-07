@@ -535,28 +535,5 @@ export class ThemeStateManager {
   }
 }
 
-// Lazy singleton instance - only created when first accessed
-let _instance: ThemeStateManager | null = null;
-
-/**
- * Get the singleton instance of ThemeStateManager.
- * This is a lazy getter to avoid circular dependency issues during module initialization.
- */
-export function getThemeStateManager(): ThemeStateManager {
-  if (!_instance) {
-    _instance = ThemeStateManager.getInstance();
-  }
-  return _instance;
-}
-
-// For backwards compatibility, export the instance getter
-// This will only be called when explicitly accessed, not during module initialization
-export const themeStateManager = new Proxy({} as ThemeStateManager, {
-  get(_target, prop): unknown {
-    return getThemeStateManager()[prop as keyof ThemeStateManager];
-  },
-  set(_target, prop, value): boolean {
-    (getThemeStateManager() as Record<string, unknown>)[prop as string] = value;
-    return true;
-  }
-});
+// Export the class for explicit getInstance() calls
+// Do NOT export a singleton instance to avoid circular dependency issues during module initialization

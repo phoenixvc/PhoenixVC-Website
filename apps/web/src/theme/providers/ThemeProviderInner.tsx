@@ -18,7 +18,7 @@ import {
 } from ".";
 import { ExtendedThemeState } from "../types/context/state";
 import { TypographyScale } from "../mappings";
-import { themeCore } from "../core/theme-core";
+import { ThemeCore } from "../core/theme-core";
 import { useSystemModeContext } from "@/SystemModeContext";
 import {
   getThemeClassNames,
@@ -59,6 +59,9 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
   componentRegistry = {},
   themeRegistry = {}
 }) => {
+  // Get singleton instances once
+  const themeCore = useMemo(() => ThemeCore.getInstance(), []);
+  
   const [state, setState] = useState<ThemeState>({ ...defaultState, ...config });
   const [error, setError] = useState<Error | null>(null);
   const [loadingTheme, setLoadingTheme] = useState<boolean>(false);
