@@ -12,6 +12,66 @@ export const DEG_TO_RAD = Math.PI / 180;
 /** Radians to degrees conversion factor */
 export const RAD_TO_DEG = 180 / Math.PI;
 
+// ==========================================
+// Trigonometric Lookup Tables
+// ==========================================
+
+/** Number of entries in the lookup table (1024 gives ~0.35 degree precision) */
+const TRIG_TABLE_SIZE = 1024;
+
+/** Pre-computed multiplier for converting radians to table index */
+const TRIG_TABLE_FACTOR = TRIG_TABLE_SIZE / TWO_PI;
+
+/** Pre-computed sine lookup table */
+const SIN_TABLE = new Float32Array(TRIG_TABLE_SIZE);
+
+/** Pre-computed cosine lookup table */
+const COS_TABLE = new Float32Array(TRIG_TABLE_SIZE);
+
+// Initialize lookup tables
+for (let i = 0; i < TRIG_TABLE_SIZE; i++) {
+  const angle = (i / TRIG_TABLE_SIZE) * TWO_PI;
+  SIN_TABLE[i] = Math.sin(angle);
+  COS_TABLE[i] = Math.cos(angle);
+}
+
+/**
+ * Fast sine approximation using lookup table.
+ * Accuracy: ~0.35 degrees, suitable for visual effects.
+ * @param radians Angle in radians
+ * @returns Approximate sine value
+ */
+export function fastSin(radians: number): number {
+  // Normalize angle to 0-2PI range
+  const normalized = ((radians % TWO_PI) + TWO_PI) % TWO_PI;
+  const index = (normalized * TRIG_TABLE_FACTOR) | 0; // Bitwise OR for fast floor
+  return SIN_TABLE[index];
+}
+
+/**
+ * Fast cosine approximation using lookup table.
+ * Accuracy: ~0.35 degrees, suitable for visual effects.
+ * @param radians Angle in radians
+ * @returns Approximate cosine value
+ */
+export function fastCos(radians: number): number {
+  // Normalize angle to 0-2PI range
+  const normalized = ((radians % TWO_PI) + TWO_PI) % TWO_PI;
+  const index = (normalized * TRIG_TABLE_FACTOR) | 0;
+  return COS_TABLE[index];
+}
+
+/**
+ * Fast sine and cosine together (slightly more efficient than calling both separately).
+ * @param radians Angle in radians
+ * @returns Object with sin and cos values
+ */
+export function fastSinCos(radians: number): { sin: number; cos: number } {
+  const normalized = ((radians % TWO_PI) + TWO_PI) % TWO_PI;
+  const index = (normalized * TRIG_TABLE_FACTOR) | 0;
+  return { sin: SIN_TABLE[index], cos: COS_TABLE[index] };
+}
+
 // Calculate distance between two points
 export const distance = (x1: number, y1: number, x2: number, y2: number): number => {
     const dx = x2 - x1;

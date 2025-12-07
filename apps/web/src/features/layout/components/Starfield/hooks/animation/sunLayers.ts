@@ -1,7 +1,7 @@
 // sunLayers.ts - Individual sun layer drawing functions
 // Single Responsibility: Draw individual visual layers of a sun
 
-import { TWO_PI } from "../../math";
+import { TWO_PI, fastSin, fastCos } from "../../math";
 import { lightenColor } from "../../colorUtils";
 import { SUN_RENDERING_CONFIG, OPACITY_CONFIG } from "../../renderingConfig";
 
@@ -79,22 +79,24 @@ export function drawSolarFlares(
 
   for (let i = 0; i < flareCount; i++) {
     const baseAngle = (i * TWO_PI / flareCount) + sunState.rotationAngle * 0.5;
-    const waveOffset = Math.sin(time * flares.waveSpeed + i * 0.7) * 0.15;
+    const waveOffset = fastSin(time * flares.waveSpeed + i * 0.7) * 0.15;
     const angle = baseAngle + waveOffset;
 
-    const flarePhase = Math.sin(time * flares.phaseSpeed + i * 1.5);
+    const flarePhase = fastSin(time * flares.phaseSpeed + i * 1.5);
     const flareLength = size * (isHighlighted ? flares.lengthMultiplier.highlighted : flares.lengthMultiplier.normal) * (0.7 + 0.3 * flarePhase);
 
     const startDist = size * 0.85;
-    const startX = x + Math.cos(angle) * startDist;
-    const startY = y + Math.sin(angle) * startDist;
-    const endX = x + Math.cos(angle) * flareLength;
-    const endY = y + Math.sin(angle) * flareLength;
+    const cosAngle = fastCos(angle);
+    const sinAngle = fastSin(angle);
+    const startX = x + cosAngle * startDist;
+    const startY = y + sinAngle * startDist;
+    const endX = x + cosAngle * flareLength;
+    const endY = y + sinAngle * flareLength;
 
-    const curveFactor = Math.sin(time * flares.curveFactor + i) * size * 0.5;
+    const curveFactor = fastSin(time * flares.curveFactor + i) * size * 0.5;
     const perpAngle = angle + Math.PI / 2;
-    const cpX = (startX + endX) / 2 + Math.cos(perpAngle) * curveFactor;
-    const cpY = (startY + endY) / 2 + Math.sin(perpAngle) * curveFactor;
+    const cpX = (startX + endX) / 2 + fastCos(perpAngle) * curveFactor;
+    const cpY = (startY + endY) / 2 + fastSin(perpAngle) * curveFactor;
 
     const flareGradient = ctx.createLinearGradient(startX, startY, endX, endY);
     flareGradient.addColorStop(0, lightenColor(sunState.color, 0.6));
@@ -129,31 +131,35 @@ export function drawCoronaRays(
 
   for (let i = 0; i < rayCount; i++) {
     const baseAngle = (i * TWO_PI / rayCount) + sunState.rotationAngle;
-    const waveOffset = Math.sin(time * rays.waveSpeed + i * 0.4) * 0.08;
+    const waveOffset = fastSin(time * rays.waveSpeed + i * 0.4) * 0.08;
     const angle = baseAngle + waveOffset;
 
-    const rayLengthVariation = 0.75 + 0.25 * Math.sin(time * 0.00018 + i * 1.1);
+    const rayLengthVariation = 0.75 + 0.25 * fastSin(time * 0.00018 + i * 1.1);
     const rayLength = size * (isHighlighted ? rays.lengthMultiplier.highlighted : rays.lengthMultiplier.normal) * rayLengthVariation;
 
-    const endX = x + Math.cos(angle) * rayLength;
-    const endY = y + Math.sin(angle) * rayLength;
+    const cosAngle = fastCos(angle);
+    const sinAngle = fastSin(angle);
+    const endX = x + cosAngle * rayLength;
+    const endY = y + sinAngle * rayLength;
 
     ctx.beginPath();
     const rayWidth = size * (isHighlighted ? rays.widthMultiplier.highlighted : rays.widthMultiplier.normal);
     const perpAngle = angle + Math.PI / 2;
+    const cosPerpAngle = fastCos(perpAngle);
+    const sinPerpAngle = fastSin(perpAngle);
 
     const startDist = size * 0.75;
-    const startX = x + Math.cos(angle) * startDist;
-    const startY = y + Math.sin(angle) * startDist;
+    const startX = x + cosAngle * startDist;
+    const startY = y + sinAngle * startDist;
 
     ctx.moveTo(
-      startX + Math.cos(perpAngle) * rayWidth,
-      startY + Math.sin(perpAngle) * rayWidth
+      startX + cosPerpAngle * rayWidth,
+      startY + sinPerpAngle * rayWidth
     );
     ctx.lineTo(endX, endY);
     ctx.lineTo(
-      startX - Math.cos(perpAngle) * rayWidth,
-      startY - Math.sin(perpAngle) * rayWidth
+      startX - cosPerpAngle * rayWidth,
+      startY - sinPerpAngle * rayWidth
     );
     ctx.closePath();
 
@@ -203,7 +209,7 @@ export function drawPropelRings(
   for (let r = 0; r < propelRings.count; r++) {
     const ringRadius = size * (propelRings.baseRadius + r * propelRings.radiusStep);
     const ringAlpha = 0.5 - r * 0.09;
-    const ringPhase = Math.sin(time * propelRings.animationSpeed + r * Math.PI / 2.5);
+    const ringPhase = fastSin(time * propelRings.animationSpeed + r * Math.PI / 2.5);
 
     ctx.beginPath();
     const ringGradient = ctx.createRadialGradient(x, y, ringRadius - 2, x, y, ringRadius + 2);
@@ -238,11 +244,11 @@ export function drawSolarParticles(
     const orbitSpeed = particles.orbitSpeedBase + (i % 3) * particles.orbitSpeedVariation;
     const particleAngle = (i * TWO_PI / particleCount) + time * orbitSpeed + sunState.rotationAngle * 0.3;
 
-    const wobble = Math.sin(time * particles.wobbleSpeed + i * 1.7) * size * particles.wobbleAmount;
-    const particleX = x + Math.cos(particleAngle) * (orbitRadius + wobble);
-    const particleY = y + Math.sin(particleAngle) * (orbitRadius + wobble);
+    const wobble = fastSin(time * particles.wobbleSpeed + i * 1.7) * size * particles.wobbleAmount;
+    const particleX = x + fastCos(particleAngle) * (orbitRadius + wobble);
+    const particleY = y + fastSin(particleAngle) * (orbitRadius + wobble);
 
-    const particlePulse = 0.7 + 0.3 * Math.sin(time * particles.pulseSpeed + i * 2.1);
+    const particlePulse = 0.7 + 0.3 * fastSin(time * particles.pulseSpeed + i * 2.1);
     const particleSize = (size * 0.04 + (i % 3) * size * 0.015) * particlePulse;
 
     const particleGradient = ctx.createRadialGradient(
@@ -298,8 +304,8 @@ export function drawEjectedParticles(
     const ejectAngle = (i * TWO_PI / ejectCount) + time * ejectParticles.speed + sunState.rotationAngle;
     const ejectPhase = (time * 0.0002 + i * 1.5) % 1;
     const ejectDist = size * (ejectParticles.distanceRange.min + ejectPhase * (ejectParticles.distanceRange.max - ejectParticles.distanceRange.min));
-    const ejectX = x + Math.cos(ejectAngle) * ejectDist;
-    const ejectY = y + Math.sin(ejectAngle) * ejectDist;
+    const ejectX = x + fastCos(ejectAngle) * ejectDist;
+    const ejectY = y + fastSin(ejectAngle) * ejectDist;
 
     const ejectAlpha = Math.max(0, 1 - ejectPhase) * (isDarkMode ? 0.6 : 0.4);
     const ejectSize = size * 0.06 * (1 - ejectPhase * 0.5);
@@ -339,7 +345,7 @@ export function drawHoverRing(
   ctx.beginPath();
   ctx.strokeStyle = lightenColor(sunState.color, 0.4);
   ctx.lineWidth = 2.5;
-  ctx.globalAlpha = 0.6 + 0.25 * Math.sin(time * hoverRing.pulseSpeed);
+  ctx.globalAlpha = 0.6 + 0.25 * fastSin(time * hoverRing.pulseSpeed);
   ctx.arc(x, y, size * layers.hoverRingRadius, 0, TWO_PI);
   ctx.stroke();
   ctx.setLineDash([]);
@@ -351,7 +357,7 @@ export function drawHoverRing(
   innerRingGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
   ctx.strokeStyle = innerRingGradient;
   ctx.lineWidth = 4;
-  ctx.globalAlpha = 0.75 + 0.2 * Math.sin(time * hoverRing.innerPulseSpeed);
+  ctx.globalAlpha = 0.75 + 0.2 * fastSin(time * hoverRing.innerPulseSpeed);
   ctx.arc(x, y, size * layers.innerRingRadius, 0, TWO_PI);
   ctx.stroke();
 }
@@ -419,10 +425,10 @@ export function drawGranulation(
   ctx.globalAlpha = 0.12;
   for (let i = 0; i < granulation.spotCount; i++) {
     const spotAngle = (time * granulation.rotationSpeed + i * TWO_PI / granulation.spotCount) % (TWO_PI);
-    const spotDist = size * (0.25 + 0.45 * Math.sin(i * 2.3 + time * granulation.variationSpeed));
-    const spotX = x + Math.cos(spotAngle) * spotDist;
-    const spotY = y + Math.sin(spotAngle) * spotDist;
-    const spotSize = size * (0.12 + 0.08 * Math.sin(i * 1.9));
+    const spotDist = size * (0.25 + 0.45 * fastSin(i * 2.3 + time * granulation.variationSpeed));
+    const spotX = x + fastCos(spotAngle) * spotDist;
+    const spotY = y + fastSin(spotAngle) * spotDist;
+    const spotSize = size * (0.12 + 0.08 * fastSin(i * 1.9));
 
     const spotGradient = ctx.createRadialGradient(spotX, spotY, 0, spotX, spotY, spotSize);
     const isLightSpot = i % 2 === 0;

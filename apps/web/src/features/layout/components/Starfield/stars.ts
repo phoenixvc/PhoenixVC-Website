@@ -10,7 +10,7 @@ import {
   SIZE_CONFIG,
 } from "./physicsConfig";
 import { getFrameTime } from "./frameCache";
-import { TWO_PI } from "./math";
+import { TWO_PI, fastSin, fastCos } from "./math";
 import { getSunStates } from "./sunSystem";
 
 // Re-export explosion functions from dedicated module for backward compatibility
@@ -180,8 +180,8 @@ export function updateStarPositions(
     // Each star has a unique drift direction based on its index
     const driftAngle = (i * 137.508) % 360 * (Math.PI / 180); // Golden angle for variety
     const driftSpeed = 0.02 + (i % 10) * 0.003; // Vary drift speed slightly
-    star.vx += Math.cos(driftAngle) * driftSpeed * normalizedDelta * timeScale;
-    star.vy += Math.sin(driftAngle) * driftSpeed * normalizedDelta * timeScale;
+    star.vx += fastCos(driftAngle) * driftSpeed * normalizedDelta * timeScale;
+    star.vy += fastSin(driftAngle) * driftSpeed * normalizedDelta * timeScale;
 
     // Apply flow effect if enabled (reduced intensity to minimize flicker)
     if (enableFlowEffect) {
@@ -432,8 +432,8 @@ export const drawStars = (
       const twinkleSpeed2 = 0.0002 + (uniqueSeed % 50) / 120000;
 
       // Very subtle twinkle with minimal variation to reduce flickering
-      const twinkle1 = Math.sin(now * twinkleSpeed1 + uniqueSeed * 0.05);
-      const twinkle2 = Math.sin(now * twinkleSpeed2 * 1.3 + uniqueSeed * 0.08);
+      const twinkle1 = fastSin(now * twinkleSpeed1 + uniqueSeed * 0.05);
+      const twinkle2 = fastSin(now * twinkleSpeed2 * 1.3 + uniqueSeed * 0.08);
       // Very narrow twinkle range for stable appearance (0.92 to 1.0)
       const twinkleFactor = 0.92 + (twinkle1 * 0.04 + twinkle2 * 0.04);
 
@@ -503,7 +503,92 @@ const CONNECTION_STAGGER_CONFIG = CONNECTION_CONFIG;
 // Track when the starfield was initialized for staggered connection reveal
 let connectionStartTime: number | null = null;
 
+// ==========================================
+// Spatial Hash Grid for Connection Optimization
+// ==========================================
+
+interface SpatialCell {
+  stars: Star[];
+  indices: number[];
+}
+
+interface SpatialGrid {
+  cells: Map<string, SpatialCell>;
+  cellSize: number;
+}
+
+// Reusable spatial grid (avoid allocation each frame)
+let spatialGrid: SpatialGrid | null = null;
+let lastGridCellSize = 0;
+
+/**
+ * Get cell key for a given position
+ */
+function getCellKey(x: number, y: number, cellSize: number): string {
+  const cellX = Math.floor(x / cellSize);
+  const cellY = Math.floor(y / cellSize);
+  return `${cellX},${cellY}`;
+}
+
+/**
+ * Build spatial grid from stars array
+ * @param stars Array of stars to index
+ * @param cellSize Size of each cell (should be >= maxConnectionDistance)
+ */
+function buildSpatialGrid(stars: Star[], cellSize: number): SpatialGrid {
+  // Reuse existing grid if cell size matches
+  if (spatialGrid && lastGridCellSize === cellSize) {
+    spatialGrid.cells.clear();
+  } else {
+    spatialGrid = { cells: new Map(), cellSize };
+    lastGridCellSize = cellSize;
+  }
+
+  const grid = spatialGrid;
+
+  // Add each star to its cell
+  for (let i = 0; i < stars.length; i++) {
+    const star = stars[i];
+    const key = getCellKey(star.x, star.y, cellSize);
+
+    let cell = grid.cells.get(key);
+    if (!cell) {
+      cell = { stars: [], indices: [] };
+      grid.cells.set(key, cell);
+    }
+    cell.stars.push(star);
+    cell.indices.push(i);
+  }
+
+  return grid;
+}
+
+/**
+ * Get stars in nearby cells (including the cell containing the point and all 8 neighbors)
+ */
+function getNearbyStars(x: number, y: number, grid: SpatialGrid): { star: Star; index: number }[] {
+  const result: { star: Star; index: number }[] = [];
+  const cellX = Math.floor(x / grid.cellSize);
+  const cellY = Math.floor(y / grid.cellSize);
+
+  // Check 3x3 grid of cells centered on the star's cell
+  for (let dx = -1; dx <= 1; dx++) {
+    for (let dy = -1; dy <= 1; dy++) {
+      const key = `${cellX + dx},${cellY + dy}`;
+      const cell = grid.cells.get(key);
+      if (cell) {
+        for (let i = 0; i < cell.stars.length; i++) {
+          result.push({ star: cell.stars[i], index: cell.indices[i] });
+        }
+      }
+    }
+  }
+
+  return result;
+}
+
 // Draw connections between nearby stars (network effect) with staggered reveal
+// Uses spatial partitioning for O(n) instead of O(n²) performance
 export const drawConnections = (
   ctx: CanvasRenderingContext2D,
   stars: Star[],
@@ -512,10 +597,17 @@ export const drawConnections = (
   colorScheme: string
 ): void => {
   // Use slightly muted colors for connection lines (balanced brightness)
-  const baseColor = colorScheme === "white" ? "210, 210, 230" : "130, 80, 170"; // Slightly brighter than before but not fully white
+  const baseColor = colorScheme === "white" ? "210, 210, 230" : "130, 80, 170";
 
-  // For performance, check only every 10th star
-  const connectionSources = stars.filter((_, i) => i % 10 === 0);
+  // Build spatial grid for efficient neighbor lookup
+  // Cell size equals maxDistance so we only need to check adjacent cells
+  const grid = buildSpatialGrid(stars, maxDistance);
+
+  // For performance, check only every 10th star as connection sources
+  const connectionSources: { star: Star; index: number }[] = [];
+  for (let i = 0; i < stars.length; i += 10) {
+    connectionSources.push({ star: stars[i], index: i });
+  }
 
   // Enable smooth line rendering
   ctx.lineCap = "round";
@@ -523,63 +615,65 @@ export const drawConnections = (
 
   // Use cached frame time for animation
   const time = getFrameTime();
-  
-  // Initialize connection start time on first call (single-threaded canvas rendering)
+
+  // Initialize connection start time on first call
   if (connectionStartTime === null) {
     connectionStartTime = time;
   }
-  
+
   // Calculate elapsed time since connections started (for stagger effect)
   const elapsedTime = time - connectionStartTime;
-  
+
   const { staggerDuration, fadeInDuration, primeMultiplier1, primeMultiplier2, seedModulo } = CONNECTION_STAGGER_CONFIG;
 
-  connectionSources.forEach((star1, index1) => {
-    // Check against all stars for connections
-    stars.forEach((star2, index2) => {
+  // Process each connection source
+  for (let i = 0; i < connectionSources.length; i++) {
+    const { star: star1, index: index1 } = connectionSources[i];
+
+    // Only check nearby stars using spatial grid (much faster than checking all stars)
+    const nearbyStars = getNearbyStars(star1.x, star1.y, grid);
+
+    for (let j = 0; j < nearbyStars.length; j++) {
+      const { star: star2, index: index2 } = nearbyStars[j];
+
       // Don't connect to self
-      if (star1 === star2) return;
+      if (star1 === star2) continue;
 
       const dist = distance(star1.x, star1.y, star2.x, star2.y);
 
       // Only connect stars within the maximum distance
       if (dist < maxDistance) {
         // Create unique timing offset for each connection based on star indices
-        // This ensures each connection has its own animation phase
         const uniqueSeed = (index1 * primeMultiplier1 + index2 * primeMultiplier2) % seedModulo;
         const phaseOffset = uniqueSeed / seedModulo * TWO_PI;
-        
+
         // Calculate when this specific connection should start appearing (staggered)
-        // Use the unique seed to determine when each connection appears
         const connectionDelay = (uniqueSeed / seedModulo) * staggerDuration;
-        
+
         // Calculate stagger progress for this connection (0 = not started, 1 = fully visible)
         let staggerProgress = 0;
         if (elapsedTime > connectionDelay) {
           staggerProgress = Math.min(1, (elapsedTime - connectionDelay) / fadeInDuration);
         }
-        
+
         // Skip drawing if this connection hasn't started appearing yet
-        if (staggerProgress <= 0) return;
-        
+        if (staggerProgress <= 0) continue;
+
         // Create a slow, smooth pulse with unique timing per connection
-        // Slower frequencies for smoother animation (reduced for less blinking)
         const frequency1 = 0.00005 + (uniqueSeed % 100) / 500000;
         const frequency2 = 0.00003 + (uniqueSeed % 50) / 400000;
-        
-        const pulse1 = Math.sin(time * frequency1 + phaseOffset);
-        const pulse2 = Math.sin(time * frequency2 + phaseOffset * 1.3);
-        
-        // Combine pulses for smoother animation (0.92 to 1.0 range - very minimal variation)
+
+        const pulse1 = fastSin(time * frequency1 + phaseOffset);
+        const pulse2 = fastSin(time * frequency2 + phaseOffset * 1.3);
+
+        // Combine pulses for smoother animation (0.92 to 1.0 range)
         const pulseMultiplier = 0.95 + (pulse1 * 0.025 + pulse2 * 0.025);
-        
-        // Calculate opacity based on distance with smoother falloff - reduced overall opacity
+
+        // Calculate opacity based on distance with smoother falloff
         const distanceRatio = dist / maxDistance;
-        // Use cubic falloff for smoother fade at edges (optimized calculation)
         const distanceRatioSquared = distanceRatio * distanceRatio;
         const distanceFade = 1 - (distanceRatioSquared * distanceRatio);
-        const baseLineOpacity = opacity * distanceFade * 0.65; // Slightly brighter than before (was 0.5)
-        // Apply stagger progress with smooth step easing for smooth fade-in
+        const baseLineOpacity = opacity * distanceFade * 0.65;
         const easedProgress = smoothStep(staggerProgress);
         const lineOpacity = baseLineOpacity * pulseMultiplier * easedProgress;
 
@@ -589,16 +683,16 @@ export const drawConnections = (
         gradient.addColorStop(0.5, `rgba(${baseColor}, ${lineOpacity})`);
         gradient.addColorStop(1, `rgba(${baseColor}, ${lineOpacity * 0.7})`);
 
-        // Draw line with smooth gradient and slightly thicker line for better visibility
+        // Draw line with smooth gradient
         ctx.beginPath();
         ctx.moveTo(star1.x, star1.y);
         ctx.lineTo(star2.x, star2.y);
         ctx.strokeStyle = gradient;
-        ctx.lineWidth = 0.5 + pulseMultiplier * 0.15; // Thinner lines for subtler appearance
+        ctx.lineWidth = 0.5 + pulseMultiplier * 0.15;
         ctx.stroke();
       }
-    });
-  });
+    }
+  }
 };
 
 // Reset connection start time (useful when starfield is reinitialized)

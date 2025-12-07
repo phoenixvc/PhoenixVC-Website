@@ -4,7 +4,7 @@ import { getDailySeededRandom } from "./utils";
 import { SUN_PHYSICS } from "./physicsConfig";
 import { getFrameTime } from "./frameCache";
 import { hexToRgbSafe } from "./colorUtils";
-import { TWO_PI } from "./math";
+import { TWO_PI, fastSin } from "./math";
 
 export interface SunState {
   id: string;
@@ -225,8 +225,8 @@ export function updateSunPhysics(deltaTime: number): void {
       sun.driftPhaseY += sun.driftSpeedY * dt;
       
       // Calculate target position based on base + smooth drift
-      const driftX = Math.sin(sun.driftPhaseX) * sun.driftAmplitudeX;
-      const driftY = Math.sin(sun.driftPhaseY) * sun.driftAmplitudeY;
+      const driftX = fastSin(sun.driftPhaseX) * sun.driftAmplitudeX;
+      const driftY = fastSin(sun.driftPhaseY) * sun.driftAmplitudeY;
       const targetX = sun.baseX + driftX;
       const targetY = sun.baseY + driftY;
       
