@@ -1,5 +1,5 @@
 // apps/web/src/theme/context/ThemeContext.tsx
-import { createContext, useContext, useState, useMemo, ReactNode } from "react";
+import { createContext, useContext, useState, useMemo, ReactNode, useEffect } from "react";
 
 type Theme = "light" | "dark";
 
@@ -11,8 +11,50 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+const THEME_STORAGE_KEY = "theme-mode";
+
+// Get initial theme from localStorage, default to dark
+const getInitialTheme = (): Theme => {
+  if (typeof window === "undefined") return "dark";
+  
+  try {
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    if (stored === "light" || stored === "dark") {
+      return stored;
+    }
+  } catch (error) {
+    console.warn("Failed to load theme from localStorage:", error);
+  }
+  
+  return "dark"; // Default to dark mode
+};
+
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const [themeMode, setThemeMode] = useState<Theme>("dark"); // Default to dark mode
+  const [themeMode, setThemeMode] = useState<Theme>(getInitialTheme);
+
+  // Persist theme to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, themeMode);
+      // Apply theme class to document
+      if (themeMode === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    } catch (error) {
+      console.warn("Failed to save theme to localStorage:", error);
+    }
+  }, [themeMode]);
+
+  // Apply initial theme class on mount
+  useEffect(() => {
+    if (themeMode === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, []);
 
   const toggleTheme = () => {
     setThemeMode((prevMode) => (prevMode === "light" ? "dark" : "light"));

@@ -84,7 +84,7 @@ const SEO: FC<SEOProps> = ({
     canonical.href = canonicalUrl || `${SITE_URL}${window.location.pathname}`;
 
     // Cleanup function to reset to defaults when component unmounts
-    return () => {
+    return (): void => {
       document.title = DEFAULT_TITLE;
     };
   }, [fullTitle, description, keywords, ogImage, ogType, canonicalUrl, noIndex]);

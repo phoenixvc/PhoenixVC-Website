@@ -916,3 +916,113 @@
 .zoomOutIcon {
   font-size: 18px;
 }
+
+/* Camera vignette overlay - shows we're looking through focused camera */
+.cameraVignette {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 45; /* Below zoom out button (50) but above starfield */
+  
+  /* Subtle vignette effect - darker edges, clear center */
+  background: radial-gradient(
+    ellipse at center,
+    transparent 0%,
+    transparent 40%,
+    rgba(20, 15, 35, 0.3) 70%,
+    rgba(10, 5, 20, 0.5) 100%
+  );
+  
+  /* Add a subtle animated pulse to show camera is active */
+  animation: vignettePulse 3s ease-in-out infinite;
+}
+
+@keyframes vignettePulse {
+  0%, 100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.cameraVignetteLight {
+  background: radial-gradient(
+    ellipse at center,
+    transparent 0%,
+    transparent 40%,
+    rgba(200, 195, 220, 0.2) 70%,
+    rgba(180, 170, 210, 0.3) 100%
+  );
+}
+
+/* Focus area indicator - shows which sun we're focused on */
+.focusAreaIndicator {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 48; /* Below zoom out button (50) */
+  pointer-events: none;
+  
+  /* Fade in animation */
+  animation: focusIndicatorFadeIn 0.4s ease-out forwards;
+}
+
+@keyframes focusIndicatorFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.focusAreaLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  
+  /* Glass morphism effect */
+  background: linear-gradient(135deg, rgba(25, 20, 40, 0.85) 0%, rgba(35, 25, 55, 0.85) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  
+  border: 1px solid rgba(157, 78, 221, 0.3);
+  border-radius: 20px;
+  
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  
+  box-shadow: 
+    0 4px 16px rgba(157, 78, 221, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.focusAreaIndicatorLight .focusAreaLabel {
+  background: linear-gradient(135deg, rgba(250, 248, 255, 0.9) 0%, rgba(240, 235, 255, 0.9) 100%);
+  border: 1px solid rgba(123, 44, 191, 0.25);
+  color: rgba(30, 30, 50, 0.95);
+  box-shadow: 
+    0 4px 16px rgba(123, 44, 191, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.focusAreaIcon {
+  font-size: 16px;
+  line-height: 1;
+  opacity: 0.9;
+}
+
+.focusAreaName {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}

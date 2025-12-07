@@ -141,7 +141,7 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
     // This makes the focused area more prominent
     if (props.focusedSunId) {
       ctx.save();
-      ctx.globalAlpha = 0.2; // Dim background stars significantly
+      ctx.globalAlpha = 0.15; // Dim background stars more dramatically
       drawStars(ctx, currentStars);
       ctx.restore();
     } else {

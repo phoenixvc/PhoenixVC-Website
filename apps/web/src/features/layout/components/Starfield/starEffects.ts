@@ -162,7 +162,7 @@ export function drawStarTrail(
   planetSize: number,
   scaleFactor: number
 ): void {
-  const trailLength = planet.trailLength || 200;
+  const trailLength = planet.trailLength || 120; // Reduced from 200 to 120 for shorter, more consistent tails
   
   // Get sun color for enhanced trail coloring
   const sunRgb = getSunColorForPlanet(planet);

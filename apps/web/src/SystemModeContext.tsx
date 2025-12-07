@@ -4,7 +4,7 @@ import type { ThemeMode } from "@/theme/types";
 type SystemModeContextType = {
   systemMode: ThemeMode;
   useSystemMode: boolean;
-  setUseSystemMode: (use: boolean) => void;
+  setUseSystemMode: (value: boolean) => void;
 };
 
 const SystemModeContext = createContext<SystemModeContextType | undefined>(undefined);
