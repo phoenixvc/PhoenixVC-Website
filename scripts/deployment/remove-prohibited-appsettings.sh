@@ -80,7 +80,7 @@ if [ "$CURRENT_SETTINGS" = "{}" ] || [ -z "$CURRENT_SETTINGS" ]; then
   echo "  3. Insufficient permissions to view app settings"
 else
   echo "Current app settings:"
-  echo "$CURRENT_SETTINGS" | jq -r 'to_entries | .[] | "  - \(.key) = \(.value)"'
+  echo "$CURRENT_SETTINGS" | jq -r 'to_entries | .[] | "  - \(.key) = [REDACTED]"'
 fi
 
 echo ""
@@ -103,7 +103,7 @@ for SETTING in "${PROHIBITED_SETTINGS[@]}"; do
   if [ -n "$SETTING_VALUE" ]; then
     SETTINGS_FOUND=$((SETTINGS_FOUND + 1))
     echo "⚠️ Found prohibited setting: $SETTING"
-    echo "   Value: $SETTING_VALUE"
+    echo "   Value: [REDACTED FOR SECURITY]"
     
     # Attempt to remove the setting
     echo "🗑️ Removing $SETTING..."
@@ -148,7 +148,7 @@ UPDATED_SETTINGS=$(az staticwebapp appsettings list \
   --output json 2>/dev/null || echo "{}")
 
 if [ "$UPDATED_SETTINGS" != "{}" ] && [ -n "$UPDATED_SETTINGS" ]; then
-  echo "Remaining app settings:"
+  echo "Remaining app settings (keys only, values redacted for security):"
   echo "$UPDATED_SETTINGS" | jq -r 'to_entries | .[] | "  - \(.key)"'
 else
   echo "No app settings configured (or unable to retrieve)."

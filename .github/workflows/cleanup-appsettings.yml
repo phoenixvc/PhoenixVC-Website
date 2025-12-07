@@ -76,8 +76,8 @@ jobs:
             --output json 2>/dev/null || echo "{}")
           
           if [ "$CURRENT_SETTINGS" != "{}" ] && [ -n "$CURRENT_SETTINGS" ]; then
-            echo "Current app settings:"
-            echo "$CURRENT_SETTINGS" | jq -r 'to_entries | .[] | "  \(.key) = \(.value)"'
+            echo "Current app settings (values redacted for security):"
+            echo "$CURRENT_SETTINGS" | jq -r 'to_entries | .[] | "  \(.key) = [REDACTED]"'
             echo ""
             
             # Check for prohibited settings
@@ -137,7 +137,7 @@ jobs:
             --output json 2>/dev/null || echo "{}")
           
           if [ "$UPDATED_SETTINGS" != "{}" ] && [ -n "$UPDATED_SETTINGS" ]; then
-            echo "Remaining app settings:"
+            echo "Remaining app settings (keys only, values redacted for security):"
             echo "$UPDATED_SETTINGS" | jq -r 'to_entries | .[] | "  \(.key)"'
             
             # Verify prohibited settings are gone
