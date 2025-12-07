@@ -263,6 +263,182 @@ export const OPACITY_CONFIG = {
   focusedBackground: 0.15,
 } as const;
 
+/**
+ * Black hole rendering configuration
+ * Controls visual appearance of black holes, accretion disks, and particles
+ */
+export const BLACK_HOLE_RENDERING_CONFIG = {
+  // Size and mass
+  radiusMultiplier: 0.4, // Reduction factor for black hole radius
+  massCoefficient: 50, // Mass calculation from radius
+
+  // Rotation
+  rotation: {
+    baseSpeed: 0.001,
+    randomMin: 0.75,
+    randomMax: 1.25,
+  },
+
+  // Pulsing effect
+  pulse: {
+    timeMultiplier: 0.001,
+    frequency: 1.5,
+    amplitude: 0.15,
+  },
+
+  // Outer gravitational glow
+  outerGlow: {
+    innerRadiusMultiplier: 0.8,
+    outerRadiusMultiplier: 4,
+    colorStops: [
+      { offset: 0, color: "rgba(60, 0, 120, 0)" },
+      { offset: 0.3, color: "rgba(80, 20, 160, 0.08)" },
+      { offset: 0.6, color: "rgba(100, 40, 180, 0.04)" },
+      { offset: 1, color: "rgba(120, 60, 200, 0)" },
+    ],
+  },
+
+  // Accretion disk particles
+  particles: {
+    spawnIntervalMs: 75,
+    countMin: 1,
+    countMax: 2,
+    distanceMin: 1.5,
+    distanceMax: 2.5,
+    speedBase: 0.0015,
+    speedRandomMin: 0.75,
+    speedRandomMax: 1.25,
+    sizeMin: 0.5,
+    sizeMax: 2.0,
+    alphaBase: 0.6,
+    alphaRandom: 0.3,
+    maxCount: 100,
+    spiralSpeed: 0.03,
+    alphaDecay: 0.03,
+    removalThreshold: 0.6,
+  },
+
+  // Accretion disk rings
+  disk: {
+    radiusMultiplier: 2.5,
+    ringCount: 3,
+    ringBaseSize: 0.6,
+    ringSizeStep: 0.2,
+    ringBaseOpacity: 0.25,
+    ringOpacityStep: 0.06,
+    ringRotationFactor: 0.3,
+    ellipseRatio: 0.4,
+    baseLineWidth: 2,
+    lineWidthStep: 0.4,
+    color: "138, 43, 226", // Purple RGB
+  },
+
+  // Core gradient
+  core: {
+    colorStops: [
+      { offset: 0, color: "rgba(0, 0, 0, 1)" },
+      { offset: 0.5, color: "rgba(10, 0, 20, 0.95)" },
+      { offset: 0.7, color: "rgba(20, 0, 40, 0.8)" },
+      { offset: 0.9, color: "rgba(40, 0, 80, 0.3)" },
+      { offset: 1, color: "rgba(60, 0, 120, 0)" },
+    ],
+  },
+
+  // Event horizon
+  eventHorizon: {
+    radiusMultiplier: 0.65,
+    pulseAmplitude: 0.1,
+    baseOpacity: 0.3,
+    opacityAmplitude: 0.1,
+    baseLineWidth: 1.5,
+    lineWidthAmplitude: 0.5,
+  },
+
+  // Inner core highlight
+  innerCore: {
+    radiusMultiplier: 0.3,
+    color: "rgba(180, 100, 255, 0.15)",
+    lineWidth: 1,
+  },
+} as const;
+
+/**
+ * Orbit configuration for planets/comets
+ * Controls orbital mechanics and satellite rendering
+ */
+export const ORBIT_CONFIG = {
+  // Orbital parameters
+  orbit: {
+    baseRadiusMultiplier: 0.12,
+    radiusStepPerItem: 25,
+    baseSpeed: 0.0005,
+    speedVariation: 0.0002,
+  },
+
+  // Satellite configuration
+  satellites: {
+    baseCount: 3,
+    massPerSatellite: 40,
+    angleRandomOffset: 0.5,
+    distanceMin: 20,
+    distanceMax: 35,
+    speedMin: 0.005,
+    speedMax: 0.015,
+    eccentricityMin: 0.1,
+    eccentricityMax: 0.3,
+    sizeMin: 0.8,
+    sizeMax: 2.0,
+    alphaMin: 80,
+    alphaMax: 150,
+  },
+
+  // Path type eccentricities
+  pathEccentricity: {
+    comet: { min: 0.5, max: 0.8, verticalFactor: 1.8 },
+    planet: { min: 0.1, max: 0.25, verticalFactor: 1.2 },
+    star: { min: 0.05, max: 0.15, verticalFactor: 1.0 },
+  },
+
+  // Trail and glow
+  cometTrail: {
+    lengthMin: 180,
+    lengthMax: 300,
+    biggestCometLengthMin: 250,
+    biggestCometLengthMax: 330,
+  },
+
+  starGlow: {
+    intensityMin: 1.0,
+    intensityMax: 1.5,
+  },
+
+  // Pulsation
+  pulsation: {
+    speed: 0.00002,
+    minScale: 0.92,
+    maxScale: 1.08,
+    hoveredMinScale: 0.8,
+    hoveredMaxScale: 1.3,
+    hoveredSpeed: 0.0006,
+  },
+
+  // Rotation
+  rotationSpeed: {
+    min: 0.001,
+    max: 0.002,
+  },
+
+  // Hover detection
+  hover: {
+    radiusMultiplier: 30,
+  },
+
+  // Orbit center smoothing
+  smoothing: {
+    factor: 0.08,
+  },
+} as const;
+
 // Type exports for type safety
 export type MouseEffectConfig = typeof MOUSE_EFFECT_CONFIG;
 export type SunRenderingConfig = typeof SUN_RENDERING_CONFIG;
@@ -271,3 +447,5 @@ export type AnimationTimingConfig = typeof ANIMATION_TIMING_CONFIG;
 export type SunIconConfig = typeof SUN_ICON_CONFIG;
 export type RenderingColors = typeof RENDERING_COLORS;
 export type OpacityConfig = typeof OPACITY_CONFIG;
+export type BlackHoleRenderingConfig = typeof BLACK_HOLE_RENDERING_CONFIG;
+export type OrbitConfig = typeof ORBIT_CONFIG;
