@@ -96,9 +96,9 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
     // Clear canvas with full dimensions
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Get current stars from ref - make sure to create a safe copy to avoid mutation issues
-    // Use optional chaining and provide a default empty array
-    const currentStars: Star[] = props.starsRef?.current ? [...props.starsRef.current] : [];
+    // Get current stars from ref - use direct reference to avoid copying array every frame
+    // This significantly reduces GC pressure at 60fps
+    const currentStars: Star[] = props.starsRef?.current ?? [];
 
     // Check if stars exist and are not empty
     if (currentStars.length === 0) {
@@ -121,19 +121,21 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
 
     // Apply camera transformation to show the camera's view
     // This creates a smooth zoom and pan effect centered on the camera target
-    // The camera is always applied to ensure we're rendering from the camera's perspective
-    if (props.camera) {
+    // Use cameraRef for synchronous access (avoids stale state issues)
+    // Fall back to props.camera for backward compatibility
+    const cameraValues = props.cameraRef?.current ?? props.camera;
+    if (cameraValues && cameraValues.zoom !== 1) {
       ctx.save();
       // Calculate the center point to zoom towards (in canvas coordinates)
-      const cameraCenterX = props.camera.cx * canvas.width;
-      const cameraCenterY = props.camera.cy * canvas.height;
-      
+      const cameraCenterX = cameraValues.cx * canvas.width;
+      const cameraCenterY = cameraValues.cy * canvas.height;
+
       // Apply transformation to center the camera target in the viewport
       // 1. Translate to center of viewport
       // 2. Scale around origin (zoom)
       // 3. Translate so camera target becomes the origin
       ctx.translate(canvas.width / 2, canvas.height / 2);
-      ctx.scale(props.camera.zoom, props.camera.zoom);
+      ctx.scale(cameraValues.zoom, cameraValues.zoom);
       ctx.translate(-cameraCenterX, -cameraCenterY);
     }
 
@@ -155,15 +157,15 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       drawStarBirthplaces(ctx, canvas.width, canvas.height);
     }
 
-    // Get planets for sun size calculation
-    const currentPlanets: Planet[] = props.planetsRef?.current ? [...props.planetsRef.current] : [];
+    // Get planets for sun size calculation - use direct reference to avoid GC pressure
+    const currentPlanets: Planet[] = props.planetsRef?.current ?? [];
 
     // Draw suns (focus area orbital centers) - always visible
     // Pass hovered sun id, focused sun id for interactive effects, deltaTime for physics, and planets for size calculation
     drawSuns(ctx, canvas.width, canvas.height, timestamp, props.isDarkMode, props.hoveredSunId, deltaTime, props.focusedSunId, currentPlanets);
 
-    // Get current values from refs
-    const currentBlackHoles: BlackHole[] = props.blackHolesRef?.current ? [...props.blackHolesRef.current] : [];
+    // Get current values from refs - use direct reference to avoid GC pressure
+    const currentBlackHoles: BlackHole[] = props.blackHolesRef?.current ?? [];
 
     // Fixed: Make sure isClicked is false by default
     const currentMousePosition: MousePosition = refs.mousePositionRef.current ?
@@ -427,7 +429,9 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       updateStarActivity(currentStars);
 
     // Restore canvas context if camera transformation was applied
-    if (props.camera) {
+    // Must match the save condition: cameraValues && cameraValues.zoom !== 1
+    const cameraForRestore = props.cameraRef?.current ?? props.camera;
+    if (cameraForRestore && cameraForRestore.zoom !== 1) {
       ctx.restore();
     }
 

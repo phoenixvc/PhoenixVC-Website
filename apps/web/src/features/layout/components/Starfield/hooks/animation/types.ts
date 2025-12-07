@@ -86,6 +86,7 @@ export interface AnimationProps {
     focusedSunId?: string | null;
     debugSettings?: DebugSettings; // Add debug settings
     isMouseOverProjectTooltipRef?: MutableRefObject<boolean>; // Track if mouse is over project tooltip
+    cameraRef?: MutableRefObject<{ cx: number; cy: number; zoom: number }>; // Ref for synchronous camera access
 }
 
 export interface AnimationRefs {

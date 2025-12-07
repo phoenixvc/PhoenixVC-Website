@@ -708,7 +708,8 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     focusedSunId, // Pass the focused sun id for camera zoom
     camera: internalCamera, // Pass the internal camera for zoom functionality
     setCamera: setInternalCamera, // Pass camera setter
-    isMouseOverProjectTooltipRef // Track if mouse is over project tooltip
+    isMouseOverProjectTooltipRef, // Track if mouse is over project tooltip
+    cameraRef: cameraStateRef // Pass camera ref for synchronous access during animation
   }), [
     mousePosition,
     enableFlowEffect,
