@@ -872,7 +872,13 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   // This ensures content appears centered in the visible viewport area
   const calculateAdjustedCameraCenter = useCallback((targetX: number, targetY: number): { cx: number; cy: number } => {
     const canvas = dimensionsRef.current;
-    const sidebarOffsetNormalized = canvas ? (sidebarWidth / canvas.width) : 0;
+    if (!canvas || canvas.width === 0) {
+      // If canvas dimensions not available, return unadjusted position
+      // This is safe because it will be recalculated when dimensions are available
+      return { cx: targetX, cy: targetY };
+    }
+    
+    const sidebarOffsetNormalized = sidebarWidth / canvas.width;
     
     // Shift camera center right by half the sidebar width to compensate for visual offset
     return {
@@ -883,10 +889,6 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
 
   // Function to zoom the camera to focus on a specific sun
   const zoomToSun = useCallback((sunId: string): void => {
-    const VIEWPORT_CENTER_X = 0.5;
-    const VIEWPORT_CENTER_Y = 0.5;
-    const DEFAULT_ZOOM = 1;
-
     // Cancel any existing camera animation
     if (cameraAnimationRef.current) {
       cancelAnimationFrame(cameraAnimationRef.current);
@@ -898,13 +900,16 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
 
       // Set camera target to zoom out
       // Center should account for sidebar offset to maintain proper visual centering
-      const { cx, cy } = calculateAdjustedCameraCenter(VIEWPORT_CENTER_X, VIEWPORT_CENTER_Y);
+      const { cx, cy } = calculateAdjustedCameraCenter(
+        CAMERA_CONFIG.defaultCenterX,
+        CAMERA_CONFIG.defaultCenterY
+      );
       setInternalCamera(prev => ({
         ...prev,
         target: {
           cx,
           cy,
-          zoom: DEFAULT_ZOOM
+          zoom: CAMERA_CONFIG.defaultZoom
         }
       }));
       return;
