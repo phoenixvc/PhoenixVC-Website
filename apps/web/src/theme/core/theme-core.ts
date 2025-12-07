@@ -545,5 +545,28 @@ export class ThemeCore {
   }
 }
 
-// Export singleton instance
-export const themeCore = ThemeCore.getInstance();
+// Lazy singleton instance - only created when first accessed
+let _instance: ThemeCore | null = null;
+
+/**
+ * Get the singleton instance of ThemeCore.
+ * This is a lazy getter to avoid circular dependency issues during module initialization.
+ */
+export function getThemeCore(): ThemeCore {
+  if (!_instance) {
+    _instance = ThemeCore.getInstance();
+  }
+  return _instance;
+}
+
+// Export singleton instance using a Proxy for lazy initialization
+// This prevents the instance from being created during module initialization
+export const themeCore = new Proxy({} as ThemeCore, {
+  get(_target, prop): unknown {
+    return getThemeCore()[prop as keyof ThemeCore];
+  },
+  set(_target, prop, value): boolean {
+    (getThemeCore() as Record<string, unknown>)[prop as string] = value;
+    return true;
+  }
+});

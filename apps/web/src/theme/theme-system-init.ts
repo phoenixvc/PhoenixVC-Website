@@ -11,7 +11,5 @@ export function initializeThemeSystem(): void {
   console.log("[ThemeSystem] Initialization complete");
 }
 
-// Auto-initialize after a short delay to ensure both modules are loaded
-setTimeout(() => {
-  initializeThemeSystem();
-}, 100);
+// NOTE: Auto-initialization has been removed to prevent circular dependency issues.
+// The ThemeProvider component now handles initialization properly.
