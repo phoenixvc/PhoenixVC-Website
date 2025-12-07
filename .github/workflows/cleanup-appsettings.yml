@@ -1,0 +1,188 @@
+name: Cleanup Prohibited App Settings
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to clean up (staging or production)'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+        default: staging
+      location_code:
+        description: 'Location code (euw or saf)'
+        required: true
+        type: choice
+        options:
+          - euw
+          - saf
+        default: euw
+      dry_run:
+        description: 'Dry run mode (check only, do not remove)'
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  cleanup_appsettings:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Display Configuration
+        run: |
+          echo "==========================================="
+          echo "App Settings Cleanup Configuration"
+          echo "==========================================="
+          echo "Environment: ${{ github.event.inputs.environment }}"
+          echo "Location Code: ${{ github.event.inputs.location_code }}"
+          echo "Dry Run: ${{ github.event.inputs.dry_run }}"
+          echo "==========================================="
+
+      - name: Check Current App Settings (Dry Run)
+        if: github.event.inputs.dry_run == 'true'
+        run: |
+          RESOURCE_GROUP="${{ github.event.inputs.environment }}-${{ github.event.inputs.location_code }}-rg-phoenixvc-website"
+          STATIC_WEB_APP_NAME="${{ github.event.inputs.environment }}-${{ github.event.inputs.location_code }}-swa-phoenixvc-website"
+          
+          echo "==========================================="
+          echo "DRY RUN MODE - No changes will be made"
+          echo "==========================================="
+          echo ""
+          echo "Resource Group: $RESOURCE_GROUP"
+          echo "Static Web App: $STATIC_WEB_APP_NAME"
+          echo ""
+          
+          echo "Fetching current app settings..."
+          CURRENT_SETTINGS=$(az staticwebapp appsettings list \
+            --name "$STATIC_WEB_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --output json 2>/dev/null || echo "{}")
+          
+          if [ "$CURRENT_SETTINGS" != "{}" ] && [ -n "$CURRENT_SETTINGS" ]; then
+            echo "Current app settings:"
+            echo "$CURRENT_SETTINGS" | jq -r 'to_entries | .[] | "  \(.key) = \(.value)"'
+            echo ""
+            
+            # Check for prohibited settings
+            PROHIBITED_SETTINGS=("FUNCTIONS_WORKER_RUNTIME" "FUNCTIONS_INPROC_NET8_ENABLED" "AzureWebJobsStorage" "SCM_DO_BUILD_DURING_DEPLOYMENT")
+            FOUND_PROHIBITED=0
+            
+            echo "Checking for prohibited settings:"
+            for SETTING in "${PROHIBITED_SETTINGS[@]}"; do
+              if echo "$CURRENT_SETTINGS" | jq -e --arg key "$SETTING" 'has($key)' > /dev/null; then
+                echo "  ⚠️ FOUND: $SETTING"
+                FOUND_PROHIBITED=1
+              else
+                echo "  ✅ OK: $SETTING not found"
+              fi
+            done
+            
+            if [ $FOUND_PROHIBITED -eq 1 ]; then
+              echo ""
+              echo "⚠️ Prohibited app settings detected!"
+              echo "Run this workflow again with dry_run=false to remove them."
+            else
+              echo ""
+              echo "✅ No prohibited app settings found. Configuration is clean."
+            fi
+          else
+            echo "No app settings found or unable to retrieve them."
+          fi
+
+      - name: Make Script Executable
+        if: github.event.inputs.dry_run == 'false'
+        run: chmod +x ./scripts/deployment/remove-prohibited-appsettings.sh
+
+      - name: Run Cleanup Script
+        if: github.event.inputs.dry_run == 'false'
+        run: |
+          echo "==========================================="
+          echo "RUNNING CLEANUP - Changes will be made"
+          echo "==========================================="
+          ./scripts/deployment/remove-prohibited-appsettings.sh \
+            ${{ github.event.inputs.environment }} \
+            ${{ github.event.inputs.location_code }}
+
+      - name: Verify Cleanup
+        if: github.event.inputs.dry_run == 'false'
+        run: |
+          RESOURCE_GROUP="${{ github.event.inputs.environment }}-${{ github.event.inputs.location_code }}-rg-phoenixvc-website"
+          STATIC_WEB_APP_NAME="${{ github.event.inputs.environment }}-${{ github.event.inputs.location_code }}-swa-phoenixvc-website"
+          
+          echo ""
+          echo "==========================================="
+          echo "Post-Cleanup Verification"
+          echo "==========================================="
+          
+          UPDATED_SETTINGS=$(az staticwebapp appsettings list \
+            --name "$STATIC_WEB_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --output json 2>/dev/null || echo "{}")
+          
+          if [ "$UPDATED_SETTINGS" != "{}" ] && [ -n "$UPDATED_SETTINGS" ]; then
+            echo "Remaining app settings:"
+            echo "$UPDATED_SETTINGS" | jq -r 'to_entries | .[] | "  \(.key)"'
+            
+            # Verify prohibited settings are gone
+            PROHIBITED_SETTINGS=("FUNCTIONS_WORKER_RUNTIME" "FUNCTIONS_INPROC_NET8_ENABLED" "AzureWebJobsStorage" "SCM_DO_BUILD_DURING_DEPLOYMENT")
+            STILL_PRESENT=0
+            
+            echo ""
+            echo "Verification of prohibited settings removal:"
+            for SETTING in "${PROHIBITED_SETTINGS[@]}"; do
+              if echo "$UPDATED_SETTINGS" | jq -e --arg key "$SETTING" 'has($key)' > /dev/null; then
+                echo "  ❌ STILL PRESENT: $SETTING"
+                STILL_PRESENT=1
+              else
+                echo "  ✅ REMOVED: $SETTING"
+              fi
+            done
+            
+            if [ $STILL_PRESENT -eq 1 ]; then
+              echo ""
+              echo "⚠️ Some prohibited settings are still present!"
+              echo "Manual intervention may be required via Azure Portal."
+              exit 1
+            else
+              echo ""
+              echo "✅ All prohibited app settings have been successfully removed."
+            fi
+          else
+            echo "No app settings configured."
+            echo "✅ All prohibited app settings have been successfully removed."
+          fi
+
+      - name: Create Summary
+        if: always()
+        run: |
+          echo "## App Settings Cleanup Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Location Code:** ${{ github.event.inputs.location_code }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Dry Run:** ${{ github.event.inputs.dry_run }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            echo "✅ Dry run completed. Review the logs above to see what would be changed." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "To actually remove prohibited settings, run this workflow again with dry_run=false" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ Cleanup completed. Review the logs above for details." >> $GITHUB_STEP_SUMMARY
+          fi

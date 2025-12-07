@@ -1,6 +1,6 @@
 # Phoenix VC - Comprehensive Troubleshooting Guide {: #phoenix-vc---comprehensive-troubleshooting-guide}
 📄 `/docs/deployment/TROUBLESHOOTING.md`  
-**Version:** 1.4.0 | Last Updated: 2025-02-14
+**Version:** 1.5.0 | Last Updated: 2025-12-07
 
 > A comprehensive guide for resolving common issues in development and deployment, organized by issue type with quick solutions and detailed explanations.
 
@@ -10,6 +10,7 @@
 |---------|----------|-------------------------|--------------------------------------|
 | AUTH001 | High     | Authentication Failed   | [Check credentials](#authentication-issues) |
 | DEP001  | High     | Deployment Failed       | [Verify parameters](#deployment-issues)     |
+| SWA001  | High     | Prohibited App Settings | [Remove settings](#prohibited-app-settings-error-swa001) |
 | NET001  | Medium   | Network Connectivity    | [Check NSG rules](#network-configuration)   |
 | PERM001 | High     | Insufficient Permissions| [Verify RBAC](#permissions)                |
 | DB001   | High     | Database Connection     | [Check firewall](#database-issues)         |
@@ -197,9 +198,92 @@ graph TD
   G -->|Yes| I[Document Solution]
 ```
 
+## ⚙️ Static Web Apps Configuration Issues {: #-static-web-apps-configuration-issues}
+
+### Prohibited App Settings Error (SWA001) {: #prohibited-app-settings-error-swa001}
+
+**Error Message:**
+```
+AppSetting with name(s) 'FUNCTIONS_WORKER_RUNTIME' are not allowed.
+AppSetting with name(s) 'FUNCTIONS_INPROC_NET8_ENABLED' are not allowed.
+AppSetting with name(s) 'AzureWebJobsStorage' are not allowed.
+AppSetting with name(s) 'SCM_DO_BUILD_DURING_DEPLOYMENT' are not allowed.
+```
+
+**Severity:** High  
+**Impact:** Deployment failures, broken CI/CD pipeline
+
+#### Root Cause {: #root-cause}
+Azure Static Web Apps with **Managed Functions** automatically handles runtime configuration. When using Managed Functions, certain app settings conflict with the managed infrastructure and cause deployment failures:
+
+❌ **Prohibited Settings:**
+- `FUNCTIONS_WORKER_RUNTIME` - Runtime is managed by Azure
+- `FUNCTIONS_INPROC_NET8_ENABLED` - Process model is managed by Azure
+- `AzureWebJobsStorage` - Storage is managed automatically for managed functions
+- `SCM_DO_BUILD_DURING_DEPLOYMENT` - Build process conflicts with Static Web Apps
+
+✅ **Allowed Settings:**
+- `APPINSIGHTS_INSTRUMENTATIONKEY` - Application Insights key
+- Custom application settings for your code
+- Environment-specific configuration
+
+#### Quick Solution {: #quick-solution}
+
+**Option 1: Using the Cleanup Script**
+```bash
+# Run cleanup script for staging
+./scripts/deployment/remove-prohibited-appsettings.sh staging euw
+
+# Or for production
+./scripts/deployment/remove-prohibited-appsettings.sh production euw
+```
+
+**Option 2: Using GitHub Workflow**
+1. Go to Actions → Cleanup Prohibited App Settings
+2. Click "Run workflow"
+3. Select environment and location
+4. Run with `dry_run=true` to check first
+5. Run with `dry_run=false` to remove settings
+
+**Option 3: Manual Azure CLI**
+```bash
+# List current settings
+az staticwebapp appsettings list \
+  --name staging-euw-swa-phoenixvc-website \
+  --resource-group staging-euw-rg-phoenixvc-website \
+  --output table
+
+# Remove prohibited settings
+az staticwebapp appsettings delete \
+  --name staging-euw-swa-phoenixvc-website \
+  --resource-group staging-euw-rg-phoenixvc-website \
+  --setting-names FUNCTIONS_WORKER_RUNTIME FUNCTIONS_INPROC_NET8_ENABLED AzureWebJobsStorage SCM_DO_BUILD_DURING_DEPLOYMENT \
+  --yes
+
+# Verify removal
+az staticwebapp appsettings list \
+  --name staging-euw-swa-phoenixvc-website \
+  --resource-group staging-euw-rg-phoenixvc-website \
+  --output table
+```
+
+#### Prevention {: #prevention}
+
+1. **Never add these settings manually** via Azure Portal
+2. **Use Managed Functions** - Let Azure handle runtime configuration
+3. **Configuration in Code** - Use `staticwebapp.config.json` for routing/headers
+4. **Secrets Management** - Use Azure Key Vault for sensitive values
+5. **Regular Audits** - Run cleanup workflow monthly to check configuration
+
+#### Related Documentation {: #related-documentation}
+- [Deployment Scripts README](/scripts/deployment/README.md)
+- [Azure Static Web Apps Documentation](https://learn.microsoft.com/en-us/azure/static-web-apps/)
+- [Managed Functions vs Bring Your Own](https://learn.microsoft.com/en-us/azure/static-web-apps/functions-bring-your-own)
+
 ## 📝 Version History {: #-version-history}
 | Version | Date       | Changes                         |
 |---------|------------|---------------------------------|
+| 1.5.0   | 2025-12-07 | Added Static Web Apps prohibited settings troubleshooting |
 | 1.4.0   | 2025-02-14 | Added flowchart, improved organization |
 | 1.3.0   | 2025-02-14 | Added CI/CD troubleshooting     |
 | 1.2.0   | 2025-01-20 | Updated recovery procedures     |
