@@ -79,7 +79,7 @@ const animations = {
   },
 };
 
-export const ProjectDetail = () => {
+export const ProjectDetail = (): JSX.Element => {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
   const { themeMode } = useTheme();

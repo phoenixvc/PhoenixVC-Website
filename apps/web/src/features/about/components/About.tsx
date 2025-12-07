@@ -71,7 +71,7 @@ const coreValues = [
   }
 ];
 
-const About: FC<AboutProps> = memo(() => {
+const About: FC<AboutProps> = memo((): JSX.Element => {
   const { themeMode } = useTheme();
   const isDarkMode = themeMode === "dark";
   const [_activeSection, _setActiveSection] = useState(0);
@@ -120,7 +120,7 @@ const About: FC<AboutProps> = memo(() => {
 
     // Check if video files exist with a properly structured async function
     (async () => {
-      const checkVideoExists = async (url: string) => {
+      const checkVideoExists = async (url: string): Promise<void> => {
         try {
           const response = await fetch(url, { method: "HEAD" });
           logger.debug(`Video at ${url} exists:`, response.ok);

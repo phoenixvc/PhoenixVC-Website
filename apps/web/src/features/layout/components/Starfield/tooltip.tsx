@@ -26,11 +26,11 @@ const Tooltip: FC<TooltipProps> = ({
 
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 10);
-    return () => clearTimeout(timer);
+    return (): void => clearTimeout(timer);
   }, []);
 
   // Calculate tooltip position to ensure it stays within viewport
-  const adjustPosition = () => {
+  const adjustPosition = (): { left: number; top: number; position: "fixed" } => {
     const tooltipWidth = 280;
     const tooltipHeight = 250;
     const windowWidth = typeof window !== "undefined" ? window.innerWidth : 1200;
@@ -70,14 +70,14 @@ const Tooltip: FC<TooltipProps> = ({
     : (project.projects || 0);
 
   // Event handlers
-  const handleTooltipClick = (e: React.MouseEvent) => {
+  const handleTooltipClick = (e: React.MouseEvent): void => {
     e.stopPropagation();
     if (!isPinned && onPin) {
       onPin(project);
     }
   };
 
-  const handleCloseClick = (e: React.MouseEvent) => {
+  const handleCloseClick = (e: React.MouseEvent): void => {
     e.stopPropagation();
     if (onUnpin) {
       onUnpin();

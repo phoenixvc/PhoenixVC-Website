@@ -103,7 +103,7 @@ export function rgbToString(rgb: RGB): string {
  * Convert RGB to hex string
  */
 export function rgbToHex(rgb: RGB): string {
-  const toHex = (n: number) => Math.round(n).toString(16).padStart(2, "0");
+  const toHex = (n: number): string => Math.round(n).toString(16).padStart(2, "0");
   return `#${toHex(rgb.r)}${toHex(rgb.g)}${toHex(rgb.b)}`;
 }
 

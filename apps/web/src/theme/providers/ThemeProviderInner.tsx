@@ -198,7 +198,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
   useEffect(() => {
     if (!themeManagerReady) return;
 
-    const initializeTheme = async () => {
+    const initializeTheme = async (): Promise<void> => {
       try {
         logger.debug("[ThemeProvider] Starting theme initialization...");
 
@@ -557,13 +557,13 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
     systemMode,
     useSystemMode: state.useSystem,
     getThemeClassNames,
-    getSpecificClass: (suffix) => getSpecificClass(state.themeName, suffix),
-    replaceThemeClasses: (currentClasses, newScheme) => replaceThemeClasses(currentClasses, newScheme, state.mode),
+    getSpecificClass: (suffix): string => getSpecificClass(state.themeName, suffix),
+    replaceThemeClasses: (currentClasses, newScheme): string => replaceThemeClasses(currentClasses, newScheme, state.mode),
     setThemeClasses,
     setMode,
     toggleMode,
     setUseSystemMode,
-    getCssVariable: (name: string, _config?: Partial<CssVariableConfig>) => getCssVariable(name),
+    getCssVariable: (name: string, _config?: Partial<CssVariableConfig>): string => getCssVariable(name),
     getAllThemeClasses,
     isThemeClass,
 
@@ -581,12 +581,12 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
     isThemeSupported,
     getThemeState,
     resetTheme,
-    subscribeToThemeChanges: (callback) => {
+    subscribeToThemeChanges: (callback): (() => void) => {
       const observer = new MutationObserver(() => {
         callback(getThemeState());
       });
       observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "data-mode"] });
-      return () => observer.disconnect();
+      return (): void => observer.disconnect();
     },
     toggleUseSystem,
 

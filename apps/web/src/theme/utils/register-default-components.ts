@@ -5,7 +5,7 @@ import type { ComponentVariantType as _ComponentVariantType } from "../types/map
 /**
  * Register default components that might be missing from the registry
  */
-export function registerDefaultComponents() {
+export function registerDefaultComponents(): void {
   const missingComponents = [
     "logo",
     "header",
@@ -23,7 +23,7 @@ export function registerDefaultComponents() {
 
   if (styleManager) {
     // Register each missing component with a default configuration
-    missingComponents.forEach(component => {
+    missingComponents.forEach((component): void => {
       try {
         // This will trigger the generation of a default variant if one doesn't exist
         // and automatically register it in the component registry

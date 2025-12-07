@@ -1,5 +1,5 @@
 // src/hooks/useSectionObserver.ts
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 
 interface SectionObserverOptions {
   threshold?: number;
@@ -10,15 +10,15 @@ export const useSectionObserver = (
   sectionId: string,
   callback?: (id: string) => void,
   options: SectionObserverOptions = { threshold: 0.5, rootMargin: "0px 0px -10% 0px" }
-) => {
+): RefObject<HTMLDivElement> => {
   const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  useEffect((): (() => void) => {
     const currentRef = ref.current;
-    if (!currentRef) return;
+    if (!currentRef) return (): void => {};
 
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
+    const observer = new IntersectionObserver((entries): void => {
+      entries.forEach((entry): void => {
         if (entry.isIntersecting) {
           console.log(`[SectionObserver] Section visible: ${sectionId}`);
           callback?.(sectionId);
@@ -34,7 +34,7 @@ export const useSectionObserver = (
 
     observer.observe(currentRef);
 
-    return () => observer.disconnect();
+    return (): void => observer.disconnect();
   }, [sectionId, callback, options]);
 
   return ref;

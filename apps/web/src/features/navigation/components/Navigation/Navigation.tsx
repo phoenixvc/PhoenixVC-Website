@@ -13,7 +13,7 @@ export const Navigation = ({
   variant = "header",
   activeSection: propActiveSection,
   onSectionChange,
-}: NavigationProps) => {
+}: NavigationProps): JSX.Element => {
   const location = useLocation();
   const [activeSection, setActiveSection] = useState<string>(() => {
     const hash = location.hash.replace("#", "");
@@ -91,7 +91,7 @@ export const Navigation = ({
     }
   }, [propActiveSection, activeSection]);
 
-  const handleClick = useCallback((event: MouseEvent<HTMLAnchorElement>, item: NavigationItem) => {
+  const handleClick = useCallback((event: MouseEvent<HTMLAnchorElement>, item: NavigationItem): void => {
     if (item.type === "section") {
       event.preventDefault();
       const targetId = item.reference || item.path.replace(/^\/?(#)?/, "");
@@ -111,7 +111,7 @@ export const Navigation = ({
     onItemClick?.(event);
   }, [onItemClick, onSectionChange]);
 
-  const isItemActive = useCallback((item: NavigationItem) => {
+  const isItemActive = useCallback((item: NavigationItem): boolean => {
     if (item.type === "section") {
       const sectionId = item.reference || item.path.replace(/^\/?(#)?/, "");
       return sectionId === activeSection;

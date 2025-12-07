@@ -18,7 +18,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [currentPath, setCurrentPath] = useState("");
 
   useEffect(() => {
-    const updateCurrentPath = () => {
+    const updateCurrentPath = (): void => {
       const pathname = window.location.pathname;
       const hash = window.location.hash;
 
@@ -58,7 +58,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ].filter(Boolean).join(" ");
 
   // Function to check if a link is active
-  const isLinkActive = (href: string) => {
+  const isLinkActive = (href: string): boolean => {
     if (href === "/") {
       return currentPath === "/";
     }

@@ -60,7 +60,20 @@ export const useStarInitialization = ({
   employeeStarSize,
   debugSettings,
   cancelAnimation
-}: StarInitializationProps) => {
+}: StarInitializationProps): {
+  stars: Star[];
+  starsRef: React.MutableRefObject<Star[]>;
+  blackHoles: BlackHole[];
+  blackHolesRef: React.MutableRefObject<BlackHole[]>;
+  planets: Planet[];
+  planetsRef: React.MutableRefObject<Planet[]>;
+  employeeStars: Planet[];
+  employeeStarsRef: React.MutableRefObject<Planet[]>;
+  initializeElements: () => void;
+  ensureStarsExist: () => Star[];
+  resetStars: () => void;
+  isStarsInitializedRef: React.MutableRefObject<boolean>;
+} => {
   // Resolve naming: prefer new names (enablePlanets/planetSize) but fallback to deprecated names
   const effectiveEnablePlanets = enablePlanets ?? enableEmployeeStars ?? DEFAULT_ENABLE_PLANETS;
   const effectivePlanetSize = planetSize ?? employeeStarSize ?? DEFAULT_PLANET_SIZE;
@@ -134,7 +147,7 @@ export const useStarInitialization = ({
     return stars;
   }, []);
 
-  const initializeElements = useCallback(() => {
+  const initializeElements = useCallback((): void => {
     logger.debug("Initializing elements with dimensions:", dimensionsRef.current);
 
     // Always reinitialize stars when this function is called
@@ -246,7 +259,7 @@ export const useStarInitialization = ({
   ]);
 
   // Create a function to ensure stars exist (for animation loop)
-  const ensureStarsExist = useCallback(() => {
+  const ensureStarsExist = useCallback((): Star[] => {
     logger.debug("Ensuring stars exist");
 
     if (!starsRef.current || starsRef.current.length === 0) {
@@ -296,7 +309,7 @@ export const useStarInitialization = ({
   }, [initializeElements, dimensionsRef]);
 
   // Function to reset all stars
-  const resetStars = useCallback(() => {
+  const resetStars = useCallback((): void => {
     logger.debug("Reset stars called");
 
     const width = dimensionsRef.current.width || window.innerWidth;

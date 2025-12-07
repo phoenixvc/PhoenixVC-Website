@@ -25,12 +25,12 @@ const MobileMenu: FC<MobileMenuProps> = memo(({
   navItems,
   className,
   isDarkMode,
-}) => {
+}): JSX.Element => {
   // Track which item is being clicked for visual feedback
   const [activeItem, setActiveItem] = useState<string | null>(null);
 
   // Handle navigation and menu closing
-  const handleNavigation = (path: string, label: string) => {
+  const handleNavigation = (path: string, label: string): void => {
     // Set active state for visual feedback
     setActiveItem(label);
 

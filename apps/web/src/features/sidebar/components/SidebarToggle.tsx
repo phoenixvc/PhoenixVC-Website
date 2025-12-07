@@ -27,7 +27,7 @@ const SidebarToggle: React.FC<SidebarToggleProps> = ({
     styles.darkMode
   );
 
-  const handleClick = () => {
+  const handleClick = (): void => {
     if (isMobile) {
       onToggle();
     } else {

@@ -18,11 +18,11 @@ class HeroErrorBoundary extends Component<Props, State> {
     return { hasError: true };
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  public componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     console.error("Hero error:", error, errorInfo);
   }
 
-  public render() {
+  public render(): ReactNode {
     if (this.state.hasError) {
       return (
         <section className="min-h-screen flex items-center justify-center">

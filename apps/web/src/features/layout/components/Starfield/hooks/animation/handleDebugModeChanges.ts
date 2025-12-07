@@ -8,7 +8,7 @@ export const handleDebugModeChanges = (
     refs: AnimationRefs,
     ensureStarsExist?: () => void,
     restartAnimation?: () => void
-  ) => {
+  ): void => {
     // Check if debug mode changed
     if (debugMode !== refs.lastDebugModeRef.current) {
       logger.debug("Debug mode changed from", refs.lastDebugModeRef.current, "to", debugMode);

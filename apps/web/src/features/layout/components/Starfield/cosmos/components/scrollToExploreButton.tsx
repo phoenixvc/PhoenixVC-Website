@@ -10,7 +10,7 @@ const ScrollToExploreButton: React.FC<ScrollToExploreButtonProps> = ({ className
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    const handleScroll = () => {
+    const handleScroll = (): void => {
       if (window.scrollY > 100) {
         setIsVisible(false);
       } else {

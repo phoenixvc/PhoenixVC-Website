@@ -13,7 +13,7 @@ interface CosmicNavigationUIProps {
 const CosmicNavigationUI: React.FC<CosmicNavigationUIProps> = ({ state, setState, className }) => {
   const { currentLevel, currentGalaxyId, currentStarSystemId, currentPlanetId } = state;
 
-  const handleBack = () => {
+  const handleBack = (): void => {
     switch (currentLevel) {
       case "galaxy":
         setState({

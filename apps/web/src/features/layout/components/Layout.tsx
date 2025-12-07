@@ -27,7 +27,7 @@ const loadDebugModeFromStorage = (): boolean => {
   return false;
 };
 
-const Layout = ({ children }: LayoutProps) => {
+const Layout = ({ children }: LayoutProps): JSX.Element => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -51,7 +51,7 @@ const Layout = ({ children }: LayoutProps) => {
 
   // Check if we're on mobile on mount and when window resizes
   useEffect(() => {
-    const checkIfMobile = () => {
+    const checkIfMobile = (): void => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
 
@@ -95,7 +95,7 @@ const Layout = ({ children }: LayoutProps) => {
     setIsDarkMode(prefersDark);
   }, []);
 
-  const toggleSidebar = () => {
+  const toggleSidebar = (): void => {
     if (isMobile) {
       // On mobile, toggle open/closed
       setIsSidebarOpen((prev: boolean) => !prev);
@@ -107,17 +107,17 @@ const Layout = ({ children }: LayoutProps) => {
     }
   };
 
-  const toggleTheme = () => {
+  const toggleTheme = (): void => {
     setIsDarkMode((prev: boolean): boolean => !prev);
   };
 
   // Separate function for sidebar collapse (used by sidebar component)
-  const toggleCollapse = () => {
+  const toggleCollapse = (): void => {
     setIsCollapsed((prev: boolean): boolean => !prev);
   };
 
   // Toggle game mode
-  const toggleGameMode = () => {
+  const toggleGameMode = (): void => {
     setGameMode((prev: boolean): boolean => {
       const newValue = !prev;
       // Show disclaimer when enabling game mode
@@ -129,7 +129,7 @@ const Layout = ({ children }: LayoutProps) => {
   };
 
   // Toggle debug mode
-  const toggleDebugMode = () => {
+  const toggleDebugMode = (): void => {
     logger.debug("Debug mode toggle clicked in Layout, current value:", debugMode);
     const newDebugMode = !debugMode;
 

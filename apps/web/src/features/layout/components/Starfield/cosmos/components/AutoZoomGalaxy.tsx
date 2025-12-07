@@ -26,7 +26,7 @@ const AutoZoomGalaxy: React.FC<AutoZoomGalaxyProps> = ({
   const isZoomingRef = useRef<boolean>(false);
 
   // Function to check if mouse is over a galaxy
-  const checkGalaxyHover = (mouseX: number, mouseY: number) => {
+  const checkGalaxyHover = (mouseX: number, mouseY: number): void => {
     // Convert screen coordinates to world coordinates
     const worldX = (mouseX / canvasWidth);
     const worldY = (mouseY / canvasHeight);
@@ -54,7 +54,7 @@ const AutoZoomGalaxy: React.FC<AutoZoomGalaxyProps> = ({
 
   // Handle mouse movement on the canvas
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = (e: MouseEvent): void => {
       const rect = (e.target as HTMLElement).getBoundingClientRect();
       const mouseX = e.clientX - rect.left;
       const mouseY = e.clientY - rect.top;

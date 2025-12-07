@@ -72,7 +72,7 @@ export const drawStarBirthplaces = (
 };
 
 // Draw a single star
-export const drawStar = (ctx: CanvasRenderingContext2D, star: Star) => {
+export const drawStar = (ctx: CanvasRenderingContext2D, star: Star): void => {
     ctx.beginPath();
     ctx.arc(star.x, star.y, star.size, 0, TWO_PI);
     ctx.fillStyle = star.color;
@@ -85,7 +85,7 @@ export const drawBlackHole = (
   blackHole: BlackHole,
   deltaTime: number,
   particleSpeed: number
-) => {
+): void => {
   // Update and draw orbiting particles
   blackHole.particles.forEach(particle => {
     // Update angle based on speed
@@ -276,7 +276,7 @@ export const updateStar = (
   sidebarWidth: number,
   centerOffsetX: number,
   centerOffsetY: number
-) => {
+): Star => {
   // Reset acceleration
   let ax = 0;
   let ay = 0;
@@ -527,7 +527,7 @@ export const drawMouseEffect = (
     radius: number,
     color: string,
     isActive: boolean
-  ) => {
+  ): void => {
     if (!isActive) return;
 
     // Draw outer glow
@@ -548,7 +548,7 @@ export const drawStarConnections = (
     maxDistance: number,
     opacity: number,
     color: string
-  ) => {
+  ): void => {
     // Use a duller version of the color - reduce brightness
     const dullerColor = color.includes("rgba") 
       ? color.replace(/rgba\((\d+),\s*(\d+),\s*(\d+)/, (_, r, g, b) => 

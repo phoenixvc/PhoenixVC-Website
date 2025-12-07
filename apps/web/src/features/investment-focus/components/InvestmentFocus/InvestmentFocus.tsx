@@ -33,7 +33,7 @@ const focusAreaDetails: Record<string, { longDescription: string; highlights: st
   }
 };
 
-export const InvestmentFocus: FC<InvestmentFocusProps> = () => {
+export const InvestmentFocus: FC<InvestmentFocusProps> = (): JSX.Element => {
   const { themeMode } = useTheme();
   const isDarkMode = themeMode === "dark";
   const [selectedArea, setSelectedArea] = useState<FocusArea | null>(null);
@@ -86,11 +86,11 @@ export const InvestmentFocus: FC<InvestmentFocusProps> = () => {
     };
   }, [selectedArea]);
 
-  const handleCardClick = (area: FocusArea) => {
+  const handleCardClick = (area: FocusArea): void => {
     setSelectedArea(area);
   };
 
-  const handleCloseModal = () => {
+  const handleCloseModal = (): void => {
     setSelectedArea(null);
   };
 

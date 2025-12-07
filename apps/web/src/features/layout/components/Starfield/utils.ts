@@ -17,7 +17,7 @@ export const applyGravity = (
     pointY: number,
     pointMass: number,
     deltaTime: number
-  ) => {
+  ): { vx: number; vy: number } => {
     const dist = distance(starX, starY, pointX, pointY);
 
     // Avoid division by zero and extreme forces when very close

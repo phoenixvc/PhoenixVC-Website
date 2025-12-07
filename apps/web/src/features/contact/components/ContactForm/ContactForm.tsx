@@ -34,7 +34,7 @@ const ContactForm: FC<ContactFormProps> = memo(({
   onSubmit,
   isLoading,
   isSuccess,
-}) => {
+}): JSX.Element => {
   const { themeMode } = useTheme();
   const isDarkMode = themeMode === "dark";
   const [formData, setFormData] = useState<ContactFormData>({
@@ -73,7 +73,7 @@ const ContactForm: FC<ContactFormProps> = memo(({
     }
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>): void => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
@@ -84,7 +84,7 @@ const ContactForm: FC<ContactFormProps> = memo(({
     }
   };
 
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>): void => {
     const { name, value } = e.target;
     setTouched((prev) => ({ ...prev, [name]: true }));
 
@@ -108,7 +108,7 @@ const ContactForm: FC<ContactFormProps> = memo(({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
 
     // Spam protection checks

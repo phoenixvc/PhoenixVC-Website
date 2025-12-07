@@ -2,7 +2,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Burst, CollisionEffect } from "../types";
 import { TWO_PI } from "../math";
 
-export const useParticleEffects = () => {
+export const useParticleEffects = (): {
+  clickBursts: Burst[];
+  setClickBursts: React.Dispatch<React.SetStateAction<Burst[]>>;
+  clickBurstsRef: React.MutableRefObject<Burst[]>;
+  collisionEffects: CollisionEffect[];
+  setCollisionEffects: React.Dispatch<React.SetStateAction<CollisionEffect[]>>;
+  createCollisionEffect: (x: number, y: number, color: string, score: number) => CollisionEffect;
+} => {
     // Click burst particles state and ref
     const [clickBursts, setClickBursts] = useState<Burst[]>([]);
     const clickBurstsRef = useRef<Burst[]>([]);

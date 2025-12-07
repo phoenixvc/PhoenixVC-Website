@@ -19,7 +19,7 @@ const Header: FC<HeaderProps> = ({
   onGameModeToggle,
   debugMode = false,
   onDebugModeToggle,
-}) => {
+}): JSX.Element => {
   // Calculate header left offset based on sidebar state (desktop only)
   const headerLeftOffset = isMobile ? 0 : (isSidebarOpen ? sidebarWidth : 0);
   const [scrolled, setScrolled] = useState(false);
@@ -42,7 +42,7 @@ const Header: FC<HeaderProps> = ({
 
   // Handle scroll event to add transparency
   useEffect(() => {
-    const handleScroll = () => {
+    const handleScroll = (): void => {
       const isScrolled = window.scrollY > 10;
       if (isScrolled !== scrolled) {
         setScrolled(isScrolled);
@@ -50,7 +50,7 @@ const Header: FC<HeaderProps> = ({
     };
 
     // Set active path based on current location
-    const updateActivePath = () => {
+    const updateActivePath = (): void => {
       const pathname = window.location.pathname;
       const hash = window.location.hash;
 
@@ -73,7 +73,7 @@ const Header: FC<HeaderProps> = ({
     window.addEventListener("hashchange", updateActivePath);
 
     // Close profile menu when clicking outside
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: MouseEvent): void => {
       if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
         setProfileMenuOpen(false);
         setThemeMenuOpen(false);
@@ -90,7 +90,7 @@ const Header: FC<HeaderProps> = ({
   }, [scrolled, profileMenuRef]);
 
   // Function to determine if a nav item is active
-  const isNavItemActive = (href: string) => {
+  const isNavItemActive = (href: string): boolean => {
     if (href === "/") {
       return activePath === "/";
     }
@@ -102,14 +102,14 @@ const Header: FC<HeaderProps> = ({
     return activePath.startsWith(href) && !activePath.includes("#");
   };
 
-  const handleThemeSelect = (themeId: string) => {
+  const handleThemeSelect = (themeId: string): void => {
     setThemeName(themeId);
     setThemeMenuOpen(false);
     setProfileMenuOpen(false);
   };
 
   // Handle mobile menu toggle
-  const handleMobileMenuToggle = () => {
+  const handleMobileMenuToggle = (): void => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 

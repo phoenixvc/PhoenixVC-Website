@@ -29,7 +29,7 @@ const getInitialTheme = (): Theme => {
   return "dark"; // Default to dark mode
 };
 
-export const ThemeProvider = ({ children }: { children: ReactNode }) => {
+export const ThemeProvider = ({ children }: { children: ReactNode }): JSX.Element => {
   const [themeMode, setThemeMode] = useState<Theme>(getInitialTheme);
 
   // Persist theme to localStorage whenever it changes
@@ -57,7 +57,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const toggleTheme = () => {
+  const toggleTheme = (): void => {
     setThemeMode((prevMode) => (prevMode === "light" ? "dark" : "light"));
   };
 
@@ -76,7 +76,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useTheme = () => {
+export const useTheme = (): ThemeContextType => {
   const context = useContext(ThemeContext);
   if (context === undefined) {
     throw new Error("useTheme must be used within a ThemeProvider");

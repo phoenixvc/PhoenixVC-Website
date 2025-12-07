@@ -3,7 +3,7 @@
 import { AnimationRefs } from "./types";
 import { logger } from "@/utils/logger";
 
-export const setupWatchdog = (refs: AnimationRefs, restartAnimation: () => void) => {
+export const setupWatchdog = (refs: AnimationRefs, restartAnimation: () => void): (() => void) => {
     if (refs.animationWatchdogRef.current) {
       window.clearInterval(refs.animationWatchdogRef.current);
     }
@@ -37,7 +37,7 @@ export const setupWatchdog = (refs: AnimationRefs, restartAnimation: () => void)
       }
     }, 3000); // Check every 3 seconds
 
-    return () => {
+    return (): void => {
       if (refs.animationWatchdogRef.current) {
         window.clearInterval(refs.animationWatchdogRef.current);
       }

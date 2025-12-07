@@ -145,7 +145,7 @@ const blogPosts: BlogPost[] = [
 
 const categories = ["All", "Finance", "Blockchain", "Technology", "AI", "Strategy"] as const;
 
-export const Blog = () => {
+export const Blog = (): JSX.Element => {
   const { themeMode } = useTheme();
   const isDarkMode = themeMode === "dark";
   const [email, setEmail] = useState("");
@@ -155,7 +155,7 @@ export const Blog = () => {
   const [selectedAuthor, setSelectedAuthor] = useState<string>("All");
 
   // Filter posts based on search and filters
-  const filteredPosts = useMemo(() => {
+  const filteredPosts = useMemo((): BlogPost[] => {
     return blogPosts.filter((post) => {
       const matchesSearch = searchQuery === "" ||
         post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -168,7 +168,7 @@ export const Blog = () => {
     });
   }, [searchQuery, selectedCategory, selectedAuthor]);
 
-  const handleSubscribe = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubscribe = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
 
     if (!email.trim() || !/^\S+@\S+\.\S+$/.test(email)) {

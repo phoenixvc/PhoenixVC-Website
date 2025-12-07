@@ -48,7 +48,7 @@ export function renderCosmicHierarchy(
   hoveredId: string | null,
   starSizeFactor = 1,
   isDarkMode = true
-) {
+): void {
   const { currentLevel, currentGalaxyId, currentSunId } = navigationState;
 
   ctx.save();

@@ -36,7 +36,7 @@ function getCachedImage(src: string): HTMLImageElement | null {
     img.crossOrigin = "anonymous";
     
     // Track load failures
-    img.onerror = () => {
+    img.onerror = (): void => {
       failedImages.add(src);
       console.warn(`Failed to load image: ${src}`);
     };

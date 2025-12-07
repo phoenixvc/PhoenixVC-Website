@@ -7,7 +7,7 @@ export function drawGalaxySpiral(
     radius: number,
     arms = 5,
     color = "#62b3ff"
-  ) {
+  ): void {
     ctx.save();
     ctx.translate(cx, cy);
 

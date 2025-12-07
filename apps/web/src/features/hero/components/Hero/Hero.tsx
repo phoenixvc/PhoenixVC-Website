@@ -28,7 +28,7 @@ const Hero: FC<ExtendedHeroProps> = memo(
     colorScheme = "purple",
     accentColor,
     enableMouseTracking = false,
-  }) => {
+  }): JSX.Element => {
     const { themeMode } = useTheme();
     const isDarkMode = themeMode === "dark";
     const sectionRef = useSectionObserver("home", (id) => {
@@ -44,7 +44,7 @@ const Hero: FC<ExtendedHeroProps> = memo(
     const [showReturnToStars, setShowReturnToStars] = useState(false); // Hide at top of page
     const [scrollPosition, setScrollPosition] = useState(0);
 
-    const handleMouseMove = useCallback((e: MouseEvent) => {
+    const handleMouseMove = useCallback((e: MouseEvent): void => {
       const container = containerRef.current;
       if (!container) return;
 
@@ -96,7 +96,7 @@ const Hero: FC<ExtendedHeroProps> = memo(
       return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    const getThemeStyles = () => {
+    const getThemeStyles = (): { textColor: string; gradientColors: string } => {
       const textColor = isDarkMode ? "text-white" : "text-gray-900";
       const gradientColors = accentColor
         ? `from-${accentColor} to-${accentColor}`
@@ -112,12 +112,12 @@ const Hero: FC<ExtendedHeroProps> = memo(
     const scrollTo = useScrollTo();
 
     // Handler for returning to stars
-    const handleReturnToStars = () => {
+    const handleReturnToStars = (): void => {
       window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
     // Handler for minimizing/maximizing hero content
-    const handleToggleMinimize = () => {
+    const handleToggleMinimize = (): void => {
       setIsMinimized((prev) => !prev);
     };
 

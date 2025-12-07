@@ -3,7 +3,7 @@ import { animate } from "./animate";
 import { AnimationProps, AnimationRefs } from "./types";
 import { logger } from "@/utils/logger";
 
-export const startAnimation = (props: AnimationProps, refs: AnimationRefs) => {
+export const startAnimation = (props: AnimationProps, refs: AnimationRefs): void => {
     // Clear any previous animation frame first
     if (refs.animationRef.current) {
       window.cancelAnimationFrame(refs.animationRef.current);

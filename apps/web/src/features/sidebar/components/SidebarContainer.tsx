@@ -28,7 +28,7 @@ const SidebarContainer: React.FC<ExtendedSidebarContainerProps> = ({
   const [isMobile, setIsMobile] = React.useState(false);
 
   React.useEffect(() => {
-    const handleResize = () => {
+    const handleResize = (): void => {
       setIsMobile(window.innerWidth < 768);
     };
 

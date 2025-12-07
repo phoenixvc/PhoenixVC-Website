@@ -13,7 +13,7 @@ function loadSaved(): Partial<DebugSettings> | null {
   }
 }
 
-function save(settings: DebugSettings) {
+function save(settings: DebugSettings): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
   } catch {
@@ -34,7 +34,11 @@ export const useDebugControls = ({
   initialLineConnectionDistance = 150,
   initialLineOpacity = 0.15,
   sidebarWidth = 0
-}: Omit<UseDebugControlsProps, "resetStarsCallback">) => {
+}: Omit<UseDebugControlsProps, "resetStarsCallback">): {
+  debugSettings: DebugSettings;
+  updateDebugSetting: <K extends keyof DebugSettings>(key: K, value: DebugSettings[K]) => void;
+  drawDebugInfo: (ctx: CanvasRenderingContext2D, width: number, height: number, mousePosition: MousePosition, stars: Star[], mouseEffectRadius: number, timestamp?: number) => void;
+} => {
   /* ---------- bootstrap ---------- */
   const saved = loadSaved();
 
@@ -67,7 +71,7 @@ export const useDebugControls = ({
   const updateDebugSetting = useCallback(<K extends keyof DebugSettings>(
     key: K,
     value: DebugSettings[K]
-  ) => {
+  ): void => {
     setDebugSettings(prev => ({ ...prev, [key]: value }));
   }, []);
 
@@ -81,7 +85,7 @@ export const useDebugControls = ({
       stars: Star[],
       mouseEffectRadius: number,
       timestamp?: number
-    ) => {
+    ): void => {
       if (!debugSettings.isDebugMode) return;
 
       ctx.save();

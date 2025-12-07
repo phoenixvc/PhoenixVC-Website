@@ -6,6 +6,7 @@ import {
   ValidationResult,
   ValidationError,
   RGBColor,
+  ColorShades,
 } from "../types";
 
 /**
@@ -38,7 +39,7 @@ export const ColorUtils = {
     hex = hex.replace("#", "");
     if (hex.length === 3) {
       // Expand shorthand #RGB => #RRGGBB
-      hex = hex.split("").map((c) => c + c).join("");
+      hex = hex.split("").map((c): string => c + c).join("");
     }
     const r = parseInt(hex.substring(0, 2), 16);
     const g = parseInt(hex.substring(2, 4), 16);
@@ -50,7 +51,7 @@ export const ColorUtils = {
    * Convert numeric RGB components to a 6-digit uppercase hex string (#RRGGBB).
    */
   _rgbToHex(r: number, g: number, b: number): string {
-    const toHex = (n: number) => n.toString(16).padStart(2, "0");
+    const toHex = (n: number): string => n.toString(16).padStart(2, "0");
     return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase();
   },
 
@@ -274,7 +275,7 @@ export const ColorUtils = {
   createPalette(baseHex: string, steps: number = 9): ColorDefinition[] {
     try {
       const baseHsl = ColorUtils.hexToHsl(baseHex);
-      return Array.from({ length: steps }, (_next, i) => {
+      return Array.from({ length: steps }, (_next, i): ColorDefinition => {
         // Lightness from 0 to 100
         const lightness = (100 / (steps - 1)) * i;
         const hslObj: HSLColor = { h: baseHsl.h, s: baseHsl.s, l: lightness };
@@ -444,7 +445,7 @@ rgbToHsl(rgb: string | RGBColor): string {
   if (typeof rgb === "string") {
     const match = rgb.match(/\d+/g);
     if (!match) throw new ColorError(`Invalid RGB color: ${rgb}`);
-    [ri, gi, bi] = match.map(n => parseInt(n, 10));
+    [ri, gi, bi] = match.map((n): number => parseInt(n, 10));
   } else {
     // It"s an RGBColor object
     ri = rgb.r;
@@ -604,8 +605,8 @@ rgbToHsl(rgb: string | RGBColor): string {
   getContrastRatio(background: ColorDefinition, foreground: ColorDefinition): number {
     const getLuminance = (c: ColorDefinition): number => {
       const { r, g, b } = ColorUtils.getRgbComponents(c.hex);
-      const srgb = [r, g, b].map((val) => val / 255);
-      const linear = srgb.map((ch) => (ch <= 0.03928 ? ch / 12.92 : Math.pow((ch + 0.055) / 1.055, 2.4)));
+      const srgb = [r, g, b].map((val): number => val / 255);
+      const linear = srgb.map((ch): number => (ch <= 0.03928 ? ch / 12.92 : Math.pow((ch + 0.055) / 1.055, 2.4)));
       return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
     };
 
@@ -719,7 +720,7 @@ rgbToHsl(rgb: string | RGBColor): string {
     try {
       const baseHsl = ColorUtils.hexToHsl(baseHex);
 
-      return Array.from({ length: steps }, (_next, i) => {
+      return Array.from({ length: steps }, (_next, i): ColorDefinition => {
         // Calculate position in the range [0, 1]
         const position = i / (steps - 1);
 
@@ -782,7 +783,7 @@ rgbToHsl(rgb: string | RGBColor): string {
           : 1 - Math.pow(-2 * x + 2, 3) / 2;
       };
 
-      return Array.from({ length: steps }, (_next, i) => {
+      return Array.from({ length: steps }, (_next, i): ColorDefinition => {
         // Calculate position in the range [0, 1]
         const position = i / (steps - 1);
 

@@ -17,14 +17,14 @@ const ScoreOverlay: React.FC<ScoreOverlayProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Render heart icons for remaining lives
-  const renderLives = () => {
+  const renderLives = (): React.ReactElement[] => {
     const hearts = [];
     const maxLives = 5;
     for (let i = 0; i < maxLives; i++) {
       hearts.push(
-        <Heart 
-          key={i} 
-          size={16} 
+        <Heart
+          key={i}
+          size={16}
           fill={i < remainingClicks ? "#ff4757" : "transparent"}
           color={i < remainingClicks ? "#ff4757" : "rgba(255,255,255,0.3)"}
           className={styles.lifeHeart}
