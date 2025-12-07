@@ -147,11 +147,17 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       const cameraCenterX = cameraValues.cx * canvas.width;
       const cameraCenterY = cameraValues.cy * canvas.height;
 
-      // Apply transformation to center the camera target in the viewport
-      // 1. Translate to center of viewport
+      // Calculate the viewport center accounting for sidebar offset
+      // The visible content area is shifted right by sidebarWidth, so we offset the center
+      const sidebarOffset = (props.sidebarWidth ?? 0) / 2;
+      const viewportCenterX = canvas.width / 2 + sidebarOffset;
+      const viewportCenterY = canvas.height / 2;
+
+      // Apply transformation to center the camera target in the visible viewport
+      // 1. Translate to center of visible content area (accounting for sidebar)
       // 2. Scale around origin (zoom)
       // 3. Translate so camera target becomes the origin
-      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.translate(viewportCenterX, viewportCenterY);
       ctx.scale(cameraValues.zoom, cameraValues.zoom);
       ctx.translate(-cameraCenterX, -cameraCenterY);
     }

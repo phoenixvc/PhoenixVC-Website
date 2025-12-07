@@ -16,6 +16,7 @@ interface ExtendedHeroProps extends HeroProps {
   colorScheme?: string;
   accentColor?: string;
   enableMouseTracking?: boolean;
+  sidebarWidth?: number;
 }
 
 const Hero: FC<ExtendedHeroProps> = memo(
@@ -28,6 +29,7 @@ const Hero: FC<ExtendedHeroProps> = memo(
     colorScheme = "purple",
     accentColor,
     enableMouseTracking = false,
+    sidebarWidth = 0,
   }): React.ReactElement => {
     const { themeMode } = useTheme();
     const isDarkMode = themeMode === "dark";
@@ -129,6 +131,8 @@ const Hero: FC<ExtendedHeroProps> = memo(
         data-starfield-passthrough="true"
         style={{
           backgroundPosition: `center ${scrollPosition * 0.05}px`,
+          // Offset padding to center content accounting for sidebar
+          paddingLeft: `${sidebarWidth}px`,
         }}
       >
         <div
@@ -312,7 +316,10 @@ const Hero: FC<ExtendedHeroProps> = memo(
                 opacity: { duration: 0.5 },
                 y: { repeat: Infinity, duration: 1.5 },
               }}
-              /* No inline styles needed - using CSS for positioning */
+              style={{
+                // Center in visible content area, accounting for sidebar width
+                left: `calc(50% + ${sidebarWidth / 2}px)`
+              }}
               onClick={() => scrollTo("focus-areas")}
               aria-label="Scroll to explore content"
             >

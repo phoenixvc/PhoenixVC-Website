@@ -720,7 +720,8 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     camera: internalCamera, // Pass the internal camera for zoom functionality
     setCamera: setInternalCamera, // Pass camera setter
     isMouseOverProjectTooltipRef, // Track if mouse is over project tooltip
-    cameraRef: cameraStateRef // Pass camera ref for synchronous access during animation
+    cameraRef: cameraStateRef, // Pass camera ref for synchronous access during animation
+    sidebarWidth // Pass sidebar width for centering calculations
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [
     mousePosition,

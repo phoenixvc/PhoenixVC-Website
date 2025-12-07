@@ -87,6 +87,7 @@ export interface AnimationProps {
     debugSettings?: DebugSettings; // Add debug settings
     isMouseOverProjectTooltipRef?: MutableRefObject<boolean>; // Track if mouse is over project tooltip
     cameraRef?: MutableRefObject<{ cx: number; cy: number; zoom: number }>; // Ref for synchronous camera access
+    sidebarWidth?: number; // Width of sidebar for centering calculations
 }
 
 export interface AnimationRefs {

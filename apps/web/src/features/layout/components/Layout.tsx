@@ -266,8 +266,9 @@ const Layout = ({ children }: LayoutProps): React.ReactElement => {
         <main id="main-content" className={`${styles.mainContent} ${isDarkMode ? styles.darkMain : styles.lightMain}`} role="main">
           {React.Children.map(children, (child) =>
             React.isValidElement(child)
-              ? React.cloneElement(child as React.ReactElement<{ isDarkMode: boolean }>, {
-                  isDarkMode
+              ? React.cloneElement(child as React.ReactElement<{ isDarkMode: boolean; sidebarWidth: number }>, {
+                  isDarkMode,
+                  sidebarWidth
                 })
               : child
           )}
