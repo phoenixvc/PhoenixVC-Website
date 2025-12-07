@@ -3,6 +3,7 @@ import { BlackHole, CenterPosition, ContainerBounds, Explosion, MousePosition, P
 import { calculateCenter } from "./utils";
 import { getFrameTime } from "./frameCache";
 import { EFFECT_TIMING } from "./physicsConfig";
+import { TWO_PI } from "./math";
 
 // Star birthplace indicator positions (along edges where stars respawn)
 const BIRTHPLACE_INDICATORS = [
@@ -55,13 +56,13 @@ export const drawStarBirthplaces = (
       gradient.addColorStop(1, "rgba(138, 43, 226, 0)");
       
       ctx.beginPath();
-      ctx.arc(x, y, 12, 0, Math.PI * 2);
+      ctx.arc(x, y, 12, 0, TWO_PI);
       ctx.fillStyle = gradient;
       ctx.fill();
       
       // Small bright core
       ctx.beginPath();
-      ctx.arc(x, y, 2, 0, Math.PI * 2);
+      ctx.arc(x, y, 2, 0, TWO_PI);
       ctx.fillStyle = `rgba(200, 180, 255, ${pulse * 0.6})`;
       ctx.fill();
     }
@@ -73,7 +74,7 @@ export const drawStarBirthplaces = (
 // Draw a single star
 export const drawStar = (ctx: CanvasRenderingContext2D, star: Star) => {
     ctx.beginPath();
-    ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+    ctx.arc(star.x, star.y, star.size, 0, TWO_PI);
     ctx.fillStyle = star.color;
     ctx.fill();
   };
@@ -96,7 +97,7 @@ export const drawBlackHole = (
 
     // Draw particle
     ctx.beginPath();
-    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+    ctx.arc(particle.x, particle.y, particle.size, 0, TWO_PI);
     ctx.fillStyle = particle.color;
     ctx.fill();
   });
@@ -112,7 +113,7 @@ export const drawBlackHole = (
   gradient.addColorStop(1, "rgba(20, 20, 20, 0)");
 
   ctx.beginPath();
-  ctx.arc(blackHole.x, blackHole.y, blackHole.radius, 0, Math.PI * 2);
+  ctx.arc(blackHole.x, blackHole.y, blackHole.radius, 0, TWO_PI);
   ctx.fillStyle = gradient;
   ctx.fill();
 };
@@ -137,7 +138,7 @@ export const drawBlackHole = (
 //       const satY = empStar.y + Math.sin(satellite.angle) * satellite.distance;
 
 //       ctx.beginPath();
-//       ctx.arc(satX, satY, satellite.size, 0, Math.PI * 2);
+//       ctx.arc(satX, satY, satellite.size, 0, TWO_PI);
 //       ctx.fillStyle = satellite.color;
 //       ctx.fill();
 //     });
@@ -156,7 +157,7 @@ export const drawBlackHole = (
 //     glowGradient.addColorStop(1, `${baseColor}00`); // 0% opacity
 
 //     ctx.beginPath();
-//     ctx.arc(empStar.x, empStar.y, starSize * 1.5, 0, Math.PI * 2);
+//     ctx.arc(empStar.x, empStar.y, starSize * 1.5, 0, TWO_PI);
 //     ctx.fillStyle = glowGradient;
 //     ctx.fill();
 
@@ -171,7 +172,7 @@ export const drawBlackHole = (
 //     gradient.addColorStop(1, `${baseColor}20`); // 12% opacity
 
 //     ctx.beginPath();
-//     ctx.arc(empStar.x, empStar.y, starSize, 0, Math.PI * 2);
+//     ctx.arc(empStar.x, empStar.y, starSize, 0, TWO_PI);
 //     ctx.fillStyle = gradient;
 //     ctx.fill();
 
@@ -180,7 +181,7 @@ export const drawBlackHole = (
 //       // Create a circular clip path for the avatar
 //       ctx.save();
 //       ctx.beginPath();
-//       ctx.arc(empStar.x, empStar.y, starSize * 0.8, 0, Math.PI * 2);
+//       ctx.arc(empStar.x, empStar.y, starSize * 0.8, 0, TWO_PI);
 //       ctx.clip();
 
 //       // Create image element and draw when loaded
@@ -205,7 +206,7 @@ export const drawBlackHole = (
 //       // Draw smaller avatar with name below
 //       ctx.save();
 //       ctx.beginPath();
-//       ctx.arc(empStar.x, empStar.y - starSize * 0.3, starSize * 0.6, 0, Math.PI * 2);
+//       ctx.arc(empStar.x, empStar.y - starSize * 0.3, starSize * 0.6, 0, TWO_PI);
 //       ctx.clip();
 
 //       const img = new Image();
@@ -249,7 +250,7 @@ export const drawExplosions = (
     const opacity = 1 - progress;
 
     ctx.beginPath();
-    ctx.arc(explosion.x, explosion.y, radius, 0, Math.PI * 2);
+    ctx.arc(explosion.x, explosion.y, radius, 0, TWO_PI);
     ctx.strokeStyle = `rgba(255, 255, 255, ${opacity})`;
     ctx.lineWidth = 2;
     ctx.stroke();
@@ -535,7 +536,7 @@ export const drawMouseEffect = (
     gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
 
     ctx.beginPath();
-    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.arc(x, y, radius, 0, TWO_PI);
     ctx.fillStyle = gradient;
     ctx.fill();
   };

@@ -13,6 +13,7 @@ import {
 import { calculatePulsation, createSoftenedColor, hexToRgb, updateStarPosition } from "./starUtils";
 import { Planet } from "./types";
 import { SUNS } from "./cosmos/cosmicHierarchy";
+import { TWO_PI } from "./math";
 import { SIZE_CONFIG, CAMERA_CONFIG } from "./physicsConfig";
 
 // Image cache to avoid creating new Image objects every frame
@@ -136,7 +137,7 @@ export const drawPlanet = (
   if (planet.useSimpleRendering) {
     // Simple rendering for performance
     ctx.beginPath();
-    ctx.arc(planet.x, planet.y, starSize, 0, Math.PI * 2);
+    ctx.arc(planet.x, planet.y, starSize, 0, TWO_PI);
     ctx.fillStyle = `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.9)`;
     ctx.fill();
   } else {
@@ -147,7 +148,7 @@ export const drawPlanet = (
   // Draw outer ring in sun color (shows focus area affiliation)
   if (!planet.useSimpleRendering && projectColor !== sunColor) {
     ctx.beginPath();
-    ctx.arc(planet.x, planet.y, starSize * SIZE_CONFIG.planetHoverScale, 0, Math.PI * 2);
+    ctx.arc(planet.x, planet.y, starSize * SIZE_CONFIG.planetHoverScale, 0, TWO_PI);
     ctx.strokeStyle = `rgba(${softGlowRgb.r}, ${softGlowRgb.g}, ${softGlowRgb.b}, 0.5)`;
     ctx.lineWidth = 2;
     ctx.stroke();
@@ -194,7 +195,7 @@ function drawProjectIdentifier(
     
     // Draw a circular clip for the image
     ctx.beginPath();
-    ctx.arc(planet.x, planet.y, clipRadius, 0, Math.PI * 2);
+    ctx.arc(planet.x, planet.y, clipRadius, 0, TWO_PI);
     ctx.clip();
 
     // Draw the project icon image centered on the planet
@@ -204,7 +205,7 @@ function drawProjectIdentifier(
 
     // Add a subtle ring around the icon
     ctx.beginPath();
-    ctx.arc(planet.x, planet.y, ringRadius, 0, Math.PI * 2);
+    ctx.arc(planet.x, planet.y, ringRadius, 0, TWO_PI);
     ctx.lineWidth = 2;
     ctx.strokeStyle = "rgba(255, 255, 255, 0.7)";
     ctx.stroke();
@@ -212,7 +213,7 @@ function drawProjectIdentifier(
     // Image path exists but image not loaded yet - always show initials while loading
     ctx.save();
     ctx.beginPath();
-    ctx.arc(planet.x, planet.y, bgRadius, 0, Math.PI * 2);
+    ctx.arc(planet.x, planet.y, bgRadius, 0, TWO_PI);
     ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
     ctx.fill();
     ctx.restore();
@@ -225,7 +226,7 @@ function drawProjectIdentifier(
 
     // Add ring to indicate loading
     ctx.beginPath();
-    ctx.arc(planet.x, planet.y, clipRadius, 0, Math.PI * 2);
+    ctx.arc(planet.x, planet.y, clipRadius, 0, TWO_PI);
     ctx.lineWidth = 1.5;
     ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
     ctx.stroke();
@@ -234,7 +235,7 @@ function drawProjectIdentifier(
     if (!planet.useSimpleRendering) {
       // Add a subtle background circle for better text visibility
       ctx.beginPath();
-      ctx.arc(planet.x, planet.y, bgRadius, 0, Math.PI * 2);
+      ctx.arc(planet.x, planet.y, bgRadius, 0, TWO_PI);
       ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
       ctx.fill();
 
@@ -254,7 +255,7 @@ function drawProjectIdentifier(
 
       // Add a subtle ring around the initials
       ctx.beginPath();
-      ctx.arc(planet.x, planet.y, clipRadius, 0, Math.PI * 2);
+      ctx.arc(planet.x, planet.y, clipRadius, 0, TWO_PI);
       ctx.lineWidth = 1.2;
       ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
       ctx.stroke();
@@ -298,7 +299,7 @@ function drawPlanetFocusAreaIcon(
   // Draw a semi-transparent circular background for the icon
   // More visible background, brighter when hovered
   ctx.beginPath();
-  ctx.arc(iconX, iconY, iconSize * 1.2, 0, Math.PI * 2);
+  ctx.arc(iconX, iconY, iconSize * 1.2, 0, TWO_PI);
   ctx.fillStyle = isHovered ? "rgba(0, 0, 0, 0.7)" : "rgba(0, 0, 0, 0.5)";
   ctx.fill();
   ctx.strokeStyle = isHovered ? "rgba(255, 255, 255, 0.95)" : "rgba(255, 255, 255, 0.8)";
@@ -342,19 +343,19 @@ function drawPlanetAIIcon(ctx: CanvasRenderingContext2D, x: number, y: number, s
   
   // Central node
   ctx.beginPath();
-  ctx.arc(x, y, size * 0.15, 0, Math.PI * 2);
+  ctx.arc(x, y, size * 0.15, 0, TWO_PI);
   ctx.fill();
   
   // Outer nodes
   const nodeCount = 4;
   for (let i = 0; i < nodeCount; i++) {
-    const angle = (i * Math.PI * 2 / nodeCount) - Math.PI / 4;
+    const angle = (i * TWO_PI / nodeCount) - Math.PI / 4;
     const px = x + r * Math.cos(angle);
     const py = y + r * Math.sin(angle);
     
     // Draw node
     ctx.beginPath();
-    ctx.arc(px, py, size * 0.1, 0, Math.PI * 2);
+    ctx.arc(px, py, size * 0.1, 0, TWO_PI);
     ctx.fill();
     
     // Connect to center
@@ -388,7 +389,7 @@ function drawPlanetBlockchainIcon(ctx: CanvasRenderingContext2D, x: number, y: n
   
   // Draw center node
   ctx.beginPath();
-  ctx.arc(x, y, size * 0.12, 0, Math.PI * 2);
+  ctx.arc(x, y, size * 0.12, 0, TWO_PI);
   ctx.fill();
 }
 
@@ -427,23 +428,23 @@ function drawPlanetMobilityIcon(ctx: CanvasRenderingContext2D, x: number, y: num
   
   // Outer wheel
   ctx.beginPath();
-  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.arc(x, y, r, 0, TWO_PI);
   ctx.stroke();
   
   // Inner hub
   ctx.beginPath();
-  ctx.arc(x, y, innerR, 0, Math.PI * 2);
+  ctx.arc(x, y, innerR, 0, TWO_PI);
   ctx.stroke();
   
   // Center point
   ctx.beginPath();
-  ctx.arc(x, y, size * 0.06, 0, Math.PI * 2);
+  ctx.arc(x, y, size * 0.06, 0, TWO_PI);
   ctx.fill();
   
   // Spokes
   const spokeCount = 4;
   for (let i = 0; i < spokeCount; i++) {
-    const angle = (i * Math.PI * 2 / spokeCount) + Math.PI / 4;
+    const angle = (i * TWO_PI / spokeCount) + Math.PI / 4;
     ctx.beginPath();
     ctx.moveTo(x + innerR * Math.cos(angle), y + innerR * Math.sin(angle));
     ctx.lineTo(x + r * Math.cos(angle), y + r * Math.sin(angle));

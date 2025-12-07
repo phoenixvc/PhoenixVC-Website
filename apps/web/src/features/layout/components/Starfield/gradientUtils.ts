@@ -2,6 +2,7 @@
 // Eliminates repeated gradient patterns across animate.ts, stars.ts, Planets.ts, etc.
 
 import { rgba, rgbToString } from "./colorUtils";
+import { TWO_PI } from "./math";
 
 /**
  * Color stop definition for gradients
@@ -187,7 +188,7 @@ export function drawGradientCircle(
   ctx.globalAlpha = globalAlpha;
   ctx.beginPath();
   ctx.fillStyle = gradient;
-  ctx.arc(x, y, radius, 0, Math.PI * 2);
+  ctx.arc(x, y, radius, 0, TWO_PI);
   ctx.fill();
   ctx.globalAlpha = prevAlpha;
 }
@@ -209,7 +210,7 @@ export function drawGradientRing(
   ctx.beginPath();
   ctx.strokeStyle = gradient;
   ctx.lineWidth = lineWidth;
-  ctx.arc(x, y, radius, 0, Math.PI * 2);
+  ctx.arc(x, y, radius, 0, TWO_PI);
   ctx.stroke();
   ctx.globalAlpha = prevAlpha;
 }

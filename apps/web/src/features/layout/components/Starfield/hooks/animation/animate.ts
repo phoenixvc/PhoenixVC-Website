@@ -27,6 +27,7 @@ import { drawCosmicNavigation } from "./drawCosmicNavigation";
 import { getSunStates, initializeSunStates, updateSunPhysics, updateSunSizesFromPlanets } from "../../sunSystem";
 // Import centralized utilities
 import { lightenColor } from "../../colorUtils";
+import { TWO_PI } from "../../math";
 import {
   SUN_RENDERING_CONFIG,
   STAR_RENDERING_CONFIG,
@@ -437,7 +438,7 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
         // Draw mouse effect radius with a more visible outline
         if (currentMousePosition.isOnScreen) {
           ctx.beginPath();
-          ctx.arc(currentMousePosition.x, currentMousePosition.y, props.mouseEffectRadius, 0, Math.PI * 2);
+          ctx.arc(currentMousePosition.x, currentMousePosition.y, props.mouseEffectRadius, 0, TWO_PI);
           ctx.strokeStyle = "rgba(255, 0, 0, 0.5)";
           ctx.lineWidth = 1;
           ctx.stroke();
@@ -546,7 +547,7 @@ function drawMouseEffects(
     gradient.addColorStop(1, endColor);
 
     ctx.beginPath();
-    ctx.arc(mouseX, mouseY, props.mouseEffectRadius, 0, Math.PI * 2);
+    ctx.arc(mouseX, mouseY, props.mouseEffectRadius, 0, TWO_PI);
     ctx.fillStyle = gradient;
     ctx.fill();
 
@@ -585,7 +586,7 @@ function drawMouseEffects(
         }
 
         ctx.beginPath();
-        ctx.arc(mouseX, mouseY, rippleRadius, 0, Math.PI * 2);
+        ctx.arc(mouseX, mouseY, rippleRadius, 0, TWO_PI);
         ctx.strokeStyle = rippleColor;
         ctx.lineWidth = 6 - i;
         ctx.stroke();
@@ -600,7 +601,7 @@ function drawMouseEffects(
         ? `rgba(255,255,255,${flashOpacity * 0.5})`
         : `rgba(0,0,0,${flashOpacity * 0.5})`;
       ctx.beginPath();
-      ctx.arc(mouseX, mouseY, flashRadius, 0, Math.PI * 2);
+      ctx.arc(mouseX, mouseY, flashRadius, 0, TWO_PI);
       ctx.fillStyle = flashColor;
       ctx.fill();
     }
@@ -773,7 +774,7 @@ function drawSuns(
     ctx.beginPath();
     ctx.fillStyle = haloGradient;
     ctx.globalAlpha = isDarkMode ? 1 : 0.8;
-    ctx.arc(x, y, haloSize, 0, Math.PI * 2);
+    ctx.arc(x, y, haloSize, 0, TWO_PI);
     ctx.fill();
     
     // ===== LAYER 1: Outer atmospheric glow with color gradient =====
@@ -788,7 +789,7 @@ function drawSuns(
     ctx.beginPath();
     ctx.fillStyle = atmosphereGradient;
     ctx.globalAlpha = isDarkMode ? 1 : 0.75;
-    ctx.arc(x, y, atmosphereSize, 0, Math.PI * 2);
+    ctx.arc(x, y, atmosphereSize, 0, TWO_PI);
     ctx.fill();
     
     // ===== LAYER 2: Dynamic solar flares (curved, organic) =====
@@ -798,7 +799,7 @@ function drawSuns(
       : (isHighlighted ? OPACITY_CONFIG.sun.flares.light.highlighted : OPACITY_CONFIG.sun.flares.light.normal);
     
     for (let i = 0; i < flareCount; i++) {
-      const baseAngle = (i * Math.PI * 2 / flareCount) + sunState.rotationAngle * 0.5;
+      const baseAngle = (i * TWO_PI / flareCount) + sunState.rotationAngle * 0.5;
       const waveOffset = Math.sin(time * flares.waveSpeed + i * 0.7) * 0.15;
       const angle = baseAngle + waveOffset;
 
@@ -842,7 +843,7 @@ function drawSuns(
       : (isHighlighted ? OPACITY_CONFIG.sun.rays.light.highlighted : OPACITY_CONFIG.sun.rays.light.normal);
     
     for (let i = 0; i < rayCount; i++) {
-      const baseAngle = (i * Math.PI * 2 / rayCount) + sunState.rotationAngle;
+      const baseAngle = (i * TWO_PI / rayCount) + sunState.rotationAngle;
       const waveOffset = Math.sin(time * rays.waveSpeed + i * 0.4) * 0.08;
       const angle = baseAngle + waveOffset;
 
@@ -891,7 +892,7 @@ function drawSuns(
     
     ctx.beginPath();
     ctx.fillStyle = chromosphereGradient;
-    ctx.arc(x, y, size * layers.chromosphereRadius, 0, Math.PI * 2);
+    ctx.arc(x, y, size * layers.chromosphereRadius, 0, TWO_PI);
     ctx.fill();
     
     // ===== LAYER 5: Propel/collision effect rings =====
@@ -909,7 +910,7 @@ function drawSuns(
         ctx.strokeStyle = ringGradient;
         ctx.lineWidth = propelRings.lineWidthBase - r * propelRings.lineWidthDecrement;
         ctx.globalAlpha = ringAlpha * (0.5 + 0.5 * ringPhase);
-        ctx.arc(x, y, ringRadius, 0, Math.PI * 2);
+        ctx.arc(x, y, ringRadius, 0, TWO_PI);
         ctx.stroke();
       }
     }
@@ -924,7 +925,7 @@ function drawSuns(
       // Create particles orbiting at different distances and speeds
       const orbitRadius = size * (particles.orbitBaseRadius + (i % 4) * particles.orbitRadiusStep); // Multiple orbit rings
       const orbitSpeed = particles.orbitSpeedBase + (i % 3) * particles.orbitSpeedVariation; // Varying speeds
-      const particleAngle = (i * Math.PI * 2 / particleCount) + time * orbitSpeed + sunState.rotationAngle * 0.3;
+      const particleAngle = (i * TWO_PI / particleCount) + time * orbitSpeed + sunState.rotationAngle * 0.3;
 
       // Add slight wobble to particle path
       const wobble = Math.sin(time * particles.wobbleSpeed + i * 1.7) * size * particles.wobbleAmount;
@@ -959,7 +960,7 @@ function drawSuns(
       
       ctx.beginPath();
       ctx.fillStyle = particleGradient;
-      ctx.arc(particleX, particleY, particleSize * 2.5, 0, Math.PI * 2);
+      ctx.arc(particleX, particleY, particleSize * 2.5, 0, TWO_PI);
       ctx.fill();
       
       // Add a bright core to larger particles
@@ -967,7 +968,7 @@ function drawSuns(
         ctx.beginPath();
         ctx.fillStyle = "#ffffff";
         ctx.globalAlpha = (isDarkMode ? 0.9 : 0.7) * particlePulse;
-        ctx.arc(particleX, particleY, particleSize * 0.5, 0, Math.PI * 2);
+        ctx.arc(particleX, particleY, particleSize * 0.5, 0, TWO_PI);
         ctx.fill();
         ctx.globalAlpha = isDarkMode
           ? (isHighlighted ? OPACITY_CONFIG.sun.particles.dark.highlighted : OPACITY_CONFIG.sun.particles.dark.normal)
@@ -979,7 +980,7 @@ function drawSuns(
     const ejectCount = isHighlighted ? ejectParticles.count.highlighted : ejectParticles.count.normal;
     for (let i = 0; i < ejectCount; i++) {
       // Particles that appear to be ejected outward
-      const ejectAngle = (i * Math.PI * 2 / ejectCount) + time * ejectParticles.speed + sunState.rotationAngle;
+      const ejectAngle = (i * TWO_PI / ejectCount) + time * ejectParticles.speed + sunState.rotationAngle;
       const ejectPhase = (time * 0.0002 + i * 1.5) % 1; // 0-1 cycle
       const ejectDist = size * (ejectParticles.distanceRange.min + ejectPhase * (ejectParticles.distanceRange.max - ejectParticles.distanceRange.min)); // Move outward
       const ejectX = x + Math.cos(ejectAngle) * ejectDist;
@@ -1001,7 +1002,7 @@ function drawSuns(
         ctx.beginPath();
         ctx.fillStyle = ejectGradient;
         ctx.globalAlpha = ejectAlpha;
-        ctx.arc(ejectX, ejectY, ejectSize * 3, 0, Math.PI * 2);
+        ctx.arc(ejectX, ejectY, ejectSize * 3, 0, TWO_PI);
         ctx.fill();
       }
     }
@@ -1016,7 +1017,7 @@ function drawSuns(
       ctx.strokeStyle = lightenColor(sunState.color, 0.4);
       ctx.lineWidth = 2.5;
       ctx.globalAlpha = 0.6 + 0.25 * Math.sin(time * hoverRing.pulseSpeed);
-      ctx.arc(x, y, size * layers.hoverRingRadius, 0, Math.PI * 2);
+      ctx.arc(x, y, size * layers.hoverRingRadius, 0, TWO_PI);
       ctx.stroke();
       ctx.setLineDash([]);
 
@@ -1029,7 +1030,7 @@ function drawSuns(
       ctx.strokeStyle = innerRingGradient;
       ctx.lineWidth = 4;
       ctx.globalAlpha = 0.75 + 0.2 * Math.sin(time * hoverRing.innerPulseSpeed);
-      ctx.arc(x, y, size * layers.innerRingRadius, 0, Math.PI * 2);
+      ctx.arc(x, y, size * layers.innerRingRadius, 0, TWO_PI);
       ctx.stroke();
     }
     
@@ -1044,7 +1045,7 @@ function drawSuns(
     ctx.beginPath();
     ctx.fillStyle = photosphereGradient;
     ctx.globalAlpha = isDarkMode ? 1 : 0.9;
-    ctx.arc(x, y, size * layers.photosphereRadius, 0, Math.PI * 2);
+    ctx.arc(x, y, size * layers.photosphereRadius, 0, TWO_PI);
     ctx.fill();
     
     // ===== LAYER 8: Main sun body with 3D depth =====
@@ -1062,13 +1063,13 @@ function drawSuns(
     ctx.beginPath();
     ctx.fillStyle = bodyGradient;
     ctx.globalAlpha = 1;
-    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.arc(x, y, size, 0, TWO_PI);
     ctx.fill();
     
     // ===== LAYER 9: Surface granulation (subtle texture) =====
     ctx.globalAlpha = 0.12;
     for (let i = 0; i < granulation.spotCount; i++) {
-      const spotAngle = (time * granulation.rotationSpeed + i * Math.PI * 2 / granulation.spotCount) % (Math.PI * 2);
+      const spotAngle = (time * granulation.rotationSpeed + i * TWO_PI / granulation.spotCount) % (TWO_PI);
       const spotDist = size * (0.25 + 0.45 * Math.sin(i * 2.3 + time * granulation.variationSpeed));
       const spotX = x + Math.cos(spotAngle) * spotDist;
       const spotY = y + Math.sin(spotAngle) * spotDist;
@@ -1082,7 +1083,7 @@ function drawSuns(
       
       ctx.beginPath();
       ctx.fillStyle = spotGradient;
-      ctx.arc(spotX, spotY, spotSize, 0, Math.PI * 2);
+      ctx.arc(spotX, spotY, spotSize, 0, TWO_PI);
       ctx.fill();
     }
     
@@ -1100,7 +1101,7 @@ function drawSuns(
     ctx.beginPath();
     ctx.fillStyle = hotspotGradient;
     ctx.globalAlpha = isHighlighted ? 1 : 0.92;
-    ctx.arc(x, y, size * layers.hotspotRadius, 0, Math.PI * 2);
+    ctx.arc(x, y, size * layers.hotspotRadius, 0, TWO_PI);
     ctx.fill();
     
     // ===== LAYER 11: Specular highlight (glass-like reflection) =====
@@ -1115,7 +1116,7 @@ function drawSuns(
     ctx.beginPath();
     ctx.fillStyle = highlightGradient;
     ctx.globalAlpha = 0.8;
-    ctx.arc(x - size * 0.3, y - size * 0.3, size * 0.3, 0, Math.PI * 2);
+    ctx.arc(x - size * 0.3, y - size * 0.3, size * 0.3, 0, TWO_PI);
     ctx.fill();
 
     // ===== LAYER 12: Secondary highlight (subtle rim light) =====
@@ -1130,7 +1131,7 @@ function drawSuns(
     ctx.beginPath();
     ctx.fillStyle = rimGradient;
     ctx.globalAlpha = 0.5;
-    ctx.arc(x + size * layers.highlightRadius, y + size * layers.highlightRadius, size * 0.2, 0, Math.PI * 2);
+    ctx.arc(x + size * layers.highlightRadius, y + size * layers.highlightRadius, size * 0.2, 0, TWO_PI);
     ctx.fill();
     
     // ===== LAYER 13: Focus area vector icon =====
@@ -1215,13 +1216,13 @@ function drawBlockchainIcon(ctx: CanvasRenderingContext2D, x: number, y: number,
     const px = x + r * Math.cos(angle);
     const py = y + r * Math.sin(angle);
     ctx.beginPath();
-    ctx.arc(px, py, size * SUN_ICON_CONFIG.blockchain.nodeRadius, 0, Math.PI * 2);
+    ctx.arc(px, py, size * SUN_ICON_CONFIG.blockchain.nodeRadius, 0, TWO_PI);
     ctx.fill();
   }
 
   // Draw center node
   ctx.beginPath();
-  ctx.arc(x, y, size * SUN_ICON_CONFIG.blockchain.centerNodeRadius, 0, Math.PI * 2);
+  ctx.arc(x, y, size * SUN_ICON_CONFIG.blockchain.centerNodeRadius, 0, TWO_PI);
   ctx.fill();
   
   // Draw connecting lines from center to alternate vertices (0, 2, 4)
@@ -1246,21 +1247,21 @@ function drawAIIcon(ctx: CanvasRenderingContext2D, x: number, y: number, size: n
 
   // Central node
   ctx.beginPath();
-  ctx.arc(x, y, size * SUN_ICON_CONFIG.ai.centerNodeRadius, 0, Math.PI * 2);
+  ctx.arc(x, y, size * SUN_ICON_CONFIG.ai.centerNodeRadius, 0, TWO_PI);
   ctx.fill();
 
   // Outer nodes in a circle
   const nodeCount = SUN_ICON_CONFIG.ai.nodeCount;
   const outerNodes: Array<{x: number; y: number}> = [];
   for (let i = 0; i < nodeCount; i++) {
-    const angle = (i * Math.PI * 2 / nodeCount) - Math.PI / 2;
+    const angle = (i * TWO_PI / nodeCount) - Math.PI / 2;
     const px = x + r * Math.cos(angle);
     const py = y + r * Math.sin(angle);
     outerNodes.push({x: px, y: py});
 
     // Draw node
     ctx.beginPath();
-    ctx.arc(px, py, size * SUN_ICON_CONFIG.ai.outerNodeRadius, 0, Math.PI * 2);
+    ctx.arc(px, py, size * SUN_ICON_CONFIG.ai.outerNodeRadius, 0, TWO_PI);
     ctx.fill();
     
     // Connect to center
@@ -1315,23 +1316,23 @@ function drawMobilityIcon(ctx: CanvasRenderingContext2D, x: number, y: number, s
 
   // Outer wheel
   ctx.beginPath();
-  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.arc(x, y, r, 0, TWO_PI);
   ctx.stroke();
 
   // Inner hub
   ctx.beginPath();
-  ctx.arc(x, y, innerR, 0, Math.PI * 2);
+  ctx.arc(x, y, innerR, 0, TWO_PI);
   ctx.stroke();
 
   // Center point
   ctx.beginPath();
-  ctx.arc(x, y, size * SUN_ICON_CONFIG.mobility.centerRadius, 0, Math.PI * 2);
+  ctx.arc(x, y, size * SUN_ICON_CONFIG.mobility.centerRadius, 0, TWO_PI);
   ctx.fill();
 
   // Spokes
   const spokeCount = SUN_ICON_CONFIG.mobility.spokeCount;
   for (let i = 0; i < spokeCount; i++) {
-    const angle = (i * Math.PI * 2 / spokeCount);
+    const angle = (i * TWO_PI / spokeCount);
     ctx.beginPath();
     ctx.moveTo(x + innerR * Math.cos(angle), y + innerR * Math.sin(angle));
     ctx.lineTo(x + r * Math.cos(angle), y + r * Math.sin(angle));

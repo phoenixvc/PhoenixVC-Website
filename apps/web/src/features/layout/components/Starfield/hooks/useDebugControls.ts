@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { DebugSettings, MousePosition, Star, UseDebugControlsProps } from "../types";
+import { TWO_PI } from "../math";
 
 const STORAGE_KEY = "starfieldDebugSettings";
 
@@ -102,7 +103,7 @@ export const useDebugControls = ({
       if (mousePosition.isOnScreen) {
         ctx.strokeStyle = "rgba(255,255,255,0.3)";
         ctx.beginPath();
-        ctx.arc(mousePosition.x, mousePosition.y, mouseEffectRadius, 0, Math.PI * 2);
+        ctx.arc(mousePosition.x, mousePosition.y, mouseEffectRadius, 0, TWO_PI);
         ctx.stroke();
       }
       ctx.restore();

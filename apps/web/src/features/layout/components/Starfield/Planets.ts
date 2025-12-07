@@ -11,6 +11,7 @@ import { getSunStates } from "./sunSystem";
 import { PortfolioProject, HoverInfo, Planet, Satellite } from "./types";
 import { calculateCenter } from "./utils";
 import { logger } from "@/utils/logger";
+import { TWO_PI } from "./math";
 
 // Initialize portfolio items as orbiting comets/planets
 export const initPlanets = (
@@ -35,7 +36,7 @@ export const initPlanets = (
 
   portfolioItems.forEach((item, index) => {
     const totalItems = portfolioItems.length;
-    const angleStep = (Math.PI * 2) / totalItems;
+    const angleStep = (TWO_PI) / totalItems;
     const baseAngle = index * angleStep;
 
     const orbitRadius = Math.min(width, height) * ORBIT_CONFIG.orbit.baseRadiusMultiplier +
@@ -58,7 +59,7 @@ export const initPlanets = (
 
       for (let i = 0; i < satelliteCount; i++) {
         // Distribute satellites more evenly around the star
-        const angle = (i / satelliteCount) * Math.PI * 2 +
+        const angle = (i / satelliteCount) * TWO_PI +
           Math.random() * ORBIT_CONFIG.satellites.angleRandomOffset;
         const distanceRange = ORBIT_CONFIG.satellites.distanceMax - ORBIT_CONFIG.satellites.distanceMin;
         const distance = ORBIT_CONFIG.satellites.distanceMin + Math.random() * distanceRange;
@@ -381,7 +382,7 @@ const drawSunAtCenter = (
   glowGradient.addColorStop(1, `#${hexWithoutHash}00`);
   
   ctx.beginPath();
-  ctx.arc(x, y, sunSize * 3, 0, Math.PI * 2);
+  ctx.arc(x, y, sunSize * 3, 0, TWO_PI);
   ctx.fillStyle = glowGradient;
   ctx.globalAlpha = 0.8;
   ctx.fill();
@@ -393,7 +394,7 @@ const drawSunAtCenter = (
   coreGradient.addColorStop(1, `#${hexWithoutHash}80`);
   
   ctx.beginPath();
-  ctx.arc(x, y, sunSize, 0, Math.PI * 2);
+  ctx.arc(x, y, sunSize, 0, TWO_PI);
   ctx.fillStyle = coreGradient;
   ctx.globalAlpha = 1;
   ctx.fill();

@@ -4,6 +4,7 @@ import { BlackHole, BlackHoleParticle } from "./types";
 import { randomColor } from "./utils";
 import { getFrameTime } from "./frameCache";
 import { BLACK_HOLE_RENDERING_CONFIG as BH } from "./renderingConfig";
+import { TWO_PI } from "./math";
 
 // Initialize black holes based on configuration
 export const initBlackHoles = (
@@ -80,7 +81,7 @@ export const drawBlackHole = (
     outerGlow.addColorStop(stop.offset, stop.color);
   }
   ctx.beginPath();
-  ctx.arc(x, y, outerGlowOuter, 0, Math.PI * 2);
+  ctx.arc(x, y, outerGlowOuter, 0, TWO_PI);
   ctx.fillStyle = outerGlow;
   ctx.fill();
   ctx.restore();
@@ -95,7 +96,7 @@ export const drawBlackHole = (
     const particlesToAdd = Math.floor(Math.random() * (particleRange + 1)) + BH.particles.countMin;
 
     for (let i = 0; i < particlesToAdd; i++) {
-      const angle = Math.random() * Math.PI * 2;
+      const angle = Math.random() * TWO_PI;
       const distanceRange = BH.particles.distanceMax - BH.particles.distanceMin;
       const distance = radius * (BH.particles.distanceMin + Math.random() * distanceRange);
       const speedRange = BH.particles.speedRandomMax - BH.particles.speedRandomMin;
@@ -152,7 +153,7 @@ export const drawBlackHole = (
 
     // Draw particle
     ctx.beginPath();
-    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+    ctx.arc(particle.x, particle.y, particle.size, 0, TWO_PI);
 
     // Use alpha if available, otherwise default to 0.6
     const alpha = particle.alpha !== undefined ? particle.alpha : 0.6;
@@ -184,7 +185,7 @@ export const drawBlackHole = (
     const ringRotation = rotationAngle * (1 + ring * BH.disk.ringRotationFactor);
 
     ctx.beginPath();
-    ctx.ellipse(x, y, ringRadius, ringRadius * BH.disk.ellipseRatio, ringRotation, 0, Math.PI * 2);
+    ctx.ellipse(x, y, ringRadius, ringRadius * BH.disk.ellipseRatio, ringRotation, 0, TWO_PI);
     ctx.strokeStyle = `rgba(${BH.disk.color}, ${ringOpacity})`;
     ctx.lineWidth = BH.disk.baseLineWidth - ring * BH.disk.lineWidthStep;
     ctx.stroke();
@@ -198,14 +199,14 @@ export const drawBlackHole = (
   }
 
   ctx.beginPath();
-  ctx.arc(x, y, radius, 0, Math.PI * 2);
+  ctx.arc(x, y, radius, 0, TWO_PI);
   ctx.fillStyle = gradient;
   ctx.fill();
 
   // Draw pulsing event horizon (inner ring)
   const eventHorizonPulse = (1 - BH.eventHorizon.pulseAmplitude) + Math.sin(pulseTime * 2) * BH.eventHorizon.pulseAmplitude;
   ctx.beginPath();
-  ctx.arc(x, y, radius * BH.eventHorizon.radiusMultiplier * eventHorizonPulse, 0, Math.PI * 2);
+  ctx.arc(x, y, radius * BH.eventHorizon.radiusMultiplier * eventHorizonPulse, 0, TWO_PI);
   const ehOpacity = BH.eventHorizon.baseOpacity + Math.sin(pulseTime * 2.5) * BH.eventHorizon.opacityAmplitude;
   ctx.strokeStyle = `rgba(${BH.disk.color}, ${ehOpacity})`;
   ctx.lineWidth = BH.eventHorizon.baseLineWidth + Math.sin(pulseTime * 3) * BH.eventHorizon.lineWidthAmplitude;
@@ -213,7 +214,7 @@ export const drawBlackHole = (
 
   // Draw inner core highlight
   ctx.beginPath();
-  ctx.arc(x, y, radius * BH.innerCore.radiusMultiplier, 0, Math.PI * 2);
+  ctx.arc(x, y, radius * BH.innerCore.radiusMultiplier, 0, TWO_PI);
   ctx.strokeStyle = BH.innerCore.color;
   ctx.lineWidth = BH.innerCore.lineWidth;
   ctx.stroke();

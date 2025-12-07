@@ -4,6 +4,7 @@ import { getDailySeededRandom } from "./utils";
 import { SUN_PHYSICS } from "./physicsConfig";
 import { getFrameTime } from "./frameCache";
 import { hexToRgbSafe } from "./colorUtils";
+import { TWO_PI } from "./math";
 
 export interface SunState {
   id: string;
@@ -118,8 +119,8 @@ export function initializeSunStates(): void {
     const pos = INITIAL_SUN_POSITIONS[index % INITIAL_SUN_POSITIONS.length];
     
     // Create unique drift parameters for each sun so they move independently
-    const driftPhaseX = Math.random() * Math.PI * 2; // Random starting phase
-    const driftPhaseY = Math.random() * Math.PI * 2;
+    const driftPhaseX = Math.random() * TWO_PI; // Random starting phase
+    const driftPhaseY = Math.random() * TWO_PI;
     const driftSpeedX = SUN_PHYSICS.driftSpeedMin + Math.random() * (SUN_PHYSICS.driftSpeedMax - SUN_PHYSICS.driftSpeedMin);
     const driftSpeedY = SUN_PHYSICS.driftSpeedMin + Math.random() * (SUN_PHYSICS.driftSpeedMax - SUN_PHYSICS.driftSpeedMin);
     // Vary the speed slightly so X and Y don't sync up
@@ -151,7 +152,7 @@ export function initializeSunStates(): void {
       baseX: pos.x,
       baseY: pos.y,
       size: sun.size,
-      rotationAngle: Math.random() * Math.PI * 2,
+      rotationAngle: Math.random() * TWO_PI,
       rotationSpeed: 0.00001,
       isPropelling: false,
       propelTimer: 0,

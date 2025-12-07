@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Burst, CollisionEffect } from "../types";
+import { TWO_PI } from "../math";
 
 export const useParticleEffects = () => {
     // Click burst particles state and ref
@@ -27,7 +28,7 @@ export const useParticleEffects = () => {
                            (isMobile ? 10 : 15);
 
       for (let i = 0; i < particleCount; i++) {
-        const angle = Math.random() * Math.PI * 2;
+        const angle = Math.random() * TWO_PI;
         const speed = Math.random() * 4 + 2;
         const size = Math.random() * 3 + 1;
 

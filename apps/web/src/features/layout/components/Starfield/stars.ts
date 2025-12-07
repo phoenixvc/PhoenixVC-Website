@@ -11,6 +11,7 @@ import {
   SIZE_CONFIG,
 } from "./physicsConfig";
 import { getFrameTime } from "./frameCache";
+import { TWO_PI } from "./math";
 import { getSunStates } from "./sunSystem";
 
 // ==========================================
@@ -405,13 +406,13 @@ export const drawStars = (
 
       // Draw glow
       ctx.beginPath();
-      ctx.arc(star.x, star.y, glowRadius, 0, Math.PI * 2);
+      ctx.arc(star.x, star.y, glowRadius, 0, TWO_PI);
       ctx.fillStyle = gradient;
       ctx.fill();
 
       // Draw actual star (larger than normal)
       ctx.beginPath();
-      ctx.arc(star.x, star.y, star.size * (1.5 + recency), 0, Math.PI * 2);
+      ctx.arc(star.x, star.y, star.size * (1.5 + recency), 0, TWO_PI);
       ctx.fillStyle = brighterColorStr;
       ctx.fill();
     } else {
@@ -456,7 +457,7 @@ export const drawStars = (
       glowGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
 
       ctx.beginPath();
-      ctx.arc(star.x, star.y, glowRadius, 0, Math.PI * 2);
+      ctx.arc(star.x, star.y, glowRadius, 0, TWO_PI);
       ctx.fillStyle = glowGradient;
       ctx.fill();
 
@@ -468,7 +469,7 @@ export const drawStars = (
         : star.color;
 
       ctx.beginPath();
-      ctx.arc(star.x, star.y, twinkleSize * 0.7, 0, Math.PI * 2);
+      ctx.arc(star.x, star.y, twinkleSize * 0.7, 0, TWO_PI);
       ctx.fillStyle = coreColor;
       ctx.fill();
 
@@ -477,7 +478,7 @@ export const drawStars = (
         // Calculate opacity: minimal effect
         const centerOpacity = (twinkleFactor - STAR_CENTER_HIGHLIGHT_THRESHOLD) * STAR_CENTER_OPACITY_MULTIPLIER * CENTER_OPACITY_REDUCTION_FACTOR;
         ctx.beginPath();
-        ctx.arc(star.x, star.y, twinkleSize * 0.2, 0, Math.PI * 2);
+        ctx.arc(star.x, star.y, twinkleSize * 0.2, 0, TWO_PI);
         ctx.fillStyle = `rgba(255, 255, 255, ${centerOpacity})`;
         ctx.fill();
       }
@@ -539,7 +540,7 @@ export const drawConnections = (
         // Create unique timing offset for each connection based on star indices
         // This ensures each connection has its own animation phase
         const uniqueSeed = (index1 * primeMultiplier1 + index2 * primeMultiplier2) % seedModulo;
-        const phaseOffset = uniqueSeed / seedModulo * Math.PI * 2;
+        const phaseOffset = uniqueSeed / seedModulo * TWO_PI;
         
         // Calculate when this specific connection should start appearing (staggered)
         // Use the unique seed to determine when each connection appears
@@ -625,7 +626,7 @@ export const createExplosion = (
     gradient.addColorStop(1, `${color}00`); // Fully transparent at edge
 
     ctx.beginPath();
-    ctx.arc(x, y, currentRadius, 0, Math.PI * 2);
+    ctx.arc(x, y, currentRadius, 0, TWO_PI);
     ctx.fillStyle = gradient;
     ctx.fill();
 
@@ -830,7 +831,7 @@ export const createClickExplosion = (
     // Draw expanding ring using the provided color
     ctx.save();
     ctx.beginPath();
-    ctx.arc(x, y, currentRadius, 0, Math.PI * 2);
+    ctx.arc(x, y, currentRadius, 0, TWO_PI);
     ctx.lineWidth = 3 * (1 - progress); // Thicker line
     ctx.strokeStyle = `rgba(${baseColor}, ${opacity})`;
     ctx.stroke();
@@ -848,7 +849,7 @@ export const createClickExplosion = (
     if (progress < 0.3) {
       const flashOpacity = (0.3 - progress) / 0.3;
       ctx.beginPath();
-      ctx.arc(x, y, 30, 0, Math.PI * 2);
+      ctx.arc(x, y, 30, 0, TWO_PI);
       ctx.fillStyle = `rgba(${baseColor}, ${flashOpacity})`;
       ctx.fill();
     }

@@ -1,6 +1,7 @@
 import { checkAddClick, checkCollisions, drawGameUI } from "../../gameState";
 import { BurstParticle, ClickBurst, CollisionEffect, CollisionParticle, GameState, Planet, Star } from "../../types";
 import { AnimationProps, AnimationRefs } from "./types";
+import { TWO_PI } from "../../math";
 
 export function processParticleEffects(
     ctx: CanvasRenderingContext2D,
@@ -42,7 +43,7 @@ export function processParticleEffects(
 
           // Draw particle
           ctx.beginPath();
-          ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+          ctx.arc(particle.x, particle.y, particle.size, 0, TWO_PI);
 
           // Extract base color and apply fading
           const baseColor = particle.color.replace(/[\d.]+\)$/, "");
@@ -85,7 +86,7 @@ export function processParticleEffects(
 
           // Draw particle
           ctx.beginPath();
-          ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+          ctx.arc(particle.x, particle.y, particle.size, 0, TWO_PI);
 
           // Use the effect color with fading alpha
           const baseColor = effect.color.replace(/[\d.]+\)$/, "");
@@ -108,7 +109,7 @@ export function processParticleEffects(
           gradient.addColorStop(1, `${effect.color.replace(/[\d.]+\)$/, "")}0)`);
 
           ctx.beginPath();
-          ctx.arc(effect.x, effect.y, glowRadius, 0, Math.PI * 2);
+          ctx.arc(effect.x, effect.y, glowRadius, 0, TWO_PI);
           ctx.fillStyle = gradient;
           ctx.fill();
         }

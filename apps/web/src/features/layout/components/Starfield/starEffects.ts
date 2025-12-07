@@ -6,6 +6,7 @@ import { Planet, PortfolioProject } from "./types";
 import { getFrameTime } from "./frameCache";
 import { SUNS } from "./cosmos/cosmicHierarchy";
 import { COMET_CONFIG } from "./physicsConfig";
+import { TWO_PI } from "./math";
 
 /**
  * Get the sun color for a planet based on its focus area
@@ -61,7 +62,7 @@ export function drawStarGlow(
     glowGradient.addColorStop(1, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0)`);
 
     ctx.beginPath();
-    ctx.arc(planet.x, planet.y, starSize * 2.0 * glowMultiplier, 0, Math.PI * 2);
+    ctx.arc(planet.x, planet.y, starSize * 2.0 * glowMultiplier, 0, TWO_PI);
     ctx.fillStyle = glowGradient;
     ctx.fill();
 
@@ -99,7 +100,7 @@ export function drawStarGlow(
     }
 
     ctx.beginPath();
-    ctx.arc(planet.x, planet.y, starSize * pulseFactor, 0, Math.PI * 2);
+    ctx.arc(planet.x, planet.y, starSize * pulseFactor, 0, TWO_PI);
     ctx.fillStyle = gradient;
     ctx.fill();
   }
@@ -253,13 +254,13 @@ export function drawStarTrail(
       debrisGlow.addColorStop(1, `rgba(${dr}, ${dg}, ${db}, 0)`);
       
       ctx.beginPath();
-      ctx.arc(debrisX, debrisY, debrisSize * 2.5, 0, Math.PI * 2);
+      ctx.arc(debrisX, debrisY, debrisSize * 2.5, 0, TWO_PI);
       ctx.fillStyle = debrisGlow;
       ctx.fill();
       
       // Bright core
       ctx.beginPath();
-      ctx.arc(debrisX, debrisY, debrisSize * 0.5, 0, Math.PI * 2);
+      ctx.arc(debrisX, debrisY, debrisSize * 0.5, 0, TWO_PI);
       ctx.fillStyle = `rgba(255, 255, 255, ${debrisOpacity * 0.9})`;
       ctx.fill();
     }
@@ -291,7 +292,7 @@ export function drawStarTrail(
     
     if (dustSize > 0.15 && dustOpacity > 0.02) {
       ctx.beginPath();
-      ctx.arc(dustX, dustY, dustSize, 0, Math.PI * 2);
+      ctx.arc(dustX, dustY, dustSize, 0, TWO_PI);
       ctx.fillStyle = `rgba(${sr}, ${sg}, ${sb}, ${dustOpacity})`;
       ctx.fill();
     }
@@ -329,7 +330,7 @@ export function drawStarTrail(
     sparkleGradient.addColorStop(1, `rgba(${sr}, ${sg}, ${sb}, 0)`);
     
     ctx.beginPath();
-    ctx.arc(sparkleX, sparkleY, sparkleSize * 3.5, 0, Math.PI * 2);
+    ctx.arc(sparkleX, sparkleY, sparkleSize * 3.5, 0, TWO_PI);
     ctx.fillStyle = sparkleGradient;
     ctx.fill();
     
@@ -411,7 +412,7 @@ export function drawSatellites(
           b,
           0,
           0,
-          Math.PI * 2
+          TWO_PI
         );
         
         // Use sun's secondary color for orbit rings with gradient effect
@@ -430,7 +431,7 @@ export function drawSatellites(
         
         // Add subtle glow to orbit
         ctx.beginPath();
-        ctx.ellipse(planet.x, planet.y, a, b, 0, 0, Math.PI * 2);
+        ctx.ellipse(planet.x, planet.y, a, b, 0, 0, TWO_PI);
         ctx.strokeStyle = `rgba(${sunRgb.r}, ${sunRgb.g}, ${sunRgb.b}, ${orbitOpacity * 0.3})`;
         ctx.lineWidth = 3;
         ctx.stroke();
@@ -468,7 +469,7 @@ export function drawSatellites(
         ctx.save();
         const glowSize = satellite.size * 2.2 * scaleFactor * satellitePulse;
         ctx.beginPath();
-        ctx.arc(satX, satY, glowSize, 0, Math.PI * 2);
+        ctx.arc(satX, satY, glowSize, 0, TWO_PI);
         const glowGradient = ctx.createRadialGradient(
           satX, satY, 0,
           satX, satY, glowSize
@@ -495,7 +496,7 @@ export function drawSatellites(
         coreGradient.addColorStop(1, `rgba(${moonRgb.r}, ${moonRgb.g}, ${moonRgb.b}, 0.8)`);
         
         ctx.beginPath();
-        ctx.arc(satX, satY, coreSize, 0, Math.PI * 2);
+        ctx.arc(satX, satY, coreSize, 0, TWO_PI);
         ctx.fillStyle = coreGradient;
         ctx.fill();
 
@@ -510,7 +511,7 @@ export function drawSatellites(
         highlightGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
         
         ctx.beginPath();
-        ctx.arc(satX, satY, coreSize * 0.5, 0, Math.PI * 2);
+        ctx.arc(satX, satY, coreSize * 0.5, 0, TWO_PI);
         ctx.fillStyle = highlightGradient;
         ctx.fill();
         ctx.restore();
@@ -521,7 +522,7 @@ export function drawSatellites(
 
           ctx.save();
           for (let i = 0; i < particleCount; i++) {
-            const particleAngle = Math.random() * Math.PI * 2;
+            const particleAngle = Math.random() * TWO_PI;
             const particleDistance = satellite.size * (1.8 + Math.random() * 2);
             const particleX = satX + Math.cos(particleAngle) * particleDistance;
             const particleY = satY + Math.sin(particleAngle) * particleDistance;
@@ -531,7 +532,7 @@ export function drawSatellites(
             const particleRgb = i % 2 === 0 ? sunRgb : secondaryRgb;
 
             ctx.beginPath();
-            ctx.arc(particleX, particleY, particleSize, 0, Math.PI * 2);
+            ctx.arc(particleX, particleY, particleSize, 0, TWO_PI);
             ctx.fillStyle = `rgba(${particleRgb.r}, ${particleRgb.g}, ${particleRgb.b}, ${0.3 + Math.random() * 0.3})`;
             ctx.fill();
           }
@@ -577,7 +578,7 @@ export function drawHoverEffects(
       const pulseSize = starSize * (1.3 + Math.sin(pulseTime * 1) * 0.2);
 
       ctx.beginPath();
-      ctx.arc(planet.x, planet.y, pulseSize, 0, Math.PI * 2);
+      ctx.arc(planet.x, planet.y, pulseSize, 0, TWO_PI);
       ctx.lineWidth = 1.5 + Math.sin(pulseTime * 2) * 0.5;
       ctx.strokeStyle = `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, ${pulseOpacity})`;
       ctx.stroke();
@@ -593,7 +594,7 @@ export function drawHoverEffects(
         // Draw pulsing circle with smoother animation - also use unique timing
         const clickPulse = 0.85 + Math.sin(pulseTime * 2.5) * 0.15;
         ctx.beginPath();
-        ctx.arc(clickIndicatorX, clickIndicatorY, clickIndicatorSize * clickPulse, 0, Math.PI * 2);
+        ctx.arc(clickIndicatorX, clickIndicatorY, clickIndicatorSize * clickPulse, 0, TWO_PI);
         ctx.fillStyle = `rgba(255, 255, 255, ${0.6 + Math.sin(pulseTime * 2) * 0.2})`;
         ctx.fill();
 
@@ -621,19 +622,19 @@ export function drawHoverEffects(
 
           skills.forEach((skill, i) => {
             // Use unique timing for skill icon rotation too
-            const angle = (i / skillCount) * Math.PI * 2 + getFrameTime() * 0.0005 + (uniqueOffset * 0.01);
+            const angle = (i / skillCount) * TWO_PI + getFrameTime() * 0.0005 + (uniqueOffset * 0.01);
             const iconX = planet.x + Math.cos(angle) * orbitRadius;
             const iconY = planet.y + Math.sin(angle) * orbitRadius;
 
             // Draw skill icon background
             ctx.beginPath();
-            ctx.arc(iconX, iconY, iconSize, 0, Math.PI * 2);
+            ctx.arc(iconX, iconY, iconSize, 0, TWO_PI);
             ctx.fillStyle = `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.3)`;
             ctx.fill();
 
             // Draw skill icon border
             ctx.beginPath();
-            ctx.arc(iconX, iconY, iconSize, 0, Math.PI * 2);
+            ctx.arc(iconX, iconY, iconSize, 0, TWO_PI);
             ctx.strokeStyle = `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.8)`;
             ctx.lineWidth = 1.5;
             ctx.stroke();
@@ -665,7 +666,7 @@ export function drawHoverEffects(
       const flareLength = starSize * (1.8 + Math.random() * 2.2); // Reduced slightly
 
       for (let i = 0; i < flareCount; i++) {
-        const flareAngle = (i / flareCount) * Math.PI * 2 + Math.random() * 0.5;
+        const flareAngle = (i / flareCount) * TWO_PI + Math.random() * 0.5;
 
         ctx.beginPath();
         ctx.moveTo(planet.x, planet.y);
@@ -717,7 +718,7 @@ export function drawHoverEffects(
       nebulaGradient.addColorStop(1, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0)`);
 
       ctx.beginPath();
-      ctx.arc(planet.x, planet.y, nebulaSize, 0, Math.PI * 2);
+      ctx.arc(planet.x, planet.y, nebulaSize, 0, TWO_PI);
       ctx.fillStyle = nebulaGradient;
       ctx.globalCompositeOperation = "screen";
       ctx.fill();
@@ -766,7 +767,7 @@ export function drawHoverEffects(
         const midY = (planet.y + relatedStar.y) / 2;
 
         ctx.beginPath();
-        ctx.arc(midX, midY, 1.5, 0, Math.PI * 2); // Reduced from 2.5
+        ctx.arc(midX, midY, 1.5, 0, TWO_PI); // Reduced from 2.5
         ctx.fillStyle = `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.4)`; // Reduced from 0.7
         ctx.fill();
       });
