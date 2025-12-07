@@ -7,7 +7,7 @@ import { DebugSettings, MousePosition, Star } from "./types"; // Adjust the impo
 
 interface DebugControlsProps {
   debugSettings: DebugSettings;
-  updateDebugSetting: <K extends keyof DebugSettings>(key: K, value: DebugSettings[K]) => void;
+  updateDebugSetting: <K extends keyof DebugSettings>(_key: K, _value: DebugSettings[K]) => void;
   resetStars: () => void;
   sidebarWidth: number;
   // Add new props for debug info
@@ -16,10 +16,10 @@ interface DebugControlsProps {
   fps?: number;
   timestamp?: number;
   // Add new prop for setting mouse position
-  setMousePosition?: (position: MousePosition) => void;
+  setMousePosition?: (_position: MousePosition) => void;
   // Add isDarkMode prop
   isDarkMode?: boolean;
-  onEmployeeOrbitSpeedChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onEmployeeOrbitSpeedChange?: (_e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
@@ -30,7 +30,7 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
   stars = [],
   mousePosition = { x: 0, y: 0, isOnScreen: false, isClicked: false },
   fps = 0,
-  timestamp,
+  timestamp: _timestamp,
   setMousePosition,
   isDarkMode = true,
   onEmployeeOrbitSpeedChange
@@ -61,27 +61,27 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
   }
 
   // Handle input changes with proper typing
-  const handleAnimationSpeedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAnimationSpeedChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     updateDebugSetting("animationSpeed", Number(e.target.value));
   };
 
-  const handleMaxVelocityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMaxVelocityChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     updateDebugSetting("maxVelocity", Number(e.target.value));
   };
 
-  const handleFlowStrengthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFlowStrengthChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     updateDebugSetting("flowStrength", Number(e.target.value));
   };
 
-  const handleGravitationalPullChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleGravitationalPullChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     updateDebugSetting("gravitationalPull", Number(e.target.value));
   };
 
-  const handleMouseEffectRadiusChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMouseEffectRadiusChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     updateDebugSetting("mouseEffectRadius", Number(e.target.value));
   };
 
-  const handleEmployeeOrbitSpeedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleEmployeeOrbitSpeedChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     updateDebugSetting("employeeOrbitSpeed", Number(e.target.value));
 
     if (onEmployeeOrbitSpeedChange) {
@@ -89,20 +89,20 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
     }
   };
 
-  const handleLineConnectionDistanceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLineConnectionDistanceChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     updateDebugSetting("lineConnectionDistance", Number(e.target.value));
   };
 
-  const handleLineOpacityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLineOpacityChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     updateDebugSetting("lineOpacity", Number(e.target.value));
   };
 
-  const handleCloseDebug = () => {
+  const handleCloseDebug = (): void => {
     updateDebugSetting("isDebugMode", false);
   };
 
   // Handle test mouse effect click
-  const handleTestMouseEffect = () => {
+  const handleTestMouseEffect = (): void => {
     if (setMousePosition) {
       const newPos = {
         x: window.innerWidth / 2,
@@ -120,7 +120,7 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
   };
 
   // Handle repulsion test
-  const handleRepulsionTest = () => {
+  const handleRepulsionTest = (): void => {
     const canvasWidth  = window.innerWidth;
     const canvasHeight = window.innerHeight;
     const cx = canvasWidth / 2;

@@ -11,14 +11,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isDarkMode = true,
   isMobile = false,
   collapsed = false,
-  onToggle,
+  onToggle: _onToggle,
   onCollapse,
-  mode = "dark"
-}) => {
+  mode: _mode = "dark"
+}): React.ReactElement | null => {
   const [currentPath, setCurrentPath] = useState("");
 
   useEffect(() => {
-    const updateCurrentPath = () => {
+    const updateCurrentPath = (): void => {
       const pathname = window.location.pathname;
       const hash = window.location.hash;
 
@@ -40,7 +40,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     window.addEventListener("popstate", updateCurrentPath);
     window.addEventListener("hashchange", updateCurrentPath);
 
-    return () => {
+    return (): void => {
       window.removeEventListener("popstate", updateCurrentPath);
       window.removeEventListener("hashchange", updateCurrentPath);
     };
@@ -58,7 +58,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ].filter(Boolean).join(" ");
 
   // Function to check if a link is active
-  const isLinkActive = (href: string) => {
+  const isLinkActive = (href: string): boolean => {
     if (href === "/") {
       return currentPath === "/";
     }

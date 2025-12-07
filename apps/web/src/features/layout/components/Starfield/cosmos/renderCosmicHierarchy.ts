@@ -9,11 +9,12 @@ import {
   CosmicNavigationState,
   CosmicObject
 } from "./types";
+import { TWO_PI } from "../math";
 
 /* ────────────────────────────────────────────────────────────
    Utility: visibility check (unchanged)
    ────────────────────────────────────────────────────────── */
-const isObjectVisible = (
+const _isObjectVisible = (
   obj: CosmicObject,
   camera: Camera,
   width: number,
@@ -47,7 +48,7 @@ export function renderCosmicHierarchy(
   hoveredId: string | null,
   starSizeFactor = 1,
   isDarkMode = true
-) {
+): void {
   const { currentLevel, currentGalaxyId, currentSunId } = navigationState;
 
   ctx.save();
@@ -104,7 +105,7 @@ export function renderCosmicHierarchy(
     glow.addColorStop(1, `${base}00`);
     ctx.fillStyle   = glow;
     ctx.globalAlpha = (onHover ? 1 : 0.7) * 0.5;
-    ctx.arc(x, y, size * 2, 0, Math.PI * 2);
+    ctx.arc(x, y, size * 2, 0, TWO_PI);
     ctx.fill();
     ctx.globalAlpha = onHover ? 1 : 0.7;   // reset
 
@@ -118,7 +119,7 @@ export function renderCosmicHierarchy(
       default:
         ctx.beginPath();
         ctx.fillStyle = base;
-        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.arc(x, y, size, 0, TWO_PI);
         ctx.fill();
     }
 
@@ -129,7 +130,7 @@ export function renderCosmicHierarchy(
       ctx.strokeStyle = base;
       ctx.lineWidth   = 2;
       ctx.globalAlpha = 0.8;
-      ctx.arc(x, y, pulse, 0, Math.PI * 2);
+      ctx.arc(x, y, pulse, 0, TWO_PI);
       ctx.stroke();
       ctx.globalAlpha = 1; // keep clean
     }
@@ -187,14 +188,14 @@ export function drawSun(
   g.addColorStop(1, `${sun.color}00`);
   ctx.fillStyle   = g;
   ctx.globalAlpha = isActive ? 0.8 : 0.6;
-  ctx.arc(x, y, size * 3, 0, Math.PI * 2);
+  ctx.arc(x, y, size * 3, 0, TWO_PI);
   ctx.fill();
 
   /* body */
   ctx.beginPath();
   ctx.fillStyle   = sun.color || "#ffdb58";
   ctx.globalAlpha = isActive ? 1 : 0.8;
-  ctx.arc(x, y, size, 0, Math.PI * 2);
+  ctx.arc(x, y, size, 0, TWO_PI);
   ctx.fill();
 }
 
@@ -214,7 +215,7 @@ export function drawPlanet(
   ctx.beginPath();
   ctx.fillStyle   = planet.color || "#3498db";
   ctx.globalAlpha = isActive ? 1 : 0.8;
-  ctx.arc(x, y, size, 0, Math.PI * 2);
+  ctx.arc(x, y, size, 0, TWO_PI);
   ctx.fill();
 
   if (isActive) {
@@ -222,7 +223,7 @@ export function drawPlanet(
     ctx.strokeStyle = "#ffffff";
     ctx.lineWidth   = 2;
     ctx.globalAlpha = 0.6;
-    ctx.arc(x, y, size * 1.2, 0, Math.PI * 2);
+    ctx.arc(x, y, size * 1.2, 0, TWO_PI);
     ctx.stroke();
   }
 }

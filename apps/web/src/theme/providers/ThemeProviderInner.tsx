@@ -66,7 +66,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
 
   // Initialize registries
   const [themes, setThemes] = useState(() => createThemeRegistry(themeRegistry));
-  const [components, setComponents] = useState(() => createComponentRegistry(componentRegistry));
+  const [components, _setComponents] = useState(() => createComponentRegistry(componentRegistry));
 
   // Get systemMode from context instead of using useSystemMode hook
   const { systemMode, useSystemMode, setUseSystemMode: setUseSystemModeContext } = useSystemModeContext();
@@ -168,7 +168,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
       }
     }, 50); // Small delay for async initialization to complete
 
-    return () => clearTimeout(timeoutId);
+    return (): void => clearTimeout(timeoutId);
   }, [themeManagerReady]);
 
   // Effect to sync system mode with theme state - only when manager is ready
@@ -178,7 +178,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
     if (state.useSystem && systemMode !== state.mode) {
       setMode(systemMode);
     }
-  }, [systemMode, state.useSystem, themeManagerReady]);
+  }, [systemMode, state.useSystem, state.mode, setMode, themeManagerReady]);
 
   // Effect to sync useSystem preference with context
   useEffect(() => {
@@ -198,7 +198,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
   useEffect(() => {
     if (!themeManagerReady) return;
 
-    const initializeTheme = async () => {
+    const initializeTheme = async (): Promise<void> => {
       try {
         logger.debug("[ThemeProvider] Starting theme initialization...");
 
@@ -220,7 +220,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
         }
 
         if (themeData) {
-          const semantics = generateSchemeSemantics(themeData, state.mode);
+          const _semantics = generateSchemeSemantics(themeData, state.mode);
           logger.debug("[ThemeProvider] Generated semantics");
 
           const variables = generateThemeVariables(themeData, state.mode);
@@ -507,12 +507,12 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
     getScale: (element: string): TypographyScale | undefined => {
       return themeCore.getTypographyScale(element);
     },
-    getComponentTypography: (component: string, variant?: string, mode?: string): TypographyScale | undefined => {
+    getComponentTypography: (component: string, variant?: string, _mode?: string): TypographyScale | undefined => {
       return themeCore.getComponentTypography(component, variant || "default");
     }
   }), []);
 
-  const getComponentStyle = useCallback((component: string, variant?: string, state?: string, mode?: string): React.CSSProperties => {
+  const getComponentStyle = useCallback((component: string, variant?: string, state?: string, _mode?: string): React.CSSProperties => {
     return themeCore.getComponentStyle(component, variant, state);
   }, []);
 
@@ -557,13 +557,13 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
     systemMode,
     useSystemMode: state.useSystem,
     getThemeClassNames,
-    getSpecificClass: (suffix) => getSpecificClass(state.themeName, suffix),
-    replaceThemeClasses: (currentClasses, newScheme) => replaceThemeClasses(currentClasses, newScheme, state.mode),
+    getSpecificClass: (suffix): string => getSpecificClass(state.themeName, suffix),
+    replaceThemeClasses: (currentClasses, newScheme): string => replaceThemeClasses(currentClasses, newScheme, state.mode),
     setThemeClasses,
     setMode,
     toggleMode,
     setUseSystemMode,
-    getCssVariable: (name: string, config?: Partial<CssVariableConfig>) => getCssVariable(name),
+    getCssVariable: (name: string, _config?: Partial<CssVariableConfig>): string => getCssVariable(name),
     getAllThemeClasses,
     isThemeClass,
 
@@ -581,12 +581,12 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
     isThemeSupported,
     getThemeState,
     resetTheme,
-    subscribeToThemeChanges: (callback) => {
+    subscribeToThemeChanges: (callback): (() => void) => {
       const observer = new MutationObserver(() => {
         callback(getThemeState());
       });
       observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "data-mode"] });
-      return () => observer.disconnect();
+      return (): void => observer.disconnect();
     },
     toggleUseSystem,
 
@@ -603,12 +603,12 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
     state,
     systemMode,
     getCssVariable,
-    loadingTheme,
     setThemeClasses,
     setMode,
     toggleMode,
     setUseSystemMode,
     isThemeLoading,
+    isThemeCached,
     preloadThemeHandler,
     clearThemeCache,
     getCacheStatus,
@@ -616,6 +616,8 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
     isThemeSupported,
     getThemeState,
     resetTheme,
+    toggleUseSystem,
+    typography,
     getComponentStyle,
     themes,
     components

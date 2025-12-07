@@ -1,9 +1,9 @@
 // hooks/useSmoothScroll.ts
 import { useEffect } from "react";
 
-export const useSmoothScroll = () => {
-  useEffect(() => {
-    const handleAnchorClick = (e: Event) => {
+export const useSmoothScroll = (): void => {
+  useEffect((): (() => void) => {
+    const handleAnchorClick = (e: Event): void => {
       const target = e.target as HTMLAnchorElement;
       if (target.hash) {
         e.preventDefault();
@@ -17,12 +17,12 @@ export const useSmoothScroll = () => {
     };
 
     const anchors = document.querySelectorAll("a[href^=\"#\"]");
-    anchors.forEach(anchor => {
+    anchors.forEach((anchor): void => {
       anchor.addEventListener("click", handleAnchorClick);
     });
 
-    return () => {
-      anchors.forEach(anchor => {
+    return (): void => {
+      anchors.forEach((anchor): void => {
         anchor.removeEventListener("click", handleAnchorClick);
       });
     };

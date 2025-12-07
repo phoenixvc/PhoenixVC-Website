@@ -1,4 +1,4 @@
-import { ComponentVariants, Theme, ThemeColors, ThemeConfig, ThemeSpacing, ThemeVariables } from "../types";
+import { Theme, ThemeColors, ThemeConfig, ThemeSpacing, ThemeVariables } from "../types";
 import { defaultTheme } from "./defaultTheme";
 
 // Theme factory function for the hybrid approach

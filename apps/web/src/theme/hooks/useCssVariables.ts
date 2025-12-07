@@ -1,5 +1,8 @@
-export const useCssVariables = () => {
-    const applyCssVariables = (variables: Record<string, unknown>) => {
+export const useCssVariables = (): {
+  applyCssVariables: (variables: Record<string, unknown>) => void;
+  getCssVariable: (name: string) => string;
+} => {
+    const applyCssVariables = (variables: Record<string, unknown>): void => {
       Object.entries(variables).forEach(([category, values]) => {
         if (values && typeof values === "object") {
           Object.entries(values).forEach(([key, value]) => {
@@ -9,7 +12,7 @@ export const useCssVariables = () => {
       });
     };
 
-    const getCssVariable = (name: string) => {
+    const getCssVariable = (name: string): string => {
       // Implementation of getCssVariable
       const style = getComputedStyle(document.documentElement);
       return style.getPropertyValue(`--${name}`);

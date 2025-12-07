@@ -3,7 +3,17 @@ import { useContext } from "react";
 import { TypographyScale } from "../mappings";
 import { ThemeContext, ThemeContextType } from "../types";
 
-export function useTheme() {
+export function useTheme(): ThemeContextType & {
+  themeName: string;
+  setThemeName: (name: string) => void;
+  typography: {
+    get: (element: string) => TypographyScale | undefined;
+    getComponentTypography: (component: string, variant?: string) => TypographyScale | undefined;
+    getClass: (element: string) => string;
+    getStyle: (element: string) => React.CSSProperties;
+  };
+  getComponentFullStyle: (component: string, variant?: string, state?: string) => React.CSSProperties;
+} {
   const theme = useContext(ThemeContext);
 
   if (!theme) {
@@ -15,7 +25,7 @@ export function useTheme() {
 
     // Theme name getter and setter
     themeName: theme.themeName || "cosmic-frontier", // Default to cosmic-frontier if not set
-    setThemeName: (name: string) => {
+    setThemeName: (name: string): void => {
       if (theme.setTheme) {
         theme.setTheme(name);
       } else {

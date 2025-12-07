@@ -2,17 +2,17 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 import SidebarItem from "./SidebarItem";
-import { SidebarGroupProps, SidebarItemLink } from "../types";
+import { SidebarGroupProps } from "../types";
 import styles from "../styles/sidebar.module.css";
 
 const SidebarGroup: React.FC<SidebarGroupProps> = ({
   title = "",
   items,
-  mode = "light",
-  variant = "default",
+  mode: _mode = "light",
+  variant: _variant = "default",
   collapsed = false,
-  isDarkMode = true
-}) => {
+  isDarkMode: _isDarkMode = true
+}): React.ReactElement => {
   const groupTitleClass = cn(
     styles.groupTitle,
     collapsed ? styles.groupTitleCollapsed : ""
@@ -30,8 +30,8 @@ const SidebarGroup: React.FC<SidebarGroupProps> = ({
             href={item.href}
             active={item.active || false}
             onClick={item.onClick}
-            mode={mode}
-            variant={variant}
+            mode={_mode}
+            variant={_variant}
             collapsed={collapsed}
             type="link"
           />

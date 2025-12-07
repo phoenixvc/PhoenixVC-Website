@@ -1,6 +1,6 @@
 // /features/blog/index.tsx
 import { useTheme } from "@/theme";
-import { useEffect, useState, FormEvent, useMemo } from "react";
+import React, { useEffect, useState, FormEvent, useMemo } from "react";
 import { Linkedin, Search, Filter, ExternalLink, Calendar, User } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import styles from "./Blog.module.css";
@@ -145,7 +145,7 @@ const blogPosts: BlogPost[] = [
 
 const categories = ["All", "Finance", "Blockchain", "Technology", "AI", "Strategy"] as const;
 
-export const Blog = () => {
+export const Blog = (): React.ReactElement => {
   const { themeMode } = useTheme();
   const isDarkMode = themeMode === "dark";
   const [email, setEmail] = useState("");
@@ -155,7 +155,7 @@ export const Blog = () => {
   const [selectedAuthor, setSelectedAuthor] = useState<string>("All");
 
   // Filter posts based on search and filters
-  const filteredPosts = useMemo(() => {
+  const filteredPosts = useMemo((): BlogPost[] => {
     return blogPosts.filter((post) => {
       const matchesSearch = searchQuery === "" ||
         post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -168,7 +168,7 @@ export const Blog = () => {
     });
   }, [searchQuery, selectedCategory, selectedAuthor]);
 
-  const handleSubscribe = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubscribe = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
 
     if (!email.trim() || !/^\S+@\S+\.\S+$/.test(email)) {
@@ -194,14 +194,14 @@ export const Blog = () => {
     script.charset = "utf-8";
 
     // Handle script loading errors gracefully
-    script.onerror = () => {
+    script.onerror = (): void => {
       // Substack embed failed to load - this is non-critical, silently continue
       // The blog will still function, just without Substack embed features
     };
 
     document.body.appendChild(script);
 
-    return () => {
+    return (): void => {
       // Cleanup script on unmount
       const existingScript = document.querySelector("script[src=\"https://substack.com/embedjs/embed.js\"]");
       if (existingScript) {

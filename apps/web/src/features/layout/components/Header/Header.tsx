@@ -1,5 +1,5 @@
 // components/Layout/Header/Header.tsx
-import { FC, useEffect, useState, useRef } from "react";
+import React, { FC, useEffect, useState, useRef } from "react";
 import styles from "./header.module.css";
 import { Menu, Sun, Moon, Bug, Gamepad2, ChevronDown, User, Palette } from "lucide-react";
 import { HeaderProps } from "./types";
@@ -19,7 +19,7 @@ const Header: FC<HeaderProps> = ({
   onGameModeToggle,
   debugMode = false,
   onDebugModeToggle,
-}) => {
+}): React.ReactElement => {
   // Calculate header left offset based on sidebar state (desktop only)
   const headerLeftOffset = isMobile ? 0 : (isSidebarOpen ? sidebarWidth : 0);
   const [scrolled, setScrolled] = useState(false);
@@ -29,7 +29,7 @@ const Header: FC<HeaderProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const { themeName, setThemeName } = useTheme();
-  const currentPath = typeof window !== "undefined" ? window.location.pathname : "";
+  const _currentPath = typeof window !== "undefined" ? window.location.pathname : "";
 
   // Available themes with "coming soon" labels
   const availableThemes = [
@@ -42,7 +42,7 @@ const Header: FC<HeaderProps> = ({
 
   // Handle scroll event to add transparency
   useEffect(() => {
-    const handleScroll = () => {
+    const handleScroll = (): void => {
       const isScrolled = window.scrollY > 10;
       if (isScrolled !== scrolled) {
         setScrolled(isScrolled);
@@ -50,7 +50,7 @@ const Header: FC<HeaderProps> = ({
     };
 
     // Set active path based on current location
-    const updateActivePath = () => {
+    const updateActivePath = (): void => {
       const pathname = window.location.pathname;
       const hash = window.location.hash;
 
@@ -73,7 +73,7 @@ const Header: FC<HeaderProps> = ({
     window.addEventListener("hashchange", updateActivePath);
 
     // Close profile menu when clicking outside
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: MouseEvent): void => {
       if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
         setProfileMenuOpen(false);
         setThemeMenuOpen(false);
@@ -82,7 +82,7 @@ const Header: FC<HeaderProps> = ({
 
     document.addEventListener("mousedown", handleClickOutside);
 
-    return () => {
+    return (): void => {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("hashchange", updateActivePath);
       document.removeEventListener("mousedown", handleClickOutside);
@@ -90,7 +90,7 @@ const Header: FC<HeaderProps> = ({
   }, [scrolled, profileMenuRef]);
 
   // Function to determine if a nav item is active
-  const isNavItemActive = (href: string) => {
+  const isNavItemActive = (href: string): boolean => {
     if (href === "/") {
       return activePath === "/";
     }
@@ -102,14 +102,14 @@ const Header: FC<HeaderProps> = ({
     return activePath.startsWith(href) && !activePath.includes("#");
   };
 
-  const handleThemeSelect = (themeId: string) => {
+  const handleThemeSelect = (themeId: string): void => {
     setThemeName(themeId);
     setThemeMenuOpen(false);
     setProfileMenuOpen(false);
   };
 
   // Handle mobile menu toggle
-  const handleMobileMenuToggle = () => {
+  const handleMobileMenuToggle = (): void => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 

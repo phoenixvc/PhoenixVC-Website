@@ -1,5 +1,5 @@
 // apps/web/src/theme/context/ThemeContext.tsx
-import { createContext, useContext, useState, useMemo, ReactNode, useEffect } from "react";
+import React, { createContext, useContext, useState, useMemo, ReactNode, useEffect } from "react";
 
 type Theme = "light" | "dark";
 
@@ -29,7 +29,7 @@ const getInitialTheme = (): Theme => {
   return "dark"; // Default to dark mode
 };
 
-export const ThemeProvider = ({ children }: { children: ReactNode }) => {
+export const ThemeProvider = ({ children }: { children: ReactNode }): React.ReactElement => {
   const [themeMode, setThemeMode] = useState<Theme>(getInitialTheme);
 
   // Persist theme to localStorage whenever it changes
@@ -47,16 +47,17 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [themeMode]);
 
-  // Apply initial theme class on mount
+  // Apply initial theme class on mount - intentionally runs once
   useEffect(() => {
     if (themeMode === "dark") {
       document.documentElement.classList.add("dark");
     } else {
       document.documentElement.classList.remove("dark");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const toggleTheme = () => {
+  const toggleTheme = (): void => {
     setThemeMode((prevMode) => (prevMode === "light" ? "dark" : "light"));
   };
 
@@ -75,7 +76,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useTheme = () => {
+export const useTheme = (): ThemeContextType => {
   const context = useContext(ThemeContext);
   if (context === undefined) {
     throw new Error("useTheme must be used within a ThemeProvider");

@@ -13,9 +13,9 @@ interface AutoZoomGalaxyProps {
 }
 
 const AutoZoomGalaxy: React.FC<AutoZoomGalaxyProps> = ({
-  camera,
+  camera: _camera,
   setCamera,
-  navigationState,
+  navigationState: _navigationState,
   setNavigationState,
   canvasWidth,
   canvasHeight
@@ -26,7 +26,7 @@ const AutoZoomGalaxy: React.FC<AutoZoomGalaxyProps> = ({
   const isZoomingRef = useRef<boolean>(false);
 
   // Function to check if mouse is over a galaxy
-  const checkGalaxyHover = (mouseX: number, mouseY: number) => {
+  const checkGalaxyHover = (mouseX: number, mouseY: number): void => {
     // Convert screen coordinates to world coordinates
     const worldX = (mouseX / canvasWidth);
     const worldY = (mouseY / canvasHeight);
@@ -54,7 +54,7 @@ const AutoZoomGalaxy: React.FC<AutoZoomGalaxyProps> = ({
 
   // Handle mouse movement on the canvas
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = (e: MouseEvent): void => {
       const rect = (e.target as HTMLElement).getBoundingClientRect();
       const mouseX = e.clientX - rect.left;
       const mouseY = e.clientY - rect.top;
@@ -67,11 +67,13 @@ const AutoZoomGalaxy: React.FC<AutoZoomGalaxyProps> = ({
       canvas.addEventListener("mousemove", handleMouseMove);
     }
 
-    return () => {
+    return (): void => {
       if (canvas) {
         canvas.removeEventListener("mousemove", handleMouseMove);
       }
     };
+    // checkGalaxyHover uses component state in closure - intentionally using current values
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canvasWidth, canvasHeight, hoveredGalaxyId]);
 
   // Handle zooming when hovering over a galaxy
@@ -133,7 +135,7 @@ const AutoZoomGalaxy: React.FC<AutoZoomGalaxyProps> = ({
       }, 500); // Longer delay before zooming out
     }
 
-    return () => {
+    return (): void => {
       if (zoomTimeoutRef.current) {
         clearTimeout(zoomTimeoutRef.current);
       }

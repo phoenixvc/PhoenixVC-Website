@@ -1,6 +1,6 @@
 // constants/tokens/effects.ts
 
-import { opacities, blurs } from "./theme-constants";
+import { blurs } from "./theme-constants";
 
 // Filter effects
 export const filters = {

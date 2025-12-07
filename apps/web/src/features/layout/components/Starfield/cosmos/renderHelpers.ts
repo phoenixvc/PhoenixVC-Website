@@ -1,3 +1,5 @@
+import { TWO_PI } from "../math";
+
 export function drawGalaxySpiral(
     ctx: CanvasRenderingContext2D,
     cx: number,
@@ -5,7 +7,7 @@ export function drawGalaxySpiral(
     radius: number,
     arms = 5,
     color = "#62b3ff"
-  ) {
+  ): void {
     ctx.save();
     ctx.translate(cx, cy);
 
@@ -28,7 +30,7 @@ export function drawGalaxySpiral(
     g.addColorStop(1, `${color}00`);
     ctx.fillStyle = g;
     ctx.beginPath();
-    ctx.arc(0, 0, radius * 0.5, 0, Math.PI * 2);
+    ctx.arc(0, 0, radius * 0.5, 0, TWO_PI);
     ctx.fill();
 
     ctx.restore();

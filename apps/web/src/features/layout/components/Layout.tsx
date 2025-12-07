@@ -27,7 +27,7 @@ const loadDebugModeFromStorage = (): boolean => {
   return false;
 };
 
-const Layout = ({ children }: LayoutProps) => {
+const Layout = ({ children }: LayoutProps): React.ReactElement => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -41,7 +41,7 @@ const Layout = ({ children }: LayoutProps) => {
   const [showMobileDisclaimer, setShowMobileDisclaimer] = useState(false);
   const [hasShownMobileDisclaimer, setHasShownMobileDisclaimer] = useState(false);
   // Cosmic navigation state
-  const [cosmicNavigation, setCosmicNavigation] = useState<CosmicNavigationState>({
+  const [_cosmicNavigation, setCosmicNavigation] = useState<CosmicNavigationState>({
     currentLevel: "universe",
     isTransitioning: false
   });
@@ -51,7 +51,7 @@ const Layout = ({ children }: LayoutProps) => {
 
   // Check if we're on mobile on mount and when window resizes
   useEffect(() => {
-    const checkIfMobile = () => {
+    const checkIfMobile = (): void => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
 
@@ -79,7 +79,7 @@ const Layout = ({ children }: LayoutProps) => {
     window.addEventListener("resize", checkIfMobile);
 
     // Cleanup
-    return () => window.removeEventListener("resize", checkIfMobile);
+    return (): void => window.removeEventListener("resize", checkIfMobile);
   }, [hasShownMobileDisclaimer, isCollapsed]);
 
   // Update sidebar width when collapse state changes
@@ -95,7 +95,7 @@ const Layout = ({ children }: LayoutProps) => {
     setIsDarkMode(prefersDark);
   }, []);
 
-  const toggleSidebar = () => {
+  const toggleSidebar = (): void => {
     if (isMobile) {
       // On mobile, toggle open/closed
       setIsSidebarOpen((prev: boolean) => !prev);
@@ -107,17 +107,17 @@ const Layout = ({ children }: LayoutProps) => {
     }
   };
 
-  const toggleTheme = () => {
+  const toggleTheme = (): void => {
     setIsDarkMode((prev: boolean): boolean => !prev);
   };
 
   // Separate function for sidebar collapse (used by sidebar component)
-  const toggleCollapse = () => {
+  const toggleCollapse = (): void => {
     setIsCollapsed((prev: boolean): boolean => !prev);
   };
 
   // Toggle game mode
-  const toggleGameMode = () => {
+  const toggleGameMode = (): void => {
     setGameMode((prev: boolean): boolean => {
       const newValue = !prev;
       // Show disclaimer when enabling game mode
@@ -129,7 +129,7 @@ const Layout = ({ children }: LayoutProps) => {
   };
 
   // Toggle debug mode
-  const toggleDebugMode = () => {
+  const toggleDebugMode = (): void => {
     logger.debug("Debug mode toggle clicked in Layout, current value:", debugMode);
     const newDebugMode = !debugMode;
 
@@ -146,7 +146,7 @@ const Layout = ({ children }: LayoutProps) => {
   };
 
   // Handle cosmic navigation
-  const handleCosmicNavigation = (state: CosmicNavigationState) => {
+  const _handleCosmicNavigation = (state: CosmicNavigationState): void => {
     setCosmicNavigation(state);
     logger.debug("Navigation updated:", state);
   };
@@ -158,8 +158,8 @@ const Layout = ({ children }: LayoutProps) => {
     mousePosition: { x: number; y: number; isOnScreen?: boolean } | null,
     stars: Star[],
     mouseEffectRadius: number,
-    timestamp?: number
-  ) => {
+    _timestamp?: number
+  ): void => {
     // Custom debug visualization
     ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
     ctx.fillRect(10, 10, 200, 120);

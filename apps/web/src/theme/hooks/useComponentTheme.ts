@@ -5,7 +5,12 @@ import { ComponentState } from "../types/mappings/state-mappings";
 import { ColorDefinition } from "../types";
 import ComponentManagerContext from "../context/ComponentManagerContext";
 
-export function useComponentTheme() {
+export function useComponentTheme(): {
+  getComponentVariables: (component: string, variant?: string) => Record<string, string | ColorDefinition>;
+  getComponentClasses: (component: string, variant?: string) => string;
+  getComponentState: (component: string, variant?: string, state?: "default" | "hover" | "active" | "focus" | "disabled") => ComponentState | undefined;
+  getComponentStyles: (component: string, variant?: string, state?: "default" | "hover" | "active" | "focus" | "disabled") => React.CSSProperties;
+} {
   const theme = useTheme();
   // Get the component manager from context
   const componentManager = useContext(ComponentManagerContext);

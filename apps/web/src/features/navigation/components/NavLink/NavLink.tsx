@@ -9,7 +9,7 @@ type IconProp = LucideIcon | React.ReactNode | string | undefined;
 // Type for aria-current
 type AriaCurrent = "page" | "step" | "location" | "date" | "time" | "true" | "false" | boolean | undefined;
 
-const renderIcon = (icon: IconProp) => {
+const renderIcon = (icon: IconProp): React.ReactElement | null => {
   if (!icon) return null;
 
   if (typeof icon === "string") {
@@ -37,9 +37,9 @@ export const NavLink = ({
   isMobile = false,
   className,
   style,
-}: ExtendedNavLinkProps) => {
+}: ExtendedNavLinkProps): React.ReactElement => {
   const themeContext = useTheme();
-  const { themeName } = themeContext;
+  const { themeName: _themeName } = themeContext;
 
   // Get component styles from the theme system
   const navLinkStyle = themeContext.getComponentStyle?.("navLink", variant) || {};

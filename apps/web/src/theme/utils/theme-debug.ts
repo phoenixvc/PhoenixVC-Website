@@ -2,11 +2,11 @@ import { ThemeSchemeInitial } from "../types";
 import ColorUtils from "./color-utils";
 
 // src/theme/utils/theme-debug.ts
-export const debugThemeColors = (theme: ThemeSchemeInitial) => {
+export const debugThemeColors = (theme: ThemeSchemeInitial): void => {
     console.group("Theme Color Validation");
     try {
       // Check base colors
-      Object.entries(theme.base || {}).forEach(([key, value]) => {
+      Object.entries(theme.base || {}).forEach(([key, value]): void => {
         try {
           ColorUtils.normalizeColor(value as string);
           console.log(`✅ base.${key}: ${value}`);
@@ -16,9 +16,9 @@ export const debugThemeColors = (theme: ThemeSchemeInitial) => {
       });
 
       // Check mode-specific colors
-      ["light", "dark"].forEach(mode => {
+      ["light", "dark"].forEach((mode): void => {
         const modeColors = theme[mode as "light" | "dark"] || {};
-        Object.entries(modeColors).forEach(([key, value]) => {
+        Object.entries(modeColors).forEach(([key, value]): void => {
           try {
             ColorUtils.normalizeColor(value as string);
             console.log(`✅ ${mode}.${key}: ${value}`);

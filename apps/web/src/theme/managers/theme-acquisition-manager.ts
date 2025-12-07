@@ -4,14 +4,12 @@ import {
   ThemeColors,
   ThemeName,
   ThemeSchemeInitial,
-  ThemeMode,
   SemanticColors,
   ThemeAcquisitionConfig,
   AcquisitionStatus,
   AcquisitionResult,
   Theme,
-  ThemeScheme,
-  ColorShades
+  ThemeScheme
 } from "../types";
 
 import { themeValidationManager } from "./theme-validation-manager";

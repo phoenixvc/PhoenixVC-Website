@@ -1,20 +1,15 @@
 import React, { useState } from "react";
 import Layout from "@/features/layout/components/Layout";
-import CosmicStarfield from "@/features/layout/components/Starfield/CosmicStarfield";
 import { CosmicNavigationState } from "@/features/layout/components/Starfield/types";
 import styles from "@/styles/CosmicDemo.module.css";
 // Type assertion to fix the 'styles is of type unknown' error
 const typedStyles = styles as Record<string, string>;
 
 const CosmicDemo: React.FC = () => {
-  const [navigationState, setNavigationState] = useState<CosmicNavigationState>({
+  const [navigationState, _setNavigationState] = useState<CosmicNavigationState>({
     currentLevel: "universe",
     isTransitioning: false
   });
-
-  const handleNavigation = (state: CosmicNavigationState) => {
-    setNavigationState(state);
-  };
 
   return (
     <Layout>

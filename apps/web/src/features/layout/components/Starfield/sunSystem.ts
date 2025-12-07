@@ -3,12 +3,17 @@ import { SUNS } from "./cosmos/cosmicHierarchy";
 import { getDailySeededRandom } from "./utils";
 import { SUN_PHYSICS } from "./physicsConfig";
 import { getFrameTime } from "./frameCache";
+import { hexToRgbSafe } from "./colorUtils";
+import { TWO_PI } from "./math";
 
 export interface SunState {
   id: string;
   name: string;
   description?: string;
   color: string;
+  // Pre-computed RGB values to avoid parsing hex every frame
+  colorRgb: { r: number; g: number; b: number };
+  colorRgbStr: string; // "r, g, b" format for gradient stops
   // Current position (0-1 normalized, will be multiplied by canvas dimensions)
   x: number;
   y: number;
@@ -114,8 +119,8 @@ export function initializeSunStates(): void {
     const pos = INITIAL_SUN_POSITIONS[index % INITIAL_SUN_POSITIONS.length];
     
     // Create unique drift parameters for each sun so they move independently
-    const driftPhaseX = Math.random() * Math.PI * 2; // Random starting phase
-    const driftPhaseY = Math.random() * Math.PI * 2;
+    const driftPhaseX = Math.random() * TWO_PI; // Random starting phase
+    const driftPhaseY = Math.random() * TWO_PI;
     const driftSpeedX = SUN_PHYSICS.driftSpeedMin + Math.random() * (SUN_PHYSICS.driftSpeedMax - SUN_PHYSICS.driftSpeedMin);
     const driftSpeedY = SUN_PHYSICS.driftSpeedMin + Math.random() * (SUN_PHYSICS.driftSpeedMax - SUN_PHYSICS.driftSpeedMin);
     // Vary the speed slightly so X and Y don't sync up
@@ -129,11 +134,17 @@ export function initializeSunStates(): void {
       ? systemStartTime + SUN_PHYSICS.activationDelayMin
       : systemStartTime + SUN_PHYSICS.activationDelayMin + Math.random() * (SUN_PHYSICS.activationDelayMax - SUN_PHYSICS.activationDelayMin);
     
+    // Pre-compute RGB values once at initialization
+    const sunColor = sun.color || "#ffffff";
+    const rgb = hexToRgbSafe(sunColor);
+
     return {
       id: sun.id,
       name: sun.name,
       description: sun.description,
-      color: sun.color || "#ffffff",
+      color: sunColor,
+      colorRgb: rgb,
+      colorRgbStr: `${rgb.r}, ${rgb.g}, ${rgb.b}`,
       x: pos.x,
       y: pos.y,
       vx: 0,
@@ -141,7 +152,7 @@ export function initializeSunStates(): void {
       baseX: pos.x,
       baseY: pos.y,
       size: sun.size,
-      rotationAngle: Math.random() * Math.PI * 2,
+      rotationAngle: Math.random() * TWO_PI,
       rotationSpeed: 0.00001,
       isPropelling: false,
       propelTimer: 0,

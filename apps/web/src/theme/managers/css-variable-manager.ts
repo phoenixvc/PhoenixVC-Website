@@ -191,8 +191,8 @@ class CssVariableManager {
         this.cache.set(cssVarName, value);
         return value;
       }
-    } catch (error) {
-      // Silent fail - we"ll use fallbacks
+    } catch (_error) {
+      // Silent fail - we'll use fallbacks
     }
 
     // If we get here, we don"t have a value - try to generate one
@@ -312,7 +312,7 @@ class CssVariableManager {
       const hex = ColorUtils.rgbToHex(rgbObj);
       const hsl = ColorUtils.rgbToHsl(rgbObj);
       return { hex, rgb, hsl };
-    } catch (e) {
+    } catch (_e) {
       // If browser parsing fails, throw an error
       throw new Error(`Could not parse CSS variable value: ${colorValue}`);
     }

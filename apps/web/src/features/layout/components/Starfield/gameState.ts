@@ -1,6 +1,7 @@
 // components/Layout/Starfield/gameState.ts
 import { GameState, Planet, Star } from "./types";
 import { logger } from "@/utils/logger";
+import { TWO_PI } from "./math";
 
 // Initialize game state
 export const initGameState = (): GameState => {
@@ -21,7 +22,7 @@ export const checkCollisions = (
   stars: Star[],
   planets: Planet[],
   gameState: GameState,
-  setGameState: (state: GameState) => void,
+  setGameState: (_state: GameState) => void,
   createCollisionEffect?: (x: number, y: number, color: string, score: number) => void
 ): void => {
   if (!stars.length || !planets.length) return;
@@ -166,13 +167,13 @@ export const drawGameUI = (
     gradient.addColorStop(1, "rgba(138, 43, 226, 0)");
 
     ctx.beginPath();
-    ctx.arc(x, y, 15, 0, Math.PI * 2);
+    ctx.arc(x, y, 15, 0, TWO_PI);
     ctx.fillStyle = gradient;
     ctx.fill();
 
     // Draw inner circle
     ctx.beginPath();
-    ctx.arc(x, y, 8, 0, Math.PI * 2);
+    ctx.arc(x, y, 8, 0, TWO_PI);
     ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
     ctx.fill();
   }

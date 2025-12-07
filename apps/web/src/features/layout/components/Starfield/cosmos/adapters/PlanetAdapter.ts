@@ -3,6 +3,7 @@ import { PortfolioProject } from "../../types";
 import { SPECIAL_COSMIC_OBJECTS } from "../cosmicHierarchy";
 import { CosmicObject } from "../types";
 import { logger } from "@/utils/logger";
+import { TWO_PI } from "../../math";
 
 /**
  * Adapts existing project data to the cosmic hierarchy structure
@@ -101,13 +102,13 @@ export const renderProjectCosmicObject = (
 
   ctx.fillStyle = gradient;
   ctx.beginPath();
-  ctx.arc(screenX, screenY, glowRadius * 100, 0, Math.PI * 2);
+  ctx.arc(screenX, screenY, glowRadius * 100, 0, TWO_PI);
   ctx.fill();
 
   // Draw star core
   ctx.fillStyle = starColor; // Using the same validated color
   ctx.beginPath();
-  ctx.arc(screenX, screenY, cosmicObject.size * 50, 0, Math.PI * 2);
+  ctx.arc(screenX, screenY, cosmicObject.size * 50, 0, TWO_PI);
   ctx.fill();
 
   // Draw project initials

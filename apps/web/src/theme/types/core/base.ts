@@ -1,8 +1,9 @@
 // src/theme/types/core/base.ts
 
-import { ComponentVariants, ThemeConfig } from "@/theme";
+import { ThemeConfig } from "@/theme";
 import { SemanticColors, ThemeColors, ThemeSchemeInitial } from "./colors";
 import { ThemeVariables } from "./variables";
+import { ComponentVariants } from "../mappings/component-variants";
 
 /**
  * Core Theme Identity
@@ -90,7 +91,7 @@ export interface ThemeConstantsType {
 }
 
 // Define ThemeCore interface to avoid the undefined error
-interface ThemeCore {
+interface _ThemeCore {
   getTheme: (themeName: ThemeName) => ThemeColors | undefined;
 }
 

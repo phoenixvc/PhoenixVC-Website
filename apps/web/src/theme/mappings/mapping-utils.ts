@@ -176,7 +176,7 @@ export class MappingUtils {
       value: unknown,
       path: string[],
       validators: Record<string, (value: unknown) => boolean>
-    ) => {
+    ): void => {
       const currentPath = path.join(".");
       if (validators[currentPath]) {
         try {
@@ -228,7 +228,7 @@ export const createThemeMapping = (
     ): Partial<ColorMapping> => {
       return {};
     },
-    validate: () => ({
+    validate: (): { valid: boolean; errors: string[] } => ({
       valid: true,
       errors: []
     })

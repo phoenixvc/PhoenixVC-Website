@@ -3,7 +3,7 @@ import { useScrollTo } from "@/hooks/useScrollTo";
 import { useSectionObserver } from "@/hooks/useSectionObserver";
 import { useTheme } from "@/theme";
 import { AnimatePresence, motion } from "framer-motion";
-import { FC, memo, useCallback, useEffect, useRef, useState } from "react";
+import React, { FC, memo, useCallback, useEffect, useRef, useState } from "react";
 import { heroAnimations } from "../../animations";
 import { DEFAULT_HERO_CONTENT } from "../../constants";
 import styles from "./hero.module.css";
@@ -28,7 +28,7 @@ const Hero: FC<ExtendedHeroProps> = memo(
     colorScheme = "purple",
     accentColor,
     enableMouseTracking = false,
-  }) => {
+  }): React.ReactElement => {
     const { themeMode } = useTheme();
     const isDarkMode = themeMode === "dark";
     const sectionRef = useSectionObserver("home", (id) => {
@@ -38,13 +38,13 @@ const Hero: FC<ExtendedHeroProps> = memo(
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const [isMouseNearBorder, setIsMouseNearBorder] = useState(false);
 
-    const [showHeroContent, setShowHeroContent] = useState(true); // Show by default
+    const [showHeroContent, _setShowHeroContent] = useState(true); // Show by default
     const [isMinimized, setIsMinimized] = useState(true); // State for minimized hero - minimized by default
     const [showScrollIndicator, setShowScrollIndicator] = useState(true);
     const [showReturnToStars, setShowReturnToStars] = useState(false); // Hide at top of page
     const [scrollPosition, setScrollPosition] = useState(0);
 
-    const handleMouseMove = useCallback((e: MouseEvent) => {
+    const handleMouseMove = useCallback((e: MouseEvent): void => {
       const container = containerRef.current;
       if (!container) return;
 
@@ -71,13 +71,13 @@ const Hero: FC<ExtendedHeroProps> = memo(
       const container = containerRef.current;
       container.addEventListener("mousemove", handleMouseMove);
 
-      return () => {
+      return (): void => {
         container.removeEventListener("mousemove", handleMouseMove);
       };
     }, [enableMouseTracking, handleMouseMove]);
 
     useEffect(() => {
-      const handleScroll = () => {
+      const handleScroll = (): void => {
         const currentScrollPosition = window.scrollY;
         setScrollPosition(currentScrollPosition);
 
@@ -93,10 +93,10 @@ const Hero: FC<ExtendedHeroProps> = memo(
 
       window.addEventListener("scroll", handleScroll);
       handleScroll(); // Initial check
-      return () => window.removeEventListener("scroll", handleScroll);
+      return (): void => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    const getThemeStyles = () => {
+    const getThemeStyles = (): { textColor: string; gradientColors: string } => {
       const textColor = isDarkMode ? "text-white" : "text-gray-900";
       const gradientColors = accentColor
         ? `from-${accentColor} to-${accentColor}`
@@ -112,12 +112,12 @@ const Hero: FC<ExtendedHeroProps> = memo(
     const scrollTo = useScrollTo();
 
     // Handler for returning to stars
-    const handleReturnToStars = () => {
+    const handleReturnToStars = (): void => {
       window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
     // Handler for minimizing/maximizing hero content
-    const handleToggleMinimize = () => {
+    const handleToggleMinimize = (): void => {
       setIsMinimized((prev) => !prev);
     };
 

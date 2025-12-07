@@ -6,7 +6,6 @@ import {
   ThemeName,
   ThemeMode,
   ThemeSchemeInitial,
-  ThemeScheme,
   ThemeCacheConfig,
   ThemeCacheEntry,
   ThemeCacheSource,

@@ -75,8 +75,13 @@ export default [{
     // TypeScript rules
     '@typescript-eslint/explicit-function-return-type': 'warn',
     '@typescript-eslint/no-explicit-any': 'error',
-    '@typescript-eslint/no-unused-vars': 'warn',
-    "no-unused-vars": "warn",
+    // Disable base rule in favor of TS version; ignore underscore-prefixed vars
+    "no-unused-vars": "off",
+    '@typescript-eslint/no-unused-vars': ['warn', {
+      argsIgnorePattern: '^_',
+      varsIgnorePattern: '^_',
+      caughtErrorsIgnorePattern: '^_'
+    }],
 
     // React rules
     'react/jsx-uses-react': 'error',
@@ -123,8 +128,12 @@ export default [{
   rules: {
     '@typescript-eslint/explicit-function-return-type': 'warn',
     '@typescript-eslint/no-explicit-any': 'error',
-    '@typescript-eslint/no-unused-vars': 'warn',
-    "no-unused-vars": "warn",
+    "no-unused-vars": "off",
+    '@typescript-eslint/no-unused-vars': ['warn', {
+      argsIgnorePattern: '^_',
+      varsIgnorePattern: '^_',
+      caughtErrorsIgnorePattern: '^_'
+    }],
     'react/jsx-uses-react': 'error',
     'react/jsx-uses-vars': 'error',
   }

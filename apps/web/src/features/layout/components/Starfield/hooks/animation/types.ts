@@ -60,7 +60,7 @@ export interface AnimationProps {
     isDarkMode: boolean;
     debugMode?: boolean; // Make optional
     gameMode: boolean;
-    setHoverInfo: (info: SetStateAction<HoverInfo>) => void;
+    setHoverInfo: (_info: SetStateAction<HoverInfo>) => void;
     setClickBursts: (bursts: ClickBurst[]) => void;
     setGameState: (state: SetStateAction<GameState>) => void;
     setCollisionEffects: (effects: SetStateAction<CollisionEffect[]>) => void;
@@ -86,6 +86,7 @@ export interface AnimationProps {
     focusedSunId?: string | null;
     debugSettings?: DebugSettings; // Add debug settings
     isMouseOverProjectTooltipRef?: MutableRefObject<boolean>; // Track if mouse is over project tooltip
+    cameraRef?: MutableRefObject<{ cx: number; cy: number; zoom: number }>; // Ref for synchronous camera access
 }
 
 export interface AnimationRefs {

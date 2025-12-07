@@ -1,15 +1,16 @@
 // apps/web/src/features/layout/components/Starfield/cosmos/camera.ts
 import { Camera, CosmicObject } from "./types";
+import { CAMERA_CONFIG } from "../physicsConfig";
 
-export function lerpCamera(camera: Camera, smoothingFactor = 0.08): Camera {
+export function lerpCamera(camera: Camera, smoothingFactor = CAMERA_CONFIG.cameraSmoothingFactor): Camera {
   if (!camera.target) return camera;
 
   const newCx = camera.cx + (camera.target.cx - camera.cx) * smoothingFactor;
   const newCy = camera.cy + (camera.target.cy - camera.cy) * smoothingFactor;
   const newZoom = camera.zoom + (camera.target.zoom - camera.zoom) * smoothingFactor;
 
-  // If we"re close enough to target, remove the target
-  if (Math.abs(newZoom - camera.target.zoom) < 0.01) {
+  // If we're close enough to target, remove the target
+  if (Math.abs(newZoom - camera.target.zoom) < CAMERA_CONFIG.zoomConvergenceThreshold) {
     return {
       cx: newCx,
       cy: newCy,

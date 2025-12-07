@@ -1,4 +1,5 @@
 // /features/portfolio/ProjectDetail.tsx
+import React from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useTheme } from "@/theme";
 import { motion } from "framer-motion";
@@ -29,7 +30,7 @@ import {
   STATUS_CONFIG,
   FOCUS_AREA_CONFIG,
   getRelatedProjects,
-  type PortfolioProject,
+  type PortfolioProject as _PortfolioProject,
   type FocusAreaId
 } from "@/constants/portfolioData";
 import styles from "./ProjectDetail.module.css";
@@ -79,7 +80,7 @@ const animations = {
   },
 };
 
-export const ProjectDetail = () => {
+export const ProjectDetail = (): React.ReactElement => {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
   const { themeMode } = useTheme();

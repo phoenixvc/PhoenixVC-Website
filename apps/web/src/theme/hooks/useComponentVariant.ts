@@ -8,11 +8,15 @@ export function useComponentVariant(
   componentName: string,
   variantName: string = "default",
   stateName: ComponentState = "default"
-) {
+): {
+  styles: React.CSSProperties;
+  classes: string;
+  getStateStyles: (state: ComponentState) => React.CSSProperties;
+} {
   const componentTheme = useComponentTheme();
 
   // Get styles with error handling
-  const getStyles = useCallback(() => {
+  const getStyles = useCallback((): React.CSSProperties => {
     try {
       return componentTheme.getComponentStyles(componentName, variantName, stateName);
     } catch (error) {
@@ -22,7 +26,7 @@ export function useComponentVariant(
   }, [componentTheme, componentName, variantName, stateName]);
 
   // Get classes with error handling
-  const getClasses = useCallback(() => {
+  const getClasses = useCallback((): string => {
     try {
       return componentTheme.getComponentClasses(componentName, variantName);
     } catch (error) {
@@ -36,7 +40,7 @@ export function useComponentVariant(
     classes: getClasses(),
 
     // Helper for interactive states
-    getStateStyles: (state: ComponentState) => {
+    getStateStyles: (state: ComponentState): React.CSSProperties => {
       try {
         return componentTheme.getComponentStyles(componentName, variantName, state);
       } catch (error) {

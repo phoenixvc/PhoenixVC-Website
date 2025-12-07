@@ -1,5 +1,5 @@
 // /features/portfolio/index.tsx
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTheme } from "@/theme";
 import { motion } from "framer-motion";
@@ -167,7 +167,7 @@ const animations = {
   },
 };
 
-export const Portfolio = () => {
+export const Portfolio = (): React.ReactElement => {
   const { themeMode } = useTheme();
   const isDarkMode = themeMode === "dark";
   const [showComingSoon, setShowComingSoon] = useState(true);
@@ -176,10 +176,10 @@ export const Portfolio = () => {
   const navigate = useNavigate();
 
   // Determine if a project is "coming soon" (no public links available)
-  const isComingSoon = (project: Project) => !project.website && !project.github && !project.docs;
+  const isComingSoon = (project: Project): boolean => !project.website && !project.github && !project.docs;
 
   // Handle card click - navigate to project detail page
-  const handleCardClick = (projectId: string) => {
+  const handleCardClick = (projectId: string): void => {
     void navigate(`/portfolio/${projectId}`);
   };
 
@@ -210,7 +210,7 @@ export const Portfolio = () => {
   const comingSoonCount = projects.filter(isComingSoon).length;
   const hasActiveFilters = selectedStatus !== "all" || selectedFocusArea !== "all";
 
-  const clearFilters = () => {
+  const clearFilters = (): void => {
     setSelectedStatus("all");
     setSelectedFocusArea("all");
   };

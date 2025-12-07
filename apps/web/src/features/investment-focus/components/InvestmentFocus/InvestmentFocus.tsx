@@ -6,7 +6,7 @@ import InvestmentCard from "../InvestmentCard/InvestmentCard";
 import styles from "./InvestmentFocus.module.css";
 import { useSectionObserver } from "@/hooks/useSectionObserver";
 import { useTheme } from "@/theme";
-import { FC, useState, useRef, useEffect } from "react";
+import React, { FC, useState, useRef, useEffect } from "react";
 import { FocusArea } from "../../types";
 import { X } from "lucide-react";
 import { logger } from "@/utils/logger";
@@ -33,7 +33,7 @@ const focusAreaDetails: Record<string, { longDescription: string; highlights: st
   }
 };
 
-export const InvestmentFocus: FC<InvestmentFocusProps> = () => {
+export const InvestmentFocus: FC<InvestmentFocusProps> = (): React.ReactElement => {
   const { themeMode } = useTheme();
   const isDarkMode = themeMode === "dark";
   const [selectedArea, setSelectedArea] = useState<FocusArea | null>(null);
@@ -50,7 +50,7 @@ export const InvestmentFocus: FC<InvestmentFocusProps> = () => {
   // 2. Add focus management to return focus to the originally clicked card
   //    when the modal is closed.
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
+    const handleKeyDown = (event: KeyboardEvent): void => {
       if (event.key === "Escape") {
         handleCloseModal();
       }
@@ -81,16 +81,16 @@ export const InvestmentFocus: FC<InvestmentFocusProps> = () => {
       modalRef.current?.focus();
     }
 
-    return () => {
+    return (): void => {
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [selectedArea]);
 
-  const handleCardClick = (area: FocusArea) => {
+  const handleCardClick = (area: FocusArea): void => {
     setSelectedArea(area);
   };
 
-  const handleCloseModal = () => {
+  const handleCloseModal = (): void => {
     setSelectedArea(null);
   };
 

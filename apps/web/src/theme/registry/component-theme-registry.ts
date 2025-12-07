@@ -1,5 +1,5 @@
 // theme/registry/component-registry.ts
-import { ComponentVariants, ButtonVariant, ComponentVariantType } from "../types";
+import { ComponentVariants, ComponentVariantType } from "../types";
 
 /**
  * Registry of component variants for the theme system

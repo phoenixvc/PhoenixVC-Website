@@ -29,11 +29,11 @@ const SunTooltip: FC<SunTooltipProps> = ({
 
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 10);
-    return () => clearTimeout(timer);
+    return (): void => clearTimeout(timer);
   }, []);
 
   // Calculate tooltip position to ensure it stays within viewport
-  const adjustPosition = () => {
+  const adjustPosition = (): { left: number; top: number; position: "fixed" } => {
     const tooltipWidth = 200;
     const tooltipHeight = 80;
     const windowWidth = typeof window !== "undefined" ? window.innerWidth : 1200;
@@ -61,7 +61,7 @@ const SunTooltip: FC<SunTooltipProps> = ({
 
   const position = adjustPosition();
 
-  const handleClick = () => {
+  const handleClick = (): void => {
     if (onClick) {
       onClick(sun.id);
     }

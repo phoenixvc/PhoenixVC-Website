@@ -86,7 +86,7 @@ export class ThemeStorageManager {
         const testKey = `__storage_test__${Date.now()}`;
         window[provider].setItem(testKey, "test");
         window[provider].removeItem(testKey);
-      } catch (e) {
+      } catch (_e) {
         throw new Error(`${provider} is not available`);
       }
     }

@@ -1,4 +1,5 @@
 // components/Layout/Starfield/hooks/animation/animate.ts
+// Core animation loop - orchestrates all rendering operations
 import { SetStateAction } from "react";
 import { drawBlackHole } from "../../blackHoles";
 import { drawConnections, drawStars, updateStarActivity, updateStarPositions } from "../../stars";
@@ -18,13 +19,29 @@ import { AnimationProps, AnimationRefs } from "./types";
 // Import cosmic rendering functions
 import { lerpCamera } from "../../cosmos/camera";
 import { renderCosmicHierarchy } from "../../cosmos/renderCosmicHierarchy";
-import { Camera, CosmicNavigationState, CosmicObject } from "../../cosmos/types";
+import { Camera, CosmicNavigationState } from "../../cosmos/types";
 // Import cosmic hierarchy data
-import { GALAXIES, SPECIAL_COSMIC_OBJECTS, SUNS } from "../../cosmos/cosmicHierarchy";
 import { checkPlanetHover, updatePlanets } from "../../Planets";
 import { drawCosmicNavigation } from "./drawCosmicNavigation";
-// Import sun system for dynamic sun positioning
-import { getSunStates, initializeSunStates, updateSunPhysics, updateSunSizesFromPlanets, SunState } from "../../sunSystem";
+// Import centralized utilities
+import { TWO_PI } from "../../math";
+import { STAR_RENDERING_CONFIG, ANIMATION_TIMING_CONFIG } from "../../renderingConfig";
+// Import modular rendering functions
+import { drawMouseEffects } from "./mouseEffects";
+import {
+  drawSuns,
+  resetAnimationModuleState,
+  getFocusAreaSuns,
+  checkSunHover,
+  getCurrentSunPositions
+} from "./sunRendering";
+
+// Cached default mouse position to avoid allocation every frame
+let cachedDefaultMousePosition: MousePosition | null = null;
+
+// Throttle state for elementFromPoint (expensive DOM operation)
+let lastElementCheckFrame = 0;
+let cachedIsOverContentCard = false;
 
 export const animate = (timestamp: number, props: AnimationProps, refs: AnimationRefs): void => {
   try {
@@ -96,9 +113,9 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
     // Clear canvas with full dimensions
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Get current stars from ref - make sure to create a safe copy to avoid mutation issues
-    // Use optional chaining and provide a default empty array
-    const currentStars: Star[] = props.starsRef?.current ? [...props.starsRef.current] : [];
+    // Get current stars from ref - use direct reference to avoid copying array every frame
+    // This significantly reduces GC pressure at 60fps
+    const currentStars: Star[] = props.starsRef?.current ?? [];
 
     // Check if stars exist and are not empty
     if (currentStars.length === 0) {
@@ -121,19 +138,21 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
 
     // Apply camera transformation to show the camera's view
     // This creates a smooth zoom and pan effect centered on the camera target
-    // The camera is always applied to ensure we're rendering from the camera's perspective
-    if (props.camera) {
+    // Use cameraRef for synchronous access (avoids stale state issues)
+    // Fall back to props.camera for backward compatibility
+    const cameraValues = props.cameraRef?.current ?? props.camera;
+    if (cameraValues && cameraValues.zoom !== 1) {
       ctx.save();
       // Calculate the center point to zoom towards (in canvas coordinates)
-      const cameraCenterX = props.camera.cx * canvas.width;
-      const cameraCenterY = props.camera.cy * canvas.height;
-      
+      const cameraCenterX = cameraValues.cx * canvas.width;
+      const cameraCenterY = cameraValues.cy * canvas.height;
+
       // Apply transformation to center the camera target in the viewport
       // 1. Translate to center of viewport
       // 2. Scale around origin (zoom)
       // 3. Translate so camera target becomes the origin
       ctx.translate(canvas.width / 2, canvas.height / 2);
-      ctx.scale(props.camera.zoom, props.camera.zoom);
+      ctx.scale(cameraValues.zoom, cameraValues.zoom);
       ctx.translate(-cameraCenterX, -cameraCenterY);
     }
 
@@ -141,7 +160,7 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
     // This makes the focused area more prominent
     if (props.focusedSunId) {
       ctx.save();
-      ctx.globalAlpha = 0.15; // Dim background stars more dramatically
+      ctx.globalAlpha = STAR_RENDERING_CONFIG.focusedBackgroundAlpha;
       drawStars(ctx, currentStars);
       ctx.restore();
     } else {
@@ -155,40 +174,40 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       drawStarBirthplaces(ctx, canvas.width, canvas.height);
     }
 
-    // Get planets for sun size calculation
-    const currentPlanets: Planet[] = props.planetsRef?.current ? [...props.planetsRef.current] : [];
+    // Get planets for sun size calculation - use direct reference to avoid GC pressure
+    const currentPlanets: Planet[] = props.planetsRef?.current ?? [];
 
     // Draw suns (focus area orbital centers) - always visible
     // Pass hovered sun id, focused sun id for interactive effects, deltaTime for physics, and planets for size calculation
     drawSuns(ctx, canvas.width, canvas.height, timestamp, props.isDarkMode, props.hoveredSunId, deltaTime, props.focusedSunId, currentPlanets);
 
-    // Get current values from refs
-    const currentBlackHoles: BlackHole[] = props.blackHolesRef?.current ? [...props.blackHolesRef.current] : [];
+    // Get current values from refs - use direct reference to avoid GC pressure
+    const currentBlackHoles: BlackHole[] = props.blackHolesRef?.current ?? [];
 
-    // Fixed: Make sure isClicked is false by default
-    const currentMousePosition: MousePosition = refs.mousePositionRef.current ?
-        { ...refs.mousePositionRef.current } :
-    {
-      x: canvas.width / 2,
-      y: canvas.height / 2,
-      lastX: canvas.width / 2,
-      lastY: canvas.height / 2,
-      speedX: 0,
-      speedY: 0,
-      isClicked: false, // Ensure this is false by default
-      clickTime: 0,
-      isOnScreen: true // Changed to true to ensure visibility
-    };
+    // Use refs directly to avoid object allocation every frame
+    // Create cached default only once (lazily initialized)
+    if (!cachedDefaultMousePosition) {
+      cachedDefaultMousePosition = {
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+        lastX: canvas.width / 2,
+        lastY: canvas.height / 2,
+        speedX: 0,
+        speedY: 0,
+        isClicked: false,
+        clickTime: 0,
+        isOnScreen: true
+      };
+    }
+    const currentMousePosition: MousePosition = refs.mousePositionRef.current ?? cachedDefaultMousePosition;
 
-    // Debug logging removed for performance - re-enable if needed for debugging
+    // Use refs directly - these are read-only in animation loop
+    const currentHoverInfo: HoverInfo = refs.hoverInfoRef.current;
+    const currentGameState: GameState = refs.gameStateRef.current;
 
-    const currentHoverInfo: HoverInfo = { ...refs.hoverInfoRef.current };
-    const currentGameState: GameState = { ...refs.gameStateRef.current };
-
-    // NEW: Get cosmic navigation state and camera if available
-    const currentCamera: Camera | undefined = props.camera ? { ...props.camera } : undefined;
-    const currentNavigationState: CosmicNavigationState | undefined = props.navigationState ?
-      { ...props.navigationState } : undefined;
+    // Get cosmic navigation state and camera - use cameraRef for synchronous access
+    const currentCamera: Camera | undefined = props.cameraRef?.current as Camera | undefined;
+    const currentNavigationState: CosmicNavigationState | undefined = props.navigationState;
     const currentHoveredObjectId: string | null = props.hoveredObjectId || null;
 
     // NEW: Apply camera lerp if camera is available
@@ -204,28 +223,35 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
     }
 
     // Check if mouse is actually over the canvas vs over a content card
-    // Using elementFromPoint to detect if there's a higher z-index element at the mouse position
-    let isOverContentCard = false;
-    if (typeof document !== "undefined" && currentMousePosition.isOnScreen) {
-      const elementAtMouse = document.elementFromPoint(
-        currentMousePosition.x,
-        currentMousePosition.y
-      );
-      if (elementAtMouse) {
-        // Check if the element is the canvas or inside the starfield container
-        const isCanvas = elementAtMouse.tagName === "CANVAS";
-        const isInsideStarfield = elementAtMouse.closest("[data-starfield]") !== null;
-        // Check if the element is inside the hero section (which should allow tooltips)
-        const isInsideHeroSection = elementAtMouse.closest("section[aria-label=\"hero section\"]") !== null;
-        // Check if hovering over header/navigation (should allow tooltips since they're transparent)
-        const isInsideHeader = elementAtMouse.closest("header") !== null;
-        // Check if hovering over sidebar (should allow tooltips)
-        const isInsideSidebar = elementAtMouse.closest("aside, [role=\"complementary\"]") !== null;
-        
-        // Only consider it as "over content card" if it's NOT any of the allowed elements
-        // This allows tooltips to show when hovering over transparent overlays, header, sidebar, etc.
-        isOverContentCard = !isCanvas && !isInsideStarfield && !isInsideHeroSection && !isInsideHeader && !isInsideSidebar;
+    // Throttle this expensive DOM operation to every N frames
+    const currentFrameCount = props.frameCountRef?.current ?? 0;
+    let isOverContentCard = cachedIsOverContentCard;
+
+    if (currentFrameCount - lastElementCheckFrame >= ANIMATION_TIMING_CONFIG.elementFromPointCheckInterval) {
+      lastElementCheckFrame = currentFrameCount;
+      isOverContentCard = false;
+
+      if (typeof document !== "undefined" && currentMousePosition.isOnScreen) {
+        const elementAtMouse = document.elementFromPoint(
+          currentMousePosition.x,
+          currentMousePosition.y
+        );
+        if (elementAtMouse) {
+          // Check if the element is the canvas or inside the starfield container
+          const isCanvas = elementAtMouse.tagName === "CANVAS";
+          const isInsideStarfield = elementAtMouse.closest("[data-starfield]") !== null;
+          // Check if the element is inside the hero section (which should allow tooltips)
+          const isInsideHeroSection = elementAtMouse.closest("section[aria-label=\"hero section\"]") !== null;
+          // Check if hovering over header/navigation (should allow tooltips since they're transparent)
+          const isInsideHeader = elementAtMouse.closest("header") !== null;
+          // Check if hovering over sidebar (should allow tooltips)
+          const isInsideSidebar = elementAtMouse.closest("aside, [role=\"complementary\"]") !== null;
+
+          // Only consider it as "over content card" if it's NOT any of the allowed elements
+          isOverContentCard = !isCanvas && !isInsideStarfield && !isInsideHeroSection && !isInsideHeader && !isInsideSidebar;
+        }
       }
+      cachedIsOverContentCard = isOverContentCard;
     }
 
     if (props.enablePlanets && props.enableMouseInteraction) {
@@ -373,26 +399,29 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
 
     // Draw debug information if debug mode is enabled
     if (props.debugMode && !shouldSkipHeavyOperations) {
-        // Calculate FPS for debug info (moved from drawDebugInfo)
-        const fps = deltaTime > 0 ? 1000 / deltaTime : 0;
+        // Calculate FPS for debug info - throttle to every 10 frames
+        const frameCount = props.frameCountRef?.current ?? 0;
+        if (frameCount % 10 === 0) {
+          const fps = deltaTime > 0 ? 1000 / deltaTime : 0;
 
-        // Make sure fpsValues exists
-        if (!refs.fpsValues || !refs.fpsValues.current) {
-          refs.fpsValues = { current: [] };
-        }
+          // Make sure fpsValues exists
+          if (!refs.fpsValues || !refs.fpsValues.current) {
+            refs.fpsValues = { current: [] };
+          }
 
-        refs.fpsValues.current.push(fps);
-        if (refs.fpsValues.current.length > 60) {
-          refs.fpsValues.current.shift();
-        }
+          refs.fpsValues.current.push(fps);
+          if (refs.fpsValues.current.length > 60) {
+            refs.fpsValues.current.shift();
+          }
 
-        // Calculate average FPS over the last 60 frames
-        const avgFps = refs.fpsValues.current.reduce((sum, val) => sum + val, 0) /
-          refs.fpsValues.current.length;
+          // Calculate average FPS over the last 60 frames
+          const avgFps = refs.fpsValues.current.reduce((sum, val) => sum + val, 0) /
+            refs.fpsValues.current.length;
 
-        // Call the update function if provided
-        if (props.updateFpsData) {
-          props.updateFpsData(avgFps, timestamp);
+          // Call the update function if provided
+          if (props.updateFpsData) {
+            props.updateFpsData(avgFps, timestamp);
+          }
         }
 
         // Draw velocity vectors for stars (sample of stars to improve performance)
@@ -409,7 +438,7 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
         // Draw mouse effect radius with a more visible outline
         if (currentMousePosition.isOnScreen) {
           ctx.beginPath();
-          ctx.arc(currentMousePosition.x, currentMousePosition.y, props.mouseEffectRadius, 0, Math.PI * 2);
+          ctx.arc(currentMousePosition.x, currentMousePosition.y, props.mouseEffectRadius, 0, TWO_PI);
           ctx.strokeStyle = "rgba(255, 0, 0, 0.5)";
           ctx.lineWidth = 1;
           ctx.stroke();
@@ -427,7 +456,9 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       updateStarActivity(currentStars);
 
     // Restore canvas context if camera transformation was applied
-    if (props.camera) {
+    // Must match the save condition: cameraValues && cameraValues.zoom !== 1
+    const cameraForRestore = props.cameraRef?.current ?? props.camera;
+    if (cameraForRestore && cameraForRestore.zoom !== 1) {
       ctx.restore();
     }
 
@@ -480,966 +511,5 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
   }
 };
 
-function drawMouseEffects(
-    ctx: CanvasRenderingContext2D,
-    currentMousePosition: MousePosition,
-    props: AnimationProps,
-    deltaTime: number
-  ): void {
-    // Default to canvas center if mouse position is undefined.
-    const mouseX = currentMousePosition.x || ctx.canvas.width / 2;
-    const mouseY = currentMousePosition.y || ctx.canvas.height / 2;
-
-    // Base color for the glow: less opaque in light mode.
-    const baseColor = props.isDarkMode
-      ? "rgba(138,43,226,0.5)"
-      : "rgba(75,0,130,0.3)";
-
-    // Use transparent black for dark mode, but transparent white for light mode.
-    const endColor = props.isDarkMode ? "rgba(0, 0, 0, 0)" : "rgba(255, 255, 255, 0)";
-
-    // Set up the radial gradient for the mouse glow.
-    const gradient = ctx.createRadialGradient(
-      mouseX,
-      mouseY,
-      0,
-      mouseX,
-      mouseY,
-      props.mouseEffectRadius
-    );
-    gradient.addColorStop(
-      0,
-      currentMousePosition.isClicked
-        ? (props.isDarkMode ? "rgba(138,43,226,0.7)" : "rgba(75,0,130,0.6)")
-        : baseColor
-    );
-    gradient.addColorStop(1, endColor);
-
-    ctx.beginPath();
-    ctx.arc(mouseX, mouseY, props.mouseEffectRadius, 0, Math.PI * 2);
-    ctx.fillStyle = gradient;
-    ctx.fill();
-
-    // Determine time since click to drive ripple effects.
-    // Use a large value (2000ms+) if no click has occurred to prevent effects on load
-    const timeSinceClick = currentMousePosition.clickTime > 0
-      ? Date.now() - currentMousePosition.clickTime
-      : 2000; // No click yet - beyond all effect thresholds
-
-    // Draw three layered ripple effects.
-    for (let i = 0; i < 3; i++) {
-      const speed = 0.8 + i * 0.4;
-      const delay = i * 100;
-      if (timeSinceClick > delay) {
-        const adjustedTime = timeSinceClick - delay;
-        const maxRadius = props.mouseEffectRadius * 2.5;
-        const rippleRadius = Math.min(
-          maxRadius,
-          props.mouseEffectRadius * (adjustedTime / 1600) * speed
-        );
-        const rippleOpacity = 1 - adjustedTime / 1000;
-
-        let rippleColor;
-        if (i === 0) {
-          rippleColor = props.isDarkMode
-            ? `rgba(138,43,226,${rippleOpacity * 0.95})`
-            : `rgba(75,0,130,${rippleOpacity * 0.6})`;
-        } else if (i === 1) {
-          rippleColor = props.isDarkMode
-            ? `rgba(180,100,255,${rippleOpacity * 0.85})`
-            : `rgba(100,0,200,${rippleOpacity * 0.5})`;
-        } else {
-          rippleColor = props.isDarkMode
-            ? `rgba(255,255,255,${rippleOpacity * 0.75})`
-            : `rgba(50,50,50,${rippleOpacity * 0.4})`;
-        }
-
-        ctx.beginPath();
-        ctx.arc(mouseX, mouseY, rippleRadius, 0, Math.PI * 2);
-        ctx.strokeStyle = rippleColor;
-        ctx.lineWidth = 6 - i;
-        ctx.stroke();
-      }
-    }
-
-    // Toned-down flash effect on click.
-    if (timeSinceClick < 300) {
-      const flashOpacity = 1 - timeSinceClick / 300;
-      const flashRadius = 15; // Subtle flash radius.
-      const flashColor = props.isDarkMode
-        ? `rgba(255,255,255,${flashOpacity * 0.5})`
-        : `rgba(0,0,0,${flashOpacity * 0.5})`;
-      ctx.beginPath();
-      ctx.arc(mouseX, mouseY, flashRadius, 0, Math.PI * 2);
-      ctx.fillStyle = flashColor;
-      ctx.fill();
-    }
-  }
-
-// Track if sun system is initialized
-let sunSystemInitialized = false;
-let sunSizesCalculated = false;
-
-/**
- * Reset animation module state - call this when unmounting the starfield component
- * to prevent memory leaks and stale state on remount
- */
-export function resetAnimationModuleState(): void {
-  sunSystemInitialized = false;
-  sunSizesCalculated = false;
-}
-
-// Get the focus area suns for external use
-export function getFocusAreaSuns(): typeof SUNS {
-  return SUNS.filter(sun => sun.parentId === "focus-areas-galaxy");
-}
-
-// Check if mouse is hovering over a sun - returns only the CLOSEST sun
-// Uses dynamic sun positions from the sun system
-export function checkSunHover(
-  mouseX: number,
-  mouseY: number,
-  width: number,
-  height: number
-): { sun: typeof SUNS[0]; index: number; x: number; y: number } | null {
-  const sunStates = getSunStates();
-  
-  // Initialize if needed
-  if (sunStates.length === 0) {
-    initializeSunStates();
-    return null;
-  }
-  
-  let closestSun: { sun: typeof SUNS[0]; index: number; x: number; y: number; distance: number } | null = null;
-  const focusAreaSuns = SUNS.filter(sun => sun.parentId === "focus-areas-galaxy");
-  
-  for (let i = 0; i < sunStates.length; i++) {
-    const sunState = sunStates[i];
-    const x = sunState.x * width;
-    const y = sunState.y * height;
-    const baseSize = Math.max(20, Math.min(width, height) * sunState.size * 0.6);
-    // Increase hit area for better clickability
-    const hitRadius = baseSize * 3;
-    
-    const distance = Math.sqrt(Math.pow(mouseX - x, 2) + Math.pow(mouseY - y, 2));
-    if (distance <= hitRadius) {
-      // Find matching sun from SUNS array
-      const matchingSun = focusAreaSuns.find(s => s.id === sunState.id);
-      if (matchingSun) {
-        // Only keep the closest sun
-        if (!closestSun || distance < closestSun.distance) {
-          closestSun = { sun: matchingSun, index: i, x, y, distance };
-        }
-      }
-    }
-  }
-  
-  // Return without the distance property
-  if (closestSun) {
-    return { sun: closestSun.sun, index: closestSun.index, x: closestSun.x, y: closestSun.y };
-  }
-  return null;
-}
-
-// Get current sun positions for external use (e.g., orbit centers)
-export function getCurrentSunPositions(width: number, height: number): Map<string, { x: number; y: number }> {
-  const sunStates = getSunStates();
-  const positions = new Map<string, { x: number; y: number }>();
-  
-  for (const sun of sunStates) {
-    positions.set(sun.id, { x: sun.x * width, y: sun.y * height });
-  }
-  
-  return positions;
-}
-
-/**
- * Helper to parse hex color to RGB
- * @param hex - A hex color string (e.g., "#ff0000" or "ff0000")
- * @returns Object with r, g, b values (0-255) or null if invalid
- */
-function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
-  if (!hex || typeof hex !== "string") {
-    return null;
-  }
-  // Remove # if present and trim whitespace
-  const cleanHex = hex.replace(/^#/, "").trim();
-  // Validate hex format (6 hex characters)
-  if (!/^[a-fA-F0-9]{6}$/.test(cleanHex)) {
-    return null;
-  }
-  const result = /^([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(cleanHex);
-  return result ? {
-    r: parseInt(result[1], 16),
-    g: parseInt(result[2], 16),
-    b: parseInt(result[3], 16)
-  } : null;
-}
-
-/**
- * Create a lighter version of a color
- */
-function lightenColor(hex: string, amount: number): string {
-  const rgb = hexToRgb(hex);
-  if (!rgb) return hex;
-  const r = Math.min(255, rgb.r + (255 - rgb.r) * amount);
-  const g = Math.min(255, rgb.g + (255 - rgb.g) * amount);
-  const b = Math.min(255, rgb.b + (255 - rgb.b) * amount);
-  return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
-}
-
-/**
- * Draw suns (focus area orbital centers) on the canvas
- * Enhanced graphics with multiple layers, corona effects, and realistic appearance
- */
-/**
- * Create a complementary/secondary color from a base color
- * Shifts the hue for visual variety while maintaining harmony
- */
-function getSecondaryColor(hex: string): string {
-  const rgb = hexToRgb(hex);
-  if (!rgb) return hex;
-  
-  // Convert to HSL, shift hue by 30-60 degrees for analogous harmony
-  const r = rgb.r / 255;
-  const g = rgb.g / 255;
-  const b = rgb.b / 255;
-  
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  const l = (max + min) / 2;
-  
-  let h = 0;
-  let s = 0;
-  
-  if (max !== min) {
-    const d = max - min;
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    
-    switch (max) {
-      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
-      case g: h = ((b - r) / d + 2) / 6; break;
-      case b: h = ((r - g) / d + 4) / 6; break;
-    }
-  }
-  
-  // Shift hue by ~40 degrees (for analogous color)
-  h = (h + 0.11) % 1;
-  
-  // Convert back to RGB
-  const hue2rgb = (p: number, q: number, t: number): number => {
-    if (t < 0) t += 1;
-    if (t > 1) t -= 1;
-    if (t < 1/6) return p + (q - p) * 6 * t;
-    if (t < 1/2) return q;
-    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
-    return p;
-  };
-  
-  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-  const p = 2 * l - q;
-  
-  const newR = Math.round(hue2rgb(p, q, h + 1/3) * 255);
-  const newG = Math.round(hue2rgb(p, q, h) * 255);
-  const newB = Math.round(hue2rgb(p, q, h - 1/3) * 255);
-  
-  return `rgb(${newR}, ${newG}, ${newB})`;
-}
-
-function drawSuns(
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number,
-  time: number,
-  isDarkMode: boolean,
-  hoveredSunId?: string | null,
-  deltaTime: number = 16,
-  focusedSunId?: string | null,
-  planets?: Planet[]
-): void {
-  // Sun rendering constants
-  const SUN_SIZE_MULTIPLIER = 0.35;
-  const SUN_MIN_SIZE = 20;
-  
-  // Solar particle constants
-  const PARTICLE_COUNT_HIGHLIGHTED = 24;
-  const PARTICLE_COUNT_DEFAULT = 16;
-  const PARTICLE_ORBIT_BASE_RADIUS = 1.3;
-  const PARTICLE_ORBIT_RADIUS_STEP = 0.4;
-  const PARTICLE_ORBIT_SPEED_BASE = 0.0001;
-  const PARTICLE_ORBIT_SPEED_VARIATION = 0.00003;
-  
-  // Ejected particle constants
-  const EJECT_COUNT_HIGHLIGHTED = 8;
-  const EJECT_COUNT_DEFAULT = 5;
-  
-  // Initialize sun system if needed
-  if (!sunSystemInitialized) {
-    initializeSunStates();
-    sunSystemInitialized = true;
-  }
-
-  // Calculate sun sizes based on planet masses (only once)
-  if (!sunSizesCalculated && planets && planets.length > 0) {
-    updateSunSizesFromPlanets(planets);
-    sunSizesCalculated = true;
-  }
-
-  // Update sun physics
-  updateSunPhysics(deltaTime);
-
-  const sunStates = getSunStates();
-  
-  ctx.save();
-  
-  // Enable smooth rendering
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "high";
-
-  sunStates.forEach((sunState) => {
-    // If a sun is focused, only render that sun (hide others for cleaner zoom view)
-    if (focusedSunId && focusedSunId !== sunState.id) {
-      return; // Skip rendering this sun
-    }
-    
-    // Use dynamic position from sun system
-    const x = sunState.x * width;
-    const y = sunState.y * height;
-    // Slightly reduced sun size for better proportion
-    const baseSize = Math.max(SUN_MIN_SIZE, Math.min(width, height) * sunState.size * SUN_SIZE_MULTIPLIER);
-    
-    // Check if this sun is hovered or focused
-    const isHovered = hoveredSunId === sunState.id;
-    const isFocused = focusedSunId === sunState.id;
-    const isHighlighted = isHovered || isFocused;
-    
-    // Check if sun is in propel mode (avoiding collision)
-    const isPropelling = sunState.isPropelling;
-    
-    // Smoother multi-layered pulsating effect
-    const pulseSpeed1 = isHighlighted ? 0.0003 : 0.00015;
-    const pulseSpeed2 = isHighlighted ? 0.00022 : 0.00011;
-    const pulseSpeed3 = isHighlighted ? 0.00017 : 0.00008;
-    const pulseAmount = isHighlighted ? 0.12 : (isPropelling ? 0.1 : 0.06);
-    const pulse1 = 1 + pulseAmount * Math.sin(time * pulseSpeed1);
-    const pulse2 = 1 + (pulseAmount * 0.6) * Math.sin(time * pulseSpeed2 + Math.PI / 3);
-    const pulse3 = 1 + (pulseAmount * 0.4) * Math.sin(time * pulseSpeed3 + Math.PI / 1.5);
-    const pulse = (pulse1 + pulse2 + pulse3) / 3;
-    const size = baseSize * pulse * (isHighlighted ? 1.15 : 1);
-    
-    const rgb = hexToRgb(sunState.color);
-    const rgbStr = rgb ? `${rgb.r}, ${rgb.g}, ${rgb.b}` : "255, 200, 100";
-    const secondaryColor = getSecondaryColor(sunState.color);
-    const secondaryRgb = hexToRgb(secondaryColor.replace("rgb(", "").replace(")", "").split(",").map(n => parseInt(n.trim())).reduce((acc, v, i) => {
-      const keys = ["r", "g", "b"];
-      return { ...acc, [keys[i]]: v };
-    }, { r: 255, g: 200, b: 100 }) as unknown as string) || { r: 255, g: 200, b: 100 };
-    const secondaryRgbStr = `${secondaryRgb.r}, ${secondaryRgb.g}, ${secondaryRgb.b}`;
-    
-    // ===== LAYER 0: Outer halo (very soft, large) =====
-    const haloSize = size * (isHighlighted ? 12 : 9);
-    const haloGradient = ctx.createRadialGradient(x, y, size * 0.3, x, y, haloSize);
-    haloGradient.addColorStop(0, `rgba(${rgbStr}, ${isHighlighted ? 0.15 : 0.08})`);
-    haloGradient.addColorStop(0.3, `rgba(${rgbStr}, ${isHighlighted ? 0.08 : 0.04})`);
-    haloGradient.addColorStop(0.6, `rgba(${rgbStr}, ${isHighlighted ? 0.03 : 0.015})`);
-    haloGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
-    
-    ctx.beginPath();
-    ctx.fillStyle = haloGradient;
-    ctx.globalAlpha = isDarkMode ? 1 : 0.8;
-    ctx.arc(x, y, haloSize, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // ===== LAYER 1: Outer atmospheric glow with color gradient =====
-    const atmosphereSize = size * (isHighlighted ? 7 : 5);
-    const atmosphereGradient = ctx.createRadialGradient(x, y, size * 0.4, x, y, atmosphereSize);
-    atmosphereGradient.addColorStop(0, `rgba(${rgbStr}, ${isHighlighted ? 0.5 : 0.35})`);
-    atmosphereGradient.addColorStop(0.2, `rgba(${rgbStr}, ${isHighlighted ? 0.3 : 0.2})`);
-    atmosphereGradient.addColorStop(0.5, `rgba(${secondaryRgbStr}, ${isHighlighted ? 0.12 : 0.08})`);
-    atmosphereGradient.addColorStop(0.8, `rgba(${rgbStr}, ${isHighlighted ? 0.05 : 0.03})`);
-    atmosphereGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
-    
-    ctx.beginPath();
-    ctx.fillStyle = atmosphereGradient;
-    ctx.globalAlpha = isDarkMode ? 1 : 0.75;
-    ctx.arc(x, y, atmosphereSize, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // ===== LAYER 2: Dynamic solar flares (curved, organic) =====
-    const flareCount = isHighlighted ? 8 : 5;
-    ctx.globalAlpha = isDarkMode ? (isHighlighted ? 0.7 : 0.5) : (isHighlighted ? 0.5 : 0.35);
-    
-    for (let i = 0; i < flareCount; i++) {
-      const baseAngle = (i * Math.PI * 2 / flareCount) + sunState.rotationAngle * 0.5;
-      const waveOffset = Math.sin(time * 0.0002 + i * 0.7) * 0.15;
-      const angle = baseAngle + waveOffset;
-      
-      // Vary flare lengths with smooth animation
-      const flarePhase = Math.sin(time * 0.00015 + i * 1.5);
-      const flareLength = size * (isHighlighted ? 3.5 : 2.5) * (0.7 + 0.3 * flarePhase);
-      
-      // Draw curved flare using bezier curve
-      const startDist = size * 0.85;
-      const startX = x + Math.cos(angle) * startDist;
-      const startY = y + Math.sin(angle) * startDist;
-      const endX = x + Math.cos(angle) * flareLength;
-      const endY = y + Math.sin(angle) * flareLength;
-      
-      // Control point for curve
-      const curveFactor = Math.sin(time * 0.0003 + i) * size * 0.5;
-      const perpAngle = angle + Math.PI / 2;
-      const cpX = (startX + endX) / 2 + Math.cos(perpAngle) * curveFactor;
-      const cpY = (startY + endY) / 2 + Math.sin(perpAngle) * curveFactor;
-      
-      // Create gradient for flare
-      const flareGradient = ctx.createLinearGradient(startX, startY, endX, endY);
-      flareGradient.addColorStop(0, lightenColor(sunState.color, 0.6));
-      flareGradient.addColorStop(0.3, `rgba(${rgbStr}, 0.6)`);
-      flareGradient.addColorStop(0.6, `rgba(${secondaryRgbStr}, 0.3)`);
-      flareGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
-      
-      ctx.beginPath();
-      ctx.moveTo(startX, startY);
-      ctx.quadraticCurveTo(cpX, cpY, endX, endY);
-      ctx.strokeStyle = flareGradient;
-      ctx.lineWidth = size * (isHighlighted ? 0.12 : 0.08) * (1 + 0.3 * flarePhase);
-      ctx.lineCap = "round";
-      ctx.stroke();
-    }
-    
-    // ===== LAYER 3: Corona rays (refined, smoother) =====
-    const rayCount = isHighlighted ? 20 : 14;
-    ctx.globalAlpha = isDarkMode ? (isHighlighted ? 0.5 : 0.35) : (isHighlighted ? 0.35 : 0.22);
-    
-    for (let i = 0; i < rayCount; i++) {
-      const baseAngle = (i * Math.PI * 2 / rayCount) + sunState.rotationAngle;
-      const waveOffset = Math.sin(time * 0.00025 + i * 0.4) * 0.08;
-      const angle = baseAngle + waveOffset;
-      
-      const rayLengthVariation = 0.75 + 0.25 * Math.sin(time * 0.00018 + i * 1.1);
-      const rayLength = size * (isHighlighted ? 3.8 : 2.8) * rayLengthVariation;
-      
-      const endX = x + Math.cos(angle) * rayLength;
-      const endY = y + Math.sin(angle) * rayLength;
-      
-      ctx.beginPath();
-      const rayWidth = size * (isHighlighted ? 0.1 : 0.07);
-      const perpAngle = angle + Math.PI / 2;
-      
-      const startDist = size * 0.75;
-      const startX = x + Math.cos(angle) * startDist;
-      const startY = y + Math.sin(angle) * startDist;
-      
-      ctx.moveTo(
-        startX + Math.cos(perpAngle) * rayWidth,
-        startY + Math.sin(perpAngle) * rayWidth
-      );
-      ctx.lineTo(endX, endY);
-      ctx.lineTo(
-        startX - Math.cos(perpAngle) * rayWidth,
-        startY - Math.sin(perpAngle) * rayWidth
-      );
-      ctx.closePath();
-      
-      const rayGradient = ctx.createLinearGradient(startX, startY, endX, endY);
-      rayGradient.addColorStop(0, `rgba(${rgbStr}, 0.9)`);
-      rayGradient.addColorStop(0.4, `rgba(${rgbStr}, 0.4)`);
-      rayGradient.addColorStop(0.7, `rgba(${secondaryRgbStr}, 0.15)`);
-      rayGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
-      
-      ctx.fillStyle = rayGradient;
-      ctx.fill();
-    }
-    
-    // ===== LAYER 4: Chromosphere ring =====
-    ctx.globalAlpha = isDarkMode ? 0.6 : 0.45;
-    const chromosphereGradient = ctx.createRadialGradient(x, y, size * 0.95, x, y, size * 1.4);
-    chromosphereGradient.addColorStop(0, `rgba(${rgbStr}, 0.8)`);
-    chromosphereGradient.addColorStop(0.3, `rgba(${secondaryRgbStr}, 0.5)`);
-    chromosphereGradient.addColorStop(0.6, `rgba(${rgbStr}, 0.3)`);
-    chromosphereGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
-    
-    ctx.beginPath();
-    ctx.fillStyle = chromosphereGradient;
-    ctx.arc(x, y, size * 1.4, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // ===== LAYER 5: Propel/collision effect rings =====
-    if (isPropelling) {
-      const propelRingCount = 5;
-      for (let r = 0; r < propelRingCount; r++) {
-        const ringRadius = size * (1.6 + r * 0.5);
-        const ringAlpha = 0.5 - r * 0.09;
-        const ringPhase = Math.sin(time * 0.0015 + r * Math.PI / 2.5);
-        
-        ctx.beginPath();
-        const ringGradient = ctx.createRadialGradient(x, y, ringRadius - 2, x, y, ringRadius + 2);
-        ringGradient.addColorStop(0, `rgba(${rgbStr}, 0)`);
-        ringGradient.addColorStop(0.5, sunState.color);
-        ringGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
-        ctx.strokeStyle = ringGradient;
-        ctx.lineWidth = 2.5 - r * 0.4;
-        ctx.globalAlpha = ringAlpha * (0.5 + 0.5 * ringPhase);
-        ctx.arc(x, y, ringRadius, 0, Math.PI * 2);
-        ctx.stroke();
-      }
-    }
-    
-    // ===== LAYER 5.5: Solar particles (orbiting plasma dots) =====
-    const particleCount = isHighlighted ? PARTICLE_COUNT_HIGHLIGHTED : PARTICLE_COUNT_DEFAULT;
-    ctx.globalAlpha = isDarkMode ? (isHighlighted ? 0.85 : 0.65) : (isHighlighted ? 0.7 : 0.5);
-    
-    for (let i = 0; i < particleCount; i++) {
-      // Create particles orbiting at different distances and speeds
-      const orbitRadius = size * (PARTICLE_ORBIT_BASE_RADIUS + (i % 4) * PARTICLE_ORBIT_RADIUS_STEP); // Multiple orbit rings
-      const orbitSpeed = PARTICLE_ORBIT_SPEED_BASE + (i % 3) * PARTICLE_ORBIT_SPEED_VARIATION; // Varying speeds
-      const particleAngle = (i * Math.PI * 2 / particleCount) + time * orbitSpeed + sunState.rotationAngle * 0.3;
-      
-      // Add slight wobble to particle path
-      const wobble = Math.sin(time * 0.0003 + i * 1.7) * size * 0.08;
-      const particleX = x + Math.cos(particleAngle) * (orbitRadius + wobble);
-      const particleY = y + Math.sin(particleAngle) * (orbitRadius + wobble);
-      
-      // Particle size varies with pulsing
-      const particlePulse = 0.7 + 0.3 * Math.sin(time * 0.0004 + i * 2.1);
-      const particleSize = (size * 0.04 + (i % 3) * size * 0.015) * particlePulse;
-      
-      // Create glowing particle
-      const particleGradient = ctx.createRadialGradient(
-        particleX, particleY, 0,
-        particleX, particleY, particleSize * 2.5
-      );
-      
-      // Alternate between sun color and lighter particles
-      if (i % 3 === 0) {
-        particleGradient.addColorStop(0, "#ffffff");
-        particleGradient.addColorStop(0.3, lightenColor(sunState.color, 0.7));
-        particleGradient.addColorStop(0.6, `rgba(${rgbStr}, 0.5)`);
-        particleGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
-      } else if (i % 3 === 1) {
-        particleGradient.addColorStop(0, lightenColor(sunState.color, 0.8));
-        particleGradient.addColorStop(0.4, `rgba(${rgbStr}, 0.7)`);
-        particleGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
-      } else {
-        particleGradient.addColorStop(0, `rgba(${secondaryRgbStr}, 0.9)`);
-        particleGradient.addColorStop(0.5, `rgba(${secondaryRgbStr}, 0.4)`);
-        particleGradient.addColorStop(1, `rgba(${secondaryRgbStr}, 0)`);
-      }
-      
-      ctx.beginPath();
-      ctx.fillStyle = particleGradient;
-      ctx.arc(particleX, particleY, particleSize * 2.5, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // Add a bright core to larger particles
-      if (i % 4 === 0) {
-        ctx.beginPath();
-        ctx.fillStyle = "#ffffff";
-        ctx.globalAlpha = (isDarkMode ? 0.9 : 0.7) * particlePulse;
-        ctx.arc(particleX, particleY, particleSize * 0.5, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.globalAlpha = isDarkMode ? (isHighlighted ? 0.85 : 0.65) : (isHighlighted ? 0.7 : 0.5);
-      }
-    }
-    
-    // ===== LAYER 5.6: Ejected particles (escaping plasma) =====
-    const ejectCount = isHighlighted ? EJECT_COUNT_HIGHLIGHTED : EJECT_COUNT_DEFAULT;
-    for (let i = 0; i < ejectCount; i++) {
-      // Particles that appear to be ejected outward
-      const ejectAngle = (i * Math.PI * 2 / ejectCount) + time * 0.00008 + sunState.rotationAngle;
-      const ejectPhase = (time * 0.0002 + i * 1.5) % 1; // 0-1 cycle
-      const ejectDist = size * (1.5 + ejectPhase * 3.5); // Move outward
-      const ejectX = x + Math.cos(ejectAngle) * ejectDist;
-      const ejectY = y + Math.sin(ejectAngle) * ejectDist;
-      
-      // Fade out as particle moves away
-      const ejectAlpha = Math.max(0, 1 - ejectPhase) * (isDarkMode ? 0.6 : 0.4);
-      const ejectSize = size * 0.06 * (1 - ejectPhase * 0.5);
-      
-      if (ejectAlpha > 0.05) {
-        const ejectGradient = ctx.createRadialGradient(
-          ejectX, ejectY, 0,
-          ejectX, ejectY, ejectSize * 3
-        );
-        ejectGradient.addColorStop(0, lightenColor(sunState.color, 0.6));
-        ejectGradient.addColorStop(0.4, `rgba(${rgbStr}, ${ejectAlpha})`);
-        ejectGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
-        
-        ctx.beginPath();
-        ctx.fillStyle = ejectGradient;
-        ctx.globalAlpha = ejectAlpha;
-        ctx.arc(ejectX, ejectY, ejectSize * 3, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-    
-    // ===== LAYER 6: Hover/focus ring indicator =====
-    if (isHighlighted) {
-      // Outer animated ring
-      const dashOffset = time * 0.02;
-      ctx.setLineDash([12, 6]);
-      ctx.lineDashOffset = dashOffset;
-      ctx.beginPath();
-      ctx.strokeStyle = lightenColor(sunState.color, 0.4);
-      ctx.lineWidth = 2.5;
-      ctx.globalAlpha = 0.6 + 0.25 * Math.sin(time * 0.0008);
-      ctx.arc(x, y, size * 3, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      
-      // Inner solid pulsing ring
-      ctx.beginPath();
-      const innerRingGradient = ctx.createRadialGradient(x, y, size * 1.9, x, y, size * 2.1);
-      innerRingGradient.addColorStop(0, `rgba(${rgbStr}, 0)`);
-      innerRingGradient.addColorStop(0.5, lightenColor(sunState.color, 0.5));
-      innerRingGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
-      ctx.strokeStyle = innerRingGradient;
-      ctx.lineWidth = 4;
-      ctx.globalAlpha = 0.75 + 0.2 * Math.sin(time * 0.001);
-      ctx.arc(x, y, size * 2, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-    
-    // ===== LAYER 7: Main photosphere (outer glow of core) =====
-    const photosphereGradient = ctx.createRadialGradient(x, y, size * 0.25, x, y, size * 1.15);
-    photosphereGradient.addColorStop(0, lightenColor(sunState.color, 0.85));
-    photosphereGradient.addColorStop(0.3, lightenColor(sunState.color, 0.5));
-    photosphereGradient.addColorStop(0.5, sunState.color);
-    photosphereGradient.addColorStop(0.75, `rgba(${rgbStr}, 0.85)`);
-    photosphereGradient.addColorStop(1, `rgba(${rgbStr}, 0.4)`);
-    
-    ctx.beginPath();
-    ctx.fillStyle = photosphereGradient;
-    ctx.globalAlpha = isDarkMode ? 1 : 0.9;
-    ctx.arc(x, y, size * 1.15, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // ===== LAYER 8: Main sun body with 3D depth =====
-    const bodyGradient = ctx.createRadialGradient(
-      x - size * 0.25, y - size * 0.25, 0, 
-      x + size * 0.1, y + size * 0.1, size
-    );
-    bodyGradient.addColorStop(0, "#ffffff");
-    bodyGradient.addColorStop(0.1, lightenColor(sunState.color, 0.8));
-    bodyGradient.addColorStop(0.3, lightenColor(sunState.color, 0.5));
-    bodyGradient.addColorStop(0.55, sunState.color);
-    bodyGradient.addColorStop(0.8, `rgba(${rgbStr}, 0.95)`);
-    bodyGradient.addColorStop(1, `rgba(${rgbStr}, 0.85)`);
-    
-    ctx.beginPath();
-    ctx.fillStyle = bodyGradient;
-    ctx.globalAlpha = 1;
-    ctx.arc(x, y, size, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // ===== LAYER 9: Surface granulation (subtle texture) =====
-    ctx.globalAlpha = 0.12;
-    const spotCount = 8;
-    for (let i = 0; i < spotCount; i++) {
-      const spotAngle = (time * 0.00004 + i * Math.PI * 2 / spotCount) % (Math.PI * 2);
-      const spotDist = size * (0.25 + 0.45 * Math.sin(i * 2.3 + time * 0.00003));
-      const spotX = x + Math.cos(spotAngle) * spotDist;
-      const spotY = y + Math.sin(spotAngle) * spotDist;
-      const spotSize = size * (0.12 + 0.08 * Math.sin(i * 1.9));
-      
-      const spotGradient = ctx.createRadialGradient(spotX, spotY, 0, spotX, spotY, spotSize);
-      const isLightSpot = i % 2 === 0;
-      const spotColor = isLightSpot ? "rgba(255, 255, 255, 0.4)" : `rgba(${rgbStr}, 0.6)`;
-      spotGradient.addColorStop(0, spotColor);
-      spotGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
-      
-      ctx.beginPath();
-      ctx.fillStyle = spotGradient;
-      ctx.arc(spotX, spotY, spotSize, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    
-    // ===== LAYER 10: Bright center hotspot =====
-    const hotspotGradient = ctx.createRadialGradient(
-      x - size * 0.12, y - size * 0.12, 0,
-      x, y, size * 0.45
-    );
-    hotspotGradient.addColorStop(0, "#ffffff");
-    hotspotGradient.addColorStop(0.2, "rgba(255, 255, 255, 0.95)");
-    hotspotGradient.addColorStop(0.5, "rgba(255, 255, 255, 0.5)");
-    hotspotGradient.addColorStop(0.8, "rgba(255, 255, 255, 0.15)");
-    hotspotGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
-    
-    ctx.beginPath();
-    ctx.fillStyle = hotspotGradient;
-    ctx.globalAlpha = isHighlighted ? 1 : 0.92;
-    ctx.arc(x, y, size * 0.45, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // ===== LAYER 11: Specular highlight (glass-like reflection) =====
-    const highlightGradient = ctx.createRadialGradient(
-      x - size * 0.35, y - size * 0.35, 0,
-      x - size * 0.25, y - size * 0.25, size * 0.35
-    );
-    highlightGradient.addColorStop(0, "rgba(255, 255, 255, 0.95)");
-    highlightGradient.addColorStop(0.4, "rgba(255, 255, 255, 0.4)");
-    highlightGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
-    
-    ctx.beginPath();
-    ctx.fillStyle = highlightGradient;
-    ctx.globalAlpha = 0.8;
-    ctx.arc(x - size * 0.3, y - size * 0.3, size * 0.3, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // ===== LAYER 12: Secondary highlight (subtle rim light) =====
-    const rimGradient = ctx.createRadialGradient(
-      x + size * 0.4, y + size * 0.4, 0,
-      x + size * 0.3, y + size * 0.3, size * 0.25
-    );
-    rimGradient.addColorStop(0, `rgba(${secondaryRgbStr}, 0.4)`);
-    rimGradient.addColorStop(0.5, `rgba(${secondaryRgbStr}, 0.15)`);
-    rimGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
-    
-    ctx.beginPath();
-    ctx.fillStyle = rimGradient;
-    ctx.globalAlpha = 0.5;
-    ctx.arc(x + size * 0.35, y + size * 0.35, size * 0.2, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // ===== LAYER 13: Focus area vector icon =====
-    // Draw a vector icon in the center of the sun to represent the focus area
-    ctx.globalAlpha = isDarkMode ? 0.85 : 0.75;
-    const iconSize = size * 0.45;
-    
-    // Draw icon based on sun type
-    drawSunIcon(ctx, x, y, iconSize, sunState.id);
-  });
-  
-  ctx.globalAlpha = 1;
-  ctx.restore();
-}
-
-/**
- * Draw a vector icon representing the focus area in the center of a sun
- */
-function drawSunIcon(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  iconSize: number,
-  sunId: string
-): void {
-  ctx.save();
-  ctx.strokeStyle = "#ffffff";
-  ctx.fillStyle = "#ffffff";
-  ctx.lineWidth = Math.max(1.5, iconSize * 0.08);
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  
-  switch (sunId) {
-    case "fintech-blockchain-sun":
-      // Draw a blockchain/coin icon (hexagon with connecting nodes)
-      drawBlockchainIcon(ctx, x, y, iconSize);
-      break;
-    case "ai-ml-sun":
-      // Draw an AI/brain icon (circuit-like pattern)
-      drawAIIcon(ctx, x, y, iconSize);
-      break;
-    case "defense-security-sun":
-      // Draw a shield icon
-      drawShieldIcon(ctx, x, y, iconSize);
-      break;
-    case "mobility-transportation-sun":
-      // Draw a wheel/motion icon
-      drawMobilityIcon(ctx, x, y, iconSize);
-      break;
-    default:
-      // Default: draw a simple star
-      drawDefaultStarIcon(ctx, x, y, iconSize);
-  }
-  
-  ctx.restore();
-}
-
-/**
- * Draw a blockchain/fintech icon (hexagon with nodes)
- */
-function drawBlockchainIcon(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
-  const r = size * 0.6;
-  
-  // Draw hexagon
-  ctx.beginPath();
-  for (let i = 0; i < 6; i++) {
-    const angle = (i * Math.PI / 3) - Math.PI / 2;
-    const px = x + r * Math.cos(angle);
-    const py = y + r * Math.sin(angle);
-    if (i === 0) {
-      ctx.moveTo(px, py);
-    } else {
-      ctx.lineTo(px, py);
-    }
-  }
-  ctx.closePath();
-  ctx.stroke();
-  
-  // Draw nodes at vertices
-  for (let i = 0; i < 6; i++) {
-    const angle = (i * Math.PI / 3) - Math.PI / 2;
-    const px = x + r * Math.cos(angle);
-    const py = y + r * Math.sin(angle);
-    ctx.beginPath();
-    ctx.arc(px, py, size * 0.1, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  
-  // Draw center node
-  ctx.beginPath();
-  ctx.arc(x, y, size * 0.15, 0, Math.PI * 2);
-  ctx.fill();
-  
-  // Draw connecting lines from center to alternate vertices (0, 2, 4)
-  // This creates a triangular pattern for visual balance
-  for (let i = 0; i < 6; i += 2) {
-    const angle = (i * Math.PI / 3) - Math.PI / 2;
-    const px = x + r * Math.cos(angle);
-    const py = y + r * Math.sin(angle);
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineTo(px, py);
-    ctx.stroke();
-  }
-}
-
-/**
- * Draw an AI/ML icon (neural network pattern)
- */
-function drawAIIcon(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
-  // Draw brain-like circuit pattern
-  const r = size * 0.5;
-  
-  // Central node
-  ctx.beginPath();
-  ctx.arc(x, y, size * 0.18, 0, Math.PI * 2);
-  ctx.fill();
-  
-  // Outer nodes in a circle
-  const nodeCount = 5;
-  const outerNodes: Array<{x: number; y: number}> = [];
-  for (let i = 0; i < nodeCount; i++) {
-    const angle = (i * Math.PI * 2 / nodeCount) - Math.PI / 2;
-    const px = x + r * Math.cos(angle);
-    const py = y + r * Math.sin(angle);
-    outerNodes.push({x: px, y: py});
-    
-    // Draw node
-    ctx.beginPath();
-    ctx.arc(px, py, size * 0.12, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Connect to center
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineTo(px, py);
-    ctx.stroke();
-  }
-  
-  // Connect outer nodes to adjacent nodes (neural network connections)
-  for (let i = 0; i < nodeCount; i++) {
-    const next = (i + 1) % nodeCount;
-    ctx.beginPath();
-    ctx.moveTo(outerNodes[i].x, outerNodes[i].y);
-    ctx.lineTo(outerNodes[next].x, outerNodes[next].y);
-    ctx.stroke();
-  }
-}
-
-/**
- * Draw a shield icon (defense/security)
- */
-function drawShieldIcon(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
-  const w = size * 0.6;
-  const h = size * 0.75;
-  
-  // Draw shield shape
-  ctx.beginPath();
-  ctx.moveTo(x, y - h * 0.5); // Top center
-  ctx.lineTo(x + w * 0.5, y - h * 0.3); // Top right
-  ctx.lineTo(x + w * 0.5, y + h * 0.1); // Right side
-  ctx.quadraticCurveTo(x + w * 0.3, y + h * 0.4, x, y + h * 0.5); // Bottom right curve
-  ctx.quadraticCurveTo(x - w * 0.3, y + h * 0.4, x - w * 0.5, y + h * 0.1); // Bottom left curve
-  ctx.lineTo(x - w * 0.5, y - h * 0.3); // Left side
-  ctx.closePath();
-  ctx.stroke();
-  
-  // Draw checkmark inside
-  ctx.beginPath();
-  ctx.moveTo(x - w * 0.2, y);
-  ctx.lineTo(x - w * 0.05, y + h * 0.15);
-  ctx.lineTo(x + w * 0.25, y - h * 0.15);
-  ctx.stroke();
-}
-
-/**
- * Draw a mobility/transportation icon (wheel with spokes)
- */
-function drawMobilityIcon(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
-  const r = size * 0.55;
-  const innerR = size * 0.25;
-  
-  // Outer wheel
-  ctx.beginPath();
-  ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.stroke();
-  
-  // Inner hub
-  ctx.beginPath();
-  ctx.arc(x, y, innerR, 0, Math.PI * 2);
-  ctx.stroke();
-  
-  // Center point
-  ctx.beginPath();
-  ctx.arc(x, y, size * 0.08, 0, Math.PI * 2);
-  ctx.fill();
-  
-  // Spokes
-  const spokeCount = 6;
-  for (let i = 0; i < spokeCount; i++) {
-    const angle = (i * Math.PI * 2 / spokeCount);
-    ctx.beginPath();
-    ctx.moveTo(x + innerR * Math.cos(angle), y + innerR * Math.sin(angle));
-    ctx.lineTo(x + r * Math.cos(angle), y + r * Math.sin(angle));
-    ctx.stroke();
-  }
-  
-  // Motion lines (speed indicator)
-  const originalLineWidth = ctx.lineWidth;
-  ctx.lineWidth = originalLineWidth * 0.6;
-  for (let i = 0; i < 3; i++) {
-    const lineY = y - size * 0.1 + i * size * 0.15;
-    const lineX = x + r + size * 0.15;
-    ctx.beginPath();
-    ctx.moveTo(lineX, lineY);
-    ctx.lineTo(lineX + size * 0.3 - i * size * 0.08, lineY);
-    ctx.stroke();
-  }
-  ctx.lineWidth = originalLineWidth; // Restore original lineWidth
-}
-
-/**
- * Draw a default star icon
- */
-function drawDefaultStarIcon(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
-  const outerR = size * 0.5;
-  const innerR = size * 0.2;
-  const points = 5;
-  
-  ctx.beginPath();
-  for (let i = 0; i < points * 2; i++) {
-    const angle = (i * Math.PI / points) - Math.PI / 2;
-    const r = i % 2 === 0 ? outerR : innerR;
-    const px = x + r * Math.cos(angle);
-    const py = y + r * Math.sin(angle);
-    if (i === 0) {
-      ctx.moveTo(px, py);
-    } else {
-      ctx.lineTo(px, py);
-    }
-  }
-  ctx.closePath();
-  ctx.fill();
-}
+// Re-export functions from sunRendering for backward compatibility
+export { resetAnimationModuleState, getFocusAreaSuns, checkSunHover, getCurrentSunPositions };

@@ -6,8 +6,8 @@ import { ComponentVariantType } from "../types/mappings/component-variants";
 export function useRegisterComponent(
   componentName: string,
   variants: Record<string, ComponentVariantType>
-) {
-  useEffect(() => {
+): void {
+  useEffect((): (() => void) => {
     // Get the registry
     const registry = themeCore.getComponentRegistry();
 
@@ -23,7 +23,7 @@ export function useRegisterComponent(
     }
 
     // Cleanup function to optionally unregister on unmount
-    return () => {
+    return (): void => {
       // Optional: Uncomment if you want to remove the component on unmount
       // delete registry[componentName];
     };
