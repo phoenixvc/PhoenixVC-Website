@@ -881,10 +881,13 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
       setFocusedSunId(null);
 
       // Set camera target to zoom out
+      // When zooming out, center should account for sidebar offset
+      const canvas = dimensionsRef.current;
+      const sidebarOffsetNormalized = canvas ? (sidebarWidth / canvas.width) : 0;
       setInternalCamera(prev => ({
         ...prev,
         target: {
-          cx: 0.5,
+          cx: 0.5 + sidebarOffsetNormalized / 2,
           cy: 0.5,
           zoom: 1
         }
@@ -939,16 +942,30 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
 
     // Set camera target to zoom in on the sun
     // Sun position is normalized (0-1), camera uses same coordinates
+    // The sun's position already accounts for sidebar offset in its generation,
+    // but we need to adjust the camera center to visually center the sun
+    // in the viewport accounting for the sidebar.
+    // 
+    // The camera transform does: translate(width/2, height/2) then translate(-cx*width, -cy*height)
+    // This means cx=0.5 puts the origin at the center of the canvas.
+    // With a sidebar, to center content visually, we need to shift cx slightly right.
+    const canvas = dimensionsRef.current;
+    const sidebarOffsetNormalized = canvas ? (sidebarWidth / canvas.width) : 0;
+    
+    // Adjust camera center to account for sidebar - shift right by half the sidebar width
+    // This ensures the sun appears centered in the *visible* content area
+    const adjustedCx = sunPosition.x + sidebarOffsetNormalized / 2;
+    
     setInternalCamera(prev => ({
       ...prev,
       target: {
-        cx: sunPosition.x,
+        cx: adjustedCx,
         cy: sunPosition.y,
         zoom: calculatedZoom
       }
     }));
 
-  }, [focusedSunId, employeeStarsRef, dimensionsRef]);
+  }, [focusedSunId, employeeStarsRef, dimensionsRef, sidebarWidth]);
 
   // Smooth camera lerp animation - only runs when there's an active target
   // Use a serialized target key to detect when target changes
@@ -1284,7 +1301,11 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
           onClick={(): void => zoomToSun(focusedSunId)}
           style={{
             // Center button in visible content area, accounting for sidebar width
-            left: `calc(50% + ${sidebarWidth / 2}px)`
+            // The button uses transform: translateX(-50%) in CSS, so we need to position
+            // its left edge at the center of the visible content area
+            left: `calc(50% + ${sidebarWidth / 2}px)`,
+            // Ensure the inline style overrides the CSS default
+            position: 'fixed' as const
           }}
         >
           <span className={styles.zoomOutIcon}>←</span>
