@@ -1,6 +1,6 @@
 // theme/utils/register-default-components.ts
 import { themeCore } from "../core/theme-core";
-import { ComponentVariantType } from "../types/mappings/component-variants";
+import type { ComponentVariantType as _ComponentVariantType } from "../types/mappings/component-variants";
 
 /**
  * Register default components that might be missing from the registry

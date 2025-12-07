@@ -1,6 +1,6 @@
 // src/theme/types/core/base.ts
 
-import { ComponentVariants, ThemeConfig } from "@/theme";
+import { ThemeConfig } from "@/theme";
 import { SemanticColors, ThemeColors, ThemeSchemeInitial } from "./colors";
 import { ThemeVariables } from "./variables";
 

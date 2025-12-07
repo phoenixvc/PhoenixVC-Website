@@ -1,7 +1,7 @@
 // theme/types/context/context.ts
 import { ReactNode, createContext } from "react";
 import { ThemeChangeEvent, ThemeConfig, ThemeErrorFallback, ThemeErrorHandler, ThemeInitOptions } from "../core/config";
-import { ThemeName, ThemeMode, ThemeAcquisitionConfig, Theme } from "../core/base";
+import { ThemeName, ThemeAcquisitionConfig } from "../core/base";
 import { CssVariableConfig, ThemeClassSuffix } from "../core";
 import { ExtendedThemeState, ThemeContextState } from "./state";
 import { TypographyScale } from "@/theme/mappings";

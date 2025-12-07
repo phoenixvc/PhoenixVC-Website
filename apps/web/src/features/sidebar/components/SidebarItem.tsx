@@ -26,9 +26,9 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
   variant = "default",
   active = false,
   href = "#",
-  mode = "light",
-  collapsed = false,
-  type = "link"
+  mode: _mode = "light",
+  collapsed: _collapsed = false,
+  type: _type = "link"
 }) => {
   const themeContext = useTheme() || {
     themeName: "default",

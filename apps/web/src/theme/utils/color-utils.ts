@@ -5,9 +5,6 @@ import {
   ColorPaletteConfig,
   ValidationResult,
   ValidationError,
-  ColorShades,
-  ThemeMode,
-  ShadeLevel,
   RGBColor,
 } from "../types";
 

@@ -14,10 +14,10 @@ interface SidebarToggleProps {
 }
 
 const SidebarToggle: React.FC<SidebarToggleProps> = ({
-  isOpen = true,
+  isOpen: _isOpen = true,
   isCollapsed = false,
   isMobile = false,
-  isDarkMode = true,
+  isDarkMode: _isDarkMode = true,
   onToggle = () => {},
   onCollapse = () => {}
 }) => {

@@ -16,7 +16,7 @@ const SidebarContainer: React.FC<ExtendedSidebarContainerProps> = ({
   isOpen = false,
   onClick,
   mode: _mode = "light",
-  collapsed = false
+  collapsed: _collapsed = false
 }) => {
   const themeContext = useTheme() || {
     themeName: "default",

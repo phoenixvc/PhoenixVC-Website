@@ -2,7 +2,7 @@
 
 import React from "react";
 import { ColorMapping } from "../mappings";
-import { ColorDefinition, ThemeName, ThemeMode, Theme, ThemeColors, ShadeMap, ShadeLevel, ModeColors, REQUIRED_MODE_COLORS, ThemeSpacing, ThemeTypography, ThemeBorders, ThemeShadows, ThemeBreakpoints, ThemeTransitions, ThemeZIndex, ThemeVariables, RequiredModeColorKeys, SemanticColors, REQUIRED_SEMANTIC_COLORS, RequiredSemanticColorKeys } from "../types";
+import { ColorDefinition, ThemeName, ThemeMode, Theme, ThemeColors, ShadeMap, ShadeLevel, ModeColors, ThemeSpacing, ThemeTypography, ThemeBorders, ThemeShadows, ThemeBreakpoints, ThemeTransitions, ThemeZIndex, ThemeVariables, RequiredModeColorKeys, SemanticColors, REQUIRED_SEMANTIC_COLORS, RequiredSemanticColorKeys } from "../types";
 import { ComponentManager } from "./component-manager";
 import { ComponentRegistryManager } from "../registry/component-registry-manager";
 import { TypographyManager } from "./typography-manager";
