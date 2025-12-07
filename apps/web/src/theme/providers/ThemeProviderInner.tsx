@@ -139,7 +139,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
           timestamp: Date.now()
         }));
       });
-  }, [state.themeName, state.mode, onThemeChange, themeManagerReady, themeCore]);
+  }, [state.themeName, state.mode, onThemeChange, themeManagerReady]);
 
   const setUseSystemMode = useCallback((useSystem: boolean): void => {
     // Update both local state and context
@@ -172,7 +172,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
       .catch(err => {
         logger.error(`Failed to set use system mode "${useSystem}":`, err);
       });
-  }, [setUseSystemModeContext, systemMode, state.themeName, state.mode, onThemeChange, setMode, themeCore]);
+  }, [setUseSystemModeContext, systemMode, state.themeName, state.mode, onThemeChange, setMode]);
 
   // Initialize ThemeStateManager first
   useEffect(() => {
