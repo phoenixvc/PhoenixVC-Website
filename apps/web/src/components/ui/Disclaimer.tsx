@@ -18,7 +18,7 @@ export const Disclaimer: FC<DisclaimerProps> = ({
   message,
   onDismiss,
   icon
-}): JSX.Element => {
+}): React.JSX.Element => {
   const getIcon = (): ReactNode => {
     if (icon) return icon;
     

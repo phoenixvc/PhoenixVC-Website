@@ -1,8 +1,6 @@
 // src/constants/portfolioData.ts
 // Single source of truth for all portfolio-related data
 
-import React from "react";
-
 // ==================== Types ====================
 
 export type ProjectStatus = "alpha" | "pre-alpha" | "seed" | "early-stage" | "growth" | "active";
