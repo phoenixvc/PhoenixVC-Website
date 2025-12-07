@@ -117,7 +117,7 @@ const observeLCP = (callback: ReportCallback): void => {
     });
 
     observer.observe({ type: "largest-contentful-paint", buffered: true });
-  } catch (e) {
+  } catch (_e) {
     // Silently fail if not supported
   }
 };
@@ -144,7 +144,7 @@ const observeFID = (callback: ReportCallback): void => {
     });
 
     observer.observe({ type: "first-input", buffered: true });
-  } catch (e) {
+  } catch (_e) {
     // Silently fail if not supported
   }
 };
@@ -175,7 +175,7 @@ const observeCLS = (callback: ReportCallback): void => {
     });
 
     observer.observe({ type: "layout-shift", buffered: true });
-  } catch (e) {
+  } catch (_e) {
     // Silently fail if not supported
   }
 };
@@ -202,7 +202,7 @@ const observeFCP = (callback: ReportCallback): void => {
     });
 
     observer.observe({ type: "paint", buffered: true });
-  } catch (e) {
+  } catch (_e) {
     // Silently fail if not supported
   }
 };
@@ -251,7 +251,7 @@ const observeINP = (callback: ReportCallback): void => {
         callback(metric);
       }
     });
-  } catch (e) {
+  } catch (_e) {
     // INP observation not supported, fall back to FID
     logger.debug("[Web Vitals] INP not supported, using FID fallback");
   }
