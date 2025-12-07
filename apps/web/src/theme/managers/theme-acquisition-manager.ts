@@ -21,6 +21,7 @@ import { ThemeRegistry } from "../registry/theme-registry";
 import { ThemeCore } from "../core/theme-core";
 import { DEFAULT_MODE, DEFAULT_THEME } from "../constants/tokens";
 import ColorUtils from "../utils/color-utils";
+import { logger } from "../../utils/logger";
 
 // Declare themeCore as an optional global variable
 declare const themeCore: ThemeCore | undefined;
@@ -78,7 +79,7 @@ export class ThemeAcquisitionManager {
     if (this.config.useLocalStorage) {
       this.loadThemesFromStorage().catch((error) => {
         LogManager.log(this.SERVICE_NAME, "Failed to load themes from local storage", this.isLoggingEnabled(), { warn: true });
-        console.warn(error);
+        logger.warn(error);
       });
     }
 
@@ -265,7 +266,7 @@ export class ThemeAcquisitionManager {
           }
         } catch (error) {
           LogManager.log(this.SERVICE_NAME, `Failed to load local theme: ${themeName}`, this.isLoggingEnabled(), { warn: true });
-          console.warn(error);
+          logger.warn(error);
           // Continue to try remote sources
         }
 
@@ -299,7 +300,7 @@ export class ThemeAcquisitionManager {
           }
         } catch (error) {
           LogManager.log(this.SERVICE_NAME, `Failed to load remote theme: ${themeName}`, this.isLoggingEnabled(), { warn: true });
-          console.warn(error);
+          logger.warn(error);
           // Fall back to default theme
         }
       } else {
@@ -351,7 +352,7 @@ export class ThemeAcquisitionManager {
       };
     } catch (error) {
       LogManager.log(this.SERVICE_NAME, `Error acquiring theme: ${themeName}`, this.isLoggingEnabled(), { warn: true });
-      console.error(error);
+      logger.error(error);
       this.acquisitionStatus.set(themeName, "error");
 
       return {
@@ -620,7 +621,7 @@ export class ThemeAcquisitionManager {
       return undefined;
     } catch (error) {
       LogManager.log(this.SERVICE_NAME, `Failed to load local theme: ${themeName}`, this.isLoggingEnabled(), { warn: true });
-      console.warn(error);
+      logger.warn(error);
       return undefined;
     }
   }
@@ -654,7 +655,7 @@ export class ThemeAcquisitionManager {
       }
 
       LogManager.log(this.SERVICE_NAME, `Failed to load remote theme: ${themeName}`, this.isLoggingEnabled(), { warn: true });
-      console.warn(error);
+      logger.warn(error);
       return undefined;
     }
   }
@@ -825,7 +826,7 @@ export class ThemeAcquisitionManager {
       LogManager.log(this.SERVICE_NAME, `Saved theme to local storage: ${themeName}`, this.isLoggingEnabled());
     } catch (error) {
       LogManager.log(this.SERVICE_NAME, `Failed to save theme to local storage: ${themeName}`, this.isLoggingEnabled(), { warn: true });
-      console.warn(error);
+      logger.warn(error);
     }
   }
 
@@ -840,7 +841,7 @@ export class ThemeAcquisitionManager {
       LogManager.log(this.SERVICE_NAME, `Removed theme from local storage: ${themeName}`, this.isLoggingEnabled());
     } catch (error) {
       LogManager.log(this.SERVICE_NAME, `Failed to remove theme from local storage: ${themeName}`, this.isLoggingEnabled(), { warn: true });
-      console.warn(error);
+      logger.warn(error);
     }
   }
 
@@ -855,7 +856,7 @@ export class ThemeAcquisitionManager {
       LogManager.log(this.SERVICE_NAME, "Cleared all themes from local storage", this.isLoggingEnabled());
     } catch (error) {
       LogManager.log(this.SERVICE_NAME, "Failed to clear themes from local storage", this.isLoggingEnabled(), { warn: true });
-      console.warn(error);
+      logger.warn(error);
     }
   }
 
@@ -884,7 +885,7 @@ export class ThemeAcquisitionManager {
       }
     } catch (error) {
       LogManager.log(this.SERVICE_NAME, "Failed to load themes from storage", this.isLoggingEnabled(), { warn: true });
-      console.warn(error);
+      logger.warn(error);
     }
   }
 }
