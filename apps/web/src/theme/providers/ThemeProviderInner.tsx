@@ -18,7 +18,7 @@ import {
 } from ".";
 import { ExtendedThemeState } from "../types/context/state";
 import { TypographyScale } from "../mappings";
-import { themeCore } from "../core/theme-core";
+import { ThemeCore } from "../core/theme-core";
 import { useSystemModeContext } from "@/SystemModeContext";
 import {
   getThemeClassNames,
@@ -59,6 +59,9 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
   componentRegistry = {},
   themeRegistry = {}
 }) => {
+  // Get singleton instances once
+  const themeCore = useMemo(() => ThemeCore.getInstance(), []);
+  
   const [state, setState] = useState<ThemeState>({ ...defaultState, ...config });
   const [error, setError] = useState<Error | null>(null);
   const [loadingTheme, setLoadingTheme] = useState<boolean>(false);
@@ -71,6 +74,105 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
   // Get systemMode from context instead of using useSystemMode hook
   const { systemMode, useSystemMode, setUseSystemMode: setUseSystemModeContext } = useSystemModeContext();
   const { applyCssVariables, getCssVariable } = useCssVariables();
+
+  // Define callbacks before useEffect hooks to avoid TDZ errors
+  const setMode = useCallback((mode: ThemeMode): void => {
+    // Don't update if the mode hasn't changed
+    if (mode === state.mode) {
+      return;
+    }
+
+    // If theme manager is not ready, update state directly as fallback
+    if (!themeManagerReady) {
+      logger.warn("[ThemeProvider] Theme manager not ready, updating mode directly in state");
+      setState(prev => ({
+        ...prev,
+        mode,
+        previous: {
+          themeName: prev.themeName,
+          mode: prev.mode
+        },
+        timestamp: Date.now()
+      }));
+      return;
+    }
+
+    themeCore.setMode(mode)
+      .then(() => {
+        setState(prev => {
+          // Prevent unnecessary updates if the mode hasn't changed
+          if (prev.mode === mode) {
+            return prev;
+          }
+
+          return {
+            ...prev,
+            mode,
+            previous: {
+              themeName: prev.themeName,
+              mode: prev.mode
+            },
+            timestamp: Date.now()
+          };
+        });
+
+        if (onThemeChange) {
+          onThemeChange({
+            currentThemeName: state.themeName,
+            currentMode: mode,
+            previousThemeName: state.themeName,
+            previousMode: state.mode,
+            source: "user"
+          });
+        }
+      })
+      .catch(err => {
+        logger.error(`Failed to set mode "${mode}":`, err);
+        // Fall back to direct state update on error
+        setState(prev => ({
+          ...prev,
+          mode,
+          previous: {
+            themeName: prev.themeName,
+            mode: prev.mode
+          },
+          timestamp: Date.now()
+        }));
+      });
+  }, [state.themeName, state.mode, onThemeChange, themeManagerReady]);
+
+  const setUseSystemMode = useCallback((useSystem: boolean): void => {
+    // Update both local state and context
+    setUseSystemModeContext(useSystem);
+
+    // Use themeCore to set system mode usage
+    themeCore.setUseSystem(useSystem)
+      .then(() => {
+        setState(prev => ({
+          ...prev,
+          useSystem,
+          timestamp: Date.now()
+        }));
+
+        if (useSystem && systemMode !== state.mode) {
+          if (onThemeChange) {
+            onThemeChange({
+              currentThemeName: state.themeName,
+              currentMode: systemMode,
+              previousThemeName: state.themeName,
+              previousMode: state.mode,
+              source: "system"
+            });
+          }
+
+          // If using system mode, update the theme mode to match system
+          setMode(systemMode);
+        }
+      })
+      .catch(err => {
+        logger.error(`Failed to set use system mode "${useSystem}":`, err);
+      });
+  }, [setUseSystemModeContext, systemMode, state.themeName, state.mode, onThemeChange, setMode]);
 
   // Initialize ThemeStateManager first
   useEffect(() => {
@@ -332,108 +434,10 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
       });
   }, [state.themeName, state.mode, onThemeChange, isThemeCached, themeManagerReady]);
 
-  const setMode = useCallback((mode: ThemeMode): void => {
-    // Don"t update if the mode hasn"t changed
-    if (mode === state.mode) {
-      return;
-    }
-
-    // If theme manager is not ready, update state directly as fallback
-    if (!themeManagerReady) {
-      logger.warn("[ThemeProvider] Theme manager not ready, updating mode directly in state");
-      setState(prev => ({
-        ...prev,
-        mode,
-        previous: {
-          themeName: prev.themeName,
-          mode: prev.mode
-        },
-        timestamp: Date.now()
-      }));
-      return;
-    }
-
-    themeCore.setMode(mode)
-      .then(() => {
-        setState(prev => {
-          // Prevent unnecessary updates if the mode hasn"t changed
-          if (prev.mode === mode) {
-            return prev;
-          }
-
-          return {
-            ...prev,
-            mode,
-            previous: {
-              themeName: prev.themeName,
-              mode: prev.mode
-            },
-            timestamp: Date.now()
-          };
-        });
-
-        if (onThemeChange) {
-          onThemeChange({
-            currentThemeName: state.themeName,
-            currentMode: mode,
-            previousThemeName: state.themeName,
-            previousMode: state.mode,
-            source: "user"
-          });
-        }
-      })
-      .catch(err => {
-        logger.error(`Failed to set mode "${mode}":`, err);
-        // Fall back to direct state update on error
-        setState(prev => ({
-          ...prev,
-          mode,
-          previous: {
-            themeName: prev.themeName,
-            mode: prev.mode
-          },
-          timestamp: Date.now()
-        }));
-      });
-  }, [state.themeName, state.mode, onThemeChange, themeManagerReady]);
-
   const toggleMode = useCallback((): void => {
     const newMode = state.mode === "light" ? "dark" : "light";
     setMode(newMode);
   }, [state.mode, setMode]);
-
-  const setUseSystemMode = useCallback((useSystem: boolean): void => {
-    // Update both local state and context
-    setUseSystemModeContext(useSystem);
-
-    // Use themeCore to set system mode usage
-    themeCore.setUseSystem(useSystem)
-      .then(() => {
-        setState(prev => ({
-          ...prev,
-          useSystem,
-          timestamp: Date.now()
-        }));
-
-        if (useSystem && systemMode !== state.mode) {
-          if (onThemeChange) {
-            onThemeChange({
-              currentThemeName: state.themeName,
-              currentMode: systemMode,
-              previousThemeName: state.themeName,
-              previousMode: state.mode,
-              source: "system"
-            });
-          }
-
-          // If using system mode, update the theme mode to match system
-          setMode(systemMode);
-        }
-      })
-      .catch(err => {
-        logger.error(`Failed to set use system mode "${useSystem}":`, err);
-      });
-  }, [setUseSystemModeContext, systemMode, state.themeName, state.mode, onThemeChange, setMode]);
 
   const toggleUseSystem = useCallback((): void => {
     setUseSystemMode(!state.useSystem);

@@ -5,8 +5,8 @@ import { ThemeErrorBoundary } from "@/theme/components/theme-error-boundary";
 import { SystemModeProvider } from "@/SystemModeContext";
 import ThemeProviderInner from "./ThemeProviderInner";
 import { createThemeRegistry } from "@/theme/registry/theme-registry";
-import { themeCore } from "@/theme/core/theme-core";
-import { themeStateManager } from "../core";
+import { ThemeCore } from "@/theme/core/theme-core";
+import { ThemeStateManager } from "../core";
 // Add this function to ThemeProvider.tsx or create a utility file
 
 /**
@@ -46,6 +46,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = (props) => {
 
   // Initialize the theme system when the provider mounts
   useEffect(() => {
+    // Get the singleton instances
+    const themeCore = ThemeCore.getInstance();
+    const themeStateManager = ThemeStateManager.getInstance();
+    
     // Create the registries
     const fullThemeRegistry = createThemeRegistry(themeRegistry);
 
