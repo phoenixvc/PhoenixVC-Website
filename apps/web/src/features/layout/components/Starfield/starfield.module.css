@@ -683,7 +683,7 @@
 
 .scrollToExplore {
   position: fixed;
-  bottom: 40px;
+  bottom: 30px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -767,8 +767,8 @@
 
 /* Direct zoom buttons */
 .directZoomButtons {
-  position: absolute;
-  bottom: 20px;
+  position: fixed;
+  bottom: 30px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
