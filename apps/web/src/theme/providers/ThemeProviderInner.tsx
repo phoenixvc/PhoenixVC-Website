@@ -507,12 +507,12 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
     getScale: (element: string): TypographyScale | undefined => {
       return themeCore.getTypographyScale(element);
     },
-    getComponentTypography: (component: string, variant?: string, mode?: string): TypographyScale | undefined => {
+    getComponentTypography: (component: string, variant?: string, _mode?: string): TypographyScale | undefined => {
       return themeCore.getComponentTypography(component, variant || "default");
     }
   }), []);
 
-  const getComponentStyle = useCallback((component: string, variant?: string, state?: string, mode?: string): React.CSSProperties => {
+  const getComponentStyle = useCallback((component: string, variant?: string, state?: string, _mode?: string): React.CSSProperties => {
     return themeCore.getComponentStyle(component, variant, state);
   }, []);
 

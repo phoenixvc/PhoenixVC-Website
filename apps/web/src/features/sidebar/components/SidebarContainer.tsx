@@ -15,14 +15,14 @@ const SidebarContainer: React.FC<ExtendedSidebarContainerProps> = ({
   variant = "default",
   isOpen = false,
   onClick,
-  mode = "light",
+  mode: _mode = "light",
   collapsed = false
 }) => {
   const themeContext = useTheme() || {
     themeName: "default",
     getComponentStyle: () => ({})
   };
-  const { themeName = "default" } = themeContext;
+  const { themeName: _themeName = "default" } = themeContext;
 
   // Add responsive state
   const [isMobile, setIsMobile] = React.useState(false);

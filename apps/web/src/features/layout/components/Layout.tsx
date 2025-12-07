@@ -41,7 +41,7 @@ const Layout = ({ children }: LayoutProps) => {
   const [showMobileDisclaimer, setShowMobileDisclaimer] = useState(false);
   const [hasShownMobileDisclaimer, setHasShownMobileDisclaimer] = useState(false);
   // Cosmic navigation state
-  const [cosmicNavigation, setCosmicNavigation] = useState<CosmicNavigationState>({
+  const [_cosmicNavigation, setCosmicNavigation] = useState<CosmicNavigationState>({
     currentLevel: "universe",
     isTransitioning: false
   });
@@ -146,7 +146,7 @@ const Layout = ({ children }: LayoutProps) => {
   };
 
   // Handle cosmic navigation
-  const handleCosmicNavigation = (state: CosmicNavigationState) => {
+  const _handleCosmicNavigation = (state: CosmicNavigationState): void => {
     setCosmicNavigation(state);
     logger.debug("Navigation updated:", state);
   };
@@ -158,8 +158,8 @@ const Layout = ({ children }: LayoutProps) => {
     mousePosition: { x: number; y: number; isOnScreen?: boolean } | null,
     stars: Star[],
     mouseEffectRadius: number,
-    timestamp?: number
-  ) => {
+    _timestamp?: number
+  ): void => {
     // Custom debug visualization
     ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
     ctx.fillRect(10, 10, 200, 120);

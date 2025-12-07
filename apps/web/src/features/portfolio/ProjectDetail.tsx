@@ -29,7 +29,7 @@ import {
   STATUS_CONFIG,
   FOCUS_AREA_CONFIG,
   getRelatedProjects,
-  type PortfolioProject,
+  type PortfolioProject as _PortfolioProject,
   type FocusAreaId
 } from "@/constants/portfolioData";
 import styles from "./ProjectDetail.module.css";

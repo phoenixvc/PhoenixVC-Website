@@ -96,7 +96,7 @@ export interface ExtendedNavLinkProps extends Omit<NavigationItemProps, "icon"> 
 /**
  * Props for the MobileMenu component
  */
-interface MobileMenuProps {
+export interface MobileMenuProps {
     isOpen: boolean;
     onClose: () => void;
     navItems: {

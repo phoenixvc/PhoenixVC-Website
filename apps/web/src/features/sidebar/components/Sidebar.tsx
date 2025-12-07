@@ -11,9 +11,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isDarkMode = true,
   isMobile = false,
   collapsed = false,
-  onToggle,
+  onToggle: _onToggle,
   onCollapse,
-  mode = "dark"
+  mode: _mode = "dark"
 }) => {
   const [currentPath, setCurrentPath] = useState("");
 

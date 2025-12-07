@@ -29,7 +29,7 @@ const Header: FC<HeaderProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const { themeName, setThemeName } = useTheme();
-  const currentPath = typeof window !== "undefined" ? window.location.pathname : "";
+  const _currentPath = typeof window !== "undefined" ? window.location.pathname : "";
 
   // Available themes with "coming soon" labels
   const availableThemes = [

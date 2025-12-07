@@ -74,7 +74,7 @@ const coreValues = [
 const About: FC<AboutProps> = memo(() => {
   const { themeMode } = useTheme();
   const isDarkMode = themeMode === "dark";
-  const [activeSection, setActiveSection] = useState(0);
+  const [_activeSection, _setActiveSection] = useState(0);
   const sectionRef = useSectionObserver("about", (id) => {
     logger.debug(`[About] Section "${id}" is now visible`);
   });

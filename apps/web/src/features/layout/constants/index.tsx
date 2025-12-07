@@ -1,5 +1,5 @@
 // constants.ts or where your SOCIAL_LINKS is defined
-import { Linkedin, Twitter, Github, Newspaper } from "lucide-react"; // Import icons from lucide-react
+import { Linkedin, Github, Newspaper } from "lucide-react"; // Import icons from lucide-react
 
 export const SOCIAL_LINKS = [
   {

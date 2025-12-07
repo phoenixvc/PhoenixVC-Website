@@ -202,9 +202,9 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   const {
     stars,
     starsRef,
-    blackHoles,
+    blackHoles: _blackHoles,
     blackHolesRef,
-    employeeStars,
+    employeeStars: _employeeStars,
     employeeStarsRef,
     initializeElements,
     ensureStarsExist,
@@ -341,7 +341,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   // Fetch IP address on component mount for game mode
   useEffect(() => {
     if (gameMode) {
-      const getIP = async () => {
+      const getIP = async (): Promise<void> => {
         const ip = await fetchIpAddress();
         if (ip) {
           setGameState(prev => ({
@@ -351,7 +351,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
           }));
         }
       };
-
+      getIP(); // Actually invoke the async function
     }
   }, [gameMode]);
 
@@ -821,7 +821,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   }, []); // Run once on mount
 
   // Update employee stars when orbit speed changes
-  const handleEmployeeOrbitSpeedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const _handleEmployeeOrbitSpeedChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const newSpeed = parseFloat(e.target.value);
     updateDebugSetting("employeeOrbitSpeed", newSpeed);
 
@@ -847,7 +847,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
       // Log the result
 
       // Create an explosion effect
-      const explosionCreated = window.starfieldAPI.createExplosion(x, y);
+      window.starfieldAPI.createExplosion(x, y);
 
       return affectedStars;
     } else {
@@ -1031,7 +1031,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   }, [targetKey]); // Re-run when target changes (including switching between targets)
 
   // Legacy function kept for backward compatibility
-  const scrollToFocusArea = useCallback((sunId: string, sunX: number, sunY: number) => {
+  const _scrollToFocusArea = useCallback((sunId: string, _sunX: number, _sunY: number): void => {
     // Now just delegates to the camera zoom function
     zoomToSun(sunId);
   }, [zoomToSun]);
