@@ -96,7 +96,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = (props) => {
     }
 
     // Return cleanup function
-    return () => {
+    return (): void => {
       // Optional: Perform any cleanup if needed when ThemeProvider unmounts
     };
   }, [themeRegistry, componentRegistry, config]);

@@ -252,7 +252,7 @@ export class ThemeStateManager {
     this._loadingError = null;
     this.notify();
 
-    this._loadingThemePromise = (async () => {
+    this._loadingThemePromise = (async (): Promise<void> => {
       try {
         // Load the theme
         await ThemeAcquisitionManager.getInstance().acquireTheme(themeName);
@@ -322,7 +322,7 @@ export class ThemeStateManager {
     // Save the theme name to storage
     await ThemeStorageManager.saveThemeName(themeName);
 
-    this._loadingThemePromise = (async () => {
+    this._loadingThemePromise = (async (): Promise<void> => {
       try {
         // Load the theme
         await ThemeAcquisitionManager.getInstance().acquireTheme(themeName);

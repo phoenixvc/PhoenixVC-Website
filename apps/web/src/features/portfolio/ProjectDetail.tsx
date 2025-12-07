@@ -1,4 +1,5 @@
 // /features/portfolio/ProjectDetail.tsx
+import React from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useTheme } from "@/theme";
 import { motion } from "framer-motion";
@@ -79,7 +80,7 @@ const animations = {
   },
 };
 
-export const ProjectDetail = (): JSX.Element => {
+export const ProjectDetail = (): React.ReactElement => {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
   const { themeMode } = useTheme();

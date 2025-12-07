@@ -1,5 +1,5 @@
 // components/Layout/Header/Header.tsx
-import { FC, useEffect, useState, useRef } from "react";
+import React, { FC, useEffect, useState, useRef } from "react";
 import styles from "./header.module.css";
 import { Menu, Sun, Moon, Bug, Gamepad2, ChevronDown, User, Palette } from "lucide-react";
 import { HeaderProps } from "./types";
@@ -19,7 +19,7 @@ const Header: FC<HeaderProps> = ({
   onGameModeToggle,
   debugMode = false,
   onDebugModeToggle,
-}): JSX.Element => {
+}): React.ReactElement => {
   // Calculate header left offset based on sidebar state (desktop only)
   const headerLeftOffset = isMobile ? 0 : (isSidebarOpen ? sidebarWidth : 0);
   const [scrolled, setScrolled] = useState(false);
@@ -82,7 +82,7 @@ const Header: FC<HeaderProps> = ({
 
     document.addEventListener("mousedown", handleClickOutside);
 
-    return () => {
+    return (): void => {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("hashchange", updateActivePath);
       document.removeEventListener("mousedown", handleClickOutside);

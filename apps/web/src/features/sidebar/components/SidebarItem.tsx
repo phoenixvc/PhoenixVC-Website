@@ -29,14 +29,14 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
   mode: _mode = "light",
   collapsed: _collapsed = false,
   type: _type = "link"
-}) => {
+}): React.ReactElement => {
   const themeContext = useTheme() || {
     themeName: "default",
-    getComponentStyle: () => ({})
+    getComponentStyle: (): Record<string, unknown> => ({})
   };
 
   // Function to determine if the item is active based on current URL
-  const isActive = React.useMemo(() => {
+  const isActive = React.useMemo((): boolean => {
     if (active) return true;
 
     if (!href || typeof window === "undefined") return false;
@@ -68,8 +68,8 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
   const itemClasses = cn(
     styles.sidebarItem,
     isActive && styles.sidebarItemActive,
-    collapsed && styles.sidebarItemCollapsed,
-    mode === "dark" ? styles.darkItem : styles.lightItem,
+    _collapsed && styles.sidebarItemCollapsed,
+    _mode === "dark" ? styles.darkItem : styles.lightItem,
     className
   );
 
@@ -77,7 +77,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
   const content = (
     <>
       {icon && <span className={styles.itemIcon}>{icon}</span>}
-      {!collapsed && <span className={styles.itemLabel}>{label}</span>}
+      {!_collapsed && <span className={styles.itemLabel}>{label}</span>}
     </>
   );
 

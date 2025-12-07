@@ -1,5 +1,5 @@
 // /features/portfolio/index.tsx
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTheme } from "@/theme";
 import { motion } from "framer-motion";
@@ -167,7 +167,7 @@ const animations = {
   },
 };
 
-export const Portfolio = (): JSX.Element => {
+export const Portfolio = (): React.ReactElement => {
   const { themeMode } = useTheme();
   const isDarkMode = themeMode === "dark";
   const [showComingSoon, setShowComingSoon] = useState(true);

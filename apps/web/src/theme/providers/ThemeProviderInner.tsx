@@ -168,7 +168,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
       }
     }, 50); // Small delay for async initialization to complete
 
-    return () => clearTimeout(timeoutId);
+    return (): void => clearTimeout(timeoutId);
   }, [themeManagerReady]);
 
   // Effect to sync system mode with theme state - only when manager is ready

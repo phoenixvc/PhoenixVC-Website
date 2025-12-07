@@ -12,7 +12,7 @@ const SidebarGroup: React.FC<SidebarGroupProps> = ({
   variant: _variant = "default",
   collapsed = false,
   isDarkMode: _isDarkMode = true
-}) => {
+}): React.ReactElement => {
   const groupTitleClass = cn(
     styles.groupTitle,
     collapsed ? styles.groupTitleCollapsed : ""
@@ -30,8 +30,8 @@ const SidebarGroup: React.FC<SidebarGroupProps> = ({
             href={item.href}
             active={item.active || false}
             onClick={item.onClick}
-            mode={mode}
-            variant={variant}
+            mode={_mode}
+            variant={_variant}
             collapsed={collapsed}
             type="link"
           />

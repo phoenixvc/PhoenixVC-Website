@@ -3,6 +3,7 @@
 import { ThemeConfig } from "@/theme";
 import { SemanticColors, ThemeColors, ThemeSchemeInitial } from "./colors";
 import { ThemeVariables } from "./variables";
+import { ComponentVariants } from "../mappings/component-variants";
 
 /**
  * Core Theme Identity

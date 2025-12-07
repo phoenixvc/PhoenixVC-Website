@@ -353,7 +353,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
           }));
         }
       };
-      getIP(); // Actually invoke the async function
+      void getIP(); // Actually invoke the async function
     }
   }, [gameMode]);
 
@@ -1250,7 +1250,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
       )}
 
       {/* Focus area indicator when zoomed into a sun */}
-      {focusedSunId && ((): JSX.Element | null => {
+      {focusedSunId && ((): React.ReactElement | null => {
         const sunState = getSunStates().find(s => s.id === focusedSunId);
         return sunState ? (
           <div className={`${styles.focusAreaIndicator} ${!isDarkMode ? styles.focusAreaIndicatorLight : ""}`}>

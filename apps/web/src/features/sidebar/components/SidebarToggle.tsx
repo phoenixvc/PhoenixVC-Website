@@ -18,9 +18,9 @@ const SidebarToggle: React.FC<SidebarToggleProps> = ({
   isCollapsed = false,
   isMobile = false,
   isDarkMode: _isDarkMode = true,
-  onToggle = () => {},
-  onCollapse = () => {}
-}) => {
+  onToggle = (): void => {},
+  onCollapse = (): void => {}
+}): React.ReactElement => {
   // Always use dark mode styling for the toggle
   const toggleClasses = cn(
     styles.toggleButton,

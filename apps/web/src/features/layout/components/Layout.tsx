@@ -27,7 +27,7 @@ const loadDebugModeFromStorage = (): boolean => {
   return false;
 };
 
-const Layout = ({ children }: LayoutProps): JSX.Element => {
+const Layout = ({ children }: LayoutProps): React.ReactElement => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -79,7 +79,7 @@ const Layout = ({ children }: LayoutProps): JSX.Element => {
     window.addEventListener("resize", checkIfMobile);
 
     // Cleanup
-    return () => window.removeEventListener("resize", checkIfMobile);
+    return (): void => window.removeEventListener("resize", checkIfMobile);
   }, [hasShownMobileDisclaimer, isCollapsed]);
 
   // Update sidebar width when collapse state changes

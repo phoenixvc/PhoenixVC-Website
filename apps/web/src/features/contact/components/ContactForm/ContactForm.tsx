@@ -1,5 +1,5 @@
 // features/contact/components/ContactForm/ContactForm.tsx
-import { FC, memo, useState, useCallback, useRef, useEffect } from "react";
+import React, { FC, memo, useState, useCallback, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { contactAnimations } from "../../animations";
 import styles from "./ContactForm.module.css";
@@ -34,7 +34,7 @@ const ContactForm: FC<ContactFormProps> = memo(({
   onSubmit,
   isLoading,
   isSuccess,
-}): JSX.Element => {
+}): React.ReactElement => {
   const { themeMode } = useTheme();
   const isDarkMode = themeMode === "dark";
   const [formData, setFormData] = useState<ContactFormData>({

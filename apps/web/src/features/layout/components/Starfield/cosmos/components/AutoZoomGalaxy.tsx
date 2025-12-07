@@ -67,7 +67,7 @@ const AutoZoomGalaxy: React.FC<AutoZoomGalaxyProps> = ({
       canvas.addEventListener("mousemove", handleMouseMove);
     }
 
-    return () => {
+    return (): void => {
       if (canvas) {
         canvas.removeEventListener("mousemove", handleMouseMove);
       }
@@ -135,7 +135,7 @@ const AutoZoomGalaxy: React.FC<AutoZoomGalaxyProps> = ({
       }, 500); // Longer delay before zooming out
     }
 
-    return () => {
+    return (): void => {
       if (zoomTimeoutRef.current) {
         clearTimeout(zoomTimeoutRef.current);
       }

@@ -1,5 +1,5 @@
 // components/Layout/MobileMenu/MobileMenu.tsx
-import { FC, memo, useState } from "react";
+import React, { FC, memo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { twMerge } from "tailwind-merge";
 import styles from "./MobileMenu.module.css";
@@ -25,7 +25,7 @@ const MobileMenu: FC<MobileMenuProps> = memo(({
   navItems,
   className,
   isDarkMode,
-}): JSX.Element => {
+}): React.ReactElement => {
   // Track which item is being clicked for visual feedback
   const [activeItem, setActiveItem] = useState<string | null>(null);
 

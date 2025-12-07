@@ -14,7 +14,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onToggle: _onToggle,
   onCollapse,
   mode: _mode = "dark"
-}) => {
+}): React.ReactElement | null => {
   const [currentPath, setCurrentPath] = useState("");
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     window.addEventListener("popstate", updateCurrentPath);
     window.addEventListener("hashchange", updateCurrentPath);
 
-    return () => {
+    return (): void => {
       window.removeEventListener("popstate", updateCurrentPath);
       window.removeEventListener("hashchange", updateCurrentPath);
     };

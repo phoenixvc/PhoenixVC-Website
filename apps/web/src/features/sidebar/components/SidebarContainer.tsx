@@ -17,10 +17,10 @@ const SidebarContainer: React.FC<ExtendedSidebarContainerProps> = ({
   onClick,
   mode: _mode = "light",
   collapsed: _collapsed = false
-}) => {
+}): React.ReactElement => {
   const themeContext = useTheme() || {
     themeName: "default",
-    getComponentStyle: () => ({})
+    getComponentStyle: (): Record<string, unknown> => ({})
   };
   const { themeName: _themeName = "default" } = themeContext;
 
@@ -39,7 +39,7 @@ const SidebarContainer: React.FC<ExtendedSidebarContainerProps> = ({
     window.addEventListener("resize", handleResize);
 
     // Cleanup
-    return () => {
+    return (): void => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
@@ -75,7 +75,7 @@ const SidebarContainer: React.FC<ExtendedSidebarContainerProps> = ({
     isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
     isMobile ? "w-full md:w-64" : "w-64",
     "transition-transform duration-300 ease-in-out",
-    `theme-${themeName}-sidebar-${variant}`,
+    `theme-${_themeName}-sidebar-${variant}`,
     className
   );
 

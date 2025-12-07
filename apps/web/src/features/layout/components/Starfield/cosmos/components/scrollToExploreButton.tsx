@@ -19,7 +19,7 @@ const ScrollToExploreButton: React.FC<ScrollToExploreButtonProps> = ({ className
     };
 
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    return (): void => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   if (!isVisible) return null;

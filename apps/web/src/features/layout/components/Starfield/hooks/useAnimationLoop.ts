@@ -4,7 +4,12 @@ import { animate } from "./animation/animate";
 import { AnimationProps, AnimationRefs } from "./animation/types";
 import { logger } from "@/utils/logger";
 
-export const useAnimationLoop = (props: AnimationProps) => {
+export const useAnimationLoop = (props: AnimationProps): {
+  cancelAnimation: () => void;
+  restartAnimation: () => void;
+  currentFps: number;
+  timestamp: number;
+} => {
   const [currentFps, setCurrentFps] = useState<number>(0);
   const [timestamp, setTimestamp] = useState<number>(0);
 
@@ -219,7 +224,7 @@ export const useAnimationLoop = (props: AnimationProps) => {
   ]);
 
   return {
-    cancelAnimation: () => {
+    cancelAnimation: (): void => {
       isAnimatingRef.current = false;
       if (animationRef.current) {
         window.cancelAnimationFrame(animationRef.current);

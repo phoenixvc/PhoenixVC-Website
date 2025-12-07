@@ -1,5 +1,5 @@
 // apps/web/src/theme/context/ThemeContext.tsx
-import { createContext, useContext, useState, useMemo, ReactNode, useEffect } from "react";
+import React, { createContext, useContext, useState, useMemo, ReactNode, useEffect } from "react";
 
 type Theme = "light" | "dark";
 
@@ -29,7 +29,7 @@ const getInitialTheme = (): Theme => {
   return "dark"; // Default to dark mode
 };
 
-export const ThemeProvider = ({ children }: { children: ReactNode }): JSX.Element => {
+export const ThemeProvider = ({ children }: { children: ReactNode }): React.ReactElement => {
   const [themeMode, setThemeMode] = useState<Theme>(getInitialTheme);
 
   // Persist theme to localStorage whenever it changes

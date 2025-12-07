@@ -1,5 +1,5 @@
 // features/about/components/About/About.tsx
-import { FC, memo, useEffect, useRef, useState } from "react";
+import React, { FC, memo, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import styles from "./About.module.css";
 import { useSectionObserver } from "@/hooks/useSectionObserver";
@@ -71,7 +71,7 @@ const coreValues = [
   }
 ];
 
-const About: FC<AboutProps> = memo((): JSX.Element => {
+const About: FC<AboutProps> = memo((): React.ReactElement => {
   const { themeMode } = useTheme();
   const isDarkMode = themeMode === "dark";
   const [_activeSection, _setActiveSection] = useState(0);
@@ -92,7 +92,7 @@ const About: FC<AboutProps> = memo((): JSX.Element => {
   useEffect(() => {
     const video = videoRef.current;
     // Store handler reference for proper cleanup
-    const handleLoadedData = () => setVideoLoaded(true);
+    const handleLoadedData = (): void => setVideoLoaded(true);
 
     if (video) {
       // Add event listeners to track video loading
@@ -108,7 +108,7 @@ const About: FC<AboutProps> = memo((): JSX.Element => {
       }
     }
 
-    return () => {
+    return (): void => {
       if (video) {
         video.removeEventListener("loadeddata", handleLoadedData);
       }
@@ -119,7 +119,7 @@ const About: FC<AboutProps> = memo((): JSX.Element => {
     logger.debug("Video source updated for theme:", isDarkMode ? "dark" : "light");
 
     // Check if video files exist with a properly structured async function
-    (async () => {
+    (async (): Promise<void> => {
       const checkVideoExists = async (url: string): Promise<void> => {
         try {
           const response = await fetch(url, { method: "HEAD" });

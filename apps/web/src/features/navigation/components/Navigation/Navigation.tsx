@@ -1,4 +1,4 @@
-import { useEffect, useState, MouseEvent, useCallback } from "react";
+import React, { useEffect, useState, MouseEvent, useCallback } from "react";
 import { NavLink } from "../NavLink/NavLink";
 import type { NavigationProps, NavigationItem } from "../../types";
 import { NAVIGATION_ITEMS } from "../../constants";
@@ -13,7 +13,7 @@ export const Navigation = ({
   variant = "header",
   activeSection: propActiveSection,
   onSectionChange,
-}: NavigationProps): JSX.Element => {
+}: NavigationProps): React.ReactElement => {
   const location = useLocation();
   const [activeSection, setActiveSection] = useState<string>(() => {
     const hash = location.hash.replace("#", "");
@@ -22,7 +22,7 @@ export const Navigation = ({
 
   // Listen to section visibility events (primary method)
   useEffect(() => {
-    const handleSectionVisible = (event: Event) => {
+    const handleSectionVisible = (event: Event): void => {
       const customEvent = event as CustomEvent;
       const sectionId = customEvent.detail.id;
       setActiveSection(sectionId);
@@ -34,7 +34,7 @@ export const Navigation = ({
     };
 
     window.addEventListener("sectionVisible", handleSectionVisible);
-    return () => window.removeEventListener("sectionVisible", handleSectionVisible);
+    return (): void => window.removeEventListener("sectionVisible", handleSectionVisible);
   }, [onSectionChange]);
 
   // Backup intersection observer
@@ -44,7 +44,7 @@ export const Navigation = ({
       .map((item) => item.path.replace(/^\/?(#)?/, ""));
 
     const observer = new IntersectionObserver(
-      (entries) => {
+      (entries): void => {
         // Filter for elements that are currently intersecting
         const visibleSections = entries
           .filter(entry => entry.isIntersecting)
@@ -72,7 +72,7 @@ export const Navigation = ({
       if (element) observer.observe(element);
     });
 
-    return () => observer.disconnect();
+    return (): void => observer.disconnect();
   }, [items, onSectionChange]);
 
   // Update active section when hash changes
