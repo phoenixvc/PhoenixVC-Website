@@ -390,26 +390,29 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
 
     // Draw debug information if debug mode is enabled
     if (props.debugMode && !shouldSkipHeavyOperations) {
-        // Calculate FPS for debug info (moved from drawDebugInfo)
-        const fps = deltaTime > 0 ? 1000 / deltaTime : 0;
+        // Calculate FPS for debug info - throttle to every 10 frames
+        const frameCount = props.frameCountRef?.current ?? 0;
+        if (frameCount % 10 === 0) {
+          const fps = deltaTime > 0 ? 1000 / deltaTime : 0;
 
-        // Make sure fpsValues exists
-        if (!refs.fpsValues || !refs.fpsValues.current) {
-          refs.fpsValues = { current: [] };
-        }
+          // Make sure fpsValues exists
+          if (!refs.fpsValues || !refs.fpsValues.current) {
+            refs.fpsValues = { current: [] };
+          }
 
-        refs.fpsValues.current.push(fps);
-        if (refs.fpsValues.current.length > 60) {
-          refs.fpsValues.current.shift();
-        }
+          refs.fpsValues.current.push(fps);
+          if (refs.fpsValues.current.length > 60) {
+            refs.fpsValues.current.shift();
+          }
 
-        // Calculate average FPS over the last 60 frames
-        const avgFps = refs.fpsValues.current.reduce((sum, val) => sum + val, 0) /
-          refs.fpsValues.current.length;
+          // Calculate average FPS over the last 60 frames
+          const avgFps = refs.fpsValues.current.reduce((sum, val) => sum + val, 0) /
+            refs.fpsValues.current.length;
 
-        // Call the update function if provided
-        if (props.updateFpsData) {
-          props.updateFpsData(avgFps, timestamp);
+          // Call the update function if provided
+          if (props.updateFpsData) {
+            props.updateFpsData(avgFps, timestamp);
+          }
         }
 
         // Draw velocity vectors for stars (sample of stars to improve performance)
@@ -846,14 +849,11 @@ function drawSuns(
     const pulse = (pulse1 + pulse2 + pulse3) / 3;
     const size = baseSize * pulse * (isHighlighted ? 1.15 : 1);
     
-    const rgb = hexToRgb(sunState.color);
-    const rgbStr = rgb ? `${rgb.r}, ${rgb.g}, ${rgb.b}` : "255, 200, 100";
-    const secondaryColor = getSecondaryColor(sunState.color);
-    const secondaryRgb = hexToRgb(secondaryColor.replace("rgb(", "").replace(")", "").split(",").map(n => parseInt(n.trim())).reduce((acc, v, i) => {
-      const keys = ["r", "g", "b"];
-      return { ...acc, [keys[i]]: v };
-    }, { r: 255, g: 200, b: 100 }) as unknown as string) || { r: 255, g: 200, b: 100 };
-    const secondaryRgbStr = `${secondaryRgb.r}, ${secondaryRgb.g}, ${secondaryRgb.b}`;
+    // Use pre-computed RGB values from SunState to avoid parsing hex every frame
+    const rgbStr = sunState.colorRgbStr;
+    // For secondary color, use a slightly shifted version of the primary (cheaper than full HSL conversion)
+    const rgb = sunState.colorRgb;
+    const secondaryRgbStr = `${Math.min(255, rgb.r + 40)}, ${Math.min(255, rgb.g + 20)}, ${rgb.b}`;
     
     // ===== LAYER 0: Outer halo (very soft, large) =====
     const haloSize = size * (isHighlighted ? 12 : 9);
