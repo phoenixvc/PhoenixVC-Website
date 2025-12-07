@@ -950,6 +950,15 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     zoom: CAMERA_CONFIG.defaultZoom 
   });
   
+  // Helper function to sync cameraStateRef with current internalCamera position
+  const syncCameraStateRef = useCallback(() => {
+    cameraStateRef.current = {
+      cx: internalCamera.cx,
+      cy: internalCamera.cy,
+      zoom: internalCamera.zoom
+    };
+  }, [internalCamera.cx, internalCamera.cy, internalCamera.zoom]);
+  
   useEffect(() => {
     // Only start animation if there's an active target
     if (!internalCamera.target) {
@@ -959,11 +968,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
         cameraAnimationRef.current = null;
       }
       // Sync cameraStateRef with current camera position when no target
-      cameraStateRef.current = {
-        cx: internalCamera.cx,
-        cy: internalCamera.cy,
-        zoom: internalCamera.zoom
-      };
+      syncCameraStateRef();
       return;
     }
     
@@ -976,11 +981,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     
     // Sync cameraStateRef with current camera position before starting new animation
     // This ensures the animation starts from the current visible position
-    cameraStateRef.current = {
-      cx: internalCamera.cx,
-      cy: internalCamera.cy,
-      zoom: internalCamera.zoom
-    };
+    syncCameraStateRef();
     
     // Store the target for this animation cycle
     const targetCx = internalCamera.target.cx;
