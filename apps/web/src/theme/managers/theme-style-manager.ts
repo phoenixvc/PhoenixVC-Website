@@ -10,6 +10,7 @@ import { ComponentVariantType } from "../types/mappings/component-variants";
 import { ComponentState, InteractiveState } from "../types/mappings/state-mappings";
 import ColorUtils from "../utils/color-utils";
 import CssVariableManager from "./css-variable-manager";
+import { logger } from "../../utils/logger";
 
 // Define interfaces for common pattern structures
 interface ColorPatternValue {
@@ -37,7 +38,7 @@ export class ThemeStyleManager {
   private colorMapping: ColorMapping;
   private typographyManager: TypographyManager;
   private themes: Map<string, Theme> = new Map();
-  private debugMode = true; // Toggle this to enable/disable logging
+  private debugMode = false; // Logging disabled by default - use VITE_LOG_LEVEL env var to enable
 
   // Common property patterns and their default values
   private commonPatterns: CommonPatterns = {
@@ -203,26 +204,16 @@ export class ThemeStyleManager {
   }
 
   /**
-   * Logging utility method
+   * Logging utility method - uses centralized logger
    */
   private log(message: string, data?: unknown, isError = false): void {
     if (!this.debugMode) return;
 
     if (isError) {
-      console.group(`🔴 ERROR: ${message}`);
+      logger.error(`ThemeStyleManager: ${message}`, data);
     } else {
-      console.group(`🔵 ${message}`);
+      logger.debug(`ThemeStyleManager: ${message}`, data);
     }
-
-    if (data !== undefined) {
-      if (typeof data === "object" && data !== null) {
-        // Check for NaN values in the object
-        this.checkForNaN(data);
-      }
-      console.log(data);
-    }
-
-    console.groupEnd();
   }
 
   /**
@@ -232,22 +223,21 @@ export class ThemeStyleManager {
     if (obj === null || obj === undefined) return;
 
     if (typeof obj === "number" && isNaN(obj)) {
-      console.error("🚨 NaN detected at path: ${path}");
-      console.trace("NaN value stack trace");
+      logger.error(`🚨 NaN detected at path: ${path}`);
       return;
     }
 
     if (typeof obj !== "object") return;
 
     if (Array.isArray(obj)) {
-      obj.forEach((item, _index) => {
-        this.checkForNaN(item, path ? "${path}[${index}]" : "[${index}]");
+      obj.forEach((item, index) => {
+        this.checkForNaN(item, path ? `${path}[${index}]` : `[${index}]`);
       });
       return;
     }
 
     Object.entries(obj as Record<string, unknown>).forEach(([key, value]) => {
-      this.checkForNaN(value, path ? "${path}.${key}" : key);
+      this.checkForNaN(value, path ? `${path}.${key}` : key);
     });
   }
 

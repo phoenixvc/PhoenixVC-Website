@@ -157,6 +157,14 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     target: undefined
   });
   const cameraAnimationRef = useRef<number | null>(null);
+  
+  // Store current camera state in a ref for animation loop access
+  // This ref holds the ANIMATED camera position (not the target)
+  const cameraStateRef = useRef({ 
+    cx: CAMERA_CONFIG.defaultCenterX, 
+    cy: CAMERA_CONFIG.defaultCenterY, 
+    zoom: CAMERA_CONFIG.defaultZoom 
+  });
 
   // Game state
   const [gameState, setGameState] = useState<GameState>(initGameState());
@@ -947,14 +955,6 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   const targetKey = internalCamera.target 
     ? `${internalCamera.target.cx}-${internalCamera.target.cy}-${internalCamera.target.zoom}` 
     : null;
-  
-  // Store current camera state in a ref for animation loop access
-  // This ref holds the ANIMATED camera position (not the target)
-  const cameraStateRef = useRef({ 
-    cx: CAMERA_CONFIG.defaultCenterX, 
-    cy: CAMERA_CONFIG.defaultCenterY, 
-    zoom: CAMERA_CONFIG.defaultZoom 
-  });
   
   useEffect(() => {
     // Helper function to sync cameraStateRef with current internalCamera position
