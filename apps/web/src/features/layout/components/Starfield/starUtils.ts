@@ -2,42 +2,33 @@
 
 import { Planet } from "./types";
 import { getFrameTime } from "./frameCache";
+import {
+  hexToRgbSafe as hexToRgbFromColorUtils,
+  createSoftenedColor as createSoftenedColorFromColorUtils,
+  RGB,
+} from "./colorUtils";
 
-// Helper function to convert hex color to RGB
-export function hexToRgb(hex: string): { r: number, g: number, b: number } {
-    // Default color if invalid
-    if (!hex || typeof hex !== "string") {
-      return { r: 255, g: 255, b: 255 };
-    }
+// Default white color for stars
+const WHITE_RGB: RGB = { r: 255, g: 255, b: 255 };
 
-    // Remove # if present
-    hex = hex.replace(/^#/, "");
+/**
+ * Helper function to convert hex color to RGB
+ * Uses colorUtils.ts implementation with white as default fallback
+ * Re-exported for backwards compatibility
+ */
+export function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  return hexToRgbFromColorUtils(hex, WHITE_RGB);
+}
 
-    // Handle shorthand hex
-    if (hex.length === 3) {
-      hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
-    }
-
-    // Handle invalid hex
-    if (hex.length !== 6) {
-      return { r: 255, g: 255, b: 255 };
-    }
-
-    const r = parseInt(hex.substring(0, 2), 16);
-    const g = parseInt(hex.substring(2, 4), 16);
-    const b = parseInt(hex.substring(4, 6), 16);
-
-    return { r, g, b };
-  }
-
-  // Create a softened version of a color
-  export function createSoftenedColor(baseRgb: {r: number, g: number, b: number}): {r: number, g: number, b: number} {
-    return {
-      r: Math.round(baseRgb.r * 0.85 + 38), // Add a bit of brightness to maintain visibility
-      g: Math.round(baseRgb.g * 0.85 + 38),
-      b: Math.round(baseRgb.b * 0.85 + 38)
-    };
-  }
+/**
+ * Create a softened version of a color
+ * Re-exported from colorUtils.ts for backwards compatibility
+ */
+export function createSoftenedColor(
+  baseRgb: { r: number; g: number; b: number }
+): { r: number; g: number; b: number } {
+  return createSoftenedColorFromColorUtils(baseRgb);
+}
 
   // Helper function to ensure valid hex color with opacity
   export const ensureValidHexColor = (baseColor: string, opacity: number): string => {

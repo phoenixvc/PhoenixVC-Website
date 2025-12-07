@@ -51,8 +51,15 @@ export function hexToRgb(hex: string): RGB | null {
     return cached;
   }
 
-  // Clean and validate
-  const cleanHex = hex.replace(/^#/, "").trim();
+  // Clean the hex string
+  let cleanHex = hex.replace(/^#/, "").trim();
+
+  // Handle 3-digit shorthand hex (e.g., "fff" -> "ffffff")
+  if (/^[a-fA-F0-9]{3}$/.test(cleanHex)) {
+    cleanHex = cleanHex[0] + cleanHex[0] + cleanHex[1] + cleanHex[1] + cleanHex[2] + cleanHex[2];
+  }
+
+  // Validate 6-digit hex
   if (!/^[a-fA-F0-9]{6}$/.test(cleanHex)) {
     return null;
   }
@@ -232,6 +239,20 @@ export function getSecondaryColor(hex: string, hueShift: number = 0.11): string 
 }
 
 /**
+ * Create a secondary color from RGB by shifting hue
+ * Used for star trails and satellite rendering
+ *
+ * @param rgb - RGB color object
+ * @param hueShift - Amount to shift hue (0-1, default 0.11 for analogous)
+ * @returns Secondary color as RGB object
+ */
+export function getSecondaryColorRgb(rgb: RGB, hueShift: number = 0.11): RGB {
+  const hsl = rgbToHsl(rgb);
+  hsl.h = (hsl.h + hueShift) % 1;
+  return hslToRgb(hsl);
+}
+
+/**
  * Fast secondary color calculation (cheaper than HSL conversion)
  * Used in hot paths where full HSL conversion is too expensive
  *
@@ -281,6 +302,27 @@ export function interpolateColor(color1: RGB, color2: RGB, t: number): RGB {
     r: Math.round(color1.r + (color2.r - color1.r) * t),
     g: Math.round(color1.g + (color2.g - color1.g) * t),
     b: Math.round(color1.b + (color2.b - color1.b) * t),
+  };
+}
+
+/**
+ * Create a softened/pastel version of a color
+ * Used for gentler star rendering, reducing harsh contrast
+ *
+ * @param baseRgb - Base RGB color to soften
+ * @param factor - Softening factor (0-1, default 0.85)
+ * @param brightness - Base brightness to add (0-255, default 38)
+ * @returns Softened RGB color
+ */
+export function createSoftenedColor(
+  baseRgb: RGB,
+  factor: number = 0.85,
+  brightness: number = 38
+): RGB {
+  return {
+    r: Math.round(baseRgb.r * factor + brightness),
+    g: Math.round(baseRgb.g * factor + brightness),
+    b: Math.round(baseRgb.b * factor + brightness),
   };
 }
 

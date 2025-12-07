@@ -3,6 +3,7 @@ import { SUNS } from "./cosmos/cosmicHierarchy";
 import { getDailySeededRandom } from "./utils";
 import { SUN_PHYSICS } from "./physicsConfig";
 import { getFrameTime } from "./frameCache";
+import { hexToRgbSafe } from "./colorUtils";
 
 export interface SunState {
   id: string;
@@ -104,15 +105,6 @@ function generateRandomSunPositions(count: number): Array<{ x: number; y: number
 // Generate positions once when module loads (consistent within same day)
 export const INITIAL_SUN_POSITIONS = generateRandomSunPositions(4);
 
-// Helper to parse hex color to RGB (avoids repeated parsing in animation loop)
-function hexToRgb(hex: string): { r: number; g: number; b: number } {
-  const cleanHex = hex.replace(/^#/, "").trim();
-  const result = /^([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(cleanHex);
-  return result
-    ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) }
-    : { r: 255, g: 200, b: 100 }; // Default warm color
-}
-
 // Global sun state (mutable for animation)
 let sunStates: SunState[] = [];
 let systemStartTime = 0;
@@ -143,7 +135,7 @@ export function initializeSunStates(): void {
     
     // Pre-compute RGB values once at initialization
     const sunColor = sun.color || "#ffffff";
-    const rgb = hexToRgb(sunColor);
+    const rgb = hexToRgbSafe(sunColor);
 
     return {
       id: sun.id,
