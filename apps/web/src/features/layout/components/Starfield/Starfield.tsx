@@ -741,8 +741,9 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     ensureStarsExist,
     updateFpsData,
     hoveredSunId,
-    focusedSunId,
-    internalCamera
+    focusedSunId
+    // Note: internalCamera removed - we use cameraRef for synchronous access
+    // This prevents useMemo recalculation 60x/sec during camera animation
   ]);
 
   // Use the animation loop with memoized parameters - ONLY CALL THIS ONCE

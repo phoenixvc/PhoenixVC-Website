@@ -26,6 +26,14 @@ import { drawCosmicNavigation } from "./drawCosmicNavigation";
 // Import sun system for dynamic sun positioning
 import { getSunStates, initializeSunStates, updateSunPhysics, updateSunSizesFromPlanets, SunState } from "../../sunSystem";
 
+// Cached default mouse position to avoid allocation every frame
+let cachedDefaultMousePosition: MousePosition | null = null;
+
+// Throttle state for elementFromPoint (expensive DOM operation)
+let lastElementCheckFrame = 0;
+let cachedIsOverContentCard = false;
+const ELEMENT_CHECK_INTERVAL = 5; // Check every 5 frames instead of every frame
+
 export const animate = (timestamp: number, props: AnimationProps, refs: AnimationRefs): void => {
   try {
     // Update frame cache at the start of each frame
@@ -167,30 +175,30 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
     // Get current values from refs - use direct reference to avoid GC pressure
     const currentBlackHoles: BlackHole[] = props.blackHolesRef?.current ?? [];
 
-    // Fixed: Make sure isClicked is false by default
-    const currentMousePosition: MousePosition = refs.mousePositionRef.current ?
-        { ...refs.mousePositionRef.current } :
-    {
-      x: canvas.width / 2,
-      y: canvas.height / 2,
-      lastX: canvas.width / 2,
-      lastY: canvas.height / 2,
-      speedX: 0,
-      speedY: 0,
-      isClicked: false, // Ensure this is false by default
-      clickTime: 0,
-      isOnScreen: true // Changed to true to ensure visibility
-    };
+    // Use refs directly to avoid object allocation every frame
+    // Create cached default only once (lazily initialized)
+    if (!cachedDefaultMousePosition) {
+      cachedDefaultMousePosition = {
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+        lastX: canvas.width / 2,
+        lastY: canvas.height / 2,
+        speedX: 0,
+        speedY: 0,
+        isClicked: false,
+        clickTime: 0,
+        isOnScreen: true
+      };
+    }
+    const currentMousePosition: MousePosition = refs.mousePositionRef.current ?? cachedDefaultMousePosition;
 
-    // Debug logging removed for performance - re-enable if needed for debugging
+    // Use refs directly - these are read-only in animation loop
+    const currentHoverInfo: HoverInfo = refs.hoverInfoRef.current;
+    const currentGameState: GameState = refs.gameStateRef.current;
 
-    const currentHoverInfo: HoverInfo = { ...refs.hoverInfoRef.current };
-    const currentGameState: GameState = { ...refs.gameStateRef.current };
-
-    // NEW: Get cosmic navigation state and camera if available
-    const currentCamera: Camera | undefined = props.camera ? { ...props.camera } : undefined;
-    const currentNavigationState: CosmicNavigationState | undefined = props.navigationState ?
-      { ...props.navigationState } : undefined;
+    // Get cosmic navigation state and camera - use cameraRef for synchronous access
+    const currentCamera: Camera | undefined = props.cameraRef?.current as Camera | undefined;
+    const currentNavigationState: CosmicNavigationState | undefined = props.navigationState;
     const currentHoveredObjectId: string | null = props.hoveredObjectId || null;
 
     // NEW: Apply camera lerp if camera is available
@@ -206,28 +214,35 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
     }
 
     // Check if mouse is actually over the canvas vs over a content card
-    // Using elementFromPoint to detect if there's a higher z-index element at the mouse position
-    let isOverContentCard = false;
-    if (typeof document !== "undefined" && currentMousePosition.isOnScreen) {
-      const elementAtMouse = document.elementFromPoint(
-        currentMousePosition.x,
-        currentMousePosition.y
-      );
-      if (elementAtMouse) {
-        // Check if the element is the canvas or inside the starfield container
-        const isCanvas = elementAtMouse.tagName === "CANVAS";
-        const isInsideStarfield = elementAtMouse.closest("[data-starfield]") !== null;
-        // Check if the element is inside the hero section (which should allow tooltips)
-        const isInsideHeroSection = elementAtMouse.closest("section[aria-label=\"hero section\"]") !== null;
-        // Check if hovering over header/navigation (should allow tooltips since they're transparent)
-        const isInsideHeader = elementAtMouse.closest("header") !== null;
-        // Check if hovering over sidebar (should allow tooltips)
-        const isInsideSidebar = elementAtMouse.closest("aside, [role=\"complementary\"]") !== null;
-        
-        // Only consider it as "over content card" if it's NOT any of the allowed elements
-        // This allows tooltips to show when hovering over transparent overlays, header, sidebar, etc.
-        isOverContentCard = !isCanvas && !isInsideStarfield && !isInsideHeroSection && !isInsideHeader && !isInsideSidebar;
+    // Throttle this expensive DOM operation to every N frames
+    const currentFrameCount = props.frameCountRef?.current ?? 0;
+    let isOverContentCard = cachedIsOverContentCard;
+
+    if (currentFrameCount - lastElementCheckFrame >= ELEMENT_CHECK_INTERVAL) {
+      lastElementCheckFrame = currentFrameCount;
+      isOverContentCard = false;
+
+      if (typeof document !== "undefined" && currentMousePosition.isOnScreen) {
+        const elementAtMouse = document.elementFromPoint(
+          currentMousePosition.x,
+          currentMousePosition.y
+        );
+        if (elementAtMouse) {
+          // Check if the element is the canvas or inside the starfield container
+          const isCanvas = elementAtMouse.tagName === "CANVAS";
+          const isInsideStarfield = elementAtMouse.closest("[data-starfield]") !== null;
+          // Check if the element is inside the hero section (which should allow tooltips)
+          const isInsideHeroSection = elementAtMouse.closest("section[aria-label=\"hero section\"]") !== null;
+          // Check if hovering over header/navigation (should allow tooltips since they're transparent)
+          const isInsideHeader = elementAtMouse.closest("header") !== null;
+          // Check if hovering over sidebar (should allow tooltips)
+          const isInsideSidebar = elementAtMouse.closest("aside, [role=\"complementary\"]") !== null;
+
+          // Only consider it as "over content card" if it's NOT any of the allowed elements
+          isOverContentCard = !isCanvas && !isInsideStarfield && !isInsideHeroSection && !isInsideHeader && !isInsideSidebar;
+        }
       }
+      cachedIsOverContentCard = isOverContentCard;
     }
 
     if (props.enablePlanets && props.enableMouseInteraction) {
