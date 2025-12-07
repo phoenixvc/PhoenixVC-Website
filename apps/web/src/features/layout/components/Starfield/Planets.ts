@@ -4,7 +4,7 @@
 import { getObjectById, SUNS } from "./cosmos/cosmicHierarchy";
 import { worldToScreen } from "./cosmos/cosmicNavigation";
 import { Camera } from "./cosmos/types";
-import { PLANET_PHYSICS } from "./physicsConfig";
+import { PLANET_PHYSICS, CAMERA_CONFIG } from "./physicsConfig";
 import { ORBIT_CONFIG } from "./renderingConfig";
 import { drawPlanet } from "./starRendering";
 import { getSunStates } from "./sunSystem";
@@ -439,10 +439,9 @@ export const updatePlanets = (
 
         // Smooth interpolation to prevent jerky planet movement when sun moves
         if (planet.orbitCenter) {
-          const smoothingFactor = 0.08; // Smooth following
           planet.orbitCenter = {
-            x: planet.orbitCenter.x + (targetX - planet.orbitCenter.x) * smoothingFactor,
-            y: planet.orbitCenter.y + (targetY - planet.orbitCenter.y) * smoothingFactor
+            x: planet.orbitCenter.x + (targetX - planet.orbitCenter.x) * CAMERA_CONFIG.cameraSmoothingFactor,
+            y: planet.orbitCenter.y + (targetY - planet.orbitCenter.y) * CAMERA_CONFIG.cameraSmoothingFactor
           };
         } else {
           planet.orbitCenter = { x: targetX, y: targetY };
