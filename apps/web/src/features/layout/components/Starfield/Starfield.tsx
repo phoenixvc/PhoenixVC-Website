@@ -868,8 +868,24 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     }
   }, []);
 
+  // Helper function to calculate camera center adjusted for sidebar offset
+  // This ensures content appears centered in the visible viewport area
+  const calculateAdjustedCameraCenter = useCallback((targetX: number, targetY: number): { cx: number; cy: number } => {
+    const canvas = dimensionsRef.current;
+    const sidebarOffsetNormalized = canvas ? (sidebarWidth / canvas.width) : 0;
+    
+    // Shift camera center right by half the sidebar width to compensate for visual offset
+    return {
+      cx: targetX + sidebarOffsetNormalized / 2,
+      cy: targetY
+    };
+  }, [dimensionsRef, sidebarWidth]);
+
   // Function to zoom the camera to focus on a specific sun
   const zoomToSun = useCallback((sunId: string): void => {
+    const VIEWPORT_CENTER_X = 0.5;
+    const VIEWPORT_CENTER_Y = 0.5;
+    const DEFAULT_ZOOM = 1;
 
     // Cancel any existing camera animation
     if (cameraAnimationRef.current) {
@@ -881,15 +897,14 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
       setFocusedSunId(null);
 
       // Set camera target to zoom out
-      // When zooming out, center should account for sidebar offset
-      const canvas = dimensionsRef.current;
-      const sidebarOffsetNormalized = canvas ? (sidebarWidth / canvas.width) : 0;
+      // Center should account for sidebar offset to maintain proper visual centering
+      const { cx, cy } = calculateAdjustedCameraCenter(VIEWPORT_CENTER_X, VIEWPORT_CENTER_Y);
       setInternalCamera(prev => ({
         ...prev,
         target: {
-          cx: 0.5 + sidebarOffsetNormalized / 2,
-          cy: 0.5,
-          zoom: 1
+          cx,
+          cy,
+          zoom: DEFAULT_ZOOM
         }
       }));
       return;
@@ -941,31 +956,19 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
       : CAMERA_CONFIG.sunFocusZoom;
 
     // Set camera target to zoom in on the sun
-    // Sun position is normalized (0-1), camera uses same coordinates
-    // The sun's position already accounts for sidebar offset in its generation,
-    // but we need to adjust the camera center to visually center the sun
-    // in the viewport accounting for the sidebar.
-    // 
-    // The camera transform does: translate(width/2, height/2) then translate(-cx*width, -cy*height)
-    // This means cx=0.5 puts the origin at the center of the canvas.
-    // With a sidebar, to center content visually, we need to shift cx slightly right.
-    const canvas = dimensionsRef.current;
-    const sidebarOffsetNormalized = canvas ? (sidebarWidth / canvas.width) : 0;
-    
-    // Adjust camera center to account for sidebar - shift right by half the sidebar width
-    // This ensures the sun appears centered in the *visible* content area
-    const adjustedCx = sunPosition.x + sidebarOffsetNormalized / 2;
+    // Use helper function to adjust camera center accounting for sidebar offset
+    const { cx, cy } = calculateAdjustedCameraCenter(sunPosition.x, sunPosition.y);
     
     setInternalCamera(prev => ({
       ...prev,
       target: {
-        cx: adjustedCx,
-        cy: sunPosition.y,
+        cx,
+        cy,
         zoom: calculatedZoom
       }
     }));
 
-  }, [focusedSunId, employeeStarsRef, dimensionsRef, sidebarWidth]);
+  }, [focusedSunId, employeeStarsRef, dimensionsRef, calculateAdjustedCameraCenter]);
 
   // Smooth camera lerp animation - only runs when there's an active target
   // Use a serialized target key to detect when target changes
