@@ -109,12 +109,18 @@ export const drawPlanet = (
   const projectColor = planet.project?.color || "#ffffff";
   const sunColor = getSunAlignedColor(planet);
 
-  // Project color for the core
-  const coreRgb = hexToRgb(projectColor);
+  // Project color for the core - use cached RGB to avoid hexToRgb per frame
+  if (!planet.cachedCoreRgb) {
+    planet.cachedCoreRgb = hexToRgb(projectColor);
+  }
+  const coreRgb = planet.cachedCoreRgb;
   const softCoreRgb = createSoftenedColor(coreRgb);
 
-  // Sun color for outer glow/ring (shows focus area affiliation)
-  const glowRgb = hexToRgb(sunColor);
+  // Sun color for outer glow/ring - use cached RGB to avoid hexToRgb per frame
+  if (!planet.cachedGlowRgb) {
+    planet.cachedGlowRgb = hexToRgb(sunColor);
+  }
+  const glowRgb = planet.cachedGlowRgb;
   const softGlowRgb = createSoftenedColor(glowRgb);
 
   // Use core color as main, glow color for effects

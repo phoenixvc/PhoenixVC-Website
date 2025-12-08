@@ -107,6 +107,10 @@ export interface Planet {
   orbitParentId?: string;
   /** Cached sun color for fast rendering (avoids repeated lookup) */
   cachedSunColor?: string;
+  /** Cached RGB values for project color (avoids hexToRgb per frame) */
+  cachedCoreRgb?: { r: number; g: number; b: number };
+  /** Cached RGB values for sun/glow color (avoids hexToRgb per frame) */
+  cachedGlowRgb?: { r: number; g: number; b: number };
 }
 
 export interface HoverInfo {

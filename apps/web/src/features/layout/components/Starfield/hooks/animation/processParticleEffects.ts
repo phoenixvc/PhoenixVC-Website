@@ -85,12 +85,12 @@ export function processParticleEffects(
     // Uses swap-and-pop pattern for O(1) removal
     if (!shouldSkipHeavyOperations) {
       const effects = refs.collisionEffectsRef.current;
-      const now = Date.now();
+      // Use timestamp for consistency with click bursts (avoids Date.now() call)
       let effectIdx = 0;
 
       while (effectIdx < effects.length) {
         const effect = effects[effectIdx];
-        const timeSinceEffect = now - effect.time;
+        const timeSinceEffect = timestamp - effect.time;
 
         // Remove effects older than 1 second using swap-and-pop
         if (timeSinceEffect > 1000) {

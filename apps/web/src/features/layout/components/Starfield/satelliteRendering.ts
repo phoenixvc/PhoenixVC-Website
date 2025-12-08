@@ -6,7 +6,7 @@ import { getSecondaryColorRgb } from "./colorUtils";
 import { Planet } from "./types";
 import { getFrameTime } from "./frameCache";
 import { SUNS } from "./cosmos/cosmicHierarchy";
-import { TWO_PI } from "./math";
+import { TWO_PI, fastSin, fastCos } from "./math";
 
 /**
  * Get the sun color for a planet based on its focus area
@@ -51,7 +51,7 @@ export function drawSatellites(
       const b = satellite.distance * (1 - satellite.eccentricity) * scaleFactor;
 
       // Animated orbit ring with sun color
-      const orbitPhase = Math.sin(time * 0.0003 + index * 0.5) * 0.5 + 0.5;
+      const orbitPhase = fastSin(time * 0.0003 + index * 0.5) * 0.5 + 0.5;
       const orbitOpacity = 0.15 + orbitPhase * 0.1;
 
       ctx.beginPath();
@@ -93,7 +93,7 @@ export function drawSatellites(
     planet.satellites.forEach((satellite, index) => {
       // Independent pulsation for satellites - smoother and slower
       const satelliteTime = time * 0.0004;
-      const satellitePulse = 0.92 + Math.sin(satelliteTime * (index + 1) * 0.25) * 0.08;
+      const satellitePulse = 0.92 + fastSin(satelliteTime * (index + 1) * 0.25) * 0.08;
 
       // Update satellite position
       const directionMult = index % 2 === 0 ? 1 : -1;
@@ -104,8 +104,8 @@ export function drawSatellites(
       const b = satellite.distance * (1 - eccentricity) * scaleFactor;
 
       // Calculate satellite position relative to the planet
-      const satX = planet.x + a * Math.cos(satellite.angle);
-      const satY = planet.y + b * Math.sin(satellite.angle);
+      const satX = planet.x + a * fastCos(satellite.angle);
+      const satY = planet.y + b * fastSin(satellite.angle);
 
       // Use sun's secondary color for satellites (moons)
       const moonRgb = index % 2 === 0 ? secondaryRgb : sunRgb;
@@ -174,8 +174,8 @@ export function drawSatellites(
         for (let i = 0; i < particleCount; i++) {
           const particleAngle = Math.random() * TWO_PI;
           const particleDistance = satellite.size * (1.8 + Math.random() * 2);
-          const particleX = satX + Math.cos(particleAngle) * particleDistance;
-          const particleY = satY + Math.sin(particleAngle) * particleDistance;
+          const particleX = satX + fastCos(particleAngle) * particleDistance;
+          const particleY = satY + fastSin(particleAngle) * particleDistance;
           const particleSize = satellite.size * 0.2 * Math.random();
 
           // Use sun color for particles

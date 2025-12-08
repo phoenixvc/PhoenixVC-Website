@@ -7,7 +7,7 @@ import { Planet } from "./types";
 import { getFrameTime } from "./frameCache";
 import { SUNS } from "./cosmos/cosmicHierarchy";
 import { COMET_CONFIG } from "./physicsConfig";
-import { TWO_PI } from "./math";
+import { TWO_PI, fastSin, fastCos } from "./math";
 
 /**
  * Get the sun color for a planet based on its focus area
@@ -53,8 +53,8 @@ export function drawStarTrail(
   const time = getFrameTime();
 
   // Calculate movement direction (opposite to travel direction for trail)
-  const dx = -Math.sin(planet.angle) * (planet.orbitalDirection === "clockwise" ? 1 : -1);
-  const dy = Math.cos(planet.angle) * (planet.orbitalDirection === "clockwise" ? 1 : -1);
+  const dx = -fastSin(planet.angle) * (planet.orbitalDirection === "clockwise" ? 1 : -1);
+  const dy = fastCos(planet.angle) * (planet.orbitalDirection === "clockwise" ? 1 : -1);
 
   const magnitude = Math.sqrt(dx * dx + dy * dy) || 1;
   const normalizedDx = dx / magnitude;
@@ -79,7 +79,7 @@ export function drawStarTrail(
 
   // Subtle wobble for organic feel
   const wobbleTime = time * 0.0002;
-  const wobbleAmount = 2 * Math.sin(wobbleTime);
+  const wobbleAmount = 2 * fastSin(wobbleTime);
 
   ctx.save();
   ctx.beginPath();
@@ -144,9 +144,9 @@ export function drawStarTrail(
     const distanceAlongTrail = progress * trailLength * 1.4;
 
     // Use deterministic "randomness" based on index and time
-    const seed1 = Math.sin(i * 127.1 + time * 0.00005);
-    const seed2 = Math.cos(i * 311.7 + time * 0.00004);
-    const seed3 = Math.sin(i * 74.3 + time * 0.00003);
+    const seed1 = fastSin(i * 127.1 + time * 0.00005);
+    const seed2 = fastCos(i * 311.7 + time * 0.00004);
+    const seed3 = fastSin(i * 74.3 + time * 0.00003);
 
     // Debris spreads wider as it trails behind
     const spreadFactor = progress * progress * trailLength * 0.4;
@@ -204,8 +204,8 @@ export function drawStarTrail(
     const distanceAlongTrail = progress * trailLength * 1.5;
 
     // More chaotic movement for dust
-    const dustSeed1 = Math.sin(i * 73.1 + time * 0.00008);
-    const dustSeed2 = Math.cos(i * 157.3 + time * 0.00006);
+    const dustSeed1 = fastSin(i * 73.1 + time * 0.00008);
+    const dustSeed2 = fastCos(i * 157.3 + time * 0.00006);
 
     // Wider spread for dust
     const dustSpread = progress * trailLength * 0.5;
@@ -236,10 +236,10 @@ export function drawStarTrail(
     const distanceAlongTrail = progress * trailLength * 0.8;
 
     // Sparkles twinkle in and out
-    const twinkle = Math.sin(time * 0.002 + i * 2.7);
+    const twinkle = fastSin(time * 0.002 + i * 2.7);
     if (twinkle < 0.2) continue;
 
-    const sparkleSeed = Math.sin(i * 43.7);
+    const sparkleSeed = fastSin(i * 43.7);
     const sparkleSpread = progress * trailLength * 0.15;
 
     const sparkleX = planet.x - normalizedDx * distanceAlongTrail + perpDx * sparkleSeed * sparkleSpread;
@@ -281,11 +281,11 @@ export function drawStarTrail(
 
   for (let i = 0; i < jetCount; i++) {
     // Jets spray out at angles from the comet
-    const jetAngle = (i - 1) * 0.4 + Math.sin(time * 0.001 + i) * 0.15;
-    const jetDirX = normalizedDx * Math.cos(jetAngle) - perpDx * Math.sin(jetAngle);
-    const jetDirY = normalizedDy * Math.cos(jetAngle) - perpDy * Math.sin(jetAngle);
+    const jetAngle = (i - 1) * 0.4 + fastSin(time * 0.001 + i) * 0.15;
+    const jetDirX = normalizedDx * fastCos(jetAngle) - perpDx * fastSin(jetAngle);
+    const jetDirY = normalizedDy * fastCos(jetAngle) - perpDy * fastSin(jetAngle);
 
-    const jetLength = trailLength * (0.3 + Math.sin(time * 0.0008 + i * 2) * 0.1);
+    const jetLength = trailLength * (0.3 + fastSin(time * 0.0008 + i * 2) * 0.1);
     const jetWidth = startWidth * 0.3;
 
     const jetEndX = planet.x - jetDirX * jetLength;

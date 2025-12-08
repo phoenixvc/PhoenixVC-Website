@@ -4,7 +4,7 @@ import { BlackHole, BlackHoleParticle } from "./types";
 import { randomColor } from "./utils";
 import { getFrameTime } from "./frameCache";
 import { BLACK_HOLE_RENDERING_CONFIG as BH } from "./renderingConfig";
-import { TWO_PI } from "./math";
+import { TWO_PI, fastSin, fastCos } from "./math";
 
 // Helper to parse RGB values from rgba string (called once per particle, not per frame)
 function parseRgbFromRgba(rgbaString: string): { r: number; g: number; b: number } {
@@ -79,7 +79,7 @@ export const drawBlackHole = (
 
   // Draw outer gravitational distortion glow (pulsing effect)
   const pulseTime = getFrameTime() * BH.pulse.timeMultiplier;
-  const pulseFactor = 1 + Math.sin(pulseTime * BH.pulse.frequency) * BH.pulse.amplitude;
+  const pulseFactor = 1 + fastSin(pulseTime * BH.pulse.frequency) * BH.pulse.amplitude;
 
   // Outer gravitational glow - very subtle
   ctx.save();
@@ -119,8 +119,8 @@ export const drawBlackHole = (
       const rgb = parseRgbFromRgba(particleColor);
 
       const newParticle: BlackHoleParticle = {
-        x: x + Math.cos(angle) * distance,
-        y: y + Math.sin(angle) * distance,
+        x: x + fastCos(angle) * distance,
+        y: y + fastSin(angle) * distance,
         size: particleSize,
         angle,
         distance,
@@ -153,8 +153,8 @@ export const drawBlackHole = (
     particle.distance -= BH.particles.spiralSpeed * particleSpeed * deltaTime;
 
     // Update position based on angle and distance
-    particle.x = x + Math.cos(particle.angle) * particle.distance;
-    particle.y = y + Math.sin(particle.angle) * particle.distance;
+    particle.x = x + fastCos(particle.angle) * particle.distance;
+    particle.y = y + fastSin(particle.angle) * particle.distance;
 
     // Decrease alpha over time
     if (particle.alpha) {
@@ -225,12 +225,12 @@ export const drawBlackHole = (
   ctx.fill();
 
   // Draw pulsing event horizon (inner ring)
-  const eventHorizonPulse = (1 - BH.eventHorizon.pulseAmplitude) + Math.sin(pulseTime * 2) * BH.eventHorizon.pulseAmplitude;
+  const eventHorizonPulse = (1 - BH.eventHorizon.pulseAmplitude) + fastSin(pulseTime * 2) * BH.eventHorizon.pulseAmplitude;
   ctx.beginPath();
   ctx.arc(x, y, radius * BH.eventHorizon.radiusMultiplier * eventHorizonPulse, 0, TWO_PI);
-  const ehOpacity = BH.eventHorizon.baseOpacity + Math.sin(pulseTime * 2.5) * BH.eventHorizon.opacityAmplitude;
+  const ehOpacity = BH.eventHorizon.baseOpacity + fastSin(pulseTime * 2.5) * BH.eventHorizon.opacityAmplitude;
   ctx.strokeStyle = `rgba(${BH.disk.color}, ${ehOpacity})`;
-  ctx.lineWidth = BH.eventHorizon.baseLineWidth + Math.sin(pulseTime * 3) * BH.eventHorizon.lineWidthAmplitude;
+  ctx.lineWidth = BH.eventHorizon.baseLineWidth + fastSin(pulseTime * 3) * BH.eventHorizon.lineWidthAmplitude;
   ctx.stroke();
 
   // Draw inner core highlight
