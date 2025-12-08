@@ -378,6 +378,12 @@ export function handleBoundaries(
   }
 }
 
+// Size threshold for simplified rendering (skip gradient glow for tiny stars)
+const SIMPLE_STAR_SIZE_THRESHOLD = 1.2;
+
+// Cached white color for center highlights (avoid string allocation in loop)
+const CACHED_WHITE_PREFIX = "rgba(255, 255, 255, ";
+
 export const drawStars = (
   ctx: CanvasRenderingContext2D,
   stars: Star[]
@@ -385,16 +391,42 @@ export const drawStars = (
   const now = getFrameTime();
   const glowDuration = EFFECT_TIMING.pushGlowDuration;
 
-  // Enable anti-aliasing for smoother star rendering
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "high";
+  // BATCHING OPTIMIZATION: Separate stars into groups for more efficient rendering
+  // Small stars: simple solid fill (no gradient)
+  // Large stars: full gradient rendering
+  // Recently pushed: special glow effect
 
+  // First pass: Draw all small stars with batched solid fills
+  // This minimizes gradient creation overhead for the majority of stars
   for (let i = 0; i < stars.length; i++) {
     const star = stars[i];
-    
+    if (star.isConsumed) continue;
+
+    const timeSincePush = now - star.lastPushed;
+    const recentlyPushed = star.isActive && (timeSincePush < glowDuration);
+
+    // Skip non-simple stars in first pass
+    if (recentlyPushed || star.size >= SIMPLE_STAR_SIZE_THRESHOLD) continue;
+
+    // Simple solid fill for small stars - no gradient, no glow
+    const parsed = star.parsedColor ?? null;
+    const alpha = 0.85 + (i % 10) * 0.015;
+    const coreColor = parsed
+      ? colorWithAlpha(parsed, alpha)
+      : star.color;
+    ctx.beginPath();
+    ctx.arc(star.x, star.y, star.size * 0.7, 0, TWO_PI);
+    ctx.fillStyle = coreColor;
+    ctx.fill();
+  }
+
+  // Second pass: Draw larger stars and recently pushed stars (need gradients)
+  for (let i = 0; i < stars.length; i++) {
+    const star = stars[i];
+
     // Skip consumed stars (they're hidden while waiting to respawn)
     if (star.isConsumed) continue;
-    
+
     // Check if star was recently pushed (within glow duration)
     const timeSincePush = now - star.lastPushed;
     const recentlyPushed = star.isActive && (timeSincePush < glowDuration);
@@ -403,26 +435,19 @@ export const drawStars = (
       // Calculate how recent the push was (1.0 = just now, 0.0 = glowDuration ago)
       const recency = 1 - timeSincePush / glowDuration;
 
-      // Smooth glow effect for pushed stars
+      // Use pre-cached parsed color from star initialization (avoids per-frame parsing)
+      const baseColor = star.color;
+      const parsed = star.parsedColor ?? null;
+      const brighterColorStr = parsed ? brightenColor(parsed, 100) : baseColor;
+
+      // Simplified glow for pushed stars - 2 stops instead of 4
       const glowRadius = star.size * (3 + recency * 5);
       const gradient = ctx.createRadialGradient(
         star.x, star.y, 0,
         star.x, star.y, glowRadius
       );
-
-      // Use pre-cached parsed color from star initialization (avoids per-frame parsing)
-      const baseColor = star.color;
-      const parsed = star.parsedColor ?? null;
-
-      // Use optimized color functions to avoid string manipulation in hot path
-      const brighterColorStr = parsed ? brightenColor(parsed, 100) : baseColor;
-      const midOpacityColor = parsed ? colorWithAlpha(parsed, 0.7) : baseColor;
-      const lowOpacityColor = parsed ? colorWithAlpha(parsed, 0.2) : baseColor;
-
-      // Create smooth glow gradient with more color stops for better blending
+      const glowColor = parsed ? colorWithAlpha(parsed, 0.6) : baseColor;
       gradient.addColorStop(0, brighterColorStr);
-      gradient.addColorStop(0.3, midOpacityColor);
-      gradient.addColorStop(0.6, lowOpacityColor);
       gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
 
       // Draw glow
@@ -437,8 +462,13 @@ export const drawStars = (
       ctx.fillStyle = brighterColorStr;
       ctx.fill();
     } else {
-      // Crisp star rendering with very subtle twinkling effect
-      // Use pre-calculated twinkle values from star init (performance optimization)
+      // Skip small stars in second pass (already drawn in first pass)
+      if (star.size < SIMPLE_STAR_SIZE_THRESHOLD) continue;
+
+      // Use pre-parsed color from star init (performance optimization)
+      const parsed = star.parsedColor ?? null;
+
+      // Full rendering for larger stars
       const uniqueSeed = star.uniqueSeed ?? 0;
       const twinkleSpeed1 = star.twinkleSpeed1 ?? 0.0003;
       const twinkleSpeed2 = star.twinkleSpeed2 ?? 0.0002;
@@ -446,33 +476,23 @@ export const drawStars = (
       // Very subtle twinkle with minimal variation to reduce flickering
       const twinkle1 = fastSin(now * twinkleSpeed1 + uniqueSeed * 0.05);
       const twinkle2 = fastSin(now * twinkleSpeed2 * 1.3 + uniqueSeed * 0.08);
-      // Very narrow twinkle range for stable appearance (0.92 to 1.0)
       const twinkleFactor = 0.92 + (twinkle1 * 0.04 + twinkle2 * 0.04);
 
       // Minimal size variation for crisp, stable stars
       const twinkleSize = star.size * (0.98 + twinkleFactor * 0.04);
 
-      // Use pre-parsed color from star init (performance optimization)
-      const parsed = star.parsedColor ?? null;
-
-      // Very subtle soft glow - further reduced radius for much crisper, smaller stars
+      // Simplified glow gradient - 2 stops instead of 3
       const glowRadius = twinkleSize * 1.0;
-      const glowGradient = ctx.createRadialGradient(
-        star.x, star.y, 0,
-        star.x, star.y, glowRadius
-      );
-
-      // Reduced glow opacity for crisper appearance
       const glowOpacity = twinkleFactor * 0.12;
       const glowColor = parsed
         ? colorWithAlpha(parsed, glowOpacity)
         : star.color;
-      const glowColorMid = parsed
-        ? colorWithAlpha(parsed, glowOpacity * 0.4)
-        : star.color;
 
+      const glowGradient = ctx.createRadialGradient(
+        star.x, star.y, 0,
+        star.x, star.y, glowRadius
+      );
       glowGradient.addColorStop(0, glowColor);
-      glowGradient.addColorStop(0.5, glowColorMid);
       glowGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
 
       ctx.beginPath();
@@ -481,8 +501,7 @@ export const drawStars = (
       ctx.fill();
 
       // Draw solid star core for crisp appearance (no gradient)
-      // Stable alpha for core (minimal flickering)
-      const alpha = 0.85 + twinkleFactor * 0.15; // Range: 0.85 to 1.0
+      const alpha = 0.85 + twinkleFactor * 0.15;
       const coreColor = parsed
         ? colorWithAlpha(parsed, alpha)
         : star.color;
@@ -494,11 +513,10 @@ export const drawStars = (
 
       // Very subtle white center for only the largest/brightest stars
       if (twinkleFactor > STAR_CENTER_HIGHLIGHT_THRESHOLD && star.size > STAR_CENTER_HIGHLIGHT_ENHANCED_MIN_SIZE) {
-        // Calculate opacity: minimal effect
         const centerOpacity = (twinkleFactor - STAR_CENTER_HIGHLIGHT_THRESHOLD) * STAR_CENTER_OPACITY_MULTIPLIER * CENTER_OPACITY_REDUCTION_FACTOR;
         ctx.beginPath();
         ctx.arc(star.x, star.y, twinkleSize * 0.2, 0, TWO_PI);
-        ctx.fillStyle = `rgba(255, 255, 255, ${centerOpacity})`;
+        ctx.fillStyle = CACHED_WHITE_PREFIX + centerOpacity + ")";
         ctx.fill();
       }
     }

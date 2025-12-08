@@ -28,8 +28,12 @@ type PropelConfig = typeof SUN_RENDERING_CONFIG.propelRings;
 type GranulationConfig = typeof SUN_RENDERING_CONFIG.granulation;
 type HoverRingConfig = typeof SUN_RENDERING_CONFIG.hoverRing;
 
+// Feature flag for blur-based rendering (experimental, better perf on some GPUs)
+const USE_FILTER_BLUR = false;
+
 /**
  * Draw the outermost halo glow around the sun
+ * Optimized: reduced from 4 gradient stops to 2
  */
 export function drawSunHalo(
   ctx: CanvasRenderingContext2D,
@@ -38,21 +42,34 @@ export function drawSunHalo(
   layers: LayersConfig
 ): void {
   const haloSize = size * (isHighlighted ? layers.haloSize.highlighted : layers.haloSize.normal);
-  const haloGradient = ctx.createRadialGradient(x, y, size * 0.3, x, y, haloSize);
-  haloGradient.addColorStop(0, `rgba(${rgbStr}, ${isHighlighted ? 0.15 : 0.08})`);
-  haloGradient.addColorStop(0.3, `rgba(${rgbStr}, ${isHighlighted ? 0.08 : 0.04})`);
-  haloGradient.addColorStop(0.6, `rgba(${rgbStr}, ${isHighlighted ? 0.03 : 0.015})`);
-  haloGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
 
-  ctx.beginPath();
-  ctx.fillStyle = haloGradient;
-  ctx.globalAlpha = isDarkMode ? 1 : 0.8;
-  ctx.arc(x, y, haloSize, 0, TWO_PI);
-  ctx.fill();
+  if (USE_FILTER_BLUR) {
+    // Alternative: Use CSS filter blur for softer edges (experimental)
+    ctx.save();
+    ctx.filter = `blur(${size * 0.3}px)`;
+    ctx.beginPath();
+    ctx.fillStyle = `rgba(${rgbStr}, ${isHighlighted ? 0.2 : 0.12})`;
+    ctx.globalAlpha = isDarkMode ? 1 : 0.8;
+    ctx.arc(x, y, haloSize * 0.6, 0, TWO_PI);
+    ctx.fill();
+    ctx.restore();
+  } else {
+    // Optimized gradient: 2 stops instead of 4
+    const haloGradient = ctx.createRadialGradient(x, y, size * 0.3, x, y, haloSize);
+    haloGradient.addColorStop(0, `rgba(${rgbStr}, ${isHighlighted ? 0.12 : 0.06})`);
+    haloGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
+
+    ctx.beginPath();
+    ctx.fillStyle = haloGradient;
+    ctx.globalAlpha = isDarkMode ? 1 : 0.8;
+    ctx.arc(x, y, haloSize, 0, TWO_PI);
+    ctx.fill();
+  }
 }
 
 /**
  * Draw the atmospheric glow layer
+ * Optimized: reduced from 5 gradient stops to 3
  */
 export function drawSunAtmosphere(
   ctx: CanvasRenderingContext2D,
@@ -62,10 +79,9 @@ export function drawSunAtmosphere(
 ): void {
   const atmosphereSize = size * (isHighlighted ? layers.atmosphereSize.highlighted : layers.atmosphereSize.normal);
   const atmosphereGradient = ctx.createRadialGradient(x, y, size * 0.4, x, y, atmosphereSize);
-  atmosphereGradient.addColorStop(0, `rgba(${rgbStr}, ${isHighlighted ? 0.5 : 0.35})`);
-  atmosphereGradient.addColorStop(0.2, `rgba(${rgbStr}, ${isHighlighted ? 0.3 : 0.2})`);
-  atmosphereGradient.addColorStop(0.5, `rgba(${secondaryRgbStr}, ${isHighlighted ? 0.12 : 0.08})`);
-  atmosphereGradient.addColorStop(0.8, `rgba(${rgbStr}, ${isHighlighted ? 0.05 : 0.03})`);
+  // Optimized: 3 stops instead of 5
+  atmosphereGradient.addColorStop(0, `rgba(${rgbStr}, ${isHighlighted ? 0.45 : 0.3})`);
+  atmosphereGradient.addColorStop(0.5, `rgba(${secondaryRgbStr}, ${isHighlighted ? 0.1 : 0.06})`);
   atmosphereGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
 
   ctx.beginPath();
