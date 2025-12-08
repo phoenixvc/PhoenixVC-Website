@@ -33,11 +33,17 @@ const SunTooltip: FC<SunTooltipProps> = ({
   }, []);
 
   // Calculate tooltip position to ensure it stays within viewport
-  const adjustPosition = (): { left: number; top: number; position: "fixed" } => {
+  const adjustPosition = (): {
+    left: number;
+    top: number;
+    position: "fixed";
+  } => {
     const tooltipWidth = 200;
     const tooltipHeight = 80;
-    const windowWidth = typeof window !== "undefined" ? window.innerWidth : 1200;
-    const windowHeight = typeof window !== "undefined" ? window.innerHeight : 800;
+    const windowWidth =
+      typeof window !== "undefined" ? window.innerWidth : 1200;
+    const windowHeight =
+      typeof window !== "undefined" ? window.innerHeight : 800;
 
     let tooltipX = sun.x + 30;
     let tooltipY = sun.y - tooltipHeight / 2;
@@ -55,7 +61,7 @@ const SunTooltip: FC<SunTooltipProps> = ({
     return {
       left: tooltipX,
       top: tooltipY,
-      position: "fixed" as const
+      position: "fixed" as const,
     };
   };
 
@@ -78,7 +84,9 @@ const SunTooltip: FC<SunTooltipProps> = ({
       style={{
         ...position,
         opacity: isVisible ? 1 : 0,
-        transform: isVisible ? "translateY(0) scale(1)" : "translateY(10px) scale(0.95)",
+        transform: isVisible
+          ? "translateY(0) scale(1)"
+          : "translateY(10px) scale(0.95)",
       }}
       onClick={handleClick}
       onMouseEnter={onMouseEnter}
@@ -87,7 +95,7 @@ const SunTooltip: FC<SunTooltipProps> = ({
       <div
         className={styles.sunGlow}
         style={{
-          background: `radial-gradient(circle at center, ${sun.color}40 0%, transparent 70%)`
+          background: `radial-gradient(circle at center, ${sun.color}40 0%, transparent 70%)`,
         }}
       />
       <div className={styles.sunIcon} style={{ backgroundColor: sun.color }}>

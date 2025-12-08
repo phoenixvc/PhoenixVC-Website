@@ -11,12 +11,17 @@ import { TWO_PI, fastSin, fastCos } from "./math";
 /**
  * Get the sun color for a planet based on its focus area
  */
-function getSunColorForPlanet(planet: Planet): { r: number; g: number; b: number } {
+function getSunColorForPlanet(planet: Planet): {
+  r: number;
+  g: number;
+  b: number;
+} {
   const focusArea = planet.project?.focusArea;
   if (focusArea) {
-    const matchingSun = SUNS.find(sun =>
-      sun.parentId === "focus-areas-galaxy" &&
-      sun.id.includes(focusArea.replace(/-/g, "-"))
+    const matchingSun = SUNS.find(
+      (sun) =>
+        sun.parentId === "focus-areas-galaxy" &&
+        sun.id.includes(focusArea.replace(/-/g, "-")),
     );
     if (matchingSun?.color) {
       const rgb = hexToRgb(matchingSun.color);
@@ -34,8 +39,8 @@ export function drawSatellites(
   ctx: CanvasRenderingContext2D,
   planet: Planet,
   scaleFactor: number,
-  _softRgb: {r: number, g: number, b: number},
-  _deltaTime: number
+  _softRgb: { r: number; g: number; b: number },
+  _deltaTime: number,
 ): void {
   const fixedDelta = planet.useSimpleRendering ? 0.2 : 0.5;
 
@@ -49,7 +54,11 @@ export function drawSatellites(
   const secRgbaPrefix = `rgba(${secondaryRgb.r}, ${secondaryRgb.g}, ${secondaryRgb.b}, `;
 
   // Draw orbit paths for satellites with sun-aligned gradient colors
-  if (planet.satellites && planet.satellites.length > 0 && !planet.useSimpleRendering) {
+  if (
+    planet.satellites &&
+    planet.satellites.length > 0 &&
+    !planet.useSimpleRendering
+  ) {
     planet.satellites.forEach((satellite, index) => {
       const a = satellite.distance * scaleFactor;
       const b = satellite.distance * (1 - satellite.eccentricity) * scaleFactor;
@@ -59,23 +68,17 @@ export function drawSatellites(
       const orbitOpacity = 0.15 + orbitPhase * 0.1;
 
       ctx.beginPath();
-      ctx.ellipse(
-        planet.x,
-        planet.y,
-        a,
-        b,
-        0,
-        0,
-        TWO_PI
-      );
+      ctx.ellipse(planet.x, planet.y, a, b, 0, 0, TWO_PI);
 
       // Use sun's secondary color for orbit rings with gradient effect
       const orbitGradient = ctx.createLinearGradient(
-        planet.x - a, planet.y,
-        planet.x + a, planet.y
+        planet.x - a,
+        planet.y,
+        planet.x + a,
+        planet.y,
       );
       orbitGradient.addColorStop(0, secRgbaPrefix + orbitOpacity + ")");
-      orbitGradient.addColorStop(0.5, sunRgbaPrefix + (orbitOpacity * 0.7) + ")");
+      orbitGradient.addColorStop(0.5, sunRgbaPrefix + orbitOpacity * 0.7 + ")");
       orbitGradient.addColorStop(1, secRgbaPrefix + orbitOpacity + ")");
 
       ctx.strokeStyle = orbitGradient;
@@ -86,7 +89,7 @@ export function drawSatellites(
       // Add subtle glow to orbit
       ctx.beginPath();
       ctx.ellipse(planet.x, planet.y, a, b, 0, 0, TWO_PI);
-      ctx.strokeStyle = sunRgbaPrefix + (orbitOpacity * 0.3) + ")";
+      ctx.strokeStyle = sunRgbaPrefix + orbitOpacity * 0.3 + ")";
       ctx.lineWidth = 3;
       ctx.stroke();
     });
@@ -97,7 +100,8 @@ export function drawSatellites(
     planet.satellites.forEach((satellite, index) => {
       // Independent pulsation for satellites - smoother and slower
       const satelliteTime = time * 0.0004;
-      const satellitePulse = 0.92 + fastSin(satelliteTime * (index + 1) * 0.25) * 0.08;
+      const satellitePulse =
+        0.92 + fastSin(satelliteTime * (index + 1) * 0.25) * 0.08;
 
       // Update satellite position
       const directionMult = index % 2 === 0 ? 1 : -1;
@@ -116,7 +120,7 @@ export function drawSatellites(
       const softMoonRgb = {
         r: Math.round(moonRgb.r * 0.85 + 38),
         g: Math.round(moonRgb.g * 0.85 + 38),
-        b: Math.round(moonRgb.b * 0.85 + 38)
+        b: Math.round(moonRgb.b * 0.85 + 38),
       };
       // Pre-compute moon rgba prefix for this satellite
       const moonRgbaPrefix = index % 2 === 0 ? secRgbaPrefix : sunRgbaPrefix;
@@ -128,8 +132,12 @@ export function drawSatellites(
       ctx.beginPath();
       ctx.arc(satX, satY, glowSize, 0, TWO_PI);
       const glowGradient = ctx.createRadialGradient(
-        satX, satY, 0,
-        satX, satY, glowSize
+        satX,
+        satY,
+        0,
+        satX,
+        satY,
+        glowSize,
       );
 
       glowGradient.addColorStop(0, softMoonRgbaPrefix + "0.85)");
@@ -144,8 +152,12 @@ export function drawSatellites(
       // Draw satellite core with gradient
       const coreSize = satellite.size * scaleFactor * satellitePulse;
       const coreGradient = ctx.createRadialGradient(
-        satX - coreSize * 0.2, satY - coreSize * 0.2, 0,
-        satX, satY, coreSize
+        satX - coreSize * 0.2,
+        satY - coreSize * 0.2,
+        0,
+        satX,
+        satY,
+        coreSize,
       );
       coreGradient.addColorStop(0, "#ffffff");
       coreGradient.addColorStop(0.3, softMoonRgbaPrefix + "1)");
@@ -160,8 +172,12 @@ export function drawSatellites(
       // Draw bright center highlight
       ctx.save();
       const highlightGradient = ctx.createRadialGradient(
-        satX - coreSize * 0.15, satY - coreSize * 0.15, 0,
-        satX, satY, coreSize * 0.5
+        satX - coreSize * 0.15,
+        satY - coreSize * 0.15,
+        0,
+        satX,
+        satY,
+        coreSize * 0.5,
       );
       highlightGradient.addColorStop(0, "rgba(255, 255, 255, 0.95)");
       highlightGradient.addColorStop(0.5, "rgba(255, 255, 255, 0.4)");

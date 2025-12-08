@@ -7,7 +7,16 @@ import { ExtendedNavLinkProps } from "../../types";
 type IconProp = LucideIcon | React.ReactNode | string | undefined;
 
 // Type for aria-current
-type AriaCurrent = "page" | "step" | "location" | "date" | "time" | "true" | "false" | boolean | undefined;
+type AriaCurrent =
+  | "page"
+  | "step"
+  | "location"
+  | "date"
+  | "time"
+  | "true"
+  | "false"
+  | boolean
+  | undefined;
 
 const renderIcon = (icon: IconProp): React.ReactElement | null => {
   if (!icon) return null;
@@ -42,13 +51,15 @@ export const NavLink = ({
   const { themeName: _themeName } = themeContext;
 
   // Get component styles from the theme system
-  const navLinkStyle = themeContext.getComponentStyle?.("navLink", variant) || {};
+  const navLinkStyle =
+    themeContext.getComponentStyle?.("navLink", variant) || {};
   const activeStyle = isActive
     ? themeContext.getComponentStyle?.("navLink", "${variant}-active") || {}
     : {};
 
   // Get specific CSS variables if needed
-  const transitionDuration = themeContext.getCssVariable?.("theme-transition-duration") || "200ms";
+  const transitionDuration =
+    themeContext.getCssVariable?.("theme-transition-duration") || "200ms";
 
   // Combine passed style with theme style
   const combinedStyle = {
@@ -65,17 +76,13 @@ export const NavLink = ({
   const mobileClasses = isMobile ? "w-full text-left" : "";
 
   // Generate theme-specific class
-  const themeClass = "theme-${themeName}-navLink-${variant}${isActive ? '-active' : ''}";
+  const themeClass =
+    "theme-${themeName}-navLink-${variant}${isActive ? '-active' : ''}";
 
   const linkProps: React.AnchorHTMLAttributes<HTMLAnchorElement> = {
     href: path,
     onClick,
-    className: cn(
-      baseClasses,
-      mobileClasses,
-      themeClass,
-      className
-    ),
+    className: cn(baseClasses, mobileClasses, themeClass, className),
     style: combinedStyle,
     "aria-current": (isActive ? "page" : undefined) as AriaCurrent,
     ...(isExternal && {
@@ -97,11 +104,14 @@ export const NavLink = ({
         <span
           className={cn(
             "absolute -bottom-1 left-1/2 w-2 h-2 rounded-full transform -translate-x-1/2",
-            "theme-${themeName}-navLink-indicator"
+            "theme-${themeName}-navLink-indicator",
           )}
           style={{
             backgroundColor: "currentColor",
-            ...themeContext.getComponentStyle?.("navLinkIndicator", "default") || {}
+            ...(themeContext.getComponentStyle?.(
+              "navLinkIndicator",
+              "default",
+            ) || {}),
           }}
           aria-hidden="true"
         />

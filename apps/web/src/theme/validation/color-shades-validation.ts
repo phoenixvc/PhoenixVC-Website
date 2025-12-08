@@ -1,4 +1,9 @@
-import { ColorDefinition, ShadeLevel, ValidationResult, ValidationError } from "@/theme/types";
+import {
+  ColorDefinition,
+  ShadeLevel,
+  ValidationResult,
+  ValidationError,
+} from "@/theme/types";
 import { validateColorDef } from "./color-definition-validation";
 import { ThemeError } from "@/theme/types/core/enums";
 import { createValidationResult } from "./utils/create-validation-result";
@@ -23,28 +28,34 @@ export class ColorShadesValidation {
    */
   static validateColorShades(
     shades: Record<ShadeLevel, ColorDefinition>,
-    path: string
+    path: string,
   ): ValidationResult {
     const errors: ValidationError[] = [];
 
     this.requiredShades.forEach((shade) => {
       if (!shades[shade]) {
-        errors.push(new ThemeValidationError(
-          `Missing shade ${shade} at ${path}`,
-          ThemeError.COLOR_MISSING_PROPERTIES,
-          `${path}.${shade}`,
-          { missingShade: shade }
-        ));
+        errors.push(
+          new ThemeValidationError(
+            `Missing shade ${shade} at ${path}`,
+            ThemeError.COLOR_MISSING_PROPERTIES,
+            `${path}.${shade}`,
+            { missingShade: shade },
+          ),
+        );
       } else {
         try {
           validateColorDef(shades[shade], `${path}.${shade}`);
         } catch (error) {
-          errors.push(new ThemeValidationError(
-            `Invalid color definition for shade ${shade} at ${path}`,
-            ThemeError.COLOR_INVALID_DEFINITION,
-            `${path}.${shade}`,
-            error instanceof Error ? { message: error.message } : { message: String(error) }
-          ));
+          errors.push(
+            new ThemeValidationError(
+              `Invalid color definition for shade ${shade} at ${path}`,
+              ThemeError.COLOR_INVALID_DEFINITION,
+              `${path}.${shade}`,
+              error instanceof Error
+                ? { message: error.message }
+                : { message: String(error) },
+            ),
+          );
         }
       }
     });
@@ -57,8 +68,10 @@ export class ColorShadesValidation {
    * @param shades The color shades to check
    * @returns Boolean indicating if all required shades are present
    */
-  static hasAllRequiredShades(shades: Partial<Record<ShadeLevel, ColorDefinition>>): boolean {
-    return this.requiredShades.every(shade => !!shades[shade]);
+  static hasAllRequiredShades(
+    shades: Partial<Record<ShadeLevel, ColorDefinition>>,
+  ): boolean {
+    return this.requiredShades.every((shade) => !!shades[shade]);
   }
 
   /**
@@ -66,7 +79,9 @@ export class ColorShadesValidation {
    * @param obj Object to check
    * @returns Boolean indicating if the object is a valid color shade collection
    */
-  static isColorShadesType(obj: unknown): obj is Record<ShadeLevel, ColorDefinition> {
+  static isColorShadesType(
+    obj: unknown,
+  ): obj is Record<ShadeLevel, ColorDefinition> {
     if (!obj || typeof obj !== "object") return false;
 
     const shades = obj as Partial<Record<ShadeLevel, ColorDefinition>>;
@@ -93,7 +108,9 @@ export class ColorShadesValidation {
    * @param shades The color shades to check
    * @returns Array of missing shade levels
    */
-  static getMissingShades(shades: Partial<Record<ShadeLevel, ColorDefinition>>): ShadeLevel[] {
-    return this.requiredShades.filter(shade => !shades[shade]);
+  static getMissingShades(
+    shades: Partial<Record<ShadeLevel, ColorDefinition>>,
+  ): ShadeLevel[] {
+    return this.requiredShades.filter((shade) => !shades[shade]);
   }
 }

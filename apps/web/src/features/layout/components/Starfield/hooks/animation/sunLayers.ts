@@ -37,11 +37,17 @@ const USE_FILTER_BLUR = false;
  */
 export function drawSunHalo(
   ctx: CanvasRenderingContext2D,
-  x: number, y: number, size: number,
-  rgbStr: string, isHighlighted: boolean, isDarkMode: boolean,
-  layers: LayersConfig
+  x: number,
+  y: number,
+  size: number,
+  rgbStr: string,
+  isHighlighted: boolean,
+  isDarkMode: boolean,
+  layers: LayersConfig,
 ): void {
-  const haloSize = size * (isHighlighted ? layers.haloSize.highlighted : layers.haloSize.normal);
+  const haloSize =
+    size *
+    (isHighlighted ? layers.haloSize.highlighted : layers.haloSize.normal);
 
   if (USE_FILTER_BLUR) {
     // Alternative: Use CSS filter blur for softer edges (experimental)
@@ -55,8 +61,18 @@ export function drawSunHalo(
     ctx.restore();
   } else {
     // Optimized gradient: 2 stops instead of 4
-    const haloGradient = ctx.createRadialGradient(x, y, size * 0.3, x, y, haloSize);
-    haloGradient.addColorStop(0, `rgba(${rgbStr}, ${isHighlighted ? 0.12 : 0.06})`);
+    const haloGradient = ctx.createRadialGradient(
+      x,
+      y,
+      size * 0.3,
+      x,
+      y,
+      haloSize,
+    );
+    haloGradient.addColorStop(
+      0,
+      `rgba(${rgbStr}, ${isHighlighted ? 0.12 : 0.06})`,
+    );
     haloGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
 
     ctx.beginPath();
@@ -73,15 +89,37 @@ export function drawSunHalo(
  */
 export function drawSunAtmosphere(
   ctx: CanvasRenderingContext2D,
-  x: number, y: number, size: number,
-  rgbStr: string, secondaryRgbStr: string, isHighlighted: boolean, isDarkMode: boolean,
-  layers: LayersConfig
+  x: number,
+  y: number,
+  size: number,
+  rgbStr: string,
+  secondaryRgbStr: string,
+  isHighlighted: boolean,
+  isDarkMode: boolean,
+  layers: LayersConfig,
 ): void {
-  const atmosphereSize = size * (isHighlighted ? layers.atmosphereSize.highlighted : layers.atmosphereSize.normal);
-  const atmosphereGradient = ctx.createRadialGradient(x, y, size * 0.4, x, y, atmosphereSize);
+  const atmosphereSize =
+    size *
+    (isHighlighted
+      ? layers.atmosphereSize.highlighted
+      : layers.atmosphereSize.normal);
+  const atmosphereGradient = ctx.createRadialGradient(
+    x,
+    y,
+    size * 0.4,
+    x,
+    y,
+    atmosphereSize,
+  );
   // Optimized: 3 stops instead of 5
-  atmosphereGradient.addColorStop(0, `rgba(${rgbStr}, ${isHighlighted ? 0.45 : 0.3})`);
-  atmosphereGradient.addColorStop(0.5, `rgba(${secondaryRgbStr}, ${isHighlighted ? 0.1 : 0.06})`);
+  atmosphereGradient.addColorStop(
+    0,
+    `rgba(${rgbStr}, ${isHighlighted ? 0.45 : 0.3})`,
+  );
+  atmosphereGradient.addColorStop(
+    0.5,
+    `rgba(${secondaryRgbStr}, ${isHighlighted ? 0.1 : 0.06})`,
+  );
   atmosphereGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
 
   ctx.beginPath();
@@ -96,26 +134,43 @@ export function drawSunAtmosphere(
  */
 export function drawSolarFlares(
   ctx: CanvasRenderingContext2D,
-  x: number, y: number, size: number, time: number,
+  x: number,
+  y: number,
+  size: number,
+  time: number,
   sunState: SunStateWithColors,
-  rgbStr: string, secondaryRgbStr: string, isHighlighted: boolean, isDarkMode: boolean,
-  flares: FlaresConfig
+  rgbStr: string,
+  secondaryRgbStr: string,
+  isHighlighted: boolean,
+  isDarkMode: boolean,
+  flares: FlaresConfig,
 ): void {
-  const flareCount = isHighlighted ? flares.count.highlighted : flares.count.normal;
+  const flareCount = isHighlighted
+    ? flares.count.highlighted
+    : flares.count.normal;
   ctx.globalAlpha = isDarkMode
-    ? (isHighlighted ? OPACITY_CONFIG.sun.flares.dark.highlighted : OPACITY_CONFIG.sun.flares.dark.normal)
-    : (isHighlighted ? OPACITY_CONFIG.sun.flares.light.highlighted : OPACITY_CONFIG.sun.flares.light.normal);
+    ? isHighlighted
+      ? OPACITY_CONFIG.sun.flares.dark.highlighted
+      : OPACITY_CONFIG.sun.flares.dark.normal
+    : isHighlighted
+      ? OPACITY_CONFIG.sun.flares.light.highlighted
+      : OPACITY_CONFIG.sun.flares.light.normal;
 
   // Use pre-computed lightened color (avoids hex parsing per frame)
   const light60 = sunState.lightenedColors?.light60 ?? sunState.color;
 
   for (let i = 0; i < flareCount; i++) {
-    const baseAngle = (i * TWO_PI / flareCount) + sunState.rotationAngle * 0.5;
+    const baseAngle = (i * TWO_PI) / flareCount + sunState.rotationAngle * 0.5;
     const waveOffset = fastSin(time * flares.waveSpeed + i * 0.7) * 0.15;
     const angle = baseAngle + waveOffset;
 
     const flarePhase = fastSin(time * flares.phaseSpeed + i * 1.5);
-    const flareLength = size * (isHighlighted ? flares.lengthMultiplier.highlighted : flares.lengthMultiplier.normal) * (0.7 + 0.3 * flarePhase);
+    const flareLength =
+      size *
+      (isHighlighted
+        ? flares.lengthMultiplier.highlighted
+        : flares.lengthMultiplier.normal) *
+      (0.7 + 0.3 * flarePhase);
 
     const startDist = size * 0.85;
     const cosAngle = fastCos(angle);
@@ -140,7 +195,12 @@ export function drawSolarFlares(
     ctx.moveTo(startX, startY);
     ctx.quadraticCurveTo(cpX, cpY, endX, endY);
     ctx.strokeStyle = flareGradient;
-    ctx.lineWidth = size * (isHighlighted ? flares.lineWidthMultiplier.highlighted : flares.lineWidthMultiplier.normal) * (1 + 0.3 * flarePhase);
+    ctx.lineWidth =
+      size *
+      (isHighlighted
+        ? flares.lineWidthMultiplier.highlighted
+        : flares.lineWidthMultiplier.normal) *
+      (1 + 0.3 * flarePhase);
     ctx.lineCap = "round";
     ctx.stroke();
   }
@@ -151,23 +211,38 @@ export function drawSolarFlares(
  */
 export function drawCoronaRays(
   ctx: CanvasRenderingContext2D,
-  x: number, y: number, size: number, time: number,
+  x: number,
+  y: number,
+  size: number,
+  time: number,
   sunState: { rotationAngle: number },
-  rgbStr: string, secondaryRgbStr: string, isHighlighted: boolean, isDarkMode: boolean,
-  rays: RaysConfig
+  rgbStr: string,
+  secondaryRgbStr: string,
+  isHighlighted: boolean,
+  isDarkMode: boolean,
+  rays: RaysConfig,
 ): void {
   const rayCount = isHighlighted ? rays.count.highlighted : rays.count.normal;
   ctx.globalAlpha = isDarkMode
-    ? (isHighlighted ? OPACITY_CONFIG.sun.rays.dark.highlighted : OPACITY_CONFIG.sun.rays.dark.normal)
-    : (isHighlighted ? OPACITY_CONFIG.sun.rays.light.highlighted : OPACITY_CONFIG.sun.rays.light.normal);
+    ? isHighlighted
+      ? OPACITY_CONFIG.sun.rays.dark.highlighted
+      : OPACITY_CONFIG.sun.rays.dark.normal
+    : isHighlighted
+      ? OPACITY_CONFIG.sun.rays.light.highlighted
+      : OPACITY_CONFIG.sun.rays.light.normal;
 
   for (let i = 0; i < rayCount; i++) {
-    const baseAngle = (i * TWO_PI / rayCount) + sunState.rotationAngle;
+    const baseAngle = (i * TWO_PI) / rayCount + sunState.rotationAngle;
     const waveOffset = fastSin(time * rays.waveSpeed + i * 0.4) * 0.08;
     const angle = baseAngle + waveOffset;
 
     const rayLengthVariation = 0.75 + 0.25 * fastSin(time * 0.00018 + i * 1.1);
-    const rayLength = size * (isHighlighted ? rays.lengthMultiplier.highlighted : rays.lengthMultiplier.normal) * rayLengthVariation;
+    const rayLength =
+      size *
+      (isHighlighted
+        ? rays.lengthMultiplier.highlighted
+        : rays.lengthMultiplier.normal) *
+      rayLengthVariation;
 
     const cosAngle = fastCos(angle);
     const sinAngle = fastSin(angle);
@@ -175,7 +250,11 @@ export function drawCoronaRays(
     const endY = y + sinAngle * rayLength;
 
     ctx.beginPath();
-    const rayWidth = size * (isHighlighted ? rays.widthMultiplier.highlighted : rays.widthMultiplier.normal);
+    const rayWidth =
+      size *
+      (isHighlighted
+        ? rays.widthMultiplier.highlighted
+        : rays.widthMultiplier.normal);
     const perpAngle = angle + Math.PI / 2;
     const cosPerpAngle = fastCos(perpAngle);
     const sinPerpAngle = fastSin(perpAngle);
@@ -186,12 +265,12 @@ export function drawCoronaRays(
 
     ctx.moveTo(
       startX + cosPerpAngle * rayWidth,
-      startY + sinPerpAngle * rayWidth
+      startY + sinPerpAngle * rayWidth,
     );
     ctx.lineTo(endX, endY);
     ctx.lineTo(
       startX - cosPerpAngle * rayWidth,
-      startY - sinPerpAngle * rayWidth
+      startY - sinPerpAngle * rayWidth,
     );
     ctx.closePath();
 
@@ -211,12 +290,25 @@ export function drawCoronaRays(
  */
 export function drawChromosphere(
   ctx: CanvasRenderingContext2D,
-  x: number, y: number, size: number,
-  rgbStr: string, secondaryRgbStr: string, isDarkMode: boolean,
-  layers: LayersConfig
+  x: number,
+  y: number,
+  size: number,
+  rgbStr: string,
+  secondaryRgbStr: string,
+  isDarkMode: boolean,
+  layers: LayersConfig,
 ): void {
-  ctx.globalAlpha = isDarkMode ? OPACITY_CONFIG.sun.chromosphere.dark : OPACITY_CONFIG.sun.chromosphere.light;
-  const chromosphereGradient = ctx.createRadialGradient(x, y, size * 0.95, x, y, size * layers.chromosphereRadius);
+  ctx.globalAlpha = isDarkMode
+    ? OPACITY_CONFIG.sun.chromosphere.dark
+    : OPACITY_CONFIG.sun.chromosphere.light;
+  const chromosphereGradient = ctx.createRadialGradient(
+    x,
+    y,
+    size * 0.95,
+    x,
+    y,
+    size * layers.chromosphereRadius,
+  );
   chromosphereGradient.addColorStop(0, `rgba(${rgbStr}, 0.8)`);
   chromosphereGradient.addColorStop(0.3, `rgba(${secondaryRgbStr}, 0.5)`);
   chromosphereGradient.addColorStop(0.6, `rgba(${rgbStr}, 0.3)`);
@@ -233,23 +325,37 @@ export function drawChromosphere(
  */
 export function drawPropelRings(
   ctx: CanvasRenderingContext2D,
-  x: number, y: number, size: number, time: number,
+  x: number,
+  y: number,
+  size: number,
+  time: number,
   sunState: { color: string },
   rgbStr: string,
-  propelRings: PropelConfig
+  propelRings: PropelConfig,
 ): void {
   for (let r = 0; r < propelRings.count; r++) {
-    const ringRadius = size * (propelRings.baseRadius + r * propelRings.radiusStep);
+    const ringRadius =
+      size * (propelRings.baseRadius + r * propelRings.radiusStep);
     const ringAlpha = 0.5 - r * 0.09;
-    const ringPhase = fastSin(time * propelRings.animationSpeed + r * Math.PI / 2.5);
+    const ringPhase = fastSin(
+      time * propelRings.animationSpeed + (r * Math.PI) / 2.5,
+    );
 
     ctx.beginPath();
-    const ringGradient = ctx.createRadialGradient(x, y, ringRadius - 2, x, y, ringRadius + 2);
+    const ringGradient = ctx.createRadialGradient(
+      x,
+      y,
+      ringRadius - 2,
+      x,
+      y,
+      ringRadius + 2,
+    );
     ringGradient.addColorStop(0, `rgba(${rgbStr}, 0)`);
     ringGradient.addColorStop(0.5, sunState.color);
     ringGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
     ctx.strokeStyle = ringGradient;
-    ctx.lineWidth = propelRings.lineWidthBase - r * propelRings.lineWidthDecrement;
+    ctx.lineWidth =
+      propelRings.lineWidthBase - r * propelRings.lineWidthDecrement;
     ctx.globalAlpha = ringAlpha * (0.5 + 0.5 * ringPhase);
     ctx.arc(x, y, ringRadius, 0, TWO_PI);
     ctx.stroke();
@@ -261,35 +367,60 @@ export function drawPropelRings(
  */
 export function drawSolarParticles(
   ctx: CanvasRenderingContext2D,
-  x: number, y: number, size: number, time: number,
+  x: number,
+  y: number,
+  size: number,
+  time: number,
   sunState: SunStateWithColors,
-  rgbStr: string, secondaryRgbStr: string, isHighlighted: boolean, isDarkMode: boolean,
-  particles: ParticlesConfig
+  rgbStr: string,
+  secondaryRgbStr: string,
+  isHighlighted: boolean,
+  isDarkMode: boolean,
+  particles: ParticlesConfig,
 ): void {
-  const particleCount = isHighlighted ? particles.count.highlighted : particles.count.normal;
+  const particleCount = isHighlighted
+    ? particles.count.highlighted
+    : particles.count.normal;
   ctx.globalAlpha = isDarkMode
-    ? (isHighlighted ? OPACITY_CONFIG.sun.particles.dark.highlighted : OPACITY_CONFIG.sun.particles.dark.normal)
-    : (isHighlighted ? OPACITY_CONFIG.sun.particles.light.highlighted : OPACITY_CONFIG.sun.particles.light.normal);
+    ? isHighlighted
+      ? OPACITY_CONFIG.sun.particles.dark.highlighted
+      : OPACITY_CONFIG.sun.particles.dark.normal
+    : isHighlighted
+      ? OPACITY_CONFIG.sun.particles.light.highlighted
+      : OPACITY_CONFIG.sun.particles.light.normal;
 
   // Use pre-computed lightened colors (avoids hex parsing per frame)
   const light70 = sunState.lightenedColors?.light70 ?? sunState.color;
   const light80 = sunState.lightenedColors?.light80 ?? sunState.color;
 
   for (let i = 0; i < particleCount; i++) {
-    const orbitRadius = size * (particles.orbitBaseRadius + (i % 4) * particles.orbitRadiusStep);
-    const orbitSpeed = particles.orbitSpeedBase + (i % 3) * particles.orbitSpeedVariation;
-    const particleAngle = (i * TWO_PI / particleCount) + time * orbitSpeed + sunState.rotationAngle * 0.3;
+    const orbitRadius =
+      size * (particles.orbitBaseRadius + (i % 4) * particles.orbitRadiusStep);
+    const orbitSpeed =
+      particles.orbitSpeedBase + (i % 3) * particles.orbitSpeedVariation;
+    const particleAngle =
+      (i * TWO_PI) / particleCount +
+      time * orbitSpeed +
+      sunState.rotationAngle * 0.3;
 
-    const wobble = fastSin(time * particles.wobbleSpeed + i * 1.7) * size * particles.wobbleAmount;
+    const wobble =
+      fastSin(time * particles.wobbleSpeed + i * 1.7) *
+      size *
+      particles.wobbleAmount;
     const particleX = x + fastCos(particleAngle) * (orbitRadius + wobble);
     const particleY = y + fastSin(particleAngle) * (orbitRadius + wobble);
 
-    const particlePulse = 0.7 + 0.3 * fastSin(time * particles.pulseSpeed + i * 2.1);
+    const particlePulse =
+      0.7 + 0.3 * fastSin(time * particles.pulseSpeed + i * 2.1);
     const particleSize = (size * 0.04 + (i % 3) * size * 0.015) * particlePulse;
 
     const particleGradient = ctx.createRadialGradient(
-      particleX, particleY, 0,
-      particleX, particleY, particleSize * 2.5
+      particleX,
+      particleY,
+      0,
+      particleX,
+      particleY,
+      particleSize * 2.5,
     );
 
     if (i % 3 === 0) {
@@ -319,8 +450,12 @@ export function drawSolarParticles(
       ctx.arc(particleX, particleY, particleSize * 0.5, 0, TWO_PI);
       ctx.fill();
       ctx.globalAlpha = isDarkMode
-        ? (isHighlighted ? OPACITY_CONFIG.sun.particles.dark.highlighted : OPACITY_CONFIG.sun.particles.dark.normal)
-        : (isHighlighted ? OPACITY_CONFIG.sun.particles.light.highlighted : OPACITY_CONFIG.sun.particles.light.normal);
+        ? isHighlighted
+          ? OPACITY_CONFIG.sun.particles.dark.highlighted
+          : OPACITY_CONFIG.sun.particles.dark.normal
+        : isHighlighted
+          ? OPACITY_CONFIG.sun.particles.light.highlighted
+          : OPACITY_CONFIG.sun.particles.light.normal;
     }
   }
 }
@@ -330,19 +465,34 @@ export function drawSolarParticles(
  */
 export function drawEjectedParticles(
   ctx: CanvasRenderingContext2D,
-  x: number, y: number, size: number, time: number,
+  x: number,
+  y: number,
+  size: number,
+  time: number,
   sunState: SunStateWithColors,
-  rgbStr: string, isHighlighted: boolean, isDarkMode: boolean,
-  ejectParticles: EjectConfig
+  rgbStr: string,
+  isHighlighted: boolean,
+  isDarkMode: boolean,
+  ejectParticles: EjectConfig,
 ): void {
-  const ejectCount = isHighlighted ? ejectParticles.count.highlighted : ejectParticles.count.normal;
+  const ejectCount = isHighlighted
+    ? ejectParticles.count.highlighted
+    : ejectParticles.count.normal;
   // Use pre-computed lightened color (avoids hex parsing per frame)
   const light60 = sunState.lightenedColors?.light60 ?? sunState.color;
 
   for (let i = 0; i < ejectCount; i++) {
-    const ejectAngle = (i * TWO_PI / ejectCount) + time * ejectParticles.speed + sunState.rotationAngle;
+    const ejectAngle =
+      (i * TWO_PI) / ejectCount +
+      time * ejectParticles.speed +
+      sunState.rotationAngle;
     const ejectPhase = (time * 0.0002 + i * 1.5) % 1;
-    const ejectDist = size * (ejectParticles.distanceRange.min + ejectPhase * (ejectParticles.distanceRange.max - ejectParticles.distanceRange.min));
+    const ejectDist =
+      size *
+      (ejectParticles.distanceRange.min +
+        ejectPhase *
+          (ejectParticles.distanceRange.max -
+            ejectParticles.distanceRange.min));
     const ejectX = x + fastCos(ejectAngle) * ejectDist;
     const ejectY = y + fastSin(ejectAngle) * ejectDist;
 
@@ -351,8 +501,12 @@ export function drawEjectedParticles(
 
     if (ejectAlpha > 0.05) {
       const ejectGradient = ctx.createRadialGradient(
-        ejectX, ejectY, 0,
-        ejectX, ejectY, ejectSize * 3
+        ejectX,
+        ejectY,
+        0,
+        ejectX,
+        ejectY,
+        ejectSize * 3,
       );
       ejectGradient.addColorStop(0, light60);
       ejectGradient.addColorStop(0.4, `rgba(${rgbStr}, ${ejectAlpha})`);
@@ -372,11 +526,14 @@ export function drawEjectedParticles(
  */
 export function drawHoverRing(
   ctx: CanvasRenderingContext2D,
-  x: number, y: number, size: number, time: number,
+  x: number,
+  y: number,
+  size: number,
+  time: number,
   sunState: SunStateWithColors,
   rgbStr: string,
   layers: LayersConfig,
-  hoverRing: HoverRingConfig
+  hoverRing: HoverRingConfig,
 ): void {
   // Use pre-computed lightened colors (avoids hex parsing per frame)
   const light40 = sunState.lightenedColors?.light40 ?? sunState.color;
@@ -394,7 +551,14 @@ export function drawHoverRing(
   ctx.setLineDash([]);
 
   ctx.beginPath();
-  const innerRingGradient = ctx.createRadialGradient(x, y, size * 1.9, x, y, size * 2.1);
+  const innerRingGradient = ctx.createRadialGradient(
+    x,
+    y,
+    size * 1.9,
+    x,
+    y,
+    size * 2.1,
+  );
   innerRingGradient.addColorStop(0, `rgba(${rgbStr}, 0)`);
   innerRingGradient.addColorStop(0.5, light50);
   innerRingGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
@@ -410,16 +574,26 @@ export function drawHoverRing(
  */
 export function drawPhotosphere(
   ctx: CanvasRenderingContext2D,
-  x: number, y: number, size: number,
+  x: number,
+  y: number,
+  size: number,
   sunState: SunStateWithColors,
-  rgbStr: string, isDarkMode: boolean,
-  layers: LayersConfig
+  rgbStr: string,
+  isDarkMode: boolean,
+  layers: LayersConfig,
 ): void {
   // Use pre-computed lightened colors (avoids hex parsing per frame)
   const light85 = sunState.lightenedColors?.light85 ?? sunState.color;
   const light50 = sunState.lightenedColors?.light50 ?? sunState.color;
 
-  const photosphereGradient = ctx.createRadialGradient(x, y, size * 0.25, x, y, size * layers.photosphereRadius);
+  const photosphereGradient = ctx.createRadialGradient(
+    x,
+    y,
+    size * 0.25,
+    x,
+    y,
+    size * layers.photosphereRadius,
+  );
   photosphereGradient.addColorStop(0, light85);
   photosphereGradient.addColorStop(0.3, light50);
   photosphereGradient.addColorStop(0.5, sunState.color);
@@ -438,17 +612,23 @@ export function drawPhotosphere(
  */
 export function drawSunBody(
   ctx: CanvasRenderingContext2D,
-  x: number, y: number, size: number,
+  x: number,
+  y: number,
+  size: number,
   sunState: SunStateWithColors,
-  rgbStr: string
+  rgbStr: string,
 ): void {
   // Use pre-computed lightened colors (avoids hex parsing per frame)
   const light80 = sunState.lightenedColors?.light80 ?? sunState.color;
   const light50 = sunState.lightenedColors?.light50 ?? sunState.color;
 
   const bodyGradient = ctx.createRadialGradient(
-    x - size * 0.25, y - size * 0.25, 0,
-    x + size * 0.1, y + size * 0.1, size
+    x - size * 0.25,
+    y - size * 0.25,
+    0,
+    x + size * 0.1,
+    y + size * 0.1,
+    size,
   );
   bodyGradient.addColorStop(0, "#ffffff");
   bodyGradient.addColorStop(0.1, light80);
@@ -469,21 +649,38 @@ export function drawSunBody(
  */
 export function drawGranulation(
   ctx: CanvasRenderingContext2D,
-  x: number, y: number, size: number, time: number,
+  x: number,
+  y: number,
+  size: number,
+  time: number,
   rgbStr: string,
-  granulation: GranulationConfig
+  granulation: GranulationConfig,
 ): void {
   ctx.globalAlpha = 0.12;
   for (let i = 0; i < granulation.spotCount; i++) {
-    const spotAngle = (time * granulation.rotationSpeed + i * TWO_PI / granulation.spotCount) % (TWO_PI);
-    const spotDist = size * (0.25 + 0.45 * fastSin(i * 2.3 + time * granulation.variationSpeed));
+    const spotAngle =
+      (time * granulation.rotationSpeed +
+        (i * TWO_PI) / granulation.spotCount) %
+      TWO_PI;
+    const spotDist =
+      size *
+      (0.25 + 0.45 * fastSin(i * 2.3 + time * granulation.variationSpeed));
     const spotX = x + fastCos(spotAngle) * spotDist;
     const spotY = y + fastSin(spotAngle) * spotDist;
     const spotSize = size * (0.12 + 0.08 * fastSin(i * 1.9));
 
-    const spotGradient = ctx.createRadialGradient(spotX, spotY, 0, spotX, spotY, spotSize);
+    const spotGradient = ctx.createRadialGradient(
+      spotX,
+      spotY,
+      0,
+      spotX,
+      spotY,
+      spotSize,
+    );
     const isLightSpot = i % 2 === 0;
-    const spotColor = isLightSpot ? "rgba(255, 255, 255, 0.4)" : `rgba(${rgbStr}, 0.6)`;
+    const spotColor = isLightSpot
+      ? "rgba(255, 255, 255, 0.4)"
+      : `rgba(${rgbStr}, 0.6)`;
     spotGradient.addColorStop(0, spotColor);
     spotGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
 
@@ -499,12 +696,19 @@ export function drawGranulation(
  */
 export function drawHotspot(
   ctx: CanvasRenderingContext2D,
-  x: number, y: number, size: number, isHighlighted: boolean,
-  layers: LayersConfig
+  x: number,
+  y: number,
+  size: number,
+  isHighlighted: boolean,
+  layers: LayersConfig,
 ): void {
   const hotspotGradient = ctx.createRadialGradient(
-    x - size * 0.12, y - size * 0.12, 0,
-    x, y, size * layers.hotspotRadius
+    x - size * 0.12,
+    y - size * 0.12,
+    0,
+    x,
+    y,
+    size * layers.hotspotRadius,
   );
   hotspotGradient.addColorStop(0, "#ffffff");
   hotspotGradient.addColorStop(0.2, "rgba(255, 255, 255, 0.95)");
@@ -524,14 +728,20 @@ export function drawHotspot(
  */
 export function drawHighlights(
   ctx: CanvasRenderingContext2D,
-  x: number, y: number, size: number,
+  x: number,
+  y: number,
+  size: number,
   secondaryRgbStr: string,
-  layers: LayersConfig
+  layers: LayersConfig,
 ): void {
   // Specular highlight
   const highlightGradient = ctx.createRadialGradient(
-    x - size * layers.highlightRadius, y - size * layers.highlightRadius, 0,
-    x - size * 0.25, y - size * 0.25, size * layers.highlightRadius
+    x - size * layers.highlightRadius,
+    y - size * layers.highlightRadius,
+    0,
+    x - size * 0.25,
+    y - size * 0.25,
+    size * layers.highlightRadius,
   );
   highlightGradient.addColorStop(0, "rgba(255, 255, 255, 0.95)");
   highlightGradient.addColorStop(0.4, "rgba(255, 255, 255, 0.4)");
@@ -545,8 +755,12 @@ export function drawHighlights(
 
   // Rim light
   const rimGradient = ctx.createRadialGradient(
-    x + size * 0.4, y + size * 0.4, 0,
-    x + size * 0.3, y + size * 0.3, size * layers.rimRadius
+    x + size * 0.4,
+    y + size * 0.4,
+    0,
+    x + size * 0.3,
+    y + size * 0.3,
+    size * layers.rimRadius,
   );
   rimGradient.addColorStop(0, `rgba(${secondaryRgbStr}, 0.4)`);
   rimGradient.addColorStop(0.5, `rgba(${secondaryRgbStr}, 0.15)`);
@@ -555,6 +769,12 @@ export function drawHighlights(
   ctx.beginPath();
   ctx.fillStyle = rimGradient;
   ctx.globalAlpha = 0.5;
-  ctx.arc(x + size * layers.highlightRadius, y + size * layers.highlightRadius, size * 0.2, 0, TWO_PI);
+  ctx.arc(
+    x + size * layers.highlightRadius,
+    y + size * layers.highlightRadius,
+    size * 0.2,
+    0,
+    TWO_PI,
+  );
   ctx.fill();
 }

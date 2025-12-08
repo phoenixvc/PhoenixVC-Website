@@ -5,10 +5,7 @@ import {
   ValidationError,
 } from "@/theme/types";
 import { validateHexOnly } from "./utils/color-hex-validation";
-import {
-  REQUIRED_BASE_COLORS,
-  REQUIRED_MODE_COLORS,
-} from "./constants";
+import { REQUIRED_BASE_COLORS, REQUIRED_MODE_COLORS } from "./constants";
 import { SemanticColorValidation } from "./semantic-color-validation";
 
 /**
@@ -21,7 +18,7 @@ export class ThemeInitialValidation {
    * @returns ValidationResult indicating if the theme is valid
    */
   static validateThemeInitial(
-    theme: ThemeSchemeInitial & { semantic?: SemanticColors }
+    theme: ThemeSchemeInitial & { semantic?: SemanticColors },
   ): ValidationResult {
     const errors: ValidationError[] = [];
 
@@ -67,7 +64,10 @@ export class ThemeInitialValidation {
               path: `${mode}.${color}`,
             });
           } else {
-            const result = validateHexOnly(modeColors[color], `${mode}.${color}`);
+            const result = validateHexOnly(
+              modeColors[color],
+              `${mode}.${color}`,
+            );
             if (!result.isValid) {
               errors.push(...result.errors!);
             }
@@ -78,7 +78,9 @@ export class ThemeInitialValidation {
 
     // Validate semantic colors if present
     if (theme.semantic) {
-      const semanticResult = SemanticColorValidation.validateSemanticColors(theme.semantic);
+      const semanticResult = SemanticColorValidation.validateSemanticColors(
+        theme.semantic,
+      );
       if (!semanticResult.isValid) {
         errors.push(...semanticResult.errors!);
       }

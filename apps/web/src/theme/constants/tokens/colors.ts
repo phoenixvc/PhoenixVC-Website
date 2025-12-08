@@ -41,7 +41,7 @@ export const baseColors = {
 export const brandColors = {
   // Primary heading gradient colors (used for section titles)
   heading: {
-    primary: "#9333ea",   // Purple - main heading color
+    primary: "#9333ea", // Purple - main heading color
     secondary: "#7c3aed", // Violet - secondary heading color
     gradient: "linear-gradient(90deg, #9333ea 0%, #7c3aed 100%)",
   },
@@ -85,7 +85,7 @@ export const themeTokens = {
       text: "#f8f9fa",
       muted: "#adb5bd",
       border: "#495057",
-    }
+    },
   },
   ocean: {
     light: {
@@ -105,7 +105,7 @@ export const themeTokens = {
       text: baseColors.gray[50],
       muted: baseColors.gray[400],
       border: baseColors.gray[700],
-    }
+    },
   },
   lavender: {
     light: {
@@ -125,7 +125,7 @@ export const themeTokens = {
       text: baseColors.gray[50],
       muted: baseColors.gray[400],
       border: baseColors.gray[700],
-    }
+    },
   },
   phoenix: {
     light: {
@@ -145,7 +145,7 @@ export const themeTokens = {
       text: baseColors.gray[50],
       muted: baseColors.gray[400],
       border: baseColors.gray[700],
-    }
+    },
   },
   forest: {
     light: {
@@ -165,7 +165,7 @@ export const themeTokens = {
       text: baseColors.gray[50],
       muted: baseColors.gray[400],
       border: baseColors.gray[700],
-    }
+    },
   },
   cloud: {
     light: {
@@ -185,6 +185,6 @@ export const themeTokens = {
       text: baseColors.gray[50],
       muted: baseColors.gray[400],
       border: baseColors.gray[700],
-    }
-  }
+    },
+  },
 } as const;

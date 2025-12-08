@@ -13,7 +13,9 @@ const HeroSkeleton: FC = memo(() => {
   const isDarkMode = themeMode === "dark";
 
   return (
-    <div className={`${styles.skeletonContainer} ${isDarkMode ? styles.dark : styles.light}`}>
+    <div
+      className={`${styles.skeletonContainer} ${isDarkMode ? styles.dark : styles.light}`}
+    >
       <motion.div
         className={styles.skeletonContent}
         initial={{ opacity: 0 }}
@@ -34,7 +36,9 @@ const HeroSkeleton: FC = memo(() => {
         {/* Buttons skeleton */}
         <div className={styles.buttonsSkeleton}>
           <div className={`${styles.skeletonButton} ${styles.primaryButton}`} />
-          <div className={`${styles.skeletonButton} ${styles.secondaryButton}`} />
+          <div
+            className={`${styles.skeletonButton} ${styles.secondaryButton}`}
+          />
         </div>
       </motion.div>
     </div>

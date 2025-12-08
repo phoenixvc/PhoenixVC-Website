@@ -23,26 +23,34 @@ export const initPlanets = (
   centerOffsetX: number,
   centerOffsetY: number,
   planetSize: number,
-  useSimpleRendering: boolean = false
+  useSimpleRendering: boolean = false,
 ): Planet[] => {
-  if (!enablePlanets || !portfolioItems || portfolioItems.length === 0) return [];
+  if (!enablePlanets || !portfolioItems || portfolioItems.length === 0)
+    return [];
 
   logger.debug("Initializing portfolio comets:", portfolioItems.length);
 
   const planets: Planet[] = [];
   const { centerX, centerY } = calculateCenter(
-    width, height, sidebarWidth, centerOffsetX, centerOffsetY
+    width,
+    height,
+    sidebarWidth,
+    centerOffsetX,
+    centerOffsetY,
   );
 
   portfolioItems.forEach((item, index) => {
     const totalItems = portfolioItems.length;
-    const angleStep = (TWO_PI) / totalItems;
+    const angleStep = TWO_PI / totalItems;
     const baseAngle = index * angleStep;
 
-    const orbitRadius = Math.min(width, height) * ORBIT_CONFIG.orbit.baseRadiusMultiplier +
-      (index * ORBIT_CONFIG.orbit.radiusStepPerItem);
-    const orbitSpeed = item.speed ||
-      (ORBIT_CONFIG.orbit.baseSpeed + (ORBIT_CONFIG.orbit.speedVariation * (index % 3)));
+    const orbitRadius =
+      Math.min(width, height) * ORBIT_CONFIG.orbit.baseRadiusMultiplier +
+      index * ORBIT_CONFIG.orbit.radiusStepPerItem;
+    const orbitSpeed =
+      item.speed ||
+      ORBIT_CONFIG.orbit.baseSpeed +
+        ORBIT_CONFIG.orbit.speedVariation * (index % 3);
 
     const x = centerX + fastCos(baseAngle) * orbitRadius;
     const y = centerY + fastSin(baseAngle) * orbitRadius;
@@ -54,27 +62,47 @@ export const initPlanets = (
 
     if (!useSimpleRendering) {
       // Create satellites
-      const satelliteCount = ORBIT_CONFIG.satellites.baseCount +
-        Math.floor((item.mass || 100) / ORBIT_CONFIG.satellites.massPerSatellite);
+      const satelliteCount =
+        ORBIT_CONFIG.satellites.baseCount +
+        Math.floor(
+          (item.mass || 100) / ORBIT_CONFIG.satellites.massPerSatellite,
+        );
 
       for (let i = 0; i < satelliteCount; i++) {
         // Distribute satellites more evenly around the star
-        const angle = (i / satelliteCount) * TWO_PI +
+        const angle =
+          (i / satelliteCount) * TWO_PI +
           Math.random() * ORBIT_CONFIG.satellites.angleRandomOffset;
-        const distanceRange = ORBIT_CONFIG.satellites.distanceMax - ORBIT_CONFIG.satellites.distanceMin;
-        const distance = ORBIT_CONFIG.satellites.distanceMin + Math.random() * distanceRange;
-        const speedRange = ORBIT_CONFIG.satellites.speedMax - ORBIT_CONFIG.satellites.speedMin;
-        const speed = ORBIT_CONFIG.satellites.speedMin + Math.random() * speedRange;
-        const eccRange = ORBIT_CONFIG.satellites.eccentricityMax - ORBIT_CONFIG.satellites.eccentricityMin;
-        const eccentricity = ORBIT_CONFIG.satellites.eccentricityMin + Math.random() * eccRange;
-        const sizeRange = ORBIT_CONFIG.satellites.sizeMax - ORBIT_CONFIG.satellites.sizeMin;
-        const size = (ORBIT_CONFIG.satellites.sizeMin + Math.random() * sizeRange) * planetSize;
+        const distanceRange =
+          ORBIT_CONFIG.satellites.distanceMax -
+          ORBIT_CONFIG.satellites.distanceMin;
+        const distance =
+          ORBIT_CONFIG.satellites.distanceMin + Math.random() * distanceRange;
+        const speedRange =
+          ORBIT_CONFIG.satellites.speedMax - ORBIT_CONFIG.satellites.speedMin;
+        const speed =
+          ORBIT_CONFIG.satellites.speedMin + Math.random() * speedRange;
+        const eccRange =
+          ORBIT_CONFIG.satellites.eccentricityMax -
+          ORBIT_CONFIG.satellites.eccentricityMin;
+        const eccentricity =
+          ORBIT_CONFIG.satellites.eccentricityMin + Math.random() * eccRange;
+        const sizeRange =
+          ORBIT_CONFIG.satellites.sizeMax - ORBIT_CONFIG.satellites.sizeMin;
+        const size =
+          (ORBIT_CONFIG.satellites.sizeMin + Math.random() * sizeRange) *
+          planetSize;
 
         // Ensure valid color format with proper hex values
-        const alphaRange = ORBIT_CONFIG.satellites.alphaMax - ORBIT_CONFIG.satellites.alphaMin;
-        const color = item.color ?
-          `${item.color}${Math.floor(Math.random() * alphaRange + ORBIT_CONFIG.satellites.alphaMin).toString(16).padStart(2, "0")}` :
-          "rgba(255, 255, 255, 0.8)";
+        const alphaRange =
+          ORBIT_CONFIG.satellites.alphaMax - ORBIT_CONFIG.satellites.alphaMin;
+        const color = item.color
+          ? `${item.color}${Math.floor(
+              Math.random() * alphaRange + ORBIT_CONFIG.satellites.alphaMin,
+            )
+              .toString(16)
+              .padStart(2, "0")}`
+          : "rgba(255, 255, 255, 0.8)";
 
         satellites.push({
           angle,
@@ -82,12 +110,16 @@ export const initPlanets = (
           speed,
           size,
           color,
-          eccentricity
+          eccentricity,
         });
       }
     }
 
-    const pathTypes: Array<"comet" | "planet" | "star"> = ["comet", "planet", "star"];
+    const pathTypes: Array<"comet" | "planet" | "star"> = [
+      "comet",
+      "planet",
+      "star",
+    ];
     const pathType = pathTypes[index % pathTypes.length];
 
     // Determine orbital direction (alternate between clockwise and counterclockwise)
@@ -106,13 +138,17 @@ export const initPlanets = (
 
     let trailLength, glowIntensity;
     if (pathType === "comet") {
-      const trailRange = ORBIT_CONFIG.cometTrail.lengthMax - ORBIT_CONFIG.cometTrail.lengthMin;
-      trailLength = ORBIT_CONFIG.cometTrail.lengthMin + Math.random() * trailRange;
+      const trailRange =
+        ORBIT_CONFIG.cometTrail.lengthMax - ORBIT_CONFIG.cometTrail.lengthMin;
+      trailLength =
+        ORBIT_CONFIG.cometTrail.lengthMin + Math.random() * trailRange;
     }
 
     if (pathType === "star" && !useSimpleRendering) {
-      const glowRange = ORBIT_CONFIG.starGlow.intensityMax - ORBIT_CONFIG.starGlow.intensityMin;
-      glowIntensity = ORBIT_CONFIG.starGlow.intensityMin + Math.random() * glowRange;
+      const glowRange =
+        ORBIT_CONFIG.starGlow.intensityMax - ORBIT_CONFIG.starGlow.intensityMin;
+      glowIntensity =
+        ORBIT_CONFIG.starGlow.intensityMin + Math.random() * glowRange;
     }
 
     // Enhanced pulsation for better visibility
@@ -122,11 +158,12 @@ export const initPlanets = (
       minScale: ORBIT_CONFIG.pulsation.minScale,
       maxScale: ORBIT_CONFIG.pulsation.maxScale,
       scale: 1.0,
-      direction: 1
+      direction: 1,
     };
 
     // Create the orbital body (comet/planet) with project data
-    const rotSpeedRange = ORBIT_CONFIG.rotationSpeed.max - ORBIT_CONFIG.rotationSpeed.min;
+    const rotSpeedRange =
+      ORBIT_CONFIG.rotationSpeed.max - ORBIT_CONFIG.rotationSpeed.min;
     const planet = {
       project: item, // The portfolio item data
       x,
@@ -134,14 +171,15 @@ export const initPlanets = (
       vx,
       vy,
       angle: baseAngle,
-      rotationSpeed: ORBIT_CONFIG.rotationSpeed.min + (Math.random() * rotSpeedRange),
+      rotationSpeed:
+        ORBIT_CONFIG.rotationSpeed.min + Math.random() * rotSpeedRange,
       orbitRadius,
       orbitSpeed,
       // will be overwritten each frame, but initialize to the right spot:
       orbitParentId: "team-sun-system", // Assign to the binary star system
       orbitCenter: {
         x: centerX,
-        y: centerY
+        y: centerY,
       },
       satellites,
       orbitalDirection,
@@ -153,21 +191,23 @@ export const initPlanets = (
       pulsation,
       useSimpleRendering,
       verticalFactor, // Add vertical factor for orbit shaping
-      isMovementPaused: false // Initialize movement as not paused
+      isMovementPaused: false, // Initialize movement as not paused
     } as Planet;
 
     planets.push(planet);
   });
 
   // Assign planets to their correct focus area sun based on project.focusArea
-  const focusAreaSuns = SUNS.filter(sun => sun.parentId === "focus-areas-galaxy");
+  const focusAreaSuns = SUNS.filter(
+    (sun) => sun.parentId === "focus-areas-galaxy",
+  );
 
   // Create a map of focusArea to sun id for quick lookup
   const focusAreaToSunId: Record<string, string> = {
     "ai-ml": "ai-ml-sun",
     "fintech-blockchain": "fintech-blockchain-sun",
     "defense-security": "defense-security-sun",
-    "mobility-transportation": "mobility-transportation-sun"
+    "mobility-transportation": "mobility-transportation-sun",
   };
 
   planets.forEach((planet, index) => {
@@ -176,7 +216,7 @@ export const initPlanets = (
     if (projectFocusArea && focusAreaToSunId[projectFocusArea]) {
       // Match planet to its correct sun based on focusArea
       const targetSunId = focusAreaToSunId[projectFocusArea];
-      const matchingSun = focusAreaSuns.find(sun => sun.id === targetSunId);
+      const matchingSun = focusAreaSuns.find((sun) => sun.id === targetSunId);
       if (matchingSun) {
         planet.orbitParentId = matchingSun.id;
       } else {
@@ -196,7 +236,7 @@ export const initPlanets = (
 
   // Group planets by their orbit parent (sun)
   const planetsBySun: Record<string, Planet[]> = {};
-  planets.forEach(planet => {
+  planets.forEach((planet) => {
     const sunId = planet.orbitParentId || "default";
     if (!planetsBySun[sunId]) {
       planetsBySun[sunId] = [];
@@ -205,7 +245,7 @@ export const initPlanets = (
   });
 
   // For each sun, find the biggest planet (by mass or orbit radius) and make it a comet
-  Object.values(planetsBySun).forEach(sunPlanets => {
+  Object.values(planetsBySun).forEach((sunPlanets) => {
     if (sunPlanets.length > 0) {
       // Find the biggest planet by mass (or orbit radius as fallback)
       const biggestPlanet = sunPlanets.reduce((biggest, current) => {
@@ -225,7 +265,7 @@ export const initPlanets = (
   });
 
   // Ensure all comets have proper trail settings
-  planets.forEach(star => {
+  planets.forEach((star) => {
     if (star.pathType === "comet") {
       star.trailLength = star.trailLength || 200;
       star.orbitSpeed = star.orbitSpeed || 0.0001;
@@ -234,7 +274,7 @@ export const initPlanets = (
 
     // Ensure satellites have proper speeds
     if (star.satellites && star.satellites.length > 0) {
-      star.satellites.forEach(satellite => {
+      star.satellites.forEach((satellite) => {
         satellite.speed = 0.005 + Math.random() * 0.01;
       });
     }
@@ -249,7 +289,7 @@ export const checkPlanetHover = (
   planets: Planet[],
   planetSize: number,
   currentHoverInfo: HoverInfo,
-  setHoverInfo: (_info: HoverInfo) => void
+  setHoverInfo: (_info: HoverInfo) => void,
 ): boolean => {
   if (!planets || !planets.length) return false;
 
@@ -267,12 +307,13 @@ export const checkPlanetHover = (
   // First, check if there's a currently hovered planet and if cursor is still within its radius
   // This prevents "stealing" the hover when another planet moves closer
   // Note: Only ONE planet can be hovered at a time by design
-  const currentlyHoveredPlanet = planets.find((planet) => {
-    if (!planet.isHovered) return false;
-    const dist = getDistanceToPlanet(planet);
-    // Keep this planet hovered if cursor is still within its radius
-    return dist < hoverRadius;
-  }) ?? null;
+  const currentlyHoveredPlanet =
+    planets.find((planet) => {
+      if (!planet.isHovered) return false;
+      const dist = getDistanceToPlanet(planet);
+      // Keep this planet hovered if cursor is still within its radius
+      return dist < hoverRadius;
+    }) ?? null;
 
   let hoveredPlanet: Planet | null = currentlyHoveredPlanet;
 
@@ -339,7 +380,7 @@ export const checkPlanetHover = (
       project: hoveredPlanet.project, // project field is required by HoverInfo interface
       x: mouseX, // Use mouse X instead of planet X
       y: mouseY, // Use mouse Y instead of planet Y
-      show: true
+      show: true,
     });
 
     return true;
@@ -365,40 +406,40 @@ const drawSunAtCenter = (
   x: number,
   y: number,
   sunColor: string,
-  sunSize: number
+  sunSize: number,
 ): void => {
   // Normalize the color to ensure consistent format
   const normalizedColor = normalizeHexColor(sunColor);
   // Get hex without # for alpha concatenation
   const hexWithoutHash = normalizedColor.slice(1);
-  
+
   // Save the current context state
   ctx.save();
-  
+
   // Draw outer glow
   const glowGradient = ctx.createRadialGradient(x, y, 0, x, y, sunSize * 3);
   glowGradient.addColorStop(0, `#${hexWithoutHash}A0`);
   glowGradient.addColorStop(0.5, `#${hexWithoutHash}40`);
   glowGradient.addColorStop(1, `#${hexWithoutHash}00`);
-  
+
   ctx.beginPath();
   ctx.arc(x, y, sunSize * 3, 0, TWO_PI);
   ctx.fillStyle = glowGradient;
   ctx.globalAlpha = 0.8;
   ctx.fill();
-  
+
   // Draw inner core
   const coreGradient = ctx.createRadialGradient(x, y, 0, x, y, sunSize);
   coreGradient.addColorStop(0, "#ffffff");
   coreGradient.addColorStop(0.3, normalizedColor);
   coreGradient.addColorStop(1, `#${hexWithoutHash}80`);
-  
+
   ctx.beginPath();
   ctx.arc(x, y, sunSize, 0, TWO_PI);
   ctx.fillStyle = coreGradient;
   ctx.globalAlpha = 1;
   ctx.fill();
-  
+
   // Restore the previous context state
   ctx.restore();
 };
@@ -410,7 +451,7 @@ export const updatePlanets = (
   deltaTime: number,
   planetSize: number,
   employeeDisplayStyle: "initials" | "avatar" | "both",
-  camera?: Camera // Optional camera for cosmic navigation
+  camera?: Camera, // Optional camera for cosmic navigation
 ): void => {
   if (!ctx || !planets || !planets.length) return;
 
@@ -425,7 +466,7 @@ export const updatePlanets = (
   const sunStates = getSunStates();
 
   // Create Map for O(1) sun state lookup (optimization: avoids O(n) find per planet)
-  const sunStateMap = new Map<string, typeof sunStates[0]>();
+  const sunStateMap = new Map<string, (typeof sunStates)[0]>();
   for (let i = 0; i < sunStates.length; i++) {
     sunStateMap.set(sunStates[i].id, sunStates[i]);
   }
@@ -433,12 +474,12 @@ export const updatePlanets = (
   // Track which suns we've already drawn to avoid duplicates
   const drawnSuns = new Set<string>();
 
-  planets.forEach(planet => {
+  planets.forEach((planet) => {
     /* ---------- Recalc orbit centre using dynamic sun positions ---------- */
     if (planet.orbitParentId) {
       // Use Map for O(1) lookup instead of O(n) find
       const sunState = sunStateMap.get(planet.orbitParentId);
-      
+
       if (sunState) {
         // Use dynamic sun position from the sun system with smoothing
         const targetX = sunState.x * width;
@@ -447,8 +488,14 @@ export const updatePlanets = (
         // Smooth interpolation to prevent jerky planet movement when sun moves
         if (planet.orbitCenter) {
           planet.orbitCenter = {
-            x: planet.orbitCenter.x + (targetX - planet.orbitCenter.x) * CAMERA_CONFIG.cameraSmoothingFactor,
-            y: planet.orbitCenter.y + (targetY - planet.orbitCenter.y) * CAMERA_CONFIG.cameraSmoothingFactor
+            x:
+              planet.orbitCenter.x +
+              (targetX - planet.orbitCenter.x) *
+                CAMERA_CONFIG.cameraSmoothingFactor,
+            y:
+              planet.orbitCenter.y +
+              (targetY - planet.orbitCenter.y) *
+                CAMERA_CONFIG.cameraSmoothingFactor,
           };
         } else {
           planet.orbitCenter = { x: targetX, y: targetY };
@@ -464,15 +511,21 @@ export const updatePlanets = (
             parent.position.y,
             camera,
             width,
-            height
+            height,
           );
-          
+
           // Draw the sun at the orbital center if not already drawn
           if (!drawnSuns.has(planet.orbitParentId)) {
             drawnSuns.add(planet.orbitParentId);
             const sunSize = (parent.size || 0.05) * 50 * planetSize;
             const sunColor = parent.color || "#f39c12";
-            drawSunAtCenter(ctx, planet.orbitCenter.x, planet.orbitCenter.y, sunColor, sunSize);
+            drawSunAtCenter(
+              ctx,
+              planet.orbitCenter.x,
+              planet.orbitCenter.y,
+              sunColor,
+              sunSize,
+            );
           }
         }
       } else if (planet.orbitCenter) {
@@ -482,7 +535,13 @@ export const updatePlanets = (
           drawnSuns.add(planet.orbitParentId);
           const sunSize = (parent.size || 0.05) * 50 * planetSize;
           const sunColor = parent.color || "#f39c12";
-          drawSunAtCenter(ctx, planet.orbitCenter.x, planet.orbitCenter.y, sunColor, sunSize);
+          drawSunAtCenter(
+            ctx,
+            planet.orbitCenter.x,
+            planet.orbitCenter.y,
+            sunColor,
+            sunSize,
+          );
         }
       }
     }
@@ -492,7 +551,6 @@ export const updatePlanets = (
     drawPlanet(ctx, planet, cappedDeltaTime, planetSize, employeeDisplayStyle);
   });
 };
-
 
 /**
  * Apply click repulsion to planets/comets
@@ -505,17 +563,17 @@ export const updatePlanets = (
 export function applyClickRepulsionToPlanets(
   planets: Planet[],
   clickX: number,
-  clickY: number
+  clickY: number,
 ): number {
   if (!planets || planets.length === 0) return 0;
-  
+
   let affectedCount = 0;
-  
+
   for (const planet of planets) {
     const dx = planet.x - clickX;
     const dy = planet.y - clickY;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    
+
     // Only affect planets within the click repulsion radius
     if (dist < PLANET_PHYSICS.clickRepulsionRadius && dist > 1) {
       // Calculate force based on distance (closer = stronger)
@@ -523,15 +581,15 @@ export function applyClickRepulsionToPlanets(
       const invDist = 1 - normalizedDist;
       const forceFactor = invDist * invDist; // Quadratic falloff (faster than Math.pow)
       const force = PLANET_PHYSICS.clickRepulsionForce * forceFactor;
-      
+
       // Normalize direction (away from click)
       const nx = dx / dist;
       const ny = dy / dist;
-      
+
       // Apply velocity (stacking effect - adds to existing velocity)
       planet.vx = (planet.vx || 0) + nx * force;
       planet.vy = (planet.vy || 0) + ny * force;
-      
+
       // Clamp velocity to max
       const speed = Math.sqrt(planet.vx * planet.vx + planet.vy * planet.vy);
       if (speed > PLANET_PHYSICS.maxClickVelocity) {
@@ -539,18 +597,19 @@ export function applyClickRepulsionToPlanets(
         planet.vx *= scale;
         planet.vy *= scale;
       }
-      
+
       // Store original orbit speed if not already stored (for restoration when velocity decays)
       if (planet.originalOrbitSpeed === undefined) {
         planet.originalOrbitSpeed = planet.orbitSpeed;
       }
       // Temporarily boost orbit speed for dramatic effect
-      planet.orbitSpeed = planet.originalOrbitSpeed * PLANET_PHYSICS.orbitSpeedBoost;
-      
+      planet.orbitSpeed =
+        planet.originalOrbitSpeed * PLANET_PHYSICS.orbitSpeedBoost;
+
       affectedCount++;
     }
   }
-  
+
   return affectedCount;
 }
 
@@ -561,25 +620,27 @@ export function applyClickRepulsionToPlanets(
  */
 export function updatePlanetVelocities(planets: Planet[]): void {
   if (!planets || planets.length === 0) return;
-  
+
   for (const planet of planets) {
     // Apply velocity to position
     if (planet.vx || planet.vy) {
       planet.x += planet.vx || 0;
       planet.y += planet.vy || 0;
-      
+
       // Also shift the orbit center slightly for a more dramatic effect
       if (planet.orbitCenter) {
         planet.orbitCenter.x += (planet.vx || 0) * 0.3;
         planet.orbitCenter.y += (planet.vy || 0) * 0.3;
       }
-      
+
       // Apply decay
       planet.vx = (planet.vx || 0) * PLANET_PHYSICS.clickRepulsionDecay;
       planet.vy = (planet.vy || 0) * PLANET_PHYSICS.clickRepulsionDecay;
-      
+
       // Zero out very small velocities and restore orbit speed when velocity has decayed
-      const velocityMagnitude = Math.sqrt((planet.vx || 0) ** 2 + (planet.vy || 0) ** 2);
+      const velocityMagnitude = Math.sqrt(
+        (planet.vx || 0) ** 2 + (planet.vy || 0) ** 2,
+      );
       if (velocityMagnitude < 0.01) {
         planet.vx = 0;
         planet.vy = 0;
@@ -590,29 +651,30 @@ export function updatePlanetVelocities(planets: Planet[]): void {
         }
       }
     }
-    
+
     // Apply orbit stabilization - gradually pull planet back to its orbit radius
     if (planet.orbitCenter && planet.orbitRadius > 0) {
       const dx = planet.x - planet.orbitCenter.x;
       const dy = planet.y - planet.orbitCenter.y;
       const currentDistance = Math.sqrt(dx * dx + dy * dy);
-      
+
       // Calculate how far the planet is from its intended orbit
       const distanceFromOrbit = currentDistance - planet.orbitRadius;
-      const relativeDeviation = Math.abs(distanceFromOrbit) / planet.orbitRadius;
-      
+      const relativeDeviation =
+        Math.abs(distanceFromOrbit) / planet.orbitRadius;
+
       // Only apply stabilization if significantly off orbit
       if (relativeDeviation > PLANET_PHYSICS.orbitStabilizationThreshold) {
         // Calculate direction toward/away from orbit center
         const nx = dx / currentDistance;
         const ny = dy / currentDistance;
-        
+
         // Calculate stabilization force (proportional to deviation, capped at max)
         const stabilizationStrength = Math.min(
           PLANET_PHYSICS.orbitStabilizationForce * relativeDeviation,
-          PLANET_PHYSICS.maxStabilizationForce
+          PLANET_PHYSICS.maxStabilizationForce,
         );
-        
+
         // If too far from sun, pull closer; if too close, push away
         if (distanceFromOrbit > 0) {
           // Planet is too far - pull toward center

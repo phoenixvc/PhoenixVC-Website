@@ -2,12 +2,37 @@
 
 import React from "react";
 import { ColorMapping } from "../mappings";
-import { ColorDefinition, ThemeName, ThemeMode, Theme, ThemeColors, ShadeMap, ShadeLevel, ModeColors, ThemeSpacing, ThemeTypography, ThemeBorders, ThemeShadows, ThemeBreakpoints, ThemeTransitions, ThemeZIndex, ThemeVariables, RequiredModeColorKeys, SemanticColors, REQUIRED_SEMANTIC_COLORS, RequiredSemanticColorKeys, REQUIRED_MODE_COLORS } from "../types";
+import {
+  ColorDefinition,
+  ThemeName,
+  ThemeMode,
+  Theme,
+  ThemeColors,
+  ShadeMap,
+  ShadeLevel,
+  ModeColors,
+  ThemeSpacing,
+  ThemeTypography,
+  ThemeBorders,
+  ThemeShadows,
+  ThemeBreakpoints,
+  ThemeTransitions,
+  ThemeZIndex,
+  ThemeVariables,
+  RequiredModeColorKeys,
+  SemanticColors,
+  REQUIRED_SEMANTIC_COLORS,
+  RequiredSemanticColorKeys,
+  REQUIRED_MODE_COLORS,
+} from "../types";
 import { ComponentManager } from "./component-manager";
 import { ComponentRegistryManager } from "../registry/component-registry-manager";
 import { TypographyManager } from "./typography-manager";
 import { ComponentVariantType } from "../types/mappings/component-variants";
-import { ComponentState, InteractiveState } from "../types/mappings/state-mappings";
+import {
+  ComponentState,
+  InteractiveState,
+} from "../types/mappings/state-mappings";
 import ColorUtils from "../utils/color-utils";
 import CssVariableManager from "./css-variable-manager";
 import { logger } from "../../utils/logger";
@@ -53,88 +78,88 @@ export class ThemeStyleManager {
     container: {
       background: "var(--color-neutral-100)",
       foreground: "var(--color-neutral-900)",
-      border: "var(--color-neutral-300)"
+      border: "var(--color-neutral-300)",
     },
     header: {
       background: "var(--color-neutral-100)",
       foreground: "var(--color-neutral-900)",
-      border: "var(--color-neutral-300)"
+      border: "var(--color-neutral-300)",
     },
     footer: {
       background: "var(--color-neutral-100)",
       foreground: "var(--color-neutral-900)",
-      border: "var(--color-neutral-300)"
+      border: "var(--color-neutral-300)",
     },
 
     // Interactive states
     default: {
       background: "var(--color-neutral-100)",
       foreground: "var(--color-neutral-900)",
-      border: "var(--color-neutral-300)"
+      border: "var(--color-neutral-300)",
     },
     hover: {
       background: "var(--color-primary-100)",
       foreground: "var(--color-primary-900)",
-      border: "var(--color-primary-300)"
+      border: "var(--color-primary-300)",
     },
     active: {
       background: "var(--color-primary-200)",
       foreground: "var(--color-primary-900)",
-      border: "var(--color-primary-400)"
+      border: "var(--color-primary-400)",
     },
     disabled: {
       background: "var(--color-neutral-300)",
       foreground: "var(--color-neutral-500)",
-      border: "var(--color-neutral-400)"
+      border: "var(--color-neutral-400)",
     },
     focus: {
       background: "var(--color-primary-100)",
       foreground: "var(--color-primary-900)",
-      border: "var(--color-primary-500)"
+      border: "var(--color-primary-500)",
     },
     selected: {
       background: "var(--color-primary-100)",
       foreground: "var(--color-primary-900)",
-      border: "var(--color-primary-500)"
+      border: "var(--color-primary-500)",
     },
 
     // Semantic states
     primary: {
       background: "var(--color-primary-500)",
       foreground: "var(--color-neutral-100)",
-      border: "var(--color-primary-600)"
+      border: "var(--color-primary-600)",
     },
     secondary: {
       background: "var(--color-secondary-500)",
       foreground: "var(--color-neutral-100)",
-      border: "var(--color-secondary-600)"
+      border: "var(--color-secondary-600)",
     },
     success: {
       background: "var(--color-success-500)",
       foreground: "var(--color-neutral-100)",
-      border: "var(--color-success-600)"
+      border: "var(--color-success-600)",
     },
     warning: {
       background: "var(--color-warning-500)",
       foreground: "var(--color-neutral-900)",
-      border: "var(--color-warning-600)"
+      border: "var(--color-warning-600)",
     },
     danger: {
       background: "var(--color-danger-500)",
       foreground: "var(--color-neutral-100)",
-      border: "var(--color-danger-600)"
+      border: "var(--color-danger-600)",
     },
     info: {
       background: "var(--color-info-500)",
       foreground: "var(--color-neutral-100)",
-      border: "var(--color-info-600)"
+      border: "var(--color-info-600)",
     },
     error: {
       background: "var(--color-neutral-100)",
       foreground: "var(--color-danger-700)",
       border: "var(--color-danger-500)",
-      message: "var(--color-danger-700)"
-    }
+      message: "var(--color-danger-700)",
+    },
   };
 
   // Common styles for components
@@ -144,42 +169,42 @@ export class ThemeStyleManager {
       borderRadius: "0.25rem",
       cursor: "pointer",
       fontWeight: "500",
-      transition: "all 0.2s ease-in-out"
+      transition: "all 0.2s ease-in-out",
     },
     input: {
       padding: "0.5rem",
       borderRadius: "0.25rem",
       borderWidth: "1px",
       borderStyle: "solid",
-      outline: "none"
+      outline: "none",
     },
     container: {
       padding: "1rem",
-      borderRadius: "0.25rem"
+      borderRadius: "0.25rem",
     },
     card: {
       padding: "1rem",
       borderRadius: "0.25rem",
-      boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
+      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
     },
     badge: {
       padding: "0.25rem 0.5rem",
       borderRadius: "0.25rem",
       fontSize: "0.75rem",
       fontWeight: "500",
-      display: "inline-block"
+      display: "inline-block",
     },
     sidebar: {
       width: "240px",
       height: "100%",
       padding: "1rem",
-      borderRight: "1px solid var(--color-neutral-200)"
+      borderRight: "1px solid var(--color-neutral-200)",
     },
     item: {
       padding: "0.5rem 1rem",
       borderRadius: "0.25rem",
-      marginBottom: "0.25rem"
-    }
+      marginBottom: "0.25rem",
+    },
   };
 
   constructor(
@@ -187,7 +212,7 @@ export class ThemeStyleManager {
     componentRegistry: ComponentRegistryManager,
     colorMapping: ColorMapping,
     typographyManager: TypographyManager,
-    private cssVariableManager: CssVariableManager
+    private cssVariableManager: CssVariableManager,
   ) {
     this.componentManager = componentManager;
     this.componentRegistry = componentRegistry;
@@ -199,7 +224,7 @@ export class ThemeStyleManager {
       componentRegistry,
       colorMapping,
       typographyManager,
-      cssVariableManager
+      cssVariableManager,
     });
   }
 
@@ -271,7 +296,7 @@ export class ThemeStyleManager {
         config: {
           name: themeName,
           mode: "light", // Default mode
-          useSystem: false // Add the required useSystem property
+          useSystem: false, // Add the required useSystem property
         },
         components: {}, // Empty components
         // Add other required properties from the Theme interface with default values
@@ -282,7 +307,7 @@ export class ThemeStyleManager {
         breakpoints: {} as ThemeBreakpoints,
         transitions: {} as ThemeTransitions,
         zIndex: {} as ThemeZIndex,
-        variables: {} as ThemeVariables
+        variables: {} as ThemeVariables,
       };
 
       // Store the theme in our local map
@@ -298,15 +323,20 @@ export class ThemeStyleManager {
               if (typeof colorShades === "object" && colorShades !== null) {
                 // Register each shade level
                 const shadeMap = colorShades as ShadeMap;
-                const shadeLevels: ShadeLevel[] = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
+                const shadeLevels: ShadeLevel[] = [
+                  50, 100, 200, 300, 400, 500, 600, 700, 800, 900,
+                ];
 
-                shadeLevels.forEach(level => {
+                shadeLevels.forEach((level) => {
                   if (level in shadeMap) {
                     const shade = shadeMap[level];
                     if (shade) {
                       // Register in our CSS variable manager
                       const cssVarName = `--color-${colorName}-${level}`;
-                      this.cssVariableManager.setColorVariable(cssVarName, shade.hex);
+                      this.cssVariableManager.setColorVariable(
+                        cssVarName,
+                        shade.hex,
+                      );
 
                       // Also register with color mapping for component use
                       // Use the existing shade object directly if it's a complete ColorDefinition
@@ -315,7 +345,8 @@ export class ThemeStyleManager {
                         this.colorMapping.setColor(mappingKey, shade);
                       } else {
                         // Create a complete ColorDefinition if needed
-                        const colorDef = ColorUtils.ensureColorDefinition(shade);
+                        const colorDef =
+                          ColorUtils.ensureColorDefinition(shade);
                         const mappingKey = `${schemeName}-${colorName}-${level}`;
                         this.colorMapping.setColor(mappingKey, colorDef);
                       }
@@ -324,7 +355,10 @@ export class ThemeStyleManager {
                 });
 
                 // Register the base color if available
-                if ("base" in colorShades && typeof colorShades.base === "string") {
+                if (
+                  "base" in colorShades &&
+                  typeof colorShades.base === "string"
+                ) {
                   const baseHex = colorShades.base;
                   const cssVarName = `--color-${colorName}`;
                   this.cssVariableManager.setColorVariable(cssVarName, baseHex);
@@ -366,10 +400,10 @@ export class ThemeStyleManager {
   private registerModeColors(
     modeColors: ModeColors,
     mode: "light" | "dark",
-    schemeName: string
+    schemeName: string,
   ): void {
     // Register required mode colors
-    REQUIRED_MODE_COLORS.forEach(colorKey => {
+    REQUIRED_MODE_COLORS.forEach((colorKey) => {
       const colorDef = modeColors[colorKey];
       if (colorDef && "hex" in colorDef) {
         // Register in CSS variable manager
@@ -406,7 +440,7 @@ export class ThemeStyleManager {
    */
   private registerSemanticColors(semanticColors: SemanticColors): void {
     // Register required semantic colors
-    REQUIRED_SEMANTIC_COLORS.forEach(colorKey => {
+    REQUIRED_SEMANTIC_COLORS.forEach((colorKey) => {
       const colorDef = semanticColors[colorKey];
       if (colorDef && "hex" in colorDef) {
         // Register in CSS variable manager
@@ -421,7 +455,9 @@ export class ThemeStyleManager {
     // Register optional semantic colors
     Object.entries(semanticColors).forEach(([colorKey, colorDef]) => {
       // Skip required colors as we already processed them
-      if (REQUIRED_SEMANTIC_COLORS.includes(colorKey as RequiredSemanticColorKeys)) {
+      if (
+        REQUIRED_SEMANTIC_COLORS.includes(colorKey as RequiredSemanticColorKeys)
+      ) {
         return;
       }
 
@@ -440,7 +476,10 @@ export class ThemeStyleManager {
    * Get a full Theme object from ThemeColors
    * Used to reconstruct a Theme when only colors are available
    */
-  getFullThemeFromColors(themeName: ThemeName, themeColors: ThemeColors): Theme | undefined {
+  getFullThemeFromColors(
+    themeName: ThemeName,
+    themeColors: ThemeColors,
+  ): Theme | undefined {
     this.log(`Attempting to get full theme from colors for: ${themeName}`);
 
     try {
@@ -457,7 +496,7 @@ export class ThemeStyleManager {
         config: {
           name: themeName,
           mode: "light", // Default mode
-          useSystem: false // Add the required useSystem property
+          useSystem: false, // Add the required useSystem property
         },
         components: {}, // Empty components
         // Add other required properties from the Theme interface with default values
@@ -468,7 +507,7 @@ export class ThemeStyleManager {
         breakpoints: {} as ThemeBreakpoints,
         transitions: {} as ThemeTransitions,
         zIndex: {} as ThemeZIndex,
-        variables: {} as ThemeVariables
+        variables: {} as ThemeVariables,
       };
 
       // Store for future reference
@@ -476,7 +515,11 @@ export class ThemeStyleManager {
 
       return minimalTheme;
     } catch (error) {
-      this.log(`Error getting full theme from colors for ${themeName}`, error, true);
+      this.log(
+        `Error getting full theme from colors for ${themeName}`,
+        error,
+        true,
+      );
       return undefined;
     }
   }
@@ -486,30 +529,45 @@ export class ThemeStyleManager {
    */
   getComponentVariant(
     component: string,
-    variant: string = "default"
+    variant: string = "default",
   ): ComponentVariantType | undefined {
     this.log(`Getting component variant: ${component}/${variant}`);
 
     // Try to get the variant from the registry
-    const existingVariant = this.componentRegistry.getVariant(component, variant);
+    const existingVariant = this.componentRegistry.getVariant(
+      component,
+      variant,
+    );
 
     // If found, return it
     if (existingVariant) {
-      this.log(`Found existing variant for ${component}/${variant}`, existingVariant);
+      this.log(
+        `Found existing variant for ${component}/${variant}`,
+        existingVariant,
+      );
       return existingVariant;
     }
 
-    this.log(`No existing variant found for ${component}/${variant}, generating default`);
+    this.log(
+      `No existing variant found for ${component}/${variant}, generating default`,
+    );
 
     // If not found, generate a default variant based on component type
     const defaultVariant = this.generateDefaultVariant(component);
 
     // If we successfully generated a default, register it for future use
     if (defaultVariant) {
-      this.log(`Generated default variant for ${component}/${variant}`, defaultVariant);
+      this.log(
+        `Generated default variant for ${component}/${variant}`,
+        defaultVariant,
+      );
       this.componentRegistry.setVariant(component, variant, defaultVariant);
     } else {
-      this.log(`Failed to generate default variant for ${component}/${variant}`, undefined, true);
+      this.log(
+        `Failed to generate default variant for ${component}/${variant}`,
+        undefined,
+        true,
+      );
     }
 
     return defaultVariant;
@@ -564,7 +622,7 @@ export class ThemeStyleManager {
 
         // Get approximate RGB and HSL values using ColorUtils
         const approximateColorDef = ColorUtils.ensureColorDefinition({
-          hex: approximateHex
+          hex: approximateHex,
         });
 
         // Return a color definition that preserves the CSS variable in hex
@@ -572,13 +630,13 @@ export class ThemeStyleManager {
         return {
           hex: color, // Keep the original CSS variable
           rgb: approximateColorDef.rgb, // Use approximate RGB
-          hsl: approximateColorDef.hsl  // Use approximate HSL
+          hsl: approximateColorDef.hsl, // Use approximate HSL
         };
       }
 
       // For actual hex colors, use the color utility directly
       const colorDef = ColorUtils.ensureColorDefinition({
-        hex: color
+        hex: color,
       });
 
       this.log(`Created color definition from ${color}`, colorDef);
@@ -589,7 +647,7 @@ export class ThemeStyleManager {
       return {
         hex: "#808080",
         rgb: "rgb(128, 128, 128)",
-        hsl: "hsl(0, 0%, 50%)"
+        hsl: "hsl(0, 0%, 50%)",
       };
     }
   }
@@ -619,10 +677,13 @@ export class ThemeStyleManager {
       700: "#404040",
       800: "#262626",
       900: "#171717",
-      950: "#0a0a0a"
+      950: "#0a0a0a",
     };
 
-    return mappings[level] || this.getApproximationByLevel(level, "#000000", "#ffffff");
+    return (
+      mappings[level] ||
+      this.getApproximationByLevel(level, "#000000", "#ffffff")
+    );
   }
 
   /**
@@ -641,10 +702,13 @@ export class ThemeStyleManager {
       700: "#1d4ed8",
       800: "#1e40af",
       900: "#1e3a8a",
-      950: "#172554"
+      950: "#172554",
     };
 
-    return mappings[level] || this.getApproximationByLevel(level, "#172554", "#eff6ff");
+    return (
+      mappings[level] ||
+      this.getApproximationByLevel(level, "#172554", "#eff6ff")
+    );
   }
 
   /**
@@ -663,10 +727,13 @@ export class ThemeStyleManager {
       700: "#7e22ce",
       800: "#6b21a8",
       900: "#581c87",
-      950: "#3b0764"
+      950: "#3b0764",
     };
 
-    return mappings[level] || this.getApproximationByLevel(level, "#3b0764", "#faf5ff");
+    return (
+      mappings[level] ||
+      this.getApproximationByLevel(level, "#3b0764", "#faf5ff")
+    );
   }
 
   /**
@@ -685,10 +752,13 @@ export class ThemeStyleManager {
       700: "#15803d",
       800: "#166534",
       900: "#14532d",
-      950: "#052e16"
+      950: "#052e16",
     };
 
-    return mappings[level] || this.getApproximationByLevel(level, "#052e16", "#f0fdf4");
+    return (
+      mappings[level] ||
+      this.getApproximationByLevel(level, "#052e16", "#f0fdf4")
+    );
   }
 
   /**
@@ -707,10 +777,13 @@ export class ThemeStyleManager {
       700: "#b45309",
       800: "#92400e",
       900: "#78350f",
-      950: "#451a03"
+      950: "#451a03",
     };
 
-    return mappings[level] || this.getApproximationByLevel(level, "#451a03", "#fffbeb");
+    return (
+      mappings[level] ||
+      this.getApproximationByLevel(level, "#451a03", "#fffbeb")
+    );
   }
 
   /**
@@ -729,10 +802,13 @@ export class ThemeStyleManager {
       700: "#b91c1c",
       800: "#991b1b",
       900: "#7f1d1d",
-      950: "#450a0a"
+      950: "#450a0a",
     };
 
-    return mappings[level] || this.getApproximationByLevel(level, "#450a0a", "#fef2f2");
+    return (
+      mappings[level] ||
+      this.getApproximationByLevel(level, "#450a0a", "#fef2f2")
+    );
   }
 
   /**
@@ -751,16 +827,23 @@ export class ThemeStyleManager {
       700: "#0369a1",
       800: "#075985",
       900: "#0c4a6e",
-      950: "#082f49"
+      950: "#082f49",
     };
 
-    return mappings[level] || this.getApproximationByLevel(level, "#082f49", "#f0f9ff");
+    return (
+      mappings[level] ||
+      this.getApproximationByLevel(level, "#082f49", "#f0f9ff")
+    );
   }
 
   /**
    * Get an approximation for any level by interpolating between dark and light extremes
    */
-  private getApproximationByLevel(level: number, darkest: string, lightest: string): string {
+  private getApproximationByLevel(
+    level: number,
+    darkest: string,
+    lightest: string,
+  ): string {
     // Normalize level to a 0-1 range (where 950 is 0 and 50 is 1)
     const normalizedValue = Math.max(0, Math.min(1, (950 - level) / 900));
 
@@ -769,9 +852,15 @@ export class ThemeStyleManager {
     const lightRGB = this.hexToRgbComponents(lightest);
 
     // Interpolate between dark and light
-    const r = Math.round(darkRGB.r + normalizedValue * (lightRGB.r - darkRGB.r));
-    const g = Math.round(darkRGB.g + normalizedValue * (lightRGB.g - darkRGB.g));
-    const b = Math.round(darkRGB.b + normalizedValue * (lightRGB.b - darkRGB.b));
+    const r = Math.round(
+      darkRGB.r + normalizedValue * (lightRGB.r - darkRGB.r),
+    );
+    const g = Math.round(
+      darkRGB.g + normalizedValue * (lightRGB.g - darkRGB.g),
+    );
+    const b = Math.round(
+      darkRGB.b + normalizedValue * (lightRGB.b - darkRGB.b),
+    );
 
     // Convert back to hex
     return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
@@ -780,7 +869,7 @@ export class ThemeStyleManager {
   /**
    * Convert a hex color to RGB components
    */
-  private hexToRgbComponents(hex: string): { r: number, g: number, b: number } {
+  private hexToRgbComponents(hex: string): { r: number; g: number; b: number } {
     // Remove # if present
     const cleanHex = hex.startsWith("#") ? hex.slice(1) : hex;
 
@@ -799,15 +888,17 @@ export class ThemeStyleManager {
   private createComponentState(
     bgColor: string,
     fgColor: string,
-    borderColor: string = "transparent"
+    borderColor: string = "transparent",
   ): ComponentState {
-    this.log(`Creating component state with bg=${bgColor}, fg=${fgColor}, border=${borderColor}`);
+    this.log(
+      `Creating component state with bg=${bgColor}, fg=${fgColor}, border=${borderColor}`,
+    );
 
     try {
       const state = {
         background: this.createColorDefinition(bgColor),
         foreground: this.createColorDefinition(fgColor),
-        border: this.createColorDefinition(borderColor)
+        border: this.createColorDefinition(borderColor),
       };
 
       this.log("Created component state", state);
@@ -818,7 +909,7 @@ export class ThemeStyleManager {
       return {
         background: this.createColorDefinition("var(--color-neutral-100)"),
         foreground: this.createColorDefinition("var(--color-neutral-900)"),
-        border: this.createColorDefinition("var(--color-neutral-300)")
+        border: this.createColorDefinition("var(--color-neutral-300)"),
       };
     }
   }
@@ -829,26 +920,35 @@ export class ThemeStyleManager {
   private createInteractiveState(
     bgColor?: string,
     fgColor?: string,
-    borderColor?: string
+    borderColor?: string,
   ): InteractiveState {
     // Check if all parameters are undefined
-    const allUndefined = bgColor === undefined && fgColor === undefined && borderColor === undefined;
+    const allUndefined =
+      bgColor === undefined &&
+      fgColor === undefined &&
+      borderColor === undefined;
 
     if (allUndefined) {
       this.log("All parameters undefined, using default pattern directly");
       // Use createComponentStateFromPattern to get default values
       return {
-        background: this.createColorDefinition(this.getDefaultValue("background")),
-        foreground: this.createColorDefinition(this.getDefaultValue("foreground")),
+        background: this.createColorDefinition(
+          this.getDefaultValue("background"),
+        ),
+        foreground: this.createColorDefinition(
+          this.getDefaultValue("foreground"),
+        ),
         border: this.createColorDefinition(this.getDefaultValue("border")),
         hover: this.createComponentStateFromPattern("hover"),
         active: this.createComponentStateFromPattern("active"),
         disabled: this.createComponentStateFromPattern("disabled"),
-        focus: this.createComponentStateFromPattern("focus")
+        focus: this.createComponentStateFromPattern("focus"),
       };
     }
 
-    this.log(`Creating interactive state with bg=${bgColor}, fg=${fgColor}, border=${borderColor}`);
+    this.log(
+      `Creating interactive state with bg=${bgColor}, fg=${fgColor}, border=${borderColor}`,
+    );
 
     try {
       // Safely access default pattern
@@ -874,7 +974,7 @@ export class ThemeStyleManager {
         hover: this.createComponentStateFromPattern("hover"),
         active: this.createComponentStateFromPattern("active"),
         disabled: this.createComponentStateFromPattern("disabled"),
-        focus: this.createComponentStateFromPattern("focus")
+        focus: this.createComponentStateFromPattern("focus"),
       };
 
       this.log("Created interactive state", state);
@@ -889,13 +989,15 @@ export class ThemeStyleManager {
         hover: this.createComponentStateFromPattern("hover"),
         active: this.createComponentStateFromPattern("active"),
         disabled: this.createComponentStateFromPattern("disabled"),
-        focus: this.createComponentStateFromPattern("focus")
+        focus: this.createComponentStateFromPattern("focus"),
       };
     }
   }
 
   // Helper method to get default values
-  private getDefaultValue(property: "background" | "foreground" | "border"): string {
+  private getDefaultValue(
+    property: "background" | "foreground" | "border",
+  ): string {
     const defaultPattern = this.commonPatterns.default;
 
     if (!defaultPattern || typeof defaultPattern === "string") {
@@ -903,14 +1005,13 @@ export class ThemeStyleManager {
       const fallbacks = {
         background: "var(--color-neutral-100)",
         foreground: "var(--color-neutral-900)",
-        border: "var(--color-neutral-300)"
+        border: "var(--color-neutral-300)",
       };
       return fallbacks[property];
     }
 
     return defaultPattern[property];
   }
-
 
   /**
    * Create a component state from a pattern name
@@ -928,26 +1029,38 @@ export class ThemeStyleManager {
       }
 
       if (typeof pattern === "string") {
-        this.log(`Pattern is a string, not an object: ${patternName}`, pattern, true);
+        this.log(
+          `Pattern is a string, not an object: ${patternName}`,
+          pattern,
+          true,
+        );
         return this.createFallbackComponentState();
       }
 
       // Validate pattern has required properties
       if (!pattern.background || !pattern.foreground || !pattern.border) {
-        this.log(`Pattern missing required properties: ${patternName}`, pattern, true);
+        this.log(
+          `Pattern missing required properties: ${patternName}`,
+          pattern,
+          true,
+        );
         return this.createFallbackComponentState();
       }
 
       const state = this.createComponentState(
         pattern.background,
         pattern.foreground,
-        pattern.border
+        pattern.border,
       );
 
       this.log(`Created component state from pattern ${patternName}`, state);
       return state;
     } catch (error) {
-      this.log(`Error creating component state from pattern ${patternName}`, error, true);
+      this.log(
+        `Error creating component state from pattern ${patternName}`,
+        error,
+        true,
+      );
       return this.createFallbackComponentState();
     }
   }
@@ -959,7 +1072,7 @@ export class ThemeStyleManager {
     return {
       background: this.createColorDefinition("var(--color-neutral-100)"),
       foreground: this.createColorDefinition("var(--color-neutral-900)"),
-      border: this.createColorDefinition("var(--color-neutral-300)")
+      border: this.createColorDefinition("var(--color-neutral-300)"),
     };
   }
 
@@ -979,7 +1092,7 @@ export class ThemeStyleManager {
         case "button":
           result = {
             ...this.createInteractiveState(),
-            style: { ...this.commonStyles.button }
+            style: { ...this.commonStyles.button },
           };
           break;
 
@@ -991,7 +1104,7 @@ export class ThemeStyleManager {
             label: undefined,
             error: undefined,
             success: undefined,
-            style: { ...this.commonStyles.input }
+            style: { ...this.commonStyles.input },
           };
           break;
 
@@ -1000,11 +1113,11 @@ export class ThemeStyleManager {
             default: undefined,
             interactive: {
               hover: undefined,
-              active: undefined
+              active: undefined,
             },
             header: undefined,
             footer: undefined,
-            style: { ...this.commonStyles.card }
+            style: { ...this.commonStyles.card },
           };
           break;
 
@@ -1016,25 +1129,25 @@ export class ThemeStyleManager {
               default: this.createInteractiveState(),
               active: undefined,
               expanded: undefined,
-              style: { ...this.commonStyles.item }
+              style: { ...this.commonStyles.item },
             },
             subItem: {
               container: undefined,
               item: this.createInteractiveState(),
-              style: { paddingLeft: "1.5rem" }
+              style: { paddingLeft: "1.5rem" },
             },
             divider: undefined,
             icon: {
               default: undefined,
               active: undefined,
-              style: { marginRight: "0.5rem" }
+              style: { marginRight: "0.5rem" },
             },
             indicator: {
               default: undefined,
               active: undefined,
-              style: { marginLeft: "auto" }
+              style: { marginLeft: "auto" },
             },
-            style: { display: "flex", gap: "0.5rem" }
+            style: { display: "flex", gap: "0.5rem" },
           };
           break;
 
@@ -1044,20 +1157,20 @@ export class ThemeStyleManager {
             group: {
               container: undefined,
               title: undefined,
-              style: { padding: "0.5rem", marginBottom: "0.5rem" }
+              style: { padding: "0.5rem", marginBottom: "0.5rem" },
             },
             item: {
               default: this.createInteractiveState(),
               active: undefined,
-              style: { ...this.commonStyles.item }
+              style: { ...this.commonStyles.item },
             },
             divider: undefined,
             icon: {
               default: undefined,
               active: undefined,
-              style: { marginRight: "0.5rem" }
+              style: { marginRight: "0.5rem" },
             },
-            style: { ...this.commonStyles.sidebar }
+            style: { ...this.commonStyles.sidebar },
           };
           break;
 
@@ -1071,7 +1184,7 @@ export class ThemeStyleManager {
             warning: undefined,
             danger: undefined,
             info: undefined,
-            style: { ...this.commonStyles.badge }
+            style: { ...this.commonStyles.badge },
           };
           break;
 
@@ -1079,7 +1192,7 @@ export class ThemeStyleManager {
           // For unknown components, return a basic interactive state
           result = {
             ...this.createInteractiveState(),
-            style: { ...this.commonStyles.container }
+            style: { ...this.commonStyles.container },
           };
           break;
       }
@@ -1087,11 +1200,15 @@ export class ThemeStyleManager {
       this.log(`Created base structure for ${componentType}`, result);
       return result;
     } catch (error) {
-      this.log(`Error creating base structure for ${componentType}`, error, true);
+      this.log(
+        `Error creating base structure for ${componentType}`,
+        error,
+        true,
+      );
       // Return a minimal fallback structure
       return {
         ...this.createInteractiveState(),
-        style: {}
+        style: {},
       };
     }
   }
@@ -1108,23 +1225,33 @@ export class ThemeStyleManager {
 
       // Check if base structure is valid
       if (!baseStructure) {
-        this.log(`Failed to get base structure for ${component}`, undefined, true);
+        this.log(
+          `Failed to get base structure for ${component}`,
+          undefined,
+          true,
+        );
         throw new Error(`Failed to get base structure for ${component}`);
       }
 
       // Recursively populate with defaults
-      const result = this.populateDefaultsRecursively(baseStructure) as ComponentVariantType;
+      const result = this.populateDefaultsRecursively(
+        baseStructure,
+      ) as ComponentVariantType;
 
       this.log(`Generated default variant for ${component}`, result);
       return result;
     } catch (error) {
-      this.log(`Error generating default variant for ${component}`, error, true);
+      this.log(
+        `Error generating default variant for ${component}`,
+        error,
+        true,
+      );
       // Return a minimal fallback variant
       return {
         background: this.createColorDefinition("var(--color-neutral-100)"),
         foreground: this.createColorDefinition("var(--color-neutral-900)"),
         border: this.createColorDefinition("var(--color-neutral-300)"),
-        style: {}
+        style: {},
       } as unknown as ComponentVariantType;
     }
   }
@@ -1138,7 +1265,12 @@ export class ThemeStyleManager {
     }
 
     // If it"s a color definition, return as is
-    if (obj && typeof obj === "object" && "hex" in obj && typeof obj.hex === "string") {
+    if (
+      obj &&
+      typeof obj === "object" &&
+      "hex" in obj &&
+      typeof obj.hex === "string"
+    ) {
       return obj;
     }
 
@@ -1168,7 +1300,10 @@ export class ThemeStyleManager {
           if (value === undefined) {
             // Apply default based on property name
             result[key] = this.getDefaultForPropertyName(key);
-            this.log(`Applied default for undefined property: ${key}`, result[key]);
+            this.log(
+              `Applied default for undefined property: ${key}`,
+              result[key],
+            );
           } else if (typeof value === "object" && value !== null) {
             // Recursively process nested objects
             result[key] = this.populateDefaultsRecursively(value);
@@ -1205,7 +1340,7 @@ export class ThemeStyleManager {
           return this.createComponentState(
             pattern.background,
             pattern.foreground,
-            pattern.border
+            pattern.border,
           );
         }
 
@@ -1225,13 +1360,13 @@ export class ThemeStyleManager {
           return {
             default: this.createColorDefinition("var(--color-neutral-500)"),
             active: this.createColorDefinition("var(--color-primary-500)"),
-            style: { marginRight: "0.5rem" }
+            style: { marginRight: "0.5rem" },
           };
 
         case "interactive":
           return {
             hover: this.createComponentStateFromPattern("hover"),
-            active: this.createComponentStateFromPattern("active")
+            active: this.createComponentStateFromPattern("active"),
           };
 
         default: {
@@ -1239,7 +1374,11 @@ export class ThemeStyleManager {
           const defaultPattern = this.commonPatterns.default;
 
           if (!defaultPattern || typeof defaultPattern === "string") {
-            this.log(`Default pattern is missing or invalid for property ${propertyName}`, defaultPattern, true);
+            this.log(
+              `Default pattern is missing or invalid for property ${propertyName}`,
+              defaultPattern,
+              true,
+            );
             // Use fallback values
             return this.createFallbackComponentState();
           }
@@ -1248,12 +1387,16 @@ export class ThemeStyleManager {
           return this.createComponentState(
             defaultPattern.background,
             defaultPattern.foreground,
-            defaultPattern.border
+            defaultPattern.border,
           );
         }
       }
     } catch (error) {
-      this.log(`Error getting default for property ${propertyName}`, error, true);
+      this.log(
+        `Error getting default for property ${propertyName}`,
+        error,
+        true,
+      );
       return this.createFallbackComponentState();
     }
   }
@@ -1261,7 +1404,7 @@ export class ThemeStyleManager {
   // Generate all theme variables
   generateThemeVariables(
     mode: ThemeMode = "light",
-    themeName: ThemeName = "classic"
+    themeName: ThemeName = "classic",
   ): Record<string, string | ColorDefinition> {
     this.log(`Generating theme variables for mode=${mode}, theme=${themeName}`);
 
@@ -1273,9 +1416,11 @@ export class ThemeStyleManager {
         return {};
       }
 
-      const componentVars = this.componentManager.generateAllVariables(registry);
+      const componentVars =
+        this.componentManager.generateAllVariables(registry);
       const colorVars = this.colorMapping.toCSS();
-      const typographyVars = this.typographyManager.generateTypographyVariables(mode);
+      const typographyVars =
+        this.typographyManager.generateTypographyVariables(mode);
 
       const result = {
         // Component variables
@@ -1285,7 +1430,7 @@ export class ThemeStyleManager {
         ...colorVars,
 
         // Typography variables
-        ...typographyVars
+        ...typographyVars,
       };
 
       this.log(`Generated ${Object.keys(result).length} theme variables`);
@@ -1299,7 +1444,7 @@ export class ThemeStyleManager {
   // Generate all theme classes
   generateThemeClasses(
     mode: ThemeMode = "light",
-    scheme: ThemeName = "classic"
+    scheme: ThemeName = "classic",
   ): Record<string, string> {
     this.log(`Generating theme classes for mode=${mode}, scheme=${scheme}`);
 
@@ -1311,15 +1456,19 @@ export class ThemeStyleManager {
         return {};
       }
 
-      const componentClasses = this.componentManager.generateAllClasses(scheme, registry);
-      const typographyClasses = this.typographyManager.generateTypographyClasses(mode);
+      const componentClasses = this.componentManager.generateAllClasses(
+        scheme,
+        registry,
+      );
+      const typographyClasses =
+        this.typographyManager.generateTypographyClasses(mode);
 
       const result = {
         // Component classes
         ...componentClasses,
 
         // Typography classes
-        ...typographyClasses
+        ...typographyClasses,
       };
 
       this.log(`Generated ${Object.keys(result).length} theme variables`);
@@ -1335,42 +1484,64 @@ export class ThemeStyleManager {
     component: string,
     variant: string = "default",
     state: string = "default",
-    mode: ThemeMode = "light"
+    mode: ThemeMode = "light",
   ): React.CSSProperties {
-    this.log(`Getting component style for ${component}/${variant}/${state} (mode=${mode})`);
+    this.log(
+      `Getting component style for ${component}/${variant}/${state} (mode=${mode})`,
+    );
 
     try {
       // Try to get the component variant with fallback
-      let componentVariant = this.componentRegistry.getVariantWithFallback(component, variant);
+      let componentVariant = this.componentRegistry.getVariantWithFallback(
+        component,
+        variant,
+      );
 
       // If no variant found, generate a default one
       if (!componentVariant) {
-        this.log(`No variant found for ${component}/${variant}, generating default`);
+        this.log(
+          `No variant found for ${component}/${variant}, generating default`,
+        );
         componentVariant = this.generateDefaultVariant(component);
 
         // Register this default variant for future use
         if (componentVariant) {
-          this.componentRegistry.setVariant(component, variant, componentVariant);
+          this.componentRegistry.setVariant(
+            component,
+            variant,
+            componentVariant,
+          );
         }
       }
 
       if (!componentVariant) {
-        this.log(`Failed to get or generate variant for ${component}/${variant}`, undefined, true);
+        this.log(
+          `Failed to get or generate variant for ${component}/${variant}`,
+          undefined,
+          true,
+        );
         return {}; // Return empty style to prevent crashes
       }
 
       // Get component colors
       const colorStyle = this.componentManager.getComponentStyleFromVariant(
         componentVariant,
-        state
+        state,
       );
 
       // Get component typography
-      const typography = this.typographyManager.getComponentTypography(component, variant, mode);
+      const typography = this.typographyManager.getComponentTypography(
+        component,
+        variant,
+        mode,
+      );
 
       // If no typography found, return just the color style
       if (!typography) {
-        this.log(`No typography found for ${component}/${variant}, returning only color style`, colorStyle);
+        this.log(
+          `No typography found for ${component}/${variant}, returning only color style`,
+          colorStyle,
+        );
         return colorStyle;
       }
 
@@ -1382,17 +1553,26 @@ export class ThemeStyleManager {
         letterSpacing: typography.letterSpacing,
         fontWeight: typography.fontWeight,
         ...(typography.fontFamily ? { fontFamily: typography.fontFamily } : {}),
-        ...(typography.textTransform ? { textTransform: typography.textTransform } : {})
+        ...(typography.textTransform
+          ? { textTransform: typography.textTransform }
+          : {}),
       };
 
-      this.log(`Generated component style for ${component}/${variant}/${state}`, result);
+      this.log(
+        `Generated component style for ${component}/${variant}/${state}`,
+        result,
+      );
 
       // Check for NaN values in the final style
       this.checkForNaN(result, `${component}/${variant}/${state} style`);
 
       return result;
     } catch (error) {
-      this.log(`Error getting component style for ${component}/${variant}/${state}`, error, true);
+      this.log(
+        `Error getting component style for ${component}/${variant}/${state}`,
+        error,
+        true,
+      );
       return {}; // Return empty style to prevent crashes
     }
   }

@@ -71,41 +71,51 @@ export const getThemeClass = (theme: ThemeName, mode: ThemeMode): string => {
   return `theme-${theme}-${mode}`;
 };
 
-export const COLOR_SCHEME_CLASSES: Record<ThemeName, Record<ThemeMode, string[]>> = {
+export const COLOR_SCHEME_CLASSES: Record<
+  ThemeName,
+  Record<ThemeMode, string[]>
+> = {
   classic: {
     light: [getThemeClass("classic", "light")],
-    dark: [getThemeClass("classic", "dark")]
+    dark: [getThemeClass("classic", "dark")],
   },
   ocean: {
     light: [getThemeClass("ocean", "light")],
-    dark: [getThemeClass("ocean", "dark")]
+    dark: [getThemeClass("ocean", "dark")],
   },
   lavender: {
     light: [getThemeClass("lavender", "light")],
-    dark: [getThemeClass("lavender", "dark")]
+    dark: [getThemeClass("lavender", "dark")],
   },
   phoenix: {
     light: [getThemeClass("phoenix", "light")],
-    dark: [getThemeClass("phoenix", "dark")]
+    dark: [getThemeClass("phoenix", "dark")],
   },
   forest: {
     light: [getThemeClass("forest", "light")],
-    dark: [getThemeClass("forest", "dark")]
+    dark: [getThemeClass("forest", "dark")],
   },
   cloud: {
     light: [getThemeClass("cloud", "light")],
-    dark: [getThemeClass("cloud", "dark")]
-  }
+    dark: [getThemeClass("cloud", "dark")],
+  },
 } as const;
 
 export const THEME_CONSTANTS = {
-    STORAGE: {
-      KEYS: {
-        THEME_NAME: "theme_name",
-        THEME_MODE: "theme_mode",
-        CUSTOM_THEMES: "custom_themes"
-      }
+  STORAGE: {
+    KEYS: {
+      THEME_NAME: "theme_name",
+      THEME_MODE: "theme_mode",
+      CUSTOM_THEMES: "custom_themes",
     },
-    COLOR_SCHEMES: ["classic", "forest", "ocean", "phoenix", "lavender", "cloud"] as ThemeName[],
-    MODES: ["light", "dark"] as ThemeMode[]
-  };
+  },
+  COLOR_SCHEMES: [
+    "classic",
+    "forest",
+    "ocean",
+    "phoenix",
+    "lavender",
+    "cloud",
+  ] as ThemeName[],
+  MODES: ["light", "dark"] as ThemeMode[],
+};

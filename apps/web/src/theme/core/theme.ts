@@ -1,11 +1,19 @@
-import { Theme, ThemeColors, ThemeConfig, ThemeSpacing, ThemeVariables } from "../types";
+import {
+  Theme,
+  ThemeColors,
+  ThemeConfig,
+  ThemeSpacing,
+  ThemeVariables,
+} from "../types";
 import { defaultTheme } from "./defaultTheme";
 
 // Theme factory function for the hybrid approach
 export function createTheme(
   config: ThemeConfig,
   colors: ThemeColors,
-  overrides?: Partial<Omit<Theme, "config" | "colors" | "variables" | "typography" | "components">>
+  overrides?: Partial<
+    Omit<Theme, "config" | "colors" | "variables" | "typography" | "components">
+  >,
 ): Theme {
   // Generate variables from colors (from Implementation 2)
   const variables: ThemeVariables = generateThemeVariables(config, colors);
@@ -19,33 +27,50 @@ export function createTheme(
     // Ensure spacing.unit is a string
     spacing: {
       // Convert all numeric spacing properties to strings
-      ...Object.entries(defaultTheme.spacing).reduce((acc, [key, value]) => ({
-        ...acc,
-        [key]: typeof value === "number" ? String(value) : value
-      }), {}),
+      ...Object.entries(defaultTheme.spacing).reduce(
+        (acc, [key, value]) => ({
+          ...acc,
+          [key]: typeof value === "number" ? String(value) : value,
+        }),
+        {},
+      ),
 
       // Apply any overrides, also ensuring they're strings
-      ...(overrides?.spacing ? Object.entries(overrides.spacing).reduce((acc, [key, value]) => ({
-        ...acc,
-        [key]: typeof value === "number" ? String(value) : value
-      }), {}) : {})
+      ...(overrides?.spacing
+        ? Object.entries(overrides.spacing).reduce(
+            (acc, [key, value]) => ({
+              ...acc,
+              [key]: typeof value === "number" ? String(value) : value,
+            }),
+            {},
+          )
+        : {}),
     } as ThemeSpacing,
     // Deep merge for nested objects
     typography: {
       ...defaultTheme.typography,
-      ...(overrides?.typography || {})
+      ...(overrides?.typography || {}),
     },
     components: {
       ...defaultTheme.components,
-      ...(overrides?.components || {})
-    }
+      ...(overrides?.components || {}),
+    },
     // Other properties from defaultTheme and overrides
   };
 
   // Add any remaining overrides
   if (overrides) {
-    Object.keys(overrides).forEach(key => {
-      if (!["config", "colors", "variables", "typography", "components", "spacing"].includes(key)) {
+    Object.keys(overrides).forEach((key) => {
+      if (
+        ![
+          "config",
+          "colors",
+          "variables",
+          "typography",
+          "components",
+          "spacing",
+        ].includes(key)
+      ) {
         // @ts-ignore - We"re being careful with the keys
         theme[key] = overrides[key];
       }
@@ -58,15 +83,15 @@ export function createTheme(
 // Helper function to generate theme variables from colors
 function generateThemeVariables(
   config: ThemeConfig,
-  colors: ThemeColors
+  colors: ThemeColors,
 ): ThemeVariables {
   // Get the current color scheme
   const colorScheme = config.themeName || "classic";
   const mode = config.mode || "light";
 
   // Get the appropriate color scheme
-  const schemeColors = colors.schemes[colorScheme] ||
-    Object.values(colors.schemes)[0]; // Fallback to first scheme
+  const schemeColors =
+    colors.schemes[colorScheme] || Object.values(colors.schemes)[0]; // Fallback to first scheme
 
   // Get the appropriate mode colors
   const modeColors = schemeColors[mode];

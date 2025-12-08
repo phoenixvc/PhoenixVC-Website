@@ -34,7 +34,8 @@ export const Navigation = ({
     };
 
     window.addEventListener("sectionVisible", handleSectionVisible);
-    return (): void => window.removeEventListener("sectionVisible", handleSectionVisible);
+    return (): void =>
+      window.removeEventListener("sectionVisible", handleSectionVisible);
   }, [onSectionChange]);
 
   // Backup intersection observer
@@ -47,8 +48,8 @@ export const Navigation = ({
       (entries): void => {
         // Filter for elements that are currently intersecting
         const visibleSections = entries
-          .filter(entry => entry.isIntersecting)
-          .map(entry => entry.target.id);
+          .filter((entry) => entry.isIntersecting)
+          .map((entry) => entry.target.id);
 
         if (visibleSections.length > 0) {
           // Get the first visible section
@@ -63,8 +64,8 @@ export const Navigation = ({
       },
       {
         threshold: [0.2, 0.5, 0.8],
-        rootMargin: "-45% 0px -45% 0px"
-      }
+        rootMargin: "-45% 0px -45% 0px",
+      },
     );
 
     sectionIds.forEach((id) => {
@@ -91,36 +92,46 @@ export const Navigation = ({
     }
   }, [propActiveSection, activeSection]);
 
-  const handleClick = useCallback((event: MouseEvent<HTMLAnchorElement>, item: NavigationItem): void => {
-    if (item.type === "section") {
-      event.preventDefault();
-      const targetId = item.reference || item.path.replace(/^\/?(#)?/, "");
-      const element = document.getElementById(targetId);
+  const handleClick = useCallback(
+    (event: MouseEvent<HTMLAnchorElement>, item: NavigationItem): void => {
+      if (item.type === "section") {
+        event.preventDefault();
+        const targetId = item.reference || item.path.replace(/^\/?(#)?/, "");
+        const element = document.getElementById(targetId);
 
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth" });
-        setActiveSection(targetId);
-        onSectionChange?.(targetId);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+          setActiveSection(targetId);
+          onSectionChange?.(targetId);
 
-        // Update URL hash without triggering scroll
-        const newUrl = `${window.location.pathname}#${targetId}`;
-        window.history.replaceState(null, "", newUrl);
+          // Update URL hash without triggering scroll
+          const newUrl = `${window.location.pathname}#${targetId}`;
+          window.history.replaceState(null, "", newUrl);
+        }
       }
-    }
 
-    onItemClick?.(event);
-  }, [onItemClick, onSectionChange]);
+      onItemClick?.(event);
+    },
+    [onItemClick, onSectionChange],
+  );
 
-  const isItemActive = useCallback((item: NavigationItem): boolean => {
-    if (item.type === "section") {
-      const sectionId = item.reference || item.path.replace(/^\/?(#)?/, "");
-      return sectionId === activeSection;
-    }
-    return item.path === location.pathname;
-  }, [activeSection, location.pathname]);
+  const isItemActive = useCallback(
+    (item: NavigationItem): boolean => {
+      if (item.type === "section") {
+        const sectionId = item.reference || item.path.replace(/^\/?(#)?/, "");
+        return sectionId === activeSection;
+      }
+      return item.path === location.pathname;
+    },
+    [activeSection, location.pathname],
+  );
 
   return (
-    <nav className={twMerge(styles.nav, className)} role="navigation" aria-label="Main navigation">
+    <nav
+      className={twMerge(styles.nav, className)}
+      role="navigation"
+      aria-label="Main navigation"
+    >
       {items.map((item) => (
         <NavLink
           key={item.path}

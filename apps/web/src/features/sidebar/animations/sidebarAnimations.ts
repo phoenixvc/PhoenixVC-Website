@@ -1,4 +1,2 @@
 // features/investment-focus/animations/index.ts
-export const sidebarAnimations = {
- 
-  };
+export const sidebarAnimations = {};

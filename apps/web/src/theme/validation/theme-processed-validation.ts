@@ -1,16 +1,27 @@
-import { ColorShades, ModeColors, ShadeLevel, ThemeScheme, ValidationResult, ValidationError } from "@/theme/types";
+import {
+  ColorShades,
+  ModeColors,
+  ShadeLevel,
+  ThemeScheme,
+  ValidationResult,
+  ValidationError,
+} from "@/theme/types";
 import { validateHexOnly } from "./utils/color-hex-validation";
 import { createValidationResult } from "./utils/create-validation-result";
 
 export class ThemeProcessedValidation {
   static REQUIRED_BASE_COLORS = ["primary", "secondary", "accent"] as const;
-  static ALL_SHADE_LEVELS: ShadeLevel[] = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
+  static ALL_SHADE_LEVELS: ShadeLevel[] = [
+    50, 100, 200, 300, 400, 500, 600, 700, 800, 900,
+  ];
 
   /**
    * Validates the entire processed theme and returns a ValidationResult.
    * @param schemes - The schemes of the processed theme.
    */
-  static validateProcessedTheme(schemes: Record<string, ThemeScheme>): ValidationResult {
+  static validateProcessedTheme(
+    schemes: Record<string, ThemeScheme>,
+  ): ValidationResult {
     const errors: ValidationError[] = [];
 
     // Check if schemes are missing or empty
@@ -30,7 +41,9 @@ export class ThemeProcessedValidation {
       errors.push(...this.validateBaseColors(scheme.base, schemeName));
 
       // Validate light and dark mode colors
-      errors.push(...this.validateModeColors(scheme.light, "light", schemeName));
+      errors.push(
+        ...this.validateModeColors(scheme.light, "light", schemeName),
+      );
       errors.push(...this.validateModeColors(scheme.dark, "dark", schemeName));
     });
 
@@ -42,7 +55,10 @@ export class ThemeProcessedValidation {
    * @param base - The base colors of the scheme.
    * @param schemeName - The name of the scheme (for error context).
    */
-  static validateBaseColors(base: Record<string, ColorShades>, schemeName: string): ValidationError[] {
+  static validateBaseColors(
+    base: Record<string, ColorShades>,
+    schemeName: string,
+  ): ValidationError[] {
     const errors: ValidationError[] = [];
 
     if (!base) {
@@ -72,7 +88,10 @@ export class ThemeProcessedValidation {
               path: `schemes.${schemeName}.base.${color}.${shadeLevel}`,
             });
           } else {
-            const result = validateHexOnly(shade, `schemes.${schemeName}.base.${color}.${shadeLevel}`);
+            const result = validateHexOnly(
+              shade,
+              `schemes.${schemeName}.base.${color}.${shadeLevel}`,
+            );
             if (!result.isValid) {
               errors.push(...result.errors!);
             }
@@ -90,7 +109,11 @@ export class ThemeProcessedValidation {
    * @param modeName - The name of the mode ("light" or "dark").
    * @param schemeName - The name of the scheme (for error context).
    */
-  static validateModeColors(modeColors: ModeColors, modeName: string, schemeName: string): ValidationError[] {
+  static validateModeColors(
+    modeColors: ModeColors,
+    modeName: string,
+    schemeName: string,
+  ): ValidationError[] {
     const errors: ValidationError[] = [];
 
     if (!modeColors) {

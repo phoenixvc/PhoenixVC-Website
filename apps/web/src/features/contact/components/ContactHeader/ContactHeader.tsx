@@ -15,10 +15,14 @@ const ContactHeader: FC<ContactHeaderProps> = memo(({ title, subtitle }) => {
   const isDarkMode = themeMode === "dark";
   return (
     <motion.div variants={contactAnimations.item}>
-      <h2 className={`${styles.heading} ${isDarkMode ? styles.darkHeading : styles.lightHeading}`}>
+      <h2
+        className={`${styles.heading} ${isDarkMode ? styles.darkHeading : styles.lightHeading}`}
+      >
         {title}
       </h2>
-      <p className={`${styles.subtitle} ${isDarkMode ? styles.darkSubtitle : styles.lightSubtitle}`}>
+      <p
+        className={`${styles.subtitle} ${isDarkMode ? styles.darkSubtitle : styles.lightSubtitle}`}
+      >
         {subtitle}
       </p>
     </motion.div>

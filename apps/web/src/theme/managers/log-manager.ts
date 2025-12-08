@@ -7,7 +7,18 @@ export class LogManager {
    * @param options Additional options for logging
    * @returns A function to end the group if a group was started
    */
-  static log(prefix: string, message: string, enableLogging: boolean, options?: { group?: boolean, warn?: boolean, error?: boolean, info?: boolean, debug?: boolean }): () => void {
+  static log(
+    prefix: string,
+    message: string,
+    enableLogging: boolean,
+    options?: {
+      group?: boolean;
+      warn?: boolean;
+      error?: boolean;
+      info?: boolean;
+      debug?: boolean;
+    },
+  ): () => void {
     if (!enableLogging) return () => {}; // No-op end function
 
     const fullMessage = `[${prefix}] ${message}`;
@@ -37,7 +48,11 @@ export class LogManager {
    * @param enableLogging Whether logging is enabled
    * @returns A no-op function for consistency with group methods
    */
-  static info(prefix: string, message: string, enableLogging: boolean): () => void {
+  static info(
+    prefix: string,
+    message: string,
+    enableLogging: boolean,
+  ): () => void {
     return LogManager.log(prefix, message, enableLogging, { info: true });
   }
 
@@ -48,7 +63,11 @@ export class LogManager {
    * @param enableLogging Whether logging is enabled
    * @returns A no-op function for consistency with group methods
    */
-  static warn(prefix: string, message: string, enableLogging: boolean): () => void {
+  static warn(
+    prefix: string,
+    message: string,
+    enableLogging: boolean,
+  ): () => void {
     return LogManager.log(prefix, message, enableLogging, { warn: true });
   }
 
@@ -59,7 +78,11 @@ export class LogManager {
    * @param enableLogging Whether logging is enabled
    * @returns A no-op function for consistency with group methods
    */
-  static error(prefix: string, message: string, enableLogging: boolean): () => void {
+  static error(
+    prefix: string,
+    message: string,
+    enableLogging: boolean,
+  ): () => void {
     return LogManager.log(prefix, message, enableLogging, { error: true });
   }
 
@@ -70,7 +93,11 @@ export class LogManager {
    * @param enableLogging Whether logging is enabled
    * @returns A no-op function for consistency with group methods
    */
-  static debug(prefix: string, message: string, enableLogging: boolean): () => void {
+  static debug(
+    prefix: string,
+    message: string,
+    enableLogging: boolean,
+  ): () => void {
     return LogManager.log(prefix, message, enableLogging, { debug: true });
   }
 
@@ -81,7 +108,11 @@ export class LogManager {
    * @param enableLogging Whether logging is enabled
    * @returns A function to end the group
    */
-  static group(prefix: string, message: string, enableLogging: boolean): () => void {
+  static group(
+    prefix: string,
+    message: string,
+    enableLogging: boolean,
+  ): () => void {
     return LogManager.log(prefix, message, enableLogging, { group: true });
   }
 
@@ -93,9 +124,25 @@ export class LogManager {
    * @param options Additional options for logging
    * @returns A function to end the group if a group was started
    */
-  static logWithTime(prefix: string, message: string, enableLogging: boolean, options?: { group?: boolean, warn?: boolean, error?: boolean, info?: boolean, debug?: boolean }): () => void {
+  static logWithTime(
+    prefix: string,
+    message: string,
+    enableLogging: boolean,
+    options?: {
+      group?: boolean;
+      warn?: boolean;
+      error?: boolean;
+      info?: boolean;
+      debug?: boolean;
+    },
+  ): () => void {
     const timestamp = new Date().toISOString();
-    return LogManager.log(`${prefix} [${timestamp}]`, message, enableLogging, options);
+    return LogManager.log(
+      `${prefix} [${timestamp}]`,
+      message,
+      enableLogging,
+      options,
+    );
   }
 
   /**
@@ -106,14 +153,29 @@ export class LogManager {
    * @param options Additional options for logging
    * @returns A function to end the group if a group was started
    */
-  static logObject(prefix: string, obj: unknown, enableLogging: boolean, options?: { group?: boolean, warn?: boolean, error?: boolean, info?: boolean, debug?: boolean }): () => void {
+  static logObject(
+    prefix: string,
+    obj: unknown,
+    enableLogging: boolean,
+    options?: {
+      group?: boolean;
+      warn?: boolean;
+      error?: boolean;
+      info?: boolean;
+      debug?: boolean;
+    },
+  ): () => void {
     if (!enableLogging) return () => {}; // No-op end function
 
     try {
       const jsonString = JSON.stringify(obj, null, 2);
       return LogManager.log(prefix, jsonString, enableLogging, options);
     } catch (e) {
-      return LogManager.error(prefix, `Failed to stringify object: ${e}`, enableLogging);
+      return LogManager.error(
+        prefix,
+        `Failed to stringify object: ${e}`,
+        enableLogging,
+      );
     }
   }
 
@@ -142,7 +204,11 @@ export class LogManager {
    * @param enableLogging Whether logging is enabled
    * @returns A promise resolving to the result of the function
    */
-  static async measureAsync<T>(prefix: string, fn: () => Promise<T>, enableLogging: boolean): Promise<T> {
+  static async measureAsync<T>(
+    prefix: string,
+    fn: () => Promise<T>,
+    enableLogging: boolean,
+  ): Promise<T> {
     if (!enableLogging) return fn();
 
     const start = performance.now();

@@ -17,13 +17,12 @@ import {
   TransformationConfig,
   TransformOptions,
   DarkModeOptions,
-  LightModeOptions
+  LightModeOptions,
 } from "../types";
 import { ColorUtils } from "../utils/color-utils";
 import { ThemeRegistry } from "../registry/theme-registry";
 import { themeValidationManager } from "./theme-validation-manager";
 import { DEFAULT_THEME } from "../constants/tokens";
-
 
 /**
  * ThemeTransformationManager
@@ -36,7 +35,10 @@ export class ThemeTransformationManager {
   private config: TransformationConfig;
   private registry: ThemeRegistry | null = null;
 
-  constructor(config?: Partial<TransformationConfig>, registry?: ThemeRegistry) {
+  constructor(
+    config?: Partial<TransformationConfig>,
+    registry?: ThemeRegistry,
+  ) {
     // Default configuration with sensible defaults
     this.config = {
       defaultMode: config?.defaultMode || "dark",
@@ -44,7 +46,8 @@ export class ThemeTransformationManager {
       shadeIntensity: config?.shadeIntensity || 0.1,
       contrastThreshold: config?.contrastThreshold || 0.5,
       algorithm: config?.algorithm || "linear",
-      preserveMetadata: config?.preserveMetadata !== undefined ? config.preserveMetadata : true,
+      preserveMetadata:
+        config?.preserveMetadata !== undefined ? config.preserveMetadata : true,
       transformOptions: config?.transformOptions || {
         darkMode: {
           darkenBackground: 15,
@@ -55,8 +58,8 @@ export class ThemeTransformationManager {
           lightenBackground: 15,
           darkenText: 15,
           adjustSaturation: 10,
-        }
-      }
+        },
+      },
     };
 
     if (registry) {
@@ -82,29 +85,32 @@ export class ThemeTransformationManager {
   transform(
     input: ThemeSchemeInitial | ThemeScheme | ThemeColors,
     name?: ThemeName,
-    options?: TransformOptions
+    options?: TransformOptions,
   ): ThemeColors {
     console.group("[ThemeTransformationManager] Transforming theme");
 
     try {
       // Merge options with defaults
-      const transformOptions = options || this.config.transformOptions || {
-        darkMode: {
-          darkenBackground: 15,
-          lightenText: 15,
-          adjustSaturation: -10,
-        },
-        lightMode: {
-          lightenBackground: 15,
-          darkenText: 15,
-          adjustSaturation: 10,
-        }
-      };
+      const transformOptions = options ||
+        this.config.transformOptions || {
+          darkMode: {
+            darkenBackground: 15,
+            lightenText: 15,
+            adjustSaturation: -10,
+          },
+          lightMode: {
+            lightenBackground: 15,
+            darkenText: 15,
+            adjustSaturation: 10,
+          },
+        };
 
       // If it"s a single scheme (either initial or processed)
       if (this.isThemeSchemeInitial(input)) {
         const schemeName = name || DEFAULT_THEME;
-        console.log(`[ThemeTransformationManager] Processing initial scheme as "${schemeName}"`);
+        console.log(
+          `[ThemeTransformationManager] Processing initial scheme as "${schemeName}"`,
+        );
 
         // Extract metadata if available
         let _metadata = undefined;
@@ -113,7 +119,8 @@ export class ThemeTransformationManager {
         }
 
         // Apply custom transform config if provided
-        const transformConfig = "transformConfig" in input ? input.transformConfig : undefined;
+        const transformConfig =
+          "transformConfig" in input ? input.transformConfig : undefined;
         if (transformConfig) {
           // Use temporary config for this transformation
           const tempConfig = { ...this.config };
@@ -131,54 +138,69 @@ export class ThemeTransformationManager {
           this.config = tempConfig;
 
           // Transform with custom config
-          const result = this.transformSchemeWithOptions(input, transformOptions);
+          const result = this.transformSchemeWithOptions(
+            input,
+            transformOptions,
+          );
 
           // Restore original config
           this.config = originalConfig;
 
-            const semantic: SemanticColors | undefined = "semantic" in input
-            ? (input.semantic as SemanticColors)
-            : undefined;
+          const semantic: SemanticColors | undefined =
+            "semantic" in input
+              ? (input.semantic as SemanticColors)
+              : undefined;
 
           return {
             schemes: {
-              [schemeName]: result
+              [schemeName]: result,
             },
-            semantic
+            semantic,
           };
         } else {
           // Transform with default config
-          const semantic: SemanticColors | undefined = "semantic" in input
-          ? (input.semantic as SemanticColors)
-          : undefined;
+          const semantic: SemanticColors | undefined =
+            "semantic" in input
+              ? (input.semantic as SemanticColors)
+              : undefined;
 
           return {
             schemes: {
-              [schemeName]: this.transformSchemeWithOptions(input, transformOptions)
+              [schemeName]: this.transformSchemeWithOptions(
+                input,
+                transformOptions,
+              ),
             },
-            semantic
+            semantic,
           };
         }
       } else if (this.isThemeScheme(input)) {
         const schemeName = name || DEFAULT_THEME;
-        console.log(`[ThemeTransformationManager] Processing processed scheme as "${schemeName}"`);
+        console.log(
+          `[ThemeTransformationManager] Processing processed scheme as "${schemeName}"`,
+        );
 
         return {
           schemes: {
-            [schemeName]: this.ensureFullyProcessed(input)
+            [schemeName]: this.ensureFullyProcessed(input),
           },
-          semantic: undefined
+          semantic: undefined,
         };
       } else {
         // Otherwise, transform each scheme in the theme colors
-        console.log(`[ThemeTransformationManager] Processing theme with ${Object.keys(input.schemes).length} schemes`);
+        console.log(
+          `[ThemeTransformationManager] Processing theme with ${Object.keys(input.schemes).length} schemes`,
+        );
 
         const processedSchemes: Record<string, ThemeScheme> = {};
 
         Object.entries(input.schemes).forEach(([schemeName, scheme]) => {
           // Handle both ThemeScheme and ThemeSchemeInitial in the input
           if (this.isThemeSchemeInitial(scheme)) {
-            processedSchemes[schemeName] = this.transformSchemeWithOptions(scheme, transformOptions);
+            processedSchemes[schemeName] = this.transformSchemeWithOptions(
+              scheme,
+              transformOptions,
+            );
           } else {
             // If it"s already a ThemeScheme, ensure it"s fully processed
             processedSchemes[schemeName] = this.ensureFullyProcessed(scheme);
@@ -187,12 +209,17 @@ export class ThemeTransformationManager {
 
         return {
           schemes: processedSchemes,
-          semantic: input.semantic
+          semantic: input.semantic,
         };
       }
     } catch (error) {
-      console.error("[ThemeTransformationManager] Error transforming theme:", error);
-      throw new Error(`Theme transformation failed: ${error instanceof Error ? error.message : String(error)}`);
+      console.error(
+        "[ThemeTransformationManager] Error transforming theme:",
+        error,
+      );
+      throw new Error(
+        `Theme transformation failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
     } finally {
       console.groupEnd();
     }
@@ -201,8 +228,13 @@ export class ThemeTransformationManager {
   /**
    * Transform a single theme scheme with specific options
    */
-  transformSchemeWithOptions(initial: ThemeSchemeInitial, options: TransformOptions): ThemeScheme {
-    console.log("[ThemeTransformationManager] Transforming scheme with options");
+  transformSchemeWithOptions(
+    initial: ThemeSchemeInitial,
+    options: TransformOptions,
+  ): ThemeScheme {
+    console.log(
+      "[ThemeTransformationManager] Transforming scheme with options",
+    );
 
     // Extract options
     const lightModeOptions = options.lightMode || {
@@ -240,21 +272,28 @@ export class ThemeTransformationManager {
           console.group(`Processing base color: ${colorKey}`);
 
           // Get the base hex value
-          const baseHex = typeof colorDef === "string"
-            ? colorDef
-            : "hex" in (colorDef as Record<string, unknown>)
-              ? (colorDef as { hex: string }).hex
-              : "";
+          const baseHex =
+            typeof colorDef === "string"
+              ? colorDef
+              : "hex" in (colorDef as Record<string, unknown>)
+                ? (colorDef as { hex: string }).hex
+                : "";
 
           if (!baseHex) {
-            throw new Error(`Invalid color definition for ${colorKey}: No hex value found`);
+            throw new Error(
+              `Invalid color definition for ${colorKey}: No hex value found`,
+            );
           }
 
           // Generate a palette based on the algorithm
           let paletteArray;
           switch (this.config.algorithm) {
             case "exponential":
-              paletteArray = ColorUtils.createExponentialPalette(baseHex, 10, this.config.shadeIntensity);
+              paletteArray = ColorUtils.createExponentialPalette(
+                baseHex,
+                10,
+                this.config.shadeIntensity,
+              );
               break;
             case "perceptual":
               paletteArray = ColorUtils.createPerceptualPalette(baseHex, 10);
@@ -268,7 +307,9 @@ export class ThemeTransformationManager {
           console.log("Generated palette array:", paletteArray);
 
           // Create shades for each level
-          const shadeLevels: ShadeLevel[] = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
+          const shadeLevels: ShadeLevel[] = [
+            50, 100, 200, 300, 400, 500, 600, 700, 800, 900,
+          ];
           const colorShades: ColorShades = {} as ColorShades;
 
           // Base color is the middle of the palette (500)
@@ -308,7 +349,8 @@ export class ThemeTransformationManager {
       (["light", "dark"] as ThemeMode[]).forEach((mode) => {
         console.group(`Transforming mode-specific colors for: ${mode}`);
         const modeColors = clonedScheme[mode];
-        const currentModeOptions = mode === "dark" ? darkModeOptions : lightModeOptions;
+        const currentModeOptions =
+          mode === "dark" ? darkModeOptions : lightModeOptions;
 
         if (modeColors) {
           // Process each mode color - handle both direct colors and nested objects
@@ -329,14 +371,22 @@ export class ThemeTransformationManager {
         // Transform semantic colors for both modes
         (["light", "dark"] as ThemeMode[]).forEach((mode) => {
           console.group(`Transforming semantic colors for: ${mode}`);
-          const currentModeOptions = mode === "dark" ? darkModeOptions : lightModeOptions;
+          const currentModeOptions =
+            mode === "dark" ? darkModeOptions : lightModeOptions;
 
           REQUIRED_SEMANTIC_COLORS.forEach((colorKey) => {
             const color = semanticColors[colorKey];
             if (color) {
               const ensured = ColorUtils.ensureColorDefinition(color);
-              semanticColors[colorKey] = this.transformColor(ensured, mode, currentModeOptions);
-              console.log(`Transformed semantic color "${colorKey}" for mode "${mode}":`, semanticColors[colorKey]);
+              semanticColors[colorKey] = this.transformColor(
+                ensured,
+                mode,
+                currentModeOptions,
+              );
+              console.log(
+                `Transformed semantic color "${colorKey}" for mode "${mode}":`,
+                semanticColors[colorKey],
+              );
             } else {
               console.warn(`Missing semantic color for key: ${colorKey}`);
             }
@@ -361,10 +411,10 @@ export class ThemeTransformationManager {
   private processColorObject(
     colorObj: Record<string, unknown>,
     mode: ThemeMode,
-    options: DarkModeOptions | LightModeOptions
+    options: DarkModeOptions | LightModeOptions,
   ): void {
     // Process each property in the color object
-    Object.keys(colorObj).forEach(key => {
+    Object.keys(colorObj).forEach((key) => {
       const value = colorObj[key];
 
       // Skip null or undefined values
@@ -383,7 +433,11 @@ export class ThemeTransformationManager {
           // Recursively process nested color object
           console.group(`Processing nested color object: ${key}`);
           // Cast value to Record<string, unknown> for the recursive call
-          this.processColorObject(value as Record<string, unknown>, mode, options);
+          this.processColorObject(
+            value as Record<string, unknown>,
+            mode,
+            options,
+          );
           console.groupEnd();
           return;
         }
@@ -397,7 +451,9 @@ export class ThemeTransformationManager {
       } catch (error) {
         console.error(`Failed to process color for key "${key}":`, error);
         // Keep the original value to avoid breaking the theme
-        console.warn(`Using original value for "${key}" to avoid breaking the theme`);
+        console.warn(
+          `Using original value for "${key}" to avoid breaking the theme`,
+        );
       }
     });
   }
@@ -407,18 +463,21 @@ export class ThemeTransformationManager {
    */
   transformScheme(initial: ThemeSchemeInitial): ThemeScheme {
     // Use default options if none provided
-    return this.transformSchemeWithOptions(initial, this.config.transformOptions || {
-      darkMode: {
-        darkenBackground: 15,
-        lightenText: 15,
-        adjustSaturation: -10,
+    return this.transformSchemeWithOptions(
+      initial,
+      this.config.transformOptions || {
+        darkMode: {
+          darkenBackground: 15,
+          lightenText: 15,
+          adjustSaturation: -10,
+        },
+        lightMode: {
+          lightenBackground: 15,
+          darkenText: 15,
+          adjustSaturation: 10,
+        },
       },
-      lightMode: {
-        lightenBackground: 15,
-        darkenText: 15,
-        adjustSaturation: 10,
-      }
-    });
+    );
   }
 
   /**
@@ -427,18 +486,26 @@ export class ThemeTransformationManager {
   private transformColor(
     color: ColorDefinition,
     mode: ThemeMode,
-    options: DarkModeOptions | LightModeOptions
+    options: DarkModeOptions | LightModeOptions,
   ): ColorDefinition {
     if (mode === "dark") {
       const darkOptions = options as DarkModeOptions;
-      const { darkenBackground = 0, lightenText = 0, adjustSaturation = 0 } = darkOptions;
+      const {
+        darkenBackground = 0,
+        lightenText = 0,
+        adjustSaturation = 0,
+      } = darkOptions;
       return ColorUtils.adjustColor(color, {
         lightness: -darkenBackground + lightenText,
         saturation: adjustSaturation,
       });
     } else {
       const lightOptions = options as LightModeOptions;
-      const { lightenBackground = 0, darkenText = 0, adjustSaturation = 0 } = lightOptions;
+      const {
+        lightenBackground = 0,
+        darkenText = 0,
+        adjustSaturation = 0,
+      } = lightOptions;
       return ColorUtils.adjustColor(color, {
         lightness: lightenBackground - darkenText,
         saturation: adjustSaturation,
@@ -449,7 +516,10 @@ export class ThemeTransformationManager {
   /**
    * Log transformation options based on the mode
    */
-  private logTransformationOptions(mode: ThemeMode, options: DarkModeOptions | LightModeOptions): void {
+  private logTransformationOptions(
+    mode: ThemeMode,
+    options: DarkModeOptions | LightModeOptions,
+  ): void {
     console.group("Transformation Options");
     console.log("Mode:", mode);
 
@@ -458,14 +528,14 @@ export class ThemeTransformationManager {
       console.log("Dark Mode Options:", {
         darkenBackground: darkOptions.darkenBackground,
         lightenText: darkOptions.lightenText,
-        adjustSaturation: darkOptions.adjustSaturation
+        adjustSaturation: darkOptions.adjustSaturation,
       });
     } else {
       const lightOptions = options as LightModeOptions;
       console.log("Light Mode Options:", {
         lightenBackground: lightOptions.lightenBackground,
         darkenText: lightOptions.darkenText,
-        adjustSaturation: lightOptions.adjustSaturation
+        adjustSaturation: lightOptions.adjustSaturation,
       });
     }
 
@@ -477,7 +547,19 @@ export class ThemeTransformationManager {
 
     // For each shade, determine if it should have white or black text
     // Fix: Use numbers for ShadeLevel values, not strings
-    const shadeKeys: (ShadeLevel | "base")[] = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, "base"];
+    const shadeKeys: (ShadeLevel | "base")[] = [
+      50,
+      100,
+      200,
+      300,
+      400,
+      500,
+      600,
+      700,
+      800,
+      900,
+      "base",
+    ];
 
     for (const shade of shadeKeys) {
       // Type assertion is needed here because TypeScript can"t infer that
@@ -528,7 +610,9 @@ export class ThemeTransformationManager {
    * @param baseColors The initial base colors
    * @returns Processed base colors with shades
    */
-  private processBaseColors(baseColors: InitialBaseColors): Record<string, ColorShades> {
+  private processBaseColors(
+    baseColors: InitialBaseColors,
+  ): Record<string, ColorShades> {
     const processed: Record<string, ColorShades> = {};
 
     // Process each color in the base colors
@@ -542,61 +626,72 @@ export class ThemeTransformationManager {
     return processed;
   }
 
-/**
- * Generate color shades from a color definition
- *
- * @param definition The color definition
- * @returns Color shades generated from the definition
- */
-private generateShades(definition: string | ColorDefinition): ColorShades {
-  // Type guard for ColorShades-like object
-  if (typeof definition !== "string" &&
-      "50" in definition && "100" in definition && "200" in definition &&
-      "300" in definition && "400" in definition && "500" in definition &&
-      "600" in definition && "700" in definition && "800" in definition &&
-      "900" in definition) {
-    // If it has all required properties, cast it to ColorShades
-    return definition as unknown as ColorShades;
+  /**
+   * Generate color shades from a color definition
+   *
+   * @param definition The color definition
+   * @returns Color shades generated from the definition
+   */
+  private generateShades(definition: string | ColorDefinition): ColorShades {
+    // Type guard for ColorShades-like object
+    if (
+      typeof definition !== "string" &&
+      "50" in definition &&
+      "100" in definition &&
+      "200" in definition &&
+      "300" in definition &&
+      "400" in definition &&
+      "500" in definition &&
+      "600" in definition &&
+      "700" in definition &&
+      "800" in definition &&
+      "900" in definition
+    ) {
+      // If it has all required properties, cast it to ColorShades
+      return definition as unknown as ColorShades;
+    }
+
+    // Get the base color hex value
+    const baseHex =
+      typeof definition === "string"
+        ? definition
+        : "hex" in definition
+          ? definition.hex
+          : "";
+
+    if (!baseHex) {
+      throw new Error("Invalid color definition: No hex value found");
+    }
+
+    // Use ColorUtils.createPalette to generate the color shades
+    const palette = ColorUtils.createPalette(baseHex, 10); // 10 shades from 50 to 900
+
+    // Create an intermediate object with the correct shade structure
+    const shades: Record<ShadeLevel, ColorDefinition> = {
+      50: palette[0],
+      100: palette[1],
+      200: palette[2],
+      300: palette[3],
+      400: palette[4],
+      500: palette[5],
+      600: palette[6],
+      700: palette[7],
+      800: palette[8],
+      900: palette[9],
+    };
+
+    // Create the ColorShades object with the correct types
+    const result: ColorShades = {
+      ...shades,
+      base: baseHex,
+      contrast: [], // Initialize contrast as an empty array
+    };
+
+    // Generate contrast colors
+    result.contrast = this.generateContrastColors(result);
+
+    return result;
   }
-
-  // Get the base color hex value
-  const baseHex = typeof definition === "string"
-    ? definition
-    : "hex" in definition ? definition.hex : "";
-
-  if (!baseHex) {
-    throw new Error("Invalid color definition: No hex value found");
-  }
-
-  // Use ColorUtils.createPalette to generate the color shades
-  const palette = ColorUtils.createPalette(baseHex, 10); // 10 shades from 50 to 900
-
-  // Create an intermediate object with the correct shade structure
-  const shades: Record<ShadeLevel, ColorDefinition> = {
-    50: palette[0] ,
-    100: palette[1],
-    200: palette[2],
-    300:palette[3],
-    400: palette[4] ,
-    500: palette[5] ,
-    600: palette[6] ,
-    700: palette[7] ,
-    800: palette[8] ,
-    900: palette[9]
-  };
-
-  // Create the ColorShades object with the correct types
-  const result: ColorShades = {
-    ...shades,
-    base: baseHex,
-    contrast: [] // Initialize contrast as an empty array
-  };
-
-  // Generate contrast colors
-  result.contrast = this.generateContrastColors(result);
-
-  return result;
-}
 
   /**
    * Check if an object is a ThemeScheme
@@ -624,10 +719,12 @@ private generateShades(definition: string | ColorDefinition): ColorShades {
    * Type guard to check if input is a ThemeSchemeInitial
    */
   private isThemeSchemeInitial(input: unknown): input is ThemeSchemeInitial {
-    return input !== null &&
-           typeof input === "object" &&
-           "base" in (input as Record<string, unknown>) &&
-           !("schemes" in (input as Record<string, unknown>));
+    return (
+      input !== null &&
+      typeof input === "object" &&
+      "base" in (input as Record<string, unknown>) &&
+      !("schemes" in (input as Record<string, unknown>))
+    );
   }
 
   /**
@@ -639,12 +736,18 @@ private generateShades(definition: string | ColorDefinition): ColorShades {
 
     // Use type-safe approach to check base colors
     const baseColors = scheme.base;
-    const baseColorKeys = Object.keys(baseColors) as Array<keyof typeof baseColors>;
+    const baseColorKeys = Object.keys(baseColors) as Array<
+      keyof typeof baseColors
+    >;
 
     for (const key of baseColorKeys) {
       const color = baseColors[key];
       // Check if color exists, has all required shade levels, and has contrast colors
-      if (!color || !this.hasAllShades(color) || !this.hasContrastColors(color)) {
+      if (
+        !color ||
+        !this.hasAllShades(color) ||
+        !this.hasContrastColors(color)
+      ) {
         needsProcessing = true;
         break;
       }
@@ -659,7 +762,7 @@ private generateShades(definition: string | ColorDefinition): ColorShades {
     const initial: ThemeSchemeInitial = {
       base: this.convertToInitialBaseColors(scheme.base),
       light: scheme.light,
-      dark: scheme.dark
+      dark: scheme.dark,
     };
 
     return this.transformScheme(initial);
@@ -669,10 +772,12 @@ private generateShades(definition: string | ColorDefinition): ColorShades {
    * Check if a color object has all required shade levels
    */
   private hasAllShades(color: TransformedColorObject): boolean {
-    const requiredShades: ShadeLevel[] = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
+    const requiredShades: ShadeLevel[] = [
+      50, 100, 200, 300, 400, 500, 600, 700, 800, 900,
+    ];
 
     // Check all required shades exist
-    return requiredShades.every(shade => !!color[shade]);
+    return requiredShades.every((shade) => !!color[shade]);
   }
 
   /**
@@ -681,15 +786,19 @@ private generateShades(definition: string | ColorDefinition): ColorShades {
   private hasContrastColors(color: ColorShades): boolean {
     // Use type assertion only for the specific property we"re checking
     const maybeWithContrast = color as ColorShades & { contrast?: unknown };
-    return !!maybeWithContrast.contrast &&
-           Array.isArray(maybeWithContrast.contrast) &&
-           maybeWithContrast.contrast.length > 0;
+    return (
+      !!maybeWithContrast.contrast &&
+      Array.isArray(maybeWithContrast.contrast) &&
+      maybeWithContrast.contrast.length > 0
+    );
   }
 
   /**
    * Convert processed base colors back to initial format for re-processing
    */
-  private convertToInitialBaseColors(baseColors: ProcessedBaseColors): InitialBaseColors {
+  private convertToInitialBaseColors(
+    baseColors: ProcessedBaseColors,
+  ): InitialBaseColors {
     // Create the result object with required properties
     const result: Partial<InitialBaseColors> = {};
 
@@ -715,7 +824,9 @@ private generateShades(definition: string | ColorDefinition): ColorShades {
     // Handle any custom properties that exist in both types
     // This assumes InitialBaseColors has an index signature or similar structure
     const knownKeys = ["primary", "secondary", "accent"];
-    const customKeys = Object.keys(baseColors).filter(key => !knownKeys.includes(key));
+    const customKeys = Object.keys(baseColors).filter(
+      (key) => !knownKeys.includes(key),
+    );
 
     for (const key of customKeys) {
       const color = baseColors[key as keyof ProcessedBaseColors];
@@ -747,27 +858,37 @@ private generateShades(definition: string | ColorDefinition): ColorShades {
 
       // Check that each base color has required properties
       const baseColors = scheme.base;
-      const baseColorKeys = Object.keys(baseColors) as Array<keyof typeof baseColors>;
+      const baseColorKeys = Object.keys(baseColors) as Array<
+        keyof typeof baseColors
+      >;
 
       for (const colorName of baseColorKeys) {
         const color = baseColors[colorName];
 
         // First check if color exists
         if (!color) {
-          throw new Error(`Base color "${String(colorName)}" in scheme "${name}" is undefined`);
+          throw new Error(
+            `Base color "${String(colorName)}" in scheme "${name}" is undefined`,
+          );
         }
 
         // Check for required shade levels
-        const requiredShades: ShadeLevel[] = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
+        const requiredShades: ShadeLevel[] = [
+          50, 100, 200, 300, 400, 500, 600, 700, 800, 900,
+        ];
         for (const shade of requiredShades) {
           if (!color[shade]) {
-            throw new Error(`Base color "${String(colorName)}" in scheme "${name}" must have shade ${shade}`);
+            throw new Error(
+              `Base color "${String(colorName)}" in scheme "${name}" must have shade ${shade}`,
+            );
           }
         }
 
         // Check for contrast colors
         if (!this.hasContrastColors(color)) {
-          throw new Error(`Base color "${String(colorName)}" in scheme "${name}" must have contrast colors`);
+          throw new Error(
+            `Base color "${String(colorName)}" in scheme "${name}" must have contrast colors`,
+          );
         }
       }
     });
@@ -786,7 +907,7 @@ private generateShades(definition: string | ColorDefinition): ColorShades {
   transformTheme(
     input: ThemeSchemeInitial,
     mode: ThemeMode,
-    semantic?: SemanticColors
+    semantic?: SemanticColors,
   ): ThemeColors {
     // Use the transform method with appropriate options
     const transformOptions: TransformOptions = {
@@ -799,7 +920,7 @@ private generateShades(definition: string | ColorDefinition): ColorShades {
         lightenBackground: 15,
         darkenText: 15,
         adjustSaturation: 10,
-      }
+      },
     };
 
     // Transform the scheme first
@@ -809,14 +930,14 @@ private generateShades(definition: string | ColorDefinition): ColorShades {
     if (semantic) {
       return {
         ...transformedTheme,
-        semantic
+        semantic,
       };
     }
 
     return transformedTheme;
   }
 
-    /**
+  /**
    * Transform ThemeColors that need additional processing
    *
    * @param input Partially processed theme colors
@@ -827,23 +948,25 @@ private generateShades(definition: string | ColorDefinition): ColorShades {
   transformThemeColors(
     input: ThemeColors,
     mode: ThemeMode,
-    semantic?: SemanticColors
+    semantic?: SemanticColors,
   ): ThemeColors {
     // If the input is already fully transformed
     if (themeValidationManager.isFullyTransformed(input)) {
       // Just update semantic if needed
       if (semantic) {
         // Check if semantic colors are different by comparing required properties
-        const needsSemanticUpdate = !input.semantic ||
-          REQUIRED_SEMANTIC_COLORS.some(key =>
-            !input.semantic?.[key] ||
-            input.semantic[key].hex !== semantic[key].hex
+        const needsSemanticUpdate =
+          !input.semantic ||
+          REQUIRED_SEMANTIC_COLORS.some(
+            (key) =>
+              !input.semantic?.[key] ||
+              input.semantic[key].hex !== semantic[key].hex,
           );
 
         if (needsSemanticUpdate) {
           return {
             ...input,
-            semantic
+            semantic,
           };
         }
       }
@@ -862,7 +985,7 @@ private generateShades(definition: string | ColorDefinition): ColorShades {
     // Return the processed theme with updated semantic colors if provided
     return {
       schemes: processedSchemes,
-      semantic: semantic || input.semantic
+      semantic: semantic || input.semantic,
     };
   }
 }

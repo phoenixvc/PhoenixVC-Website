@@ -7,13 +7,15 @@ import { useState, useEffect } from "react";
  * Returns true if the user has requested reduced motion in their system settings
  */
 export function useReducedMotion(): boolean {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState<boolean>((): boolean => {
-    // Check if window is available (SSR safety)
-    if (typeof window === "undefined") return false;
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState<boolean>(
+    (): boolean => {
+      // Check if window is available (SSR safety)
+      if (typeof window === "undefined") return false;
 
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    return mediaQuery.matches;
-  });
+      const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+      return mediaQuery.matches;
+    },
+  );
 
   useEffect((): (() => void) => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -48,17 +50,20 @@ export function useReducedMotion(): boolean {
  */
 export function useMotionSafe<T extends Record<string, unknown>>(
   variants: T,
-  reducedVariants?: T
+  reducedVariants?: T,
 ): T {
   const prefersReducedMotion = useReducedMotion();
 
   if (prefersReducedMotion) {
     // Return reduced variants or empty/instant animations
-    return reducedVariants ?? ({
-      initial: { opacity: 1 },
-      animate: { opacity: 1 },
-      exit: { opacity: 1 },
-    } as unknown as T);
+    return (
+      reducedVariants ??
+      ({
+        initial: { opacity: 1 },
+        animate: { opacity: 1 },
+        exit: { opacity: 1 },
+      } as unknown as T)
+    );
   }
 
   return variants;

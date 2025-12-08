@@ -9,42 +9,48 @@ export const SIDEBAR_LINKS: SidebarItemGroup[] = [
     title: "Navigation",
     active: false,
     children: navItems
-      .filter(item => item.label !== "Projects")
-      .map(item => ({
+      .filter((item) => item.label !== "Projects")
+      .map((item) => ({
         type: "link",
         label: item.label,
         icon: item.icon,
         href: item.href,
-        active: false
-      })) as SidebarItemLink[]
+        active: false,
+      })) as SidebarItemLink[],
   },
   {
     type: "group",
     label: "Resources",
     title: "Resources",
     active: false,
-    children: resourceItems.map(item => ({
+    children: resourceItems.map((item) => ({
       type: "link",
       label: item.label,
       icon: item.icon,
       href: item.href,
-      active: false
-    })) as SidebarItemLink[]
-  }
+      active: false,
+    })) as SidebarItemLink[],
+  },
 ];
 
 // Create sidebar groups from the links with proper type safety
 export const DEFAULT_SIDEBAR_GROUPS: SidebarGroup[] = [
   {
     title: "Main Navigation",
-    items: SIDEBAR_LINKS.find(item => item.label === "Navigation")?.children.filter(
-      child => child.type === "link"
-    ) as SidebarItemLink[] || []
+    items:
+      (SIDEBAR_LINKS.find(
+        (item) => item.label === "Navigation",
+      )?.children.filter(
+        (child) => child.type === "link",
+      ) as SidebarItemLink[]) || [],
   },
   {
     title: "Resources",
-    items: SIDEBAR_LINKS.find(item => item.label === "Resources")?.children.filter(
-      child => child.type === "link"
-    ) as SidebarItemLink[] || []
-  }
+    items:
+      (SIDEBAR_LINKS.find(
+        (item) => item.label === "Resources",
+      )?.children.filter(
+        (child) => child.type === "link",
+      ) as SidebarItemLink[]) || [],
+  },
 ];

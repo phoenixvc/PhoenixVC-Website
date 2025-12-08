@@ -1,4 +1,9 @@
-import { ColorAdjustments, ColorDefinition, ColorShades, ShadeLevel } from "@/theme/types";
+import {
+  ColorAdjustments,
+  ColorDefinition,
+  ColorShades,
+  ShadeLevel,
+} from "@/theme/types";
 import ColorUtils from "@/theme/utils/color-utils";
 
 // Base orange color
@@ -26,7 +31,18 @@ const generateOrangePalette = (): Record<ShadeLevel, ColorDefinition> => {
 export const orangePalette: ColorShades = {
   ...generateOrangePalette(),
   base: BASE_ORANGE,
-  contrast: ["#000000", "#000000", "#000000", "#000000", "#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF"],
+  contrast: [
+    "#000000",
+    "#000000",
+    "#000000",
+    "#000000",
+    "#000000",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+  ],
 };
 
 // Export a function to get a specific orange shade
@@ -35,7 +51,9 @@ export const getOrangeShade = (shade: ShadeLevel): ColorDefinition => {
 };
 
 // Export a function to create an orange with custom adjustments
-export const createOrangeVariant = (adjustments: ColorAdjustments): ColorDefinition => {
+export const createOrangeVariant = (
+  adjustments: ColorAdjustments,
+): ColorDefinition => {
   const baseColor = ColorUtils.createColorDefinition(BASE_ORANGE);
   return ColorUtils.adjustColor(baseColor, adjustments);
 };

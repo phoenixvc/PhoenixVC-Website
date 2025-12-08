@@ -1,6 +1,9 @@
 // theme/registry/variant-resolution/interactive-state-strategy.ts
 
-import { ComponentVariantType, isInteractiveVariant } from "../../types/mappings/component-variants";
+import {
+  ComponentVariantType,
+  isInteractiveVariant,
+} from "../../types/mappings/component-variants";
 import { PatternResolutionStrategy } from "./variant-resolution-strategy";
 import { InteractiveState } from "../../types";
 
@@ -15,7 +18,7 @@ export class InteractiveStateStrategy extends PatternResolutionStrategy {
   resolveVariant(
     componentVariants: Record<string, ComponentVariantType>,
     baseVariant: string,
-    dynamicPattern: string
+    dynamicPattern: string,
   ): ComponentVariantType | undefined {
     const baseStyles = componentVariants[baseVariant] as ComponentVariantType;
     if (!baseStyles) return componentVariants.default as ComponentVariantType;
@@ -41,7 +44,7 @@ export class InteractiveStateStrategy extends PatternResolutionStrategy {
    */
   private applyInteractiveState(
     baseStyles: ComponentVariantType & { interactive?: InteractiveState },
-    state: keyof InteractiveState
+    state: keyof InteractiveState,
   ): ComponentVariantType {
     if (!baseStyles.interactive || !baseStyles.interactive[state]) {
       return baseStyles;
@@ -52,20 +55,25 @@ export class InteractiveStateStrategy extends PatternResolutionStrategy {
     const stateStyles = baseStyles.interactive[state];
 
     // Use a more type-safe approach
-    type StyleKeys = "background" | "foreground" | "border" | "shadow" | "opacity";
+    type StyleKeys =
+      | "background"
+      | "foreground"
+      | "border"
+      | "shadow"
+      | "opacity";
 
     // Define a function to update a specific property if it exists on both objects
     function updateProperty<K extends StyleKeys>(
       obj: ComponentVariantType,
       key: K,
-      value: unknown
+      value: unknown,
     ): ComponentVariantType {
       // Check if the key exists in the base object
       if (key in obj) {
         // Use a type assertion with unknown as intermediate step
         return {
           ...obj,
-          [key]: value
+          [key]: value,
         } as unknown as ComponentVariantType;
       }
       return obj;
@@ -97,7 +105,7 @@ export class InteractiveStateStrategy extends PatternResolutionStrategy {
     // Keep the interactive property
     result = {
       ...result,
-      interactive: baseStyles.interactive
+      interactive: baseStyles.interactive,
     } as unknown as ComponentVariantType;
 
     return result;

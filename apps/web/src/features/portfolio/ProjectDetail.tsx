@@ -22,7 +22,7 @@ import {
   Globe,
   ChevronRight,
   Home,
-  Bot
+  Bot,
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import {
@@ -31,7 +31,7 @@ import {
   FOCUS_AREA_CONFIG,
   getRelatedProjects,
   type PortfolioProject as _PortfolioProject,
-  type FocusAreaId
+  type FocusAreaId,
 } from "@/constants/portfolioData";
 import styles from "./ProjectDetail.module.css";
 
@@ -55,7 +55,7 @@ const focusAreaIcons: Record<FocusAreaId, React.ReactNode> = {
   "fintech-blockchain": <Vault size={20} />,
   "defense-security": <Shield size={20} />,
   "mobility-transportation": <Car size={20} />,
-  "infrastructure": <Code size={20} />,
+  infrastructure: <Code size={20} />,
 };
 
 const animations = {
@@ -88,7 +88,9 @@ export const ProjectDetail = (): React.ReactElement => {
 
   // Find the project by ID
   const project = PORTFOLIO_PROJECTS.find(
-    (p) => p.id === projectId || p.name.toLowerCase().replace(/\s+/g, "-") === projectId
+    (p) =>
+      p.id === projectId ||
+      p.name.toLowerCase().replace(/\s+/g, "-") === projectId,
   );
 
   // Get related projects using the helper function (auto-generates from same focus area)
@@ -96,7 +98,9 @@ export const ProjectDetail = (): React.ReactElement => {
 
   if (!project) {
     return (
-      <section className={`${styles.projectDetail} ${isDarkMode ? styles.dark : styles.light}`}>
+      <section
+        className={`${styles.projectDetail} ${isDarkMode ? styles.dark : styles.light}`}
+      >
         <div className={styles.container}>
           <div className={styles.notFound}>
             <h1>Project Not Found</h1>
@@ -127,7 +131,9 @@ export const ProjectDetail = (): React.ReactElement => {
         ogType="article"
         canonicalUrl={`https://phoenixvc.tech/portfolio/${project.id}`}
       />
-      <section className={`${styles.projectDetail} ${isDarkMode ? styles.dark : styles.light}`}>
+      <section
+        className={`${styles.projectDetail} ${isDarkMode ? styles.dark : styles.light}`}
+      >
         <div className={styles.container}>
           <motion.div
             className={styles.content}
@@ -136,7 +142,10 @@ export const ProjectDetail = (): React.ReactElement => {
             variants={animations.container}
           >
             {/* Breadcrumb Navigation */}
-            <motion.div className={styles.breadcrumb} variants={animations.item}>
+            <motion.div
+              className={styles.breadcrumb}
+              variants={animations.item}
+            >
               <Link to="/" className={styles.breadcrumbLink}>
                 <Home size={16} />
                 Home
@@ -146,14 +155,15 @@ export const ProjectDetail = (): React.ReactElement => {
                 Portfolio
               </Link>
               <ChevronRight size={16} className={styles.breadcrumbSeparator} />
-              <span className={styles.breadcrumbCurrent}>
-                {project.name}
-              </span>
+              <span className={styles.breadcrumbCurrent}>{project.name}</span>
             </motion.div>
 
             {/* Back Button */}
             <motion.div variants={animations.item}>
-              <button onClick={() => void navigate(-1)} className={styles.backButton}>
+              <button
+                onClick={() => void navigate(-1)}
+                className={styles.backButton}
+              >
                 <ArrowLeft size={20} />
                 Back
               </button>
@@ -167,7 +177,11 @@ export const ProjectDetail = (): React.ReactElement => {
                   style={{ backgroundColor: project.color || "#9333ea" }}
                 >
                   {project.image ? (
-                    <img src={project.image} alt={project.name} className={styles.heroImage} />
+                    <img
+                      src={project.image}
+                      alt={project.name}
+                      className={styles.heroImage}
+                    />
                   ) : (
                     icon
                   )}
@@ -183,14 +197,19 @@ export const ProjectDetail = (): React.ReactElement => {
                     {focusAreaConfig && (
                       <span
                         className={styles.focusAreaBadge}
-                        style={{ borderColor: focusAreaConfig.color, color: focusAreaConfig.color }}
+                        style={{
+                          borderColor: focusAreaConfig.color,
+                          color: focusAreaConfig.color,
+                        }}
                       >
                         {focusAreaIcon}
                         {focusAreaConfig.label}
                       </span>
                     )}
                   </div>
-                  <h1 className={styles.projectName}>{project.fullName || project.name}</h1>
+                  <h1 className={styles.projectName}>
+                    {project.fullName || project.name}
+                  </h1>
                   <p className={styles.projectTagline}>{project.position}</p>
                 </div>
               </div>
@@ -199,7 +218,10 @@ export const ProjectDetail = (): React.ReactElement => {
             {/* Main Content Grid */}
             <div className={styles.mainGrid}>
               {/* Left Column - Description */}
-              <motion.div className={styles.descriptionSection} variants={animations.item}>
+              <motion.div
+                className={styles.descriptionSection}
+                variants={animations.item}
+              >
                 <h2 className={styles.sectionTitle}>
                   <Target size={24} />
                   About
@@ -242,28 +264,32 @@ export const ProjectDetail = (): React.ReactElement => {
                 <div className={styles.actionsCard}>
                   <h3 className={styles.cardTitle}>Links</h3>
                   <div className={styles.actionButtons}>
-                    {project.product && project.product.trim() !== "" && !project.product.includes("github") && (
-                      <a
-                        href={project.product}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={styles.primaryAction}
-                      >
-                        <ExternalLink size={20} />
-                        Visit Website
-                      </a>
-                    )}
-                    {project.product && project.product.trim() !== "" && project.product.includes("github") && (
-                      <a
-                        href={project.product}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={styles.secondaryAction}
-                      >
-                        <Github size={20} />
-                        View on GitHub
-                      </a>
-                    )}
+                    {project.product &&
+                      project.product.trim() !== "" &&
+                      !project.product.includes("github") && (
+                        <a
+                          href={project.product}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={styles.primaryAction}
+                        >
+                          <ExternalLink size={20} />
+                          Visit Website
+                        </a>
+                      )}
+                    {project.product &&
+                      project.product.trim() !== "" &&
+                      project.product.includes("github") && (
+                        <a
+                          href={project.product}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={styles.secondaryAction}
+                        >
+                          <Github size={20} />
+                          View on GitHub
+                        </a>
+                      )}
                     {(!project.product || project.product.trim() === "") && (
                       <div className={styles.comingSoon}>
                         <Calendar size={20} />
@@ -279,24 +305,36 @@ export const ProjectDetail = (): React.ReactElement => {
                   <div className={styles.infoList}>
                     <div className={styles.infoItem}>
                       <span className={styles.infoLabel}>Status</span>
-                      <span className={styles.infoValue} style={{ color: status.text }}>
+                      <span
+                        className={styles.infoValue}
+                        style={{ color: status.text }}
+                      >
                         {status.label}
                       </span>
                     </div>
                     <div className={styles.infoItem}>
-                      <span className={styles.infoLabel}>Stage Description</span>
-                      <span className={styles.infoValueSmall}>{status.description}</span>
+                      <span className={styles.infoLabel}>
+                        Stage Description
+                      </span>
+                      <span className={styles.infoValueSmall}>
+                        {status.description}
+                      </span>
                     </div>
                     {project.department && (
                       <div className={styles.infoItem}>
                         <span className={styles.infoLabel}>Sector</span>
-                        <span className={styles.infoValue}>{project.department}</span>
+                        <span className={styles.infoValue}>
+                          {project.department}
+                        </span>
                       </div>
                     )}
                     {focusAreaConfig && (
                       <div className={styles.infoItem}>
                         <span className={styles.infoLabel}>Focus Area</span>
-                        <span className={styles.infoValue} style={{ color: focusAreaConfig.color }}>
+                        <span
+                          className={styles.infoValue}
+                          style={{ color: focusAreaConfig.color }}
+                        >
                           {focusAreaConfig.label}
                         </span>
                       </div>
@@ -308,15 +346,21 @@ export const ProjectDetail = (): React.ReactElement => {
 
             {/* Related Projects */}
             {relatedProjects && relatedProjects.length > 0 && (
-              <motion.div className={styles.relatedSection} variants={animations.item}>
+              <motion.div
+                className={styles.relatedSection}
+                variants={animations.item}
+              >
                 <h2 className={styles.sectionTitle}>
                   <Layers size={24} />
                   Related Projects
                 </h2>
                 <div className={styles.relatedGrid}>
                   {relatedProjects.map((related) => {
-                    const relatedStatus = STATUS_CONFIG[related.status] || STATUS_CONFIG.active;
-                    const relatedIcon = projectIcons[related.id] || <Layers size={24} />;
+                    const relatedStatus =
+                      STATUS_CONFIG[related.status] || STATUS_CONFIG.active;
+                    const relatedIcon = projectIcons[related.id] || (
+                      <Layers size={24} />
+                    );
                     return (
                       <Link
                         key={related.id}
@@ -325,7 +369,9 @@ export const ProjectDetail = (): React.ReactElement => {
                       >
                         <div
                           className={styles.relatedIcon}
-                          style={{ backgroundColor: related.color || "#9333ea" }}
+                          style={{
+                            backgroundColor: related.color || "#9333ea",
+                          }}
                         >
                           {related.image ? (
                             <img src={related.image} alt={related.name} />
@@ -351,9 +397,15 @@ export const ProjectDetail = (): React.ReactElement => {
             )}
 
             {/* CTA Section */}
-            <motion.div className={styles.ctaSection} variants={animations.item}>
+            <motion.div
+              className={styles.ctaSection}
+              variants={animations.item}
+            >
               <h3>Interested in this project?</h3>
-              <p>Get in touch to learn more about our investment and collaboration opportunities.</p>
+              <p>
+                Get in touch to learn more about our investment and
+                collaboration opportunities.
+              </p>
               <button
                 type="button"
                 className={styles.ctaButton}

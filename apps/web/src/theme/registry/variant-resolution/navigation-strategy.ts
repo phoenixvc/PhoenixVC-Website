@@ -1,6 +1,9 @@
 // theme/registry/variant-resolution/navigation-strategy.ts
 
-import { ComponentVariantType, isNavigationVariant } from "../../types/mappings/component-variants";
+import {
+  ComponentVariantType,
+  isNavigationVariant,
+} from "../../types/mappings/component-variants";
 import { PatternResolutionStrategy } from "./variant-resolution-strategy";
 
 /**
@@ -14,7 +17,7 @@ export class NavigationStrategy extends PatternResolutionStrategy {
   resolveVariant(
     componentVariants: Record<string, ComponentVariantType>,
     baseVariant: string,
-    dynamicPattern: string
+    dynamicPattern: string,
   ): ComponentVariantType | undefined {
     const baseStyles = componentVariants[baseVariant] as ComponentVariantType;
     if (!baseStyles) return componentVariants.default as ComponentVariantType;
@@ -37,7 +40,7 @@ export class NavigationStrategy extends PatternResolutionStrategy {
    * Applies navigation active state to a navigation variant
    */
   private applyNavigationActiveState(
-    baseStyles: ComponentVariantType
+    baseStyles: ComponentVariantType,
   ): ComponentVariantType {
     if (!isNavigationVariant(baseStyles)) {
       return baseStyles;
@@ -51,8 +54,8 @@ export class NavigationStrategy extends PatternResolutionStrategy {
       ...baseStyles,
       item: {
         ...baseStyles.item,
-        ...baseStyles.item.active
-      }
+        ...baseStyles.item.active,
+      },
     } as ComponentVariantType;
   }
 }

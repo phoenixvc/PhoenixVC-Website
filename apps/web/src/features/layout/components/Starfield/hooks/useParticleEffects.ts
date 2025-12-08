@@ -8,17 +8,25 @@ export const useParticleEffects = (): {
   clickBurstsRef: React.MutableRefObject<Burst[]>;
   collisionEffects: CollisionEffect[];
   setCollisionEffects: React.Dispatch<React.SetStateAction<CollisionEffect[]>>;
-  createCollisionEffect: (x: number, y: number, color: string, score: number) => CollisionEffect;
+  createCollisionEffect: (
+    x: number,
+    y: number,
+    color: string,
+    score: number,
+  ) => CollisionEffect;
 } => {
-    // Click burst particles state and ref
-    const [clickBursts, setClickBursts] = useState<Burst[]>([]);
-    const clickBurstsRef = useRef<Burst[]>([]);
+  // Click burst particles state and ref
+  const [clickBursts, setClickBursts] = useState<Burst[]>([]);
+  const clickBurstsRef = useRef<Burst[]>([]);
 
-    // Collision effects state
-    const [collisionEffects, setCollisionEffects] = useState<CollisionEffect[]>([]);
+  // Collision effects state
+  const [collisionEffects, setCollisionEffects] = useState<CollisionEffect[]>(
+    [],
+  );
 
-    // Create collision effect function with device-aware optimization
-    const createCollisionEffect = useCallback((x: number, y: number, color: string, score: number): CollisionEffect => {
+  // Create collision effect function with device-aware optimization
+  const createCollisionEffect = useCallback(
+    (x: number, y: number, color: string, score: number): CollisionEffect => {
       const isMobile = window.innerWidth < 768;
 
       const newEffect: CollisionEffect = {
@@ -27,12 +35,12 @@ export const useParticleEffects = (): {
         color,
         score,
         time: Date.now(),
-        particles: []
+        particles: [],
       };
 
       // Create particles with device-aware count
-      const particleCount = Math.floor(Math.random() * (isMobile ? 5 : 10)) +
-                           (isMobile ? 10 : 15);
+      const particleCount =
+        Math.floor(Math.random() * (isMobile ? 5 : 10)) + (isMobile ? 10 : 15);
 
       for (let i = 0; i < particleCount; i++) {
         const angle = Math.random() * TWO_PI;
@@ -45,24 +53,26 @@ export const useParticleEffects = (): {
           vx: fastCos(angle) * speed,
           vy: fastSin(angle) * speed,
           size,
-          alpha: 1.0
+          alpha: 1.0,
         });
       }
 
       return newEffect;
-    }, []);
+    },
+    [],
+  );
 
-    // Update click bursts ref when state changes
-    useEffect(() => {
-      clickBurstsRef.current = clickBursts;
-    }, [clickBursts]);
+  // Update click bursts ref when state changes
+  useEffect(() => {
+    clickBurstsRef.current = clickBursts;
+  }, [clickBursts]);
 
-    return {
-      clickBursts,
-      setClickBursts,
-      clickBurstsRef,
-      collisionEffects,
-      setCollisionEffects,
-      createCollisionEffect
-    };
+  return {
+    clickBursts,
+    setClickBursts,
+    clickBurstsRef,
+    collisionEffects,
+    setCollisionEffects,
+    createCollisionEffect,
   };
+};

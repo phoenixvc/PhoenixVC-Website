@@ -12,12 +12,15 @@ export function drawSunIcon(
   x: number,
   y: number,
   iconSize: number,
-  sunId: string
+  sunId: string,
 ): void {
   ctx.save();
   ctx.strokeStyle = "#ffffff";
   ctx.fillStyle = "#ffffff";
-  ctx.lineWidth = Math.max(SUN_ICON_CONFIG.minLineWidth, iconSize * SUN_ICON_CONFIG.lineWidthMultiplier);
+  ctx.lineWidth = Math.max(
+    SUN_ICON_CONFIG.minLineWidth,
+    iconSize * SUN_ICON_CONFIG.lineWidthMultiplier,
+  );
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
 
@@ -44,13 +47,18 @@ export function drawSunIcon(
 /**
  * Draw a blockchain/fintech icon (hexagon with nodes)
  */
-function drawBlockchainIcon(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
+function drawBlockchainIcon(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+): void {
   const r = size * SUN_ICON_CONFIG.blockchain.hexagonRadius;
 
   // Draw hexagon
   ctx.beginPath();
   for (let i = 0; i < 6; i++) {
-    const angle = (i * Math.PI / 3) - Math.PI / 2;
+    const angle = (i * Math.PI) / 3 - Math.PI / 2;
     const px = x + r * fastCos(angle);
     const py = y + r * fastSin(angle);
     if (i === 0) {
@@ -64,7 +72,7 @@ function drawBlockchainIcon(ctx: CanvasRenderingContext2D, x: number, y: number,
 
   // Draw nodes at vertices
   for (let i = 0; i < 6; i++) {
-    const angle = (i * Math.PI / 3) - Math.PI / 2;
+    const angle = (i * Math.PI) / 3 - Math.PI / 2;
     const px = x + r * fastCos(angle);
     const py = y + r * fastSin(angle);
     ctx.beginPath();
@@ -79,7 +87,7 @@ function drawBlockchainIcon(ctx: CanvasRenderingContext2D, x: number, y: number,
 
   // Draw connecting lines from center to alternate vertices (0, 2, 4)
   for (let i = 0; i < 6; i += 2) {
-    const angle = (i * Math.PI / 3) - Math.PI / 2;
+    const angle = (i * Math.PI) / 3 - Math.PI / 2;
     const px = x + r * fastCos(angle);
     const py = y + r * fastSin(angle);
     ctx.beginPath();
@@ -92,7 +100,12 @@ function drawBlockchainIcon(ctx: CanvasRenderingContext2D, x: number, y: number,
 /**
  * Draw an AI/ML icon (neural network pattern)
  */
-function drawAIIcon(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
+function drawAIIcon(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+): void {
   const r = size * SUN_ICON_CONFIG.ai.networkRadius;
 
   // Central node
@@ -102,12 +115,12 @@ function drawAIIcon(ctx: CanvasRenderingContext2D, x: number, y: number, size: n
 
   // Outer nodes in a circle
   const nodeCount = SUN_ICON_CONFIG.ai.nodeCount;
-  const outerNodes: Array<{x: number; y: number}> = [];
+  const outerNodes: Array<{ x: number; y: number }> = [];
   for (let i = 0; i < nodeCount; i++) {
-    const angle = (i * TWO_PI / nodeCount) - Math.PI / 2;
+    const angle = (i * TWO_PI) / nodeCount - Math.PI / 2;
     const px = x + r * fastCos(angle);
     const py = y + r * fastSin(angle);
-    outerNodes.push({x: px, y: py});
+    outerNodes.push({ x: px, y: py });
 
     // Draw node
     ctx.beginPath();
@@ -134,7 +147,12 @@ function drawAIIcon(ctx: CanvasRenderingContext2D, x: number, y: number, size: n
 /**
  * Draw a shield icon (defense/security)
  */
-function drawShieldIcon(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
+function drawShieldIcon(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+): void {
   const w = size * SUN_ICON_CONFIG.shield.width;
   const h = size * SUN_ICON_CONFIG.shield.height;
 
@@ -160,7 +178,12 @@ function drawShieldIcon(ctx: CanvasRenderingContext2D, x: number, y: number, siz
 /**
  * Draw a mobility/transportation icon (wheel with spokes)
  */
-function drawMobilityIcon(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
+function drawMobilityIcon(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+): void {
   const r = size * SUN_ICON_CONFIG.mobility.outerRadius;
   const innerR = size * SUN_ICON_CONFIG.mobility.innerRadius;
 
@@ -182,7 +205,7 @@ function drawMobilityIcon(ctx: CanvasRenderingContext2D, x: number, y: number, s
   // Spokes
   const spokeCount = SUN_ICON_CONFIG.mobility.spokeCount;
   for (let i = 0; i < spokeCount; i++) {
-    const angle = (i * TWO_PI / spokeCount);
+    const angle = (i * TWO_PI) / spokeCount;
     ctx.beginPath();
     ctx.moveTo(x + innerR * fastCos(angle), y + innerR * fastSin(angle));
     ctx.lineTo(x + r * fastCos(angle), y + r * fastSin(angle));
@@ -206,14 +229,19 @@ function drawMobilityIcon(ctx: CanvasRenderingContext2D, x: number, y: number, s
 /**
  * Draw a default star icon
  */
-function drawDefaultStarIcon(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
+function drawDefaultStarIcon(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+): void {
   const outerR = size * SUN_ICON_CONFIG.defaultStar.outerRadius;
   const innerR = size * SUN_ICON_CONFIG.defaultStar.innerRadius;
   const points = SUN_ICON_CONFIG.defaultStar.pointCount;
 
   ctx.beginPath();
   for (let i = 0; i < points * 2; i++) {
-    const angle = (i * Math.PI / points) - Math.PI / 2;
+    const angle = (i * Math.PI) / points - Math.PI / 2;
     const r = i % 2 === 0 ? outerR : innerR;
     const px = x + r * fastCos(angle);
     const py = y + r * fastSin(angle);

@@ -16,7 +16,7 @@ export interface VariantResolutionStrategy {
   resolveVariant(
     componentVariants: Record<string, ComponentVariantType>,
     baseVariant: string,
-    dynamicPattern: string
+    dynamicPattern: string,
   ): ComponentVariantType | undefined;
 
   /**
@@ -28,7 +28,9 @@ export interface VariantResolutionStrategy {
 }
 
 // Base implementation for pattern-specific strategies
-export abstract class PatternResolutionStrategy implements VariantResolutionStrategy {
+export abstract class PatternResolutionStrategy
+  implements VariantResolutionStrategy
+{
   constructor(protected patterns: string[]) {}
 
   canHandle(pattern: string): boolean {
@@ -38,6 +40,6 @@ export abstract class PatternResolutionStrategy implements VariantResolutionStra
   abstract resolveVariant(
     componentVariants: Record<string, ComponentVariantType>,
     baseVariant: string,
-    dynamicPattern: string
+    dynamicPattern: string,
   ): ComponentVariantType | undefined;
 }

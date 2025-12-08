@@ -11,7 +11,7 @@ export class ThemeValidationError extends Error implements ValidationError {
     message: string,
     code: ThemeErrorKey,
     path: string,
-    details?: Record<string, unknown> // Explicitly type `details` correctly
+    details?: Record<string, unknown>, // Explicitly type `details` correctly
   ) {
     super(message);
     this.message = message;

@@ -19,18 +19,19 @@ createRoot(document.getElementById("root")!).render(
         useSystem: false,
         storage: {
           type: "localStorage",
-          prefix: "my-app-theme"
+          prefix: "my-app-theme",
         },
         transition: {
           duration: 300,
-          timing: "ease"
-        }
+          timing: "ease",
+        },
       }}
       className="theme-wrapper"
       onThemeChange={(theme) => {
         logger.debug("Theme changed:", theme);
-      }}>
+      }}
+    >
       <App />
     </ThemeProvider>
-  </StrictMode>
+  </StrictMode>,
 );

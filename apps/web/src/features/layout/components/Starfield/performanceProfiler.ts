@@ -1,6 +1,12 @@
 // performanceProfiler.ts - Rendering performance measurement
 // Provides timing data to identify bottlenecks in the animation loop
 
+interface _TimingEntry {
+  name: string;
+  duration: number;
+  timestamp: number;
+}
+
 interface ProfilerState {
   enabled: boolean;
   timings: Map<string, number[]>;
@@ -96,8 +102,14 @@ export function endFrame(): void {
 /**
  * Get current metrics without outputting
  */
-export function getMetrics(): Record<string, { avg: number; min: number; max: number; samples: number }> {
-  const metrics: Record<string, { avg: number; min: number; max: number; samples: number }> = {};
+export function getMetrics(): Record<
+  string,
+  { avg: number; min: number; max: number; samples: number }
+> {
+  const metrics: Record<
+    string,
+    { avg: number; min: number; max: number; samples: number }
+  > = {};
 
   state.timings.forEach((samples, name) => {
     if (samples.length === 0) return;
@@ -136,13 +148,15 @@ export function outputReport(): void {
   console.log("═".repeat(60));
   console.log(`Frames: ${state.frameCount} | Sample size: ${SAMPLE_SIZE}`);
   console.log("─".repeat(60));
-  console.log(`${"Section".padEnd(25)} ${"Avg (ms)".padStart(10)} ${"Min".padStart(8)} ${"Max".padStart(8)} ${"%".padStart(6)}`);
+  console.log(
+    `${"Section".padEnd(25)} ${"Avg (ms)".padStart(10)} ${"Min".padStart(8)} ${"Max".padStart(8)} ${"%".padStart(6)}`,
+  );
   console.log("─".repeat(60));
 
   entries.forEach(([name, data]) => {
     const pct = totalAvg > 0 ? ((data.avg / totalAvg) * 100).toFixed(1) : "-";
     console.log(
-      `${name.padEnd(25)} ${data.avg.toFixed(3).padStart(10)} ${data.min.toFixed(3).padStart(8)} ${data.max.toFixed(3).padStart(8)} ${String(pct).padStart(6)}`
+      `${name.padEnd(25)} ${data.avg.toFixed(3).padStart(10)} ${data.min.toFixed(3).padStart(8)} ${data.max.toFixed(3).padStart(8)} ${String(pct).padStart(6)}`,
     );
   });
 

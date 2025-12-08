@@ -1,6 +1,10 @@
 // theme/providers/ThemeProvider.tsx
 import React, { useEffect } from "react";
-import { StorageOptions, ThemeProviderProps, ThemeStorage } from "@/theme/types";
+import {
+  StorageOptions,
+  ThemeProviderProps,
+  ThemeStorage,
+} from "@/theme/types";
 import { ThemeErrorBoundary } from "@/theme/components/theme-error-boundary";
 import { SystemModeProvider } from "@/SystemModeContext";
 import ThemeProviderInner from "./ThemeProviderInner";
@@ -14,7 +18,9 @@ import { ThemeStateManager } from "../core";
  * @param themeStorage Partial ThemeStorage configuration
  * @returns StorageOptions compatible with ThemeCore
  */
-function convertThemeStorageToOptions(themeStorage?: Partial<ThemeStorage>): StorageOptions | undefined {
+function convertThemeStorageToOptions(
+  themeStorage?: Partial<ThemeStorage>,
+): StorageOptions | undefined {
   if (!themeStorage) return undefined;
 
   const options: StorageOptions = {};
@@ -49,14 +55,14 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = (props) => {
     // Get the singleton instances
     const themeCore = ThemeCore.getInstance();
     const themeStateManager = ThemeStateManager.getInstance();
-    
+
     // Create the registries
     const fullThemeRegistry = createThemeRegistry(themeRegistry);
 
     // Initialize the theme core with the registries
     themeCore.initializeRegistries({
       themeRegistry: fullThemeRegistry,
-      componentRegistry: componentRegistry || {}
+      componentRegistry: componentRegistry || {},
     });
 
     // Connect ThemeCore and ThemeStateManager to resolve circular dependency
@@ -69,33 +75,63 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = (props) => {
         if (config) {
           if (config.defaultThemeName) {
             // Handle potential promises
-            void themeCore.setColorScheme(config.defaultThemeName)
-              .catch(err => console.error("[ThemeProvider] Error setting color scheme:", err));
+            void themeCore
+              .setColorScheme(config.defaultThemeName)
+              .catch((err) =>
+                console.error(
+                  "[ThemeProvider] Error setting color scheme:",
+                  err,
+                ),
+              );
           }
           if (config.defaultMode) {
-            void themeCore.setMode(config.defaultMode)
-              .catch(err => console.error("[ThemeProvider] Error setting mode:", err));
+            void themeCore
+              .setMode(config.defaultMode)
+              .catch((err) =>
+                console.error("[ThemeProvider] Error setting mode:", err),
+              );
           }
           if (config.useSystem !== undefined) {
-            void themeCore.setUseSystem(config.useSystem)
-              .catch(err => console.error("[ThemeProvider] Error setting system mode:", err));
+            void themeCore
+              .setUseSystem(config.useSystem)
+              .catch((err) =>
+                console.error(
+                  "[ThemeProvider] Error setting system mode:",
+                  err,
+                ),
+              );
           }
           if (config.storage) {
             const storageOptions = convertThemeStorageToOptions(config.storage);
             if (storageOptions) {
-              void themeCore.setStorageOptions(storageOptions)
-                .catch(err => console.error("[ThemeProvider] Error setting storage options:", err));
+              void themeCore
+                .setStorageOptions(storageOptions)
+                .catch((err) =>
+                  console.error(
+                    "[ThemeProvider] Error setting storage options:",
+                    err,
+                  ),
+                );
             }
           }
           if (config.transition) {
-            void themeCore.setTransitionOptions(config.transition)
-              .catch(err => console.error("[ThemeProvider] Error setting transition options:", err));
+            void themeCore
+              .setTransitionOptions(config.transition)
+              .catch((err) =>
+                console.error(
+                  "[ThemeProvider] Error setting transition options:",
+                  err,
+                ),
+              );
           }
         }
 
         console.log("[ThemeProvider] Theme system initialized successfully");
       } catch (error) {
-        console.error("[ThemeProvider] Failed to initialize theme system:", error);
+        console.error(
+          "[ThemeProvider] Failed to initialize theme system:",
+          error,
+        );
       }
     }
 

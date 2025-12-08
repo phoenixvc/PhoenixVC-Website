@@ -61,7 +61,14 @@ export const transitions = {
   size: {
     duration: transitionDurations.normal,
     easing: transitionEasings.easeInOut,
-    properties: ["width", "height", "max-width", "max-height", "min-width", "min-height"],
+    properties: [
+      "width",
+      "height",
+      "max-width",
+      "max-height",
+      "min-width",
+      "min-height",
+    ],
   },
 } as const;
 
@@ -90,13 +97,15 @@ export const tailwindTransitions = {
 // Transition utility functions
 export function createTransition(
   type: keyof typeof transitions,
-  customProperties?: string[]
+  customProperties?: string[],
 ): string {
   const transition = transitions[type];
   const properties = customProperties || transition.properties;
 
   return properties
-    .map(property => `${property} ${transition.duration} ${transition.easing}`)
+    .map(
+      (property) => `${property} ${transition.duration} ${transition.easing}`,
+    )
     .join(", ");
 }
 
@@ -106,13 +115,13 @@ export function createCustomTransition(
     duration?: string;
     easing?: string;
     delay?: string;
-  }
+  },
 ): string {
   const duration = options?.duration || transitionDurations.normal;
   const easing = options?.easing || transitionEasings.easeInOut;
   const delay = options?.delay || "0s";
 
   return properties
-    .map(property => `${property} ${duration} ${easing} ${delay}`)
+    .map((property) => `${property} ${duration} ${easing} ${delay}`)
     .join(", ");
 }

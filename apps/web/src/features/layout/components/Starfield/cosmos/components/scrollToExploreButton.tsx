@@ -6,7 +6,9 @@ interface ScrollToExploreButtonProps {
   className?: string;
 }
 
-const ScrollToExploreButton: React.FC<ScrollToExploreButtonProps> = ({ className }) => {
+const ScrollToExploreButton: React.FC<ScrollToExploreButtonProps> = ({
+  className,
+}) => {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {

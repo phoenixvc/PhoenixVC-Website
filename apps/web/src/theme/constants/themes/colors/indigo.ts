@@ -1,4 +1,9 @@
-import { ColorAdjustments, ColorDefinition, ColorShades, ShadeLevel } from "@/theme/types";
+import {
+  ColorAdjustments,
+  ColorDefinition,
+  ColorShades,
+  ShadeLevel,
+} from "@/theme/types";
 import ColorUtils from "@/theme/utils/color-utils";
 
 // Base indigo color
@@ -26,7 +31,18 @@ const generateIndigoPalette = (): Record<ShadeLevel, ColorDefinition> => {
 export const indigoPalette: ColorShades = {
   ...generateIndigoPalette(),
   base: BASE_INDIGO,
-  contrast: ["#000000", "#000000", "#000000", "#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF"],
+  contrast: [
+    "#000000",
+    "#000000",
+    "#000000",
+    "#000000",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+  ],
 };
 
 // Export a function to get a specific indigo shade
@@ -35,7 +51,9 @@ export const getIndigoShade = (shade: ShadeLevel): ColorDefinition => {
 };
 
 // Export a function to create an indigo with custom adjustments
-export const createIndigoVariant = (adjustments: ColorAdjustments): ColorDefinition => {
+export const createIndigoVariant = (
+  adjustments: ColorAdjustments,
+): ColorDefinition => {
   const baseColor = ColorUtils.createColorDefinition(BASE_INDIGO);
   return ColorUtils.adjustColor(baseColor, adjustments);
 };

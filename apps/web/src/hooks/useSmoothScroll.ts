@@ -10,7 +10,7 @@ export const useSmoothScroll = (): void => {
         const element = document.querySelector(target.hash);
         if (element) {
           element.scrollIntoView({
-            behavior: "smooth"
+            behavior: "smooth",
           });
         }
       }
