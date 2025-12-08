@@ -78,9 +78,9 @@
  * Falls back to regular canvas elements if OffscreenCanvas is unavailable.
  */
 
-import { useCallback, useEffect, useRef } from 'react';
-import { logger } from '@/utils';
-import { featureFlags } from '@/utils';
+import { useCallback, useEffect, useRef } from "react";
+import { logger } from "@/utils";
+import { featureFlags } from "@/utils";
 
 export interface OffscreenLayer {
   canvas: OffscreenCanvas | HTMLCanvasElement;
@@ -116,7 +116,7 @@ export interface UseOffscreenCanvasReturn {
 // Check if OffscreenCanvas is supported
 const isOffscreenCanvasSupported = (): boolean => {
   try {
-    return typeof OffscreenCanvas !== 'undefined';
+    return typeof OffscreenCanvas !== "undefined";
   } catch {
     return false;
   }
@@ -125,15 +125,15 @@ const isOffscreenCanvasSupported = (): boolean => {
 export const useOffscreenCanvas = ({
   width,
   height,
-  layers = ['background', 'stars', 'effects'],
+  layers = ["background", "stars", "effects"],
   enabled = true,
 }: UseOffscreenCanvasProps): UseOffscreenCanvasReturn => {
   const layersRef = useRef<Map<string, OffscreenLayer>>(new Map());
   const supportedRef = useRef<boolean>(isOffscreenCanvasSupported());
-  const perfLogger = useRef(logger.createChild('OffscreenCanvas'));
+  const perfLogger = useRef(logger.createChild("OffscreenCanvas"));
 
   // Check if the feature is enabled via feature flags
-  const isFeatureEnabled = enabled && featureFlags.isEnabled('offscreenCanvas');
+  const isFeatureEnabled = enabled && featureFlags.isEnabled("offscreenCanvas");
 
   // Initialize layers
   useEffect(() => {
@@ -151,12 +151,12 @@ export const useOffscreenCanvas = ({
 
         if (supportedRef.current) {
           canvas = new OffscreenCanvas(width, height);
-          ctx = canvas.getContext('2d');
+          ctx = canvas.getContext("2d");
         } else {
-          canvas = document.createElement('canvas');
+          canvas = document.createElement("canvas");
           canvas.width = width;
           canvas.height = height;
-          ctx = canvas.getContext('2d');
+          ctx = canvas.getContext("2d");
         }
 
         if (ctx) {
@@ -165,7 +165,7 @@ export const useOffscreenCanvas = ({
             ctx,
             needsRedraw: true,
             lastDrawTime: 0,
-            redrawInterval: name === 'background' ? 1000 : 0, // Background updates slowly
+            redrawInterval: name === "background" ? 1000 : 0, // Background updates slowly
           });
           perfLogger.current.debug(`Created layer: ${name}`);
         }
@@ -257,7 +257,7 @@ export const useOffscreenCanvas = ({
 
   const cleanup = useCallback((): void => {
     layersRef.current.clear();
-    perfLogger.current.debug('Cleaned up all offscreen layers');
+    perfLogger.current.debug("Cleaned up all offscreen layers");
   }, []);
 
   return {

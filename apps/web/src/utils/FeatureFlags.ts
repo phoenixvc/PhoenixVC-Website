@@ -2,16 +2,16 @@
 // Centralized feature flag management with localStorage persistence
 // Supports both boolean flags and numeric values for fine-grained control
 
-import { logger as rootLogger, type ILogger } from './ILogger';
-import { performanceMonitor, type PerformanceRecommendation } from './PerformanceMonitor';
+import { logger as rootLogger, type ILogger } from "./ILogger";
+import { performanceMonitor, type PerformanceRecommendation } from "./PerformanceMonitor";
 
 // Feature flag categories for organization
 export type FeatureCategory =
-  | 'rendering'
-  | 'effects'
-  | 'interaction'
-  | 'performance'
-  | 'experimental';
+  | "rendering"
+  | "effects"
+  | "interaction"
+  | "performance"
+  | "experimental";
 
 // Feature flag definition
 export interface FeatureFlag {
@@ -79,15 +79,15 @@ export interface FrameSnapshot {
   values: Record<keyof FeatureFlagsState, number | undefined>;
 }
 
-const STORAGE_KEY = 'phoenixvc_featureFlags';
+const STORAGE_KEY = "phoenixvc_featureFlags";
 
 // Default feature flags - start with most features enabled for monitoring
 const DEFAULT_FLAGS: FeatureFlagsState = {
   // Rendering - mostly enabled
   starConnections: {
-    name: 'starConnections',
-    category: 'rendering',
-    description: 'Draw connection lines between nearby stars',
+    name: "starConnections",
+    category: "rendering",
+    description: "Draw connection lines between nearby stars",
     enabled: true,
     value: 150,
     minValue: 50,
@@ -98,59 +98,59 @@ const DEFAULT_FLAGS: FeatureFlagsState = {
     impactsPerformance: true,
   },
   glowEffects: {
-    name: 'glowEffects',
-    category: 'rendering',
-    description: 'Add glow effects to stars and celestial objects',
+    name: "glowEffects",
+    category: "rendering",
+    description: "Add glow effects to stars and celestial objects",
     enabled: true,
     defaultEnabled: true,
     impactsPerformance: true,
   },
   twinkleEffects: {
-    name: 'twinkleEffects',
-    category: 'rendering',
-    description: 'Animate star brightness variation',
+    name: "twinkleEffects",
+    category: "rendering",
+    description: "Animate star brightness variation",
     enabled: true,
     defaultEnabled: true,
     impactsPerformance: false,
   },
   sunEffects: {
-    name: 'sunEffects',
-    category: 'rendering',
-    description: 'Render sun/focus area visual effects',
+    name: "sunEffects",
+    category: "rendering",
+    description: "Render sun/focus area visual effects",
     enabled: true,
     defaultEnabled: true,
     impactsPerformance: true,
   },
   sunFlares: {
-    name: 'sunFlares',
-    category: 'rendering',
-    description: 'Render sun lens flare effects',
+    name: "sunFlares",
+    category: "rendering",
+    description: "Render sun lens flare effects",
     enabled: true,
     defaultEnabled: true,
     impactsPerformance: true,
-    dependencies: ['sunEffects'],
+    dependencies: ["sunEffects"],
   },
   sunCorona: {
-    name: 'sunCorona',
-    category: 'rendering',
-    description: 'Render sun corona rays',
+    name: "sunCorona",
+    category: "rendering",
+    description: "Render sun corona rays",
     enabled: true,
     defaultEnabled: true,
     impactsPerformance: true,
-    dependencies: ['sunEffects'],
+    dependencies: ["sunEffects"],
   },
   planetOrbits: {
-    name: 'planetOrbits',
-    category: 'rendering',
-    description: 'Draw orbital paths for portfolio planets',
+    name: "planetOrbits",
+    category: "rendering",
+    description: "Draw orbital paths for portfolio planets",
     enabled: true,
     defaultEnabled: true,
     impactsPerformance: false,
   },
   planetSatellites: {
-    name: 'planetSatellites',
-    category: 'rendering',
-    description: 'Render satellite moons around planets',
+    name: "planetSatellites",
+    category: "rendering",
+    description: "Render satellite moons around planets",
     enabled: true,
     defaultEnabled: true,
     impactsPerformance: true,
@@ -158,9 +158,9 @@ const DEFAULT_FLAGS: FeatureFlagsState = {
 
   // Effects - mostly enabled
   particleEffects: {
-    name: 'particleEffects',
-    category: 'effects',
-    description: 'Enable particle systems for various effects',
+    name: "particleEffects",
+    category: "effects",
+    description: "Enable particle systems for various effects",
     enabled: true,
     value: 100,
     minValue: 20,
@@ -171,34 +171,34 @@ const DEFAULT_FLAGS: FeatureFlagsState = {
     impactsPerformance: true,
   },
   explosionEffects: {
-    name: 'explosionEffects',
-    category: 'effects',
-    description: 'Star explosion animations on click',
+    name: "explosionEffects",
+    category: "effects",
+    description: "Star explosion animations on click",
     enabled: true,
     defaultEnabled: true,
     impactsPerformance: true,
-    dependencies: ['particleEffects'],
+    dependencies: ["particleEffects"],
   },
   rippleEffects: {
-    name: 'rippleEffects',
-    category: 'effects',
-    description: 'Mouse click ripple animations',
+    name: "rippleEffects",
+    category: "effects",
+    description: "Mouse click ripple animations",
     enabled: true,
     defaultEnabled: true,
     impactsPerformance: true,
   },
   trailEffects: {
-    name: 'trailEffects',
-    category: 'effects',
-    description: 'Comet and object trail rendering',
+    name: "trailEffects",
+    category: "effects",
+    description: "Comet and object trail rendering",
     enabled: true,
     defaultEnabled: true,
     impactsPerformance: true,
   },
   blackHoleEffects: {
-    name: 'blackHoleEffects',
-    category: 'effects',
-    description: 'Black hole gravity and visual effects',
+    name: "blackHoleEffects",
+    category: "effects",
+    description: "Black hole gravity and visual effects",
     enabled: false,  // Disabled by default - expensive
     defaultEnabled: false,
     impactsPerformance: true,
@@ -206,17 +206,17 @@ const DEFAULT_FLAGS: FeatureFlagsState = {
 
   // Interaction - mostly enabled
   mouseInteraction: {
-    name: 'mouseInteraction',
-    category: 'interaction',
-    description: 'Enable mouse tracking and effects',
+    name: "mouseInteraction",
+    category: "interaction",
+    description: "Enable mouse tracking and effects",
     enabled: true,
     defaultEnabled: true,
     impactsPerformance: false,
   },
   clickRepulsion: {
-    name: 'clickRepulsion',
-    category: 'interaction',
-    description: 'Stars repel from click location',
+    name: "clickRepulsion",
+    category: "interaction",
+    description: "Stars repel from click location",
     enabled: true,
     value: 100,
     minValue: 20,
@@ -225,47 +225,47 @@ const DEFAULT_FLAGS: FeatureFlagsState = {
     defaultEnabled: true,
     defaultValue: 100,
     impactsPerformance: true,
-    dependencies: ['mouseInteraction'],
+    dependencies: ["mouseInteraction"],
   },
   hoverEffects: {
-    name: 'hoverEffects',
-    category: 'interaction',
-    description: 'Effects when hovering over objects',
+    name: "hoverEffects",
+    category: "interaction",
+    description: "Effects when hovering over objects",
     enabled: true,
     defaultEnabled: true,
     impactsPerformance: false,
-    dependencies: ['mouseInteraction'],
+    dependencies: ["mouseInteraction"],
   },
 
   // Performance - configure based on device
   offscreenCanvas: {
-    name: 'offscreenCanvas',
-    category: 'performance',
-    description: '[Disabled] For static content only - NOT suitable for moving stars',
+    name: "offscreenCanvas",
+    category: "performance",
+    description: "[Disabled] For static content only - NOT suitable for moving stars",
     enabled: false,  // Disabled - stars move every frame, defeating offscreen purpose
     defaultEnabled: false,
     impactsPerformance: false,  // Currently has no effect
   },
   batchRendering: {
-    name: 'batchRendering',
-    category: 'performance',
-    description: '[Internal] Batch similar draw calls (always enabled)',
+    name: "batchRendering",
+    category: "performance",
+    description: "[Internal] Batch similar draw calls (always enabled)",
     enabled: true,
     defaultEnabled: true,
     impactsPerformance: false,  // Can't be disabled, doesn't affect auto-adjust
   },
   spatialIndexing: {
-    name: 'spatialIndexing',
-    category: 'performance',
-    description: '[Internal] Spatial hash grid for O(n) neighbor lookup (always enabled)',
+    name: "spatialIndexing",
+    category: "performance",
+    description: "[Internal] Spatial hash grid for O(n) neighbor lookup (always enabled)",
     enabled: true,
     defaultEnabled: true,
     impactsPerformance: false,  // Can't be disabled, doesn't affect auto-adjust
   },
   frameSkipping: {
-    name: 'frameSkipping',
-    category: 'performance',
-    description: 'Skip heavy operations on alternating frames (connections)',
+    name: "frameSkipping",
+    category: "performance",
+    description: "Skip heavy operations on alternating frames (connections)",
     enabled: true,  // Now enabled by default since it's already happening
     defaultEnabled: true,
     impactsPerformance: true,
@@ -273,25 +273,25 @@ const DEFAULT_FLAGS: FeatureFlagsState = {
 
   // Experimental - mostly disabled
   cosmicNavigation: {
-    name: 'cosmicNavigation',
-    category: 'experimental',
-    description: 'Enable cosmic zoom/pan navigation',
+    name: "cosmicNavigation",
+    category: "experimental",
+    description: "Enable cosmic zoom/pan navigation",
     enabled: false,
     defaultEnabled: false,
     impactsPerformance: true,
   },
   gameMode: {
-    name: 'gameMode',
-    category: 'experimental',
-    description: 'Enable game scoring and interactions',
+    name: "gameMode",
+    category: "experimental",
+    description: "Enable game scoring and interactions",
     enabled: false,
     defaultEnabled: false,
     impactsPerformance: false,
   },
   debugOverlay: {
-    name: 'debugOverlay',
-    category: 'experimental',
-    description: 'Show debug information overlay',
+    name: "debugOverlay",
+    category: "experimental",
+    description: "Show debug information overlay",
     enabled: false,
     defaultEnabled: false,
     impactsPerformance: false,
@@ -322,7 +322,7 @@ class FeatureFlagsManager {
   private recommendationFirstSeen: Map<string, { action: string; timestamp: number }> = new Map();
 
   constructor() {
-    this.logger = rootLogger.createChild('FeatureFlags');
+    this.logger = rootLogger.createChild("FeatureFlags");
     this.flags = this.loadFromStorage();
     this.applyDeviceDefaults();
     this.subscribeToPerformance();
@@ -334,17 +334,17 @@ class FeatureFlagsManager {
    */
   private applyDeviceDefaults(): void {
     const capabilities = this.detectDeviceCapabilities();
-    this.logger.debug('Device capabilities:', capabilities);
+    this.logger.debug("Device capabilities:", capabilities);
 
     // If we already have stored settings, don't override them
     if (localStorage.getItem(STORAGE_KEY)) {
-      this.logger.debug('Stored settings found, skipping device defaults');
+      this.logger.debug("Stored settings found, skipping device defaults");
       return;
     }
 
     // Apply reduced defaults for low-power devices
     if (capabilities.isLowPower) {
-      this.logger.info('Low-power device detected, applying reduced defaults');
+      this.logger.info("Low-power device detected, applying reduced defaults");
 
       // Disable expensive effects
       if (this.flags.glowEffects) this.flags.glowEffects.enabled = false;
@@ -359,7 +359,7 @@ class FeatureFlagsManager {
 
       this.saveToStorage();
     } else if (capabilities.isMobile) {
-      this.logger.info('Mobile device detected, applying moderate defaults');
+      this.logger.info("Mobile device detected, applying moderate defaults");
 
       // Reduce particle effects on mobile
       if (this.flags.particleEffects) {
@@ -432,11 +432,11 @@ class FeatureFlagsManager {
             };
           }
         });
-        this.logger.debug('Loaded feature flags from storage');
+        this.logger.debug("Loaded feature flags from storage");
         return merged;
       }
     } catch (error) {
-      this.logger.warn('Failed to load feature flags from storage', error);
+      this.logger.warn("Failed to load feature flags from storage", error);
     }
     return { ...DEFAULT_FLAGS };
   }
@@ -448,7 +448,7 @@ class FeatureFlagsManager {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.flags));
     } catch (error) {
-      this.logger.warn('Failed to save feature flags to storage', error);
+      this.logger.warn("Failed to save feature flags to storage", error);
     }
   }
 
@@ -493,9 +493,9 @@ class FeatureFlagsManager {
       // Check if we've seen this recommendation before
       const existing = this.recommendationFirstSeen.get(flagName);
 
-      if (rec.action === 'disable' && flag.enabled) {
+      if (rec.action === "disable" && flag.enabled) {
         // Check if this is the same recommendation we've been tracking
-        if (existing?.action === 'disable') {
+        if (existing?.action === "disable") {
           // Check if we've been seeing this consistently for long enough
           const duration = now - existing.timestamp;
           if (duration >= HYSTERESIS_CONFIG.consistencyWindowMs) {
@@ -508,16 +508,16 @@ class FeatureFlagsManager {
           // else: keep waiting for consistency window
         } else {
           // First time seeing this recommendation, or action changed - start tracking
-          this.recommendationFirstSeen.set(flagName, { action: 'disable', timestamp: now });
+          this.recommendationFirstSeen.set(flagName, { action: "disable", timestamp: now });
         }
 
-      } else if (rec.action === 'enable' && !flag.enabled) {
+      } else if (rec.action === "enable" && !flag.enabled) {
         // Only re-enable if it was disabled by auto-adjust (not manually)
         if (!this.disabledByAutoAdjust.has(flagName)) {
           return;
         }
 
-        if (existing?.action === 'enable') {
+        if (existing?.action === "enable") {
           const duration = now - existing.timestamp;
           if (duration >= HYSTERESIS_CONFIG.consistencyWindowMs) {
             this.logger.info(`Auto-enabling ${flagName} after ${(duration / 1000).toFixed(1)}s: ${rec.reason}`);
@@ -527,12 +527,12 @@ class FeatureFlagsManager {
             this.recommendationFirstSeen.delete(flagName);
           }
         } else {
-          this.recommendationFirstSeen.set(flagName, { action: 'enable', timestamp: now });
+          this.recommendationFirstSeen.set(flagName, { action: "enable", timestamp: now });
         }
 
-      } else if (rec.action === 'reduce' && flag.value !== undefined) {
+      } else if (rec.action === "reduce" && flag.value !== undefined) {
         // For value reductions, require same consistency window
-        if (existing?.action === 'reduce') {
+        if (existing?.action === "reduce") {
           const duration = now - existing.timestamp;
           if (duration >= HYSTERESIS_CONFIG.consistencyWindowMs) {
             const newValue = flag.value * 0.75;
@@ -545,7 +545,7 @@ class FeatureFlagsManager {
             }
           }
         } else {
-          this.recommendationFirstSeen.set(flagName, { action: 'reduce', timestamp: now });
+          this.recommendationFirstSeen.set(flagName, { action: "reduce", timestamp: now });
         }
       }
     });
@@ -643,7 +643,7 @@ class FeatureFlagsManager {
     flag.enabled = enabled;
     this.saveToStorage();
     this.notifyChange(name, flag, previousEnabled);
-    this.logger.info(`Feature ${name} ${enabled ? 'enabled' : 'disabled'}`);
+    this.logger.info(`Feature ${name} ${enabled ? "enabled" : "disabled"}`);
   }
 
   /**
@@ -705,7 +705,7 @@ class FeatureFlagsManager {
   resetAll(): void {
     this.flags = JSON.parse(JSON.stringify(DEFAULT_FLAGS));
     this.saveToStorage();
-    this.logger.info('All feature flags reset to defaults');
+    this.logger.info("All feature flags reset to defaults");
 
     // Notify all changes
     Object.keys(this.flags).forEach(key => {
@@ -719,7 +719,7 @@ class FeatureFlagsManager {
    */
   setAutoAdjustEnabled(enabled: boolean): void {
     this.autoAdjustEnabled = enabled;
-    this.logger.info(`Auto-adjust ${enabled ? 'enabled' : 'disabled'}`);
+    this.logger.info(`Auto-adjust ${enabled ? "enabled" : "disabled"}`);
   }
 
   isAutoAdjustEnabled(): boolean {
@@ -747,7 +747,7 @@ class FeatureFlagsManager {
       try {
         callback(name, flag, previousEnabled, previousValue);
       } catch (error) {
-        this.logger.error('Error in feature flag change callback', error);
+        this.logger.error("Error in feature flag change callback", error);
       }
     });
   }
@@ -783,9 +783,9 @@ class FeatureFlagsManager {
           }
         }
       });
-      this.logger.info('Feature flags imported successfully');
+      this.logger.info("Feature flags imported successfully");
     } catch (error) {
-      this.logger.error('Failed to import feature flags', error);
+      this.logger.error("Failed to import feature flags", error);
     }
   }
 }

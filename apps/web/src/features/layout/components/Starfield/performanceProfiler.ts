@@ -1,7 +1,7 @@
 // performanceProfiler.ts - Rendering performance measurement
 // Provides timing data to identify bottlenecks in the animation loop
 
-import { logger as rootLogger, type ILogger } from '../../../../utils/ILogger';
+import { logger as rootLogger, type ILogger } from "../../../../utils/ILogger";
 
 interface _TimingEntry {
   name: string;
@@ -26,7 +26,7 @@ const state: ProfilerState = {
   frameCount: 0,
   lastReportTime: 0,
   reportInterval: 5000, // Report every 5 seconds
-  logger: rootLogger.createChild('Profiler'),
+  logger: rootLogger.createChild("Profiler"),
 };
 
 // Rolling window size for averaging

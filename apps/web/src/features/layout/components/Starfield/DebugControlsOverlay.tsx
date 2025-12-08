@@ -36,7 +36,7 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
   sidebarWidth,
   stars = [],
   mousePosition = { x: 0, y: 0, isOnScreen: false, isClicked: false },
-  fps = 0,
+  fps: _fps = 0,
   timestamp: _timestamp,
   setMousePosition,
   isDarkMode = true,
@@ -59,7 +59,7 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
 
     updateFps();
     const interval = setInterval(updateFps, 500);
-    return () => clearInterval(interval);
+    return (): void => clearInterval(interval);
   }, [debugSettings.isDebugMode]);
 
   // Early return if debug mode is disabled
@@ -448,10 +448,10 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
             }}
             className={styles.actionButton}
             style={{
-              background: showPerformancePanel ? '#4CAF50' : undefined,
+              background: showPerformancePanel ? "#4CAF50" : undefined,
             }}
           >
-            {showPerformancePanel ? 'Hide' : 'Show'} Performance
+            {showPerformancePanel ? "Hide" : "Show"} Performance
           </button>
           <button
             onClick={(e) => {

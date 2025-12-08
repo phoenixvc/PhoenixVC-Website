@@ -1,7 +1,7 @@
-import { logger as rootLogger, type ILogger } from '../../utils/ILogger';
+import { logger as rootLogger, type ILogger } from "../../utils/ILogger";
 
 // Internal logger instance for theme system
-const themeLogger: ILogger = rootLogger.createChild('Theme');
+const themeLogger: ILogger = rootLogger.createChild("Theme");
 
 export class LogManager {
   /**
