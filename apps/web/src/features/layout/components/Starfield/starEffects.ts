@@ -43,6 +43,9 @@ export function drawStarGlow(
   const pulseTime = getFrameTime() * 0.0003 + (uniqueOffset * 0.05);
   const pulseFactor = 1 + fastSin(pulseTime) * 0.1; // 10% size variation
 
+  // Pre-compute rgba prefix string (avoids template creation in gradient stops)
+  const softRgbaPrefix = `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, `;
+
   // Enhanced glow effect - softer glow with independent pulsing
   const glowMultiplier = planet.glowIntensity ||
     (planet.pathType === "star" ? 2.5 * pulseFactor :
@@ -55,10 +58,10 @@ export function drawStarGlow(
   );
 
   // Use rgba format for star glow to avoid color parsing issues - softer glow
-  glowGradient.addColorStop(0, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.9)`);
-  glowGradient.addColorStop(0.3, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.4)`);
-  glowGradient.addColorStop(0.6, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.2)`);
-  glowGradient.addColorStop(1, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0)`);
+  glowGradient.addColorStop(0, softRgbaPrefix + "0.9)");
+  glowGradient.addColorStop(0.3, softRgbaPrefix + "0.4)");
+  glowGradient.addColorStop(0.6, softRgbaPrefix + "0.2)");
+  glowGradient.addColorStop(1, softRgbaPrefix + "0)");
 
   ctx.beginPath();
   ctx.arc(planet.x, planet.y, starSize * 2.0 * glowMultiplier, 0, TWO_PI);
@@ -74,28 +77,28 @@ export function drawStarGlow(
   switch (planet.pathType) {
     case "star":
       gradient.addColorStop(0, "rgba(255, 255, 255, 0.95)");
-      gradient.addColorStop(0.2, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.9)`);
-      gradient.addColorStop(0.7, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.5)`);
-      gradient.addColorStop(1, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.2)`);
+      gradient.addColorStop(0.2, softRgbaPrefix + "0.9)");
+      gradient.addColorStop(0.7, softRgbaPrefix + "0.5)");
+      gradient.addColorStop(1, softRgbaPrefix + "0.2)");
       break;
     case "planet":
       gradient.addColorStop(0, "rgba(255, 255, 255, 0.95)");
-      gradient.addColorStop(0.3, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.9)`);
-      gradient.addColorStop(0.7, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.55)`);
-      gradient.addColorStop(1, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.2)`);
+      gradient.addColorStop(0.3, softRgbaPrefix + "0.9)");
+      gradient.addColorStop(0.7, softRgbaPrefix + "0.55)");
+      gradient.addColorStop(1, softRgbaPrefix + "0.2)");
       break;
     case "comet":
       gradient.addColorStop(0, "rgba(255, 255, 255, 0.95)");
       gradient.addColorStop(0.2, "rgba(255, 255, 238, 0.9)");
-      gradient.addColorStop(0.4, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.85)`);
-      gradient.addColorStop(0.7, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.5)`);
-      gradient.addColorStop(1, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.25)`);
+      gradient.addColorStop(0.4, softRgbaPrefix + "0.85)");
+      gradient.addColorStop(0.7, softRgbaPrefix + "0.5)");
+      gradient.addColorStop(1, softRgbaPrefix + "0.25)");
       break;
     default:
       gradient.addColorStop(0, "rgba(255, 255, 255, 0.95)");
-      gradient.addColorStop(0.3, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.85)`);
-      gradient.addColorStop(0.8, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.45)`);
-      gradient.addColorStop(1, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.15)`);
+      gradient.addColorStop(0.3, softRgbaPrefix + "0.85)");
+      gradient.addColorStop(0.8, softRgbaPrefix + "0.45)");
+      gradient.addColorStop(1, softRgbaPrefix + "0.15)");
   }
 
   ctx.beginPath();

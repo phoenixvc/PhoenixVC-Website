@@ -66,13 +66,17 @@ export function drawStarTrail(
   const perpDx = -normalizedDy;
   const perpDy = normalizedDx;
 
-  // Color setup
+  // Color setup - pre-compute rgba prefix strings to avoid template creation in loops
   const sr = sunRgb.r;
   const sg = sunRgb.g;
   const sb = sunRgb.b;
   const scr = secondaryRgb.r;
   const scg = secondaryRgb.g;
   const scb = secondaryRgb.b;
+  // Pre-computed rgba prefixes (avoids string template evaluation in hot loops)
+  const sunRgbaPrefix = `rgba(${sr}, ${sg}, ${sb}, `;
+  const secRgbaPrefix = `rgba(${scr}, ${scg}, ${scb}, `;
+  const whiteRgbaPrefix = "rgba(255, 255, 255, ";
 
   // ===== LAYER 1: Main glowing trail body =====
   const startWidth = COMET_CONFIG.trailWidthMultiplier * planetSize * scaleFactor;
@@ -103,12 +107,12 @@ export function drawStarTrail(
 
   // Gradient from bright head to fading tail
   const trailGradient = ctx.createLinearGradient(planet.x, planet.y, trailEndX, trailEndY);
-  trailGradient.addColorStop(0, "rgba(255, 255, 255, 1)");
-  trailGradient.addColorStop(0.05, `rgba(${sr}, ${sg}, ${sb}, 0.95)`);
-  trailGradient.addColorStop(0.2, `rgba(${sr}, ${sg}, ${sb}, 0.75)`);
-  trailGradient.addColorStop(0.4, `rgba(${scr}, ${scg}, ${scb}, 0.5)`);
-  trailGradient.addColorStop(0.7, `rgba(${sr}, ${sg}, ${sb}, 0.25)`);
-  trailGradient.addColorStop(1, `rgba(${scr}, ${scg}, ${scb}, 0)`);
+  trailGradient.addColorStop(0, whiteRgbaPrefix + "1)");
+  trailGradient.addColorStop(0.05, sunRgbaPrefix + "0.95)");
+  trailGradient.addColorStop(0.2, sunRgbaPrefix + "0.75)");
+  trailGradient.addColorStop(0.4, secRgbaPrefix + "0.5)");
+  trailGradient.addColorStop(0.7, sunRgbaPrefix + "0.25)");
+  trailGradient.addColorStop(1, secRgbaPrefix + "0)");
 
   ctx.fillStyle = trailGradient;
   ctx.fill();
@@ -125,9 +129,9 @@ export function drawStarTrail(
     planet.x, planet.y,
     planet.x - normalizedDx * trailLength * COMET_CONFIG.coreLengthFraction, planet.y - normalizedDy * trailLength * COMET_CONFIG.coreLengthFraction
   );
-  coreGradient.addColorStop(0, "rgba(255, 255, 255, 1)");
-  coreGradient.addColorStop(0.3, `rgba(${sr}, ${sg}, ${sb}, 0.8)`);
-  coreGradient.addColorStop(1, `rgba(${sr}, ${sg}, ${sb}, 0)`);
+  coreGradient.addColorStop(0, whiteRgbaPrefix + "1)");
+  coreGradient.addColorStop(0.3, sunRgbaPrefix + "0.8)");
+  coreGradient.addColorStop(1, sunRgbaPrefix + "0)");
 
   ctx.strokeStyle = coreGradient;
   ctx.lineWidth = coreWidth;
@@ -173,13 +177,10 @@ export function drawStarTrail(
 
       // Alternate between sun and secondary colors
       const useSecondary = i % 3 === 0;
-      const dr = useSecondary ? scr : sr;
-      const dg = useSecondary ? scg : sg;
-      const db = useSecondary ? scb : sb;
-
-      debrisGlow.addColorStop(0, `rgba(255, 255, 255, ${debrisOpacity * 0.8})`);
-      debrisGlow.addColorStop(0.3, `rgba(${dr}, ${dg}, ${db}, ${debrisOpacity * 0.6})`);
-      debrisGlow.addColorStop(1, `rgba(${dr}, ${dg}, ${db}, 0)`);
+      const debrisRgbaPrefix = useSecondary ? secRgbaPrefix : sunRgbaPrefix;
+      debrisGlow.addColorStop(0, whiteRgbaPrefix + (debrisOpacity * 0.8) + ")");
+      debrisGlow.addColorStop(0.3, debrisRgbaPrefix + (debrisOpacity * 0.6) + ")");
+      debrisGlow.addColorStop(1, debrisRgbaPrefix + "0)");
 
       ctx.beginPath();
       ctx.arc(debrisX, debrisY, debrisSize * 2.5, 0, TWO_PI);
@@ -189,7 +190,7 @@ export function drawStarTrail(
       // Bright core
       ctx.beginPath();
       ctx.arc(debrisX, debrisY, debrisSize * 0.5, 0, TWO_PI);
-      ctx.fillStyle = `rgba(255, 255, 255, ${debrisOpacity * 0.9})`;
+      ctx.fillStyle = whiteRgbaPrefix + (debrisOpacity * 0.9) + ")";
       ctx.fill();
     }
   }
@@ -221,7 +222,7 @@ export function drawStarTrail(
     if (dustSize > 0.15 && dustOpacity > 0.02) {
       ctx.beginPath();
       ctx.arc(dustX, dustY, dustSize, 0, TWO_PI);
-      ctx.fillStyle = `rgba(${sr}, ${sg}, ${sb}, ${dustOpacity})`;
+      ctx.fillStyle = sunRgbaPrefix + dustOpacity + ")";
       ctx.fill();
     }
   }
@@ -253,9 +254,9 @@ export function drawStarTrail(
       sparkleX, sparkleY, 0,
       sparkleX, sparkleY, sparkleSize * 3.5
     );
-    sparkleGradient.addColorStop(0, `rgba(255, 255, 255, ${sparkleOpacity})`);
-    sparkleGradient.addColorStop(0.2, `rgba(${sr}, ${sg}, ${sb}, ${sparkleOpacity * 0.75})`);
-    sparkleGradient.addColorStop(1, `rgba(${sr}, ${sg}, ${sb}, 0)`);
+    sparkleGradient.addColorStop(0, whiteRgbaPrefix + sparkleOpacity + ")");
+    sparkleGradient.addColorStop(0.2, sunRgbaPrefix + (sparkleOpacity * 0.75) + ")");
+    sparkleGradient.addColorStop(1, sunRgbaPrefix + "0)");
 
     ctx.beginPath();
     ctx.arc(sparkleX, sparkleY, sparkleSize * 3.5, 0, TWO_PI);
@@ -268,7 +269,7 @@ export function drawStarTrail(
     ctx.lineTo(sparkleX + sparkleSize * 2.5, sparkleY);
     ctx.moveTo(sparkleX, sparkleY - sparkleSize * 2.5);
     ctx.lineTo(sparkleX, sparkleY + sparkleSize * 2.5);
-    ctx.strokeStyle = `rgba(255, 255, 255, ${sparkleOpacity * 0.7})`;
+    ctx.strokeStyle = whiteRgbaPrefix + (sparkleOpacity * 0.7) + ")";
     ctx.lineWidth = sparkleSize * 0.4;
     ctx.lineCap = "round";
     ctx.stroke();
@@ -292,9 +293,9 @@ export function drawStarTrail(
     const jetEndY = planet.y - jetDirY * jetLength;
 
     const jetGradient = ctx.createLinearGradient(planet.x, planet.y, jetEndX, jetEndY);
-    jetGradient.addColorStop(0, `rgba(${scr}, ${scg}, ${scb}, 0.4)`);
-    jetGradient.addColorStop(0.3, `rgba(${sr}, ${sg}, ${sb}, 0.25)`);
-    jetGradient.addColorStop(1, `rgba(${sr}, ${sg}, ${sb}, 0)`);
+    jetGradient.addColorStop(0, secRgbaPrefix + "0.4)");
+    jetGradient.addColorStop(0.3, sunRgbaPrefix + "0.25)");
+    jetGradient.addColorStop(1, sunRgbaPrefix + "0)");
 
     ctx.beginPath();
     ctx.moveTo(planet.x, planet.y);

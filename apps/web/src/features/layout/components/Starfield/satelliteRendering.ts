@@ -44,6 +44,10 @@ export function drawSatellites(
   const secondaryRgb = getSecondaryColorRgb(sunRgb);
   const time = getFrameTime();
 
+  // Pre-compute rgba prefix strings to avoid template creation in loops
+  const sunRgbaPrefix = `rgba(${sunRgb.r}, ${sunRgb.g}, ${sunRgb.b}, `;
+  const secRgbaPrefix = `rgba(${secondaryRgb.r}, ${secondaryRgb.g}, ${secondaryRgb.b}, `;
+
   // Draw orbit paths for satellites with sun-aligned gradient colors
   if (planet.satellites && planet.satellites.length > 0 && !planet.useSimpleRendering) {
     planet.satellites.forEach((satellite, index) => {
@@ -70,9 +74,9 @@ export function drawSatellites(
         planet.x - a, planet.y,
         planet.x + a, planet.y
       );
-      orbitGradient.addColorStop(0, `rgba(${secondaryRgb.r}, ${secondaryRgb.g}, ${secondaryRgb.b}, ${orbitOpacity})`);
-      orbitGradient.addColorStop(0.5, `rgba(${sunRgb.r}, ${sunRgb.g}, ${sunRgb.b}, ${orbitOpacity * 0.7})`);
-      orbitGradient.addColorStop(1, `rgba(${secondaryRgb.r}, ${secondaryRgb.g}, ${secondaryRgb.b}, ${orbitOpacity})`);
+      orbitGradient.addColorStop(0, secRgbaPrefix + orbitOpacity + ")");
+      orbitGradient.addColorStop(0.5, sunRgbaPrefix + (orbitOpacity * 0.7) + ")");
+      orbitGradient.addColorStop(1, secRgbaPrefix + orbitOpacity + ")");
 
       ctx.strokeStyle = orbitGradient;
       ctx.lineWidth = 1 + orbitPhase * 0.5;
@@ -82,7 +86,7 @@ export function drawSatellites(
       // Add subtle glow to orbit
       ctx.beginPath();
       ctx.ellipse(planet.x, planet.y, a, b, 0, 0, TWO_PI);
-      ctx.strokeStyle = `rgba(${sunRgb.r}, ${sunRgb.g}, ${sunRgb.b}, ${orbitOpacity * 0.3})`;
+      ctx.strokeStyle = sunRgbaPrefix + (orbitOpacity * 0.3) + ")";
       ctx.lineWidth = 3;
       ctx.stroke();
     });
@@ -114,6 +118,9 @@ export function drawSatellites(
         g: Math.round(moonRgb.g * 0.85 + 38),
         b: Math.round(moonRgb.b * 0.85 + 38)
       };
+      // Pre-compute moon rgba prefix for this satellite
+      const moonRgbaPrefix = index % 2 === 0 ? secRgbaPrefix : sunRgbaPrefix;
+      const softMoonRgbaPrefix = `rgba(${softMoonRgb.r}, ${softMoonRgb.g}, ${softMoonRgb.b}, `;
 
       // Draw satellite outer glow
       ctx.save();
@@ -125,10 +132,10 @@ export function drawSatellites(
         satX, satY, glowSize
       );
 
-      glowGradient.addColorStop(0, `rgba(${softMoonRgb.r}, ${softMoonRgb.g}, ${softMoonRgb.b}, 0.85)`);
-      glowGradient.addColorStop(0.4, `rgba(${softMoonRgb.r}, ${softMoonRgb.g}, ${softMoonRgb.b}, 0.35)`);
-      glowGradient.addColorStop(0.7, `rgba(${sunRgb.r}, ${sunRgb.g}, ${sunRgb.b}, 0.15)`);
-      glowGradient.addColorStop(1, `rgba(${softMoonRgb.r}, ${softMoonRgb.g}, ${softMoonRgb.b}, 0)`);
+      glowGradient.addColorStop(0, softMoonRgbaPrefix + "0.85)");
+      glowGradient.addColorStop(0.4, softMoonRgbaPrefix + "0.35)");
+      glowGradient.addColorStop(0.7, sunRgbaPrefix + "0.15)");
+      glowGradient.addColorStop(1, softMoonRgbaPrefix + "0)");
 
       ctx.fillStyle = glowGradient;
       ctx.fill();
@@ -141,9 +148,9 @@ export function drawSatellites(
         satX, satY, coreSize
       );
       coreGradient.addColorStop(0, "#ffffff");
-      coreGradient.addColorStop(0.3, `rgba(${softMoonRgb.r}, ${softMoonRgb.g}, ${softMoonRgb.b}, 1)`);
-      coreGradient.addColorStop(0.7, `rgba(${moonRgb.r}, ${moonRgb.g}, ${moonRgb.b}, 0.95)`);
-      coreGradient.addColorStop(1, `rgba(${moonRgb.r}, ${moonRgb.g}, ${moonRgb.b}, 0.8)`);
+      coreGradient.addColorStop(0.3, softMoonRgbaPrefix + "1)");
+      coreGradient.addColorStop(0.7, moonRgbaPrefix + "0.95)");
+      coreGradient.addColorStop(1, moonRgbaPrefix + "0.8)");
 
       ctx.beginPath();
       ctx.arc(satX, satY, coreSize, 0, TWO_PI);
@@ -179,11 +186,11 @@ export function drawSatellites(
           const particleSize = satellite.size * 0.2 * Math.random();
 
           // Use sun color for particles
-          const particleRgb = i % 2 === 0 ? sunRgb : secondaryRgb;
+          const particlePrefix = i % 2 === 0 ? sunRgbaPrefix : secRgbaPrefix;
 
           ctx.beginPath();
           ctx.arc(particleX, particleY, particleSize, 0, TWO_PI);
-          ctx.fillStyle = `rgba(${particleRgb.r}, ${particleRgb.g}, ${particleRgb.b}, ${0.3 + Math.random() * 0.3})`;
+          ctx.fillStyle = particlePrefix + (0.3 + Math.random() * 0.3) + ")";
           ctx.fill();
         }
         ctx.restore();
