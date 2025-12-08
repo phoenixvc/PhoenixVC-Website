@@ -3,7 +3,7 @@ import { SUNS } from "./cosmos/cosmicHierarchy";
 import { getDailySeededRandom } from "./utils";
 import { SUN_PHYSICS } from "./physicsConfig";
 import { getFrameTime } from "./frameCache";
-import { hexToRgbSafe } from "./colorUtils";
+import { hexToRgbSafe, lightenRgb, rgbToString } from "./colorUtils";
 import { TWO_PI, fastSin } from "./math";
 
 export interface SunState {
@@ -14,6 +14,18 @@ export interface SunState {
   // Pre-computed RGB values to avoid parsing hex every frame
   colorRgb: { r: number; g: number; b: number };
   colorRgbStr: string; // "r, g, b" format for gradient stops
+  // Pre-computed secondary color RGB string for gradient stops
+  secondaryRgbStr: string;
+  // Pre-computed lightened color strings to avoid lightenColor() per frame
+  // These are "rgb(r, g, b)" format strings used in sunLayers.ts
+  lightenedColors: {
+    light40: string; // lightenColor(color, 0.4) - hover ring
+    light50: string; // lightenColor(color, 0.5) - inner ring, photosphere
+    light60: string; // lightenColor(color, 0.6) - flares, ejected particles
+    light70: string; // lightenColor(color, 0.7) - particles
+    light80: string; // lightenColor(color, 0.8) - particles, photosphere
+    light85: string; // lightenColor(color, 0.85) - photosphere
+  };
   // Current position (0-1 normalized, will be multiplied by canvas dimensions)
   x: number;
   y: number;
@@ -134,9 +146,25 @@ export function initializeSunStates(): void {
       ? systemStartTime + SUN_PHYSICS.activationDelayMin
       : systemStartTime + SUN_PHYSICS.activationDelayMin + Math.random() * (SUN_PHYSICS.activationDelayMax - SUN_PHYSICS.activationDelayMin);
     
-    // Pre-compute RGB values once at initialization
+    // Pre-compute RGB values and lightened colors once at initialization
     const sunColor = sun.color || "#ffffff";
     const rgb = hexToRgbSafe(sunColor);
+
+    // Pre-compute secondary color (warmer shift for gradient stops)
+    const secondaryRgb = {
+      r: Math.min(255, rgb.r + 40),
+      g: Math.min(255, rgb.g + 20),
+      b: rgb.b
+    };
+
+    // Pre-compute all lightened colors to avoid lightenColor() calls per frame
+    const rgbToStr = (c: { r: number; g: number; b: number }) => `rgb(${c.r}, ${c.g}, ${c.b})`;
+    const light40 = lightenRgb(rgb, 0.4);
+    const light50 = lightenRgb(rgb, 0.5);
+    const light60 = lightenRgb(rgb, 0.6);
+    const light70 = lightenRgb(rgb, 0.7);
+    const light80 = lightenRgb(rgb, 0.8);
+    const light85 = lightenRgb(rgb, 0.85);
 
     return {
       id: sun.id,
@@ -145,6 +173,15 @@ export function initializeSunStates(): void {
       color: sunColor,
       colorRgb: rgb,
       colorRgbStr: `${rgb.r}, ${rgb.g}, ${rgb.b}`,
+      secondaryRgbStr: `${secondaryRgb.r}, ${secondaryRgb.g}, ${secondaryRgb.b}`,
+      lightenedColors: {
+        light40: rgbToStr(light40),
+        light50: rgbToStr(light50),
+        light60: rgbToStr(light60),
+        light70: rgbToStr(light70),
+        light80: rgbToStr(light80),
+        light85: rgbToStr(light85),
+      },
       x: pos.x,
       y: pos.y,
       vx: 0,

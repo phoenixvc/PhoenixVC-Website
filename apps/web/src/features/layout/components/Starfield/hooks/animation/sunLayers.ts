@@ -2,8 +2,21 @@
 // Single Responsibility: Draw individual visual layers of a sun
 
 import { TWO_PI, fastSin, fastCos } from "../../math";
-import { lightenColor } from "../../colorUtils";
 import { SUN_RENDERING_CONFIG, OPACITY_CONFIG } from "../../renderingConfig";
+
+// Type for sun state with pre-computed lightened colors
+interface SunStateWithColors {
+  rotationAngle: number;
+  color: string;
+  lightenedColors?: {
+    light40: string;
+    light50: string;
+    light60: string;
+    light70: string;
+    light80: string;
+    light85: string;
+  };
+}
 
 // Type aliases for cleaner function signatures
 type LayersConfig = typeof SUN_RENDERING_CONFIG.layers;
@@ -68,7 +81,7 @@ export function drawSunAtmosphere(
 export function drawSolarFlares(
   ctx: CanvasRenderingContext2D,
   x: number, y: number, size: number, time: number,
-  sunState: { rotationAngle: number; color: string },
+  sunState: SunStateWithColors,
   rgbStr: string, secondaryRgbStr: string, isHighlighted: boolean, isDarkMode: boolean,
   flares: FlaresConfig
 ): void {
@@ -76,6 +89,9 @@ export function drawSolarFlares(
   ctx.globalAlpha = isDarkMode
     ? (isHighlighted ? OPACITY_CONFIG.sun.flares.dark.highlighted : OPACITY_CONFIG.sun.flares.dark.normal)
     : (isHighlighted ? OPACITY_CONFIG.sun.flares.light.highlighted : OPACITY_CONFIG.sun.flares.light.normal);
+
+  // Use pre-computed lightened color (avoids hex parsing per frame)
+  const light60 = sunState.lightenedColors?.light60 ?? sunState.color;
 
   for (let i = 0; i < flareCount; i++) {
     const baseAngle = (i * TWO_PI / flareCount) + sunState.rotationAngle * 0.5;
@@ -99,7 +115,7 @@ export function drawSolarFlares(
     const cpY = (startY + endY) / 2 + fastSin(perpAngle) * curveFactor;
 
     const flareGradient = ctx.createLinearGradient(startX, startY, endX, endY);
-    flareGradient.addColorStop(0, lightenColor(sunState.color, 0.6));
+    flareGradient.addColorStop(0, light60);
     flareGradient.addColorStop(0.3, `rgba(${rgbStr}, 0.6)`);
     flareGradient.addColorStop(0.6, `rgba(${secondaryRgbStr}, 0.3)`);
     flareGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
@@ -230,7 +246,7 @@ export function drawPropelRings(
 export function drawSolarParticles(
   ctx: CanvasRenderingContext2D,
   x: number, y: number, size: number, time: number,
-  sunState: { rotationAngle: number; color: string },
+  sunState: SunStateWithColors,
   rgbStr: string, secondaryRgbStr: string, isHighlighted: boolean, isDarkMode: boolean,
   particles: ParticlesConfig
 ): void {
@@ -238,6 +254,10 @@ export function drawSolarParticles(
   ctx.globalAlpha = isDarkMode
     ? (isHighlighted ? OPACITY_CONFIG.sun.particles.dark.highlighted : OPACITY_CONFIG.sun.particles.dark.normal)
     : (isHighlighted ? OPACITY_CONFIG.sun.particles.light.highlighted : OPACITY_CONFIG.sun.particles.light.normal);
+
+  // Use pre-computed lightened colors (avoids hex parsing per frame)
+  const light70 = sunState.lightenedColors?.light70 ?? sunState.color;
+  const light80 = sunState.lightenedColors?.light80 ?? sunState.color;
 
   for (let i = 0; i < particleCount; i++) {
     const orbitRadius = size * (particles.orbitBaseRadius + (i % 4) * particles.orbitRadiusStep);
@@ -258,11 +278,11 @@ export function drawSolarParticles(
 
     if (i % 3 === 0) {
       particleGradient.addColorStop(0, "#ffffff");
-      particleGradient.addColorStop(0.3, lightenColor(sunState.color, 0.7));
+      particleGradient.addColorStop(0.3, light70);
       particleGradient.addColorStop(0.6, `rgba(${rgbStr}, 0.5)`);
       particleGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
     } else if (i % 3 === 1) {
-      particleGradient.addColorStop(0, lightenColor(sunState.color, 0.8));
+      particleGradient.addColorStop(0, light80);
       particleGradient.addColorStop(0.4, `rgba(${rgbStr}, 0.7)`);
       particleGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
     } else {
@@ -295,11 +315,14 @@ export function drawSolarParticles(
 export function drawEjectedParticles(
   ctx: CanvasRenderingContext2D,
   x: number, y: number, size: number, time: number,
-  sunState: { rotationAngle: number; color: string },
+  sunState: SunStateWithColors,
   rgbStr: string, isHighlighted: boolean, isDarkMode: boolean,
   ejectParticles: EjectConfig
 ): void {
   const ejectCount = isHighlighted ? ejectParticles.count.highlighted : ejectParticles.count.normal;
+  // Use pre-computed lightened color (avoids hex parsing per frame)
+  const light60 = sunState.lightenedColors?.light60 ?? sunState.color;
+
   for (let i = 0; i < ejectCount; i++) {
     const ejectAngle = (i * TWO_PI / ejectCount) + time * ejectParticles.speed + sunState.rotationAngle;
     const ejectPhase = (time * 0.0002 + i * 1.5) % 1;
@@ -315,7 +338,7 @@ export function drawEjectedParticles(
         ejectX, ejectY, 0,
         ejectX, ejectY, ejectSize * 3
       );
-      ejectGradient.addColorStop(0, lightenColor(sunState.color, 0.6));
+      ejectGradient.addColorStop(0, light60);
       ejectGradient.addColorStop(0.4, `rgba(${rgbStr}, ${ejectAlpha})`);
       ejectGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
 
@@ -334,16 +357,20 @@ export function drawEjectedParticles(
 export function drawHoverRing(
   ctx: CanvasRenderingContext2D,
   x: number, y: number, size: number, time: number,
-  sunState: { color: string },
+  sunState: SunStateWithColors,
   rgbStr: string,
   layers: LayersConfig,
   hoverRing: HoverRingConfig
 ): void {
+  // Use pre-computed lightened colors (avoids hex parsing per frame)
+  const light40 = sunState.lightenedColors?.light40 ?? sunState.color;
+  const light50 = sunState.lightenedColors?.light50 ?? sunState.color;
+
   const dashOffset = time * hoverRing.dashSpeed;
   ctx.setLineDash(hoverRing.dashPattern as unknown as number[]);
   ctx.lineDashOffset = dashOffset;
   ctx.beginPath();
-  ctx.strokeStyle = lightenColor(sunState.color, 0.4);
+  ctx.strokeStyle = light40;
   ctx.lineWidth = 2.5;
   ctx.globalAlpha = 0.6 + 0.25 * fastSin(time * hoverRing.pulseSpeed);
   ctx.arc(x, y, size * layers.hoverRingRadius, 0, TWO_PI);
@@ -353,7 +380,7 @@ export function drawHoverRing(
   ctx.beginPath();
   const innerRingGradient = ctx.createRadialGradient(x, y, size * 1.9, x, y, size * 2.1);
   innerRingGradient.addColorStop(0, `rgba(${rgbStr}, 0)`);
-  innerRingGradient.addColorStop(0.5, lightenColor(sunState.color, 0.5));
+  innerRingGradient.addColorStop(0.5, light50);
   innerRingGradient.addColorStop(1, `rgba(${rgbStr}, 0)`);
   ctx.strokeStyle = innerRingGradient;
   ctx.lineWidth = 4;
@@ -368,13 +395,17 @@ export function drawHoverRing(
 export function drawPhotosphere(
   ctx: CanvasRenderingContext2D,
   x: number, y: number, size: number,
-  sunState: { color: string },
+  sunState: SunStateWithColors,
   rgbStr: string, isDarkMode: boolean,
   layers: LayersConfig
 ): void {
+  // Use pre-computed lightened colors (avoids hex parsing per frame)
+  const light85 = sunState.lightenedColors?.light85 ?? sunState.color;
+  const light50 = sunState.lightenedColors?.light50 ?? sunState.color;
+
   const photosphereGradient = ctx.createRadialGradient(x, y, size * 0.25, x, y, size * layers.photosphereRadius);
-  photosphereGradient.addColorStop(0, lightenColor(sunState.color, 0.85));
-  photosphereGradient.addColorStop(0.3, lightenColor(sunState.color, 0.5));
+  photosphereGradient.addColorStop(0, light85);
+  photosphereGradient.addColorStop(0.3, light50);
   photosphereGradient.addColorStop(0.5, sunState.color);
   photosphereGradient.addColorStop(0.75, `rgba(${rgbStr}, 0.85)`);
   photosphereGradient.addColorStop(1, `rgba(${rgbStr}, 0.4)`);
@@ -392,16 +423,20 @@ export function drawPhotosphere(
 export function drawSunBody(
   ctx: CanvasRenderingContext2D,
   x: number, y: number, size: number,
-  sunState: { color: string },
+  sunState: SunStateWithColors,
   rgbStr: string
 ): void {
+  // Use pre-computed lightened colors (avoids hex parsing per frame)
+  const light80 = sunState.lightenedColors?.light80 ?? sunState.color;
+  const light50 = sunState.lightenedColors?.light50 ?? sunState.color;
+
   const bodyGradient = ctx.createRadialGradient(
     x - size * 0.25, y - size * 0.25, 0,
     x + size * 0.1, y + size * 0.1, size
   );
   bodyGradient.addColorStop(0, "#ffffff");
-  bodyGradient.addColorStop(0.1, lightenColor(sunState.color, 0.8));
-  bodyGradient.addColorStop(0.3, lightenColor(sunState.color, 0.5));
+  bodyGradient.addColorStop(0.1, light80);
+  bodyGradient.addColorStop(0.3, light50);
   bodyGradient.addColorStop(0.55, sunState.color);
   bodyGradient.addColorStop(0.8, `rgba(${rgbStr}, 0.95)`);
   bodyGradient.addColorStop(1, `rgba(${rgbStr}, 0.85)`);
