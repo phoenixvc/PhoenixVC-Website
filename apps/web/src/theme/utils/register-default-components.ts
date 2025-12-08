@@ -1,5 +1,5 @@
 // theme/utils/register-default-components.ts
-import { themeCore } from "../core/theme-core";
+import { ThemeCore } from "../core/theme-core";
 import type { ComponentVariantType as _ComponentVariantType } from "../types/mappings/component-variants";
 
 /**
@@ -18,6 +18,9 @@ export function registerDefaultComponents(): void {
     // Add any other components that are showing errors
   ];
 
+  // Get the theme core instance
+  const themeCore = ThemeCore.getInstance();
+  
   // Get the style manager from themeCore
   const styleManager = themeCore.getStyleManager();
 

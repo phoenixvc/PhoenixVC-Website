@@ -143,20 +143,12 @@ export class ThemeStateManager {
 
   /**
    * Get singleton instance.
+   * NOTE: Connection to ThemeCore is now handled by ThemeProvider to avoid circular dependencies.
    */
   static getInstance(config?: ThemeConfig): ThemeStateManager {
     if (!ThemeStateManager.instance) {
       ThemeStateManager.instance = new ThemeStateManager(config);
-
-      // Connect to ThemeCore after construction
-      // Use dynamic import to avoid circular dependency
-      setTimeout(() => {
-        import("../core/theme-core").then(({ themeCore }) => {
-          themeCore.connectStateManager(ThemeStateManager.instance);
-        }).catch(error => {
-          console.error("[ThemeStateManager] Failed to connect to ThemeCore:", error);
-        });
-      }, 0);
+      // Connection to ThemeCore is now handled by ThemeProvider to avoid circular dependencies
     } else if (config) {
       // Optionally update config if provided and instance exists
       ThemeStateManager.instance.updateConfig(config);
@@ -543,4 +535,5 @@ export class ThemeStateManager {
   }
 }
 
-export const themeStateManager = ThemeStateManager.getInstance();
+// Export the class for explicit getInstance() calls
+// Do NOT export a singleton instance to avoid circular dependency issues during module initialization

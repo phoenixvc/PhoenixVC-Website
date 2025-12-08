@@ -94,9 +94,9 @@ export function checkSunHover(
     const sunState = sunStates[i];
     const x = sunState.x * width;
     const y = sunState.y * height;
-    const baseSize = Math.max(20, Math.min(width, height) * sunState.size * 0.6);
-    // Increase hit area for better clickability
-    const hitRadius = baseSize * 3;
+    const baseSize = Math.max(20, Math.min(width, height) * sunState.size * 0.35);
+    // Increase hit area for better clickability - using 4x multiplier for generous hit box
+    const hitRadius = baseSize * 4;
 
     const distance = Math.sqrt(Math.pow(mouseX - x, 2) + Math.pow(mouseY - y, 2));
     if (distance <= hitRadius) {

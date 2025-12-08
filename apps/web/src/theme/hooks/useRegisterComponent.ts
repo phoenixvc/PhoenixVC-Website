@@ -1,6 +1,6 @@
 // theme/hooks/useRegisterComponent.ts
 import { useEffect } from "react";
-import { themeCore } from "../core/theme-core";
+import { ThemeCore } from "../core/theme-core";
 import { ComponentVariantType } from "../types/mappings/component-variants";
 
 export function useRegisterComponent(
@@ -8,6 +8,9 @@ export function useRegisterComponent(
   variants: Record<string, ComponentVariantType>
 ): void {
   useEffect((): (() => void) => {
+    // Get the theme core instance
+    const themeCore = ThemeCore.getInstance();
+    
     // Get the registry
     const registry = themeCore.getComponentRegistry();
 
