@@ -9,7 +9,7 @@ import {
   CosmicNavigationState,
   CosmicObject
 } from "./types";
-import { TWO_PI } from "../math";
+import { TWO_PI, fastSin } from "../math";
 
 /* ────────────────────────────────────────────────────────────
    Utility: visibility check (unchanged)
@@ -125,7 +125,7 @@ export function renderCosmicHierarchy(
 
     /* hover pulse */
     if (onHover) {
-      const pulse = size * (1 + 0.2 * Math.sin(time * 0.003));
+      const pulse = size * (1 + 0.2 * fastSin(time * 0.003));
       ctx.beginPath();
       ctx.strokeStyle = base;
       ctx.lineWidth   = 2;

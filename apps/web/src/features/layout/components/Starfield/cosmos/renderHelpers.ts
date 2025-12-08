@@ -1,4 +1,4 @@
-import { TWO_PI } from "../math";
+import { TWO_PI, fastSin, fastCos } from "../math";
 
 export function drawGalaxySpiral(
     ctx: CanvasRenderingContext2D,
@@ -15,8 +15,8 @@ export function drawGalaxySpiral(
       ctx.beginPath();
       for (let t = 0; t <= Math.PI * 4; t += 0.05) {      // 2 turns
         const r = radius * t / (Math.PI * 4);
-        const x = r * Math.cos(t + a * (2 * Math.PI / arms));
-        const y = r * Math.sin(t + a * (2 * Math.PI / arms));
+        const x = r * fastCos(t + a * (2 * Math.PI / arms));
+        const y = r * fastSin(t + a * (2 * Math.PI / arms));
         ctx.lineTo(x, y);
       }
       ctx.strokeStyle = `${color}55`;

@@ -1,7 +1,7 @@
 // focusAreaIcons.ts - Vector icons for focus area suns
 // Single Responsibility: Draw icons representing different focus areas (blockchain, AI, security, mobility)
 
-import { TWO_PI } from "../../math";
+import { TWO_PI, fastSin, fastCos } from "../../math";
 import { SUN_ICON_CONFIG } from "../../renderingConfig";
 
 /**
@@ -51,8 +51,8 @@ function drawBlockchainIcon(ctx: CanvasRenderingContext2D, x: number, y: number,
   ctx.beginPath();
   for (let i = 0; i < 6; i++) {
     const angle = (i * Math.PI / 3) - Math.PI / 2;
-    const px = x + r * Math.cos(angle);
-    const py = y + r * Math.sin(angle);
+    const px = x + r * fastCos(angle);
+    const py = y + r * fastSin(angle);
     if (i === 0) {
       ctx.moveTo(px, py);
     } else {
@@ -65,8 +65,8 @@ function drawBlockchainIcon(ctx: CanvasRenderingContext2D, x: number, y: number,
   // Draw nodes at vertices
   for (let i = 0; i < 6; i++) {
     const angle = (i * Math.PI / 3) - Math.PI / 2;
-    const px = x + r * Math.cos(angle);
-    const py = y + r * Math.sin(angle);
+    const px = x + r * fastCos(angle);
+    const py = y + r * fastSin(angle);
     ctx.beginPath();
     ctx.arc(px, py, size * SUN_ICON_CONFIG.blockchain.nodeRadius, 0, TWO_PI);
     ctx.fill();
@@ -80,8 +80,8 @@ function drawBlockchainIcon(ctx: CanvasRenderingContext2D, x: number, y: number,
   // Draw connecting lines from center to alternate vertices (0, 2, 4)
   for (let i = 0; i < 6; i += 2) {
     const angle = (i * Math.PI / 3) - Math.PI / 2;
-    const px = x + r * Math.cos(angle);
-    const py = y + r * Math.sin(angle);
+    const px = x + r * fastCos(angle);
+    const py = y + r * fastSin(angle);
     ctx.beginPath();
     ctx.moveTo(x, y);
     ctx.lineTo(px, py);
@@ -105,8 +105,8 @@ function drawAIIcon(ctx: CanvasRenderingContext2D, x: number, y: number, size: n
   const outerNodes: Array<{x: number; y: number}> = [];
   for (let i = 0; i < nodeCount; i++) {
     const angle = (i * TWO_PI / nodeCount) - Math.PI / 2;
-    const px = x + r * Math.cos(angle);
-    const py = y + r * Math.sin(angle);
+    const px = x + r * fastCos(angle);
+    const py = y + r * fastSin(angle);
     outerNodes.push({x: px, y: py});
 
     // Draw node
@@ -184,8 +184,8 @@ function drawMobilityIcon(ctx: CanvasRenderingContext2D, x: number, y: number, s
   for (let i = 0; i < spokeCount; i++) {
     const angle = (i * TWO_PI / spokeCount);
     ctx.beginPath();
-    ctx.moveTo(x + innerR * Math.cos(angle), y + innerR * Math.sin(angle));
-    ctx.lineTo(x + r * Math.cos(angle), y + r * Math.sin(angle));
+    ctx.moveTo(x + innerR * fastCos(angle), y + innerR * fastSin(angle));
+    ctx.lineTo(x + r * fastCos(angle), y + r * fastSin(angle));
     ctx.stroke();
   }
 
@@ -215,8 +215,8 @@ function drawDefaultStarIcon(ctx: CanvasRenderingContext2D, x: number, y: number
   for (let i = 0; i < points * 2; i++) {
     const angle = (i * Math.PI / points) - Math.PI / 2;
     const r = i % 2 === 0 ? outerR : innerR;
-    const px = x + r * Math.cos(angle);
-    const py = y + r * Math.sin(angle);
+    const px = x + r * fastCos(angle);
+    const py = y + r * fastSin(angle);
     if (i === 0) {
       ctx.moveTo(px, py);
     } else {

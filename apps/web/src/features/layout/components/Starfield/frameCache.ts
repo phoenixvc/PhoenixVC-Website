@@ -2,8 +2,6 @@
 // This module provides cached values that are updated once per animation frame
 // to avoid redundant Date.now() and window dimension lookups
 
-import type { SunState } from "./sunSystem";
-
 /**
  * Frame cache for values that should only be computed once per animation frame.
  * Call updateFrameCache() at the start of each animation frame.
@@ -12,46 +10,11 @@ let cachedFrameTime = Date.now();
 let cachedWindowWidth = typeof window !== "undefined" ? window.innerWidth : 1920;
 let cachedWindowHeight = typeof window !== "undefined" ? window.innerHeight : 1080;
 
-// Sun states cache - updated once per frame to avoid multiple getSunStates() calls
-let cachedSunStates: SunState[] | null = null;
-let sunStatesCacheFrameId = -1;
-let currentFrameId = 0;
-
 /**
  * Update the frame cache. Call this once at the start of each animation frame.
  */
 export function updateFrameCache(): void {
   cachedFrameTime = Date.now();
-  currentFrameId++;
-  // Invalidate sun states cache for new frame
-  // (actual update happens lazily on first access)
-}
-
-/**
- * Set the cached sun states for this frame.
- * Called by sunSystem.ts after updating sun physics.
- */
-export function setCachedSunStates(states: SunState[]): void {
-  cachedSunStates = states;
-  sunStatesCacheFrameId = currentFrameId;
-}
-
-/**
- * Get cached sun states if available for current frame.
- * Returns null if cache is stale (caller should fetch fresh and call setCachedSunStates).
- */
-export function getCachedSunStates(): SunState[] | null {
-  if (sunStatesCacheFrameId === currentFrameId && cachedSunStates !== null) {
-    return cachedSunStates;
-  }
-  return null;
-}
-
-/**
- * Check if sun states cache is valid for current frame.
- */
-export function isSunStatesCacheValid(): boolean {
-  return sunStatesCacheFrameId === currentFrameId && cachedSunStates !== null;
 }
 
 /**

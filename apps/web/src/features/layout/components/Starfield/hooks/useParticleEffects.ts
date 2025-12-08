@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Burst, CollisionEffect } from "../types";
-import { TWO_PI } from "../math";
+import { TWO_PI, fastSin, fastCos } from "../math";
 
 export const useParticleEffects = (): {
   clickBursts: Burst[];
@@ -42,8 +42,8 @@ export const useParticleEffects = (): {
         newEffect.particles.push({
           x,
           y,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed,
+          vx: fastCos(angle) * speed,
+          vy: fastSin(angle) * speed,
           size,
           alpha: 1.0
         });

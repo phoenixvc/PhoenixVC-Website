@@ -2,6 +2,7 @@
 
 import { Planet } from "./types";
 import { getFrameTime } from "./frameCache";
+import { fastSin, fastCos } from "./math";
 import {
   hexToRgbSafe as hexToRgbFromColorUtils,
   createSoftenedColor as createSoftenedColorFromColorUtils,
@@ -60,7 +61,7 @@ export function createSoftenedColor(
       const pulsationMid = (empStar.pulsation.maxScale + empStar.pulsation.minScale) / 2;
 
       // Use sine wave for smoother pulsation with more subtle effect
-      empStar.pulsation.scale = pulsationMid + Math.sin(pulsationTime) * (pulsationRange / 2);
+      empStar.pulsation.scale = pulsationMid + fastSin(pulsationTime) * (pulsationRange / 2);
 
       scaleFactor = empStar.pulsation.scale;
     }
@@ -87,14 +88,14 @@ export function createSoftenedColor(
     const b = empStar.orbitRadius * (1 - empStar.pathEccentricity) * verticalFactor;
 
     if (empStar.useSimpleRendering) {
-      empStar.x = ox + a * Math.cos(empStar.angle);
-      empStar.y = oy + b * Math.sin(empStar.angle);
+      empStar.x = ox + a * fastCos(empStar.angle);
+      empStar.y = oy + b * fastSin(empStar.angle);
     } else {
       const tiltRadians = empStar.pathTilt * (Math.PI / 180);
-      const baseX = a * Math.cos(empStar.angle);
-      const baseY = b * Math.sin(empStar.angle);
+      const baseX = a * fastCos(empStar.angle);
+      const baseY = b * fastSin(empStar.angle);
 
       empStar.x = ox + baseX;
-      empStar.y = oy + baseY * Math.cos(tiltRadians);
+      empStar.y = oy + baseY * fastCos(tiltRadians);
     }
   }

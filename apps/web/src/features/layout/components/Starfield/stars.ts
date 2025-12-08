@@ -533,6 +533,9 @@ interface SpatialGrid {
 let spatialGrid: SpatialGrid | null = null;
 let lastGridCellSize = 0;
 
+// Reusable buffer for getNearbyStars to avoid creating new arrays each call
+const nearbyStarsBuffer: { star: Star; index: number }[] = [];
+
 /**
  * Get cell key for a given position
  */
@@ -577,9 +580,12 @@ function buildSpatialGrid(stars: Star[], cellSize: number): SpatialGrid {
 
 /**
  * Get stars in nearby cells (including the cell containing the point and all 8 neighbors)
+ * Uses a reusable buffer to avoid array allocation each call
  */
 function getNearbyStars(x: number, y: number, grid: SpatialGrid): { star: Star; index: number }[] {
-  const result: { star: Star; index: number }[] = [];
+  // Clear buffer instead of creating new array (avoids GC pressure)
+  nearbyStarsBuffer.length = 0;
+
   const cellX = Math.floor(x / grid.cellSize);
   const cellY = Math.floor(y / grid.cellSize);
 
@@ -590,13 +596,13 @@ function getNearbyStars(x: number, y: number, grid: SpatialGrid): { star: Star; 
       const cell = grid.cells.get(key);
       if (cell) {
         for (let i = 0; i < cell.stars.length; i++) {
-          result.push({ star: cell.stars[i], index: cell.indices[i] });
+          nearbyStarsBuffer.push({ star: cell.stars[i], index: cell.indices[i] });
         }
       }
     }
   }
 
-  return result;
+  return nearbyStarsBuffer;
 }
 
 // Draw connections between nearby stars (network effect) with staggered reveal

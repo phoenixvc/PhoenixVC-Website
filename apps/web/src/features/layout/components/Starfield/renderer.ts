@@ -3,7 +3,7 @@ import { BlackHole, CenterPosition, ContainerBounds, Explosion, MousePosition, P
 import { calculateCenter } from "./utils";
 import { getFrameTime } from "./frameCache";
 import { EFFECT_TIMING } from "./physicsConfig";
-import { TWO_PI } from "./math";
+import { TWO_PI, fastSin, fastCos } from "./math";
 
 // Star birthplace indicator positions (along edges where stars respawn)
 const BIRTHPLACE_INDICATORS = [
@@ -20,7 +20,7 @@ export const drawStarBirthplaces = (
   height: number
 ): void => {
   const time = getFrameTime();
-  const pulse = 0.3 + Math.sin(time * 0.001) * 0.15; // Subtle pulse effect
+  const pulse = 0.3 + fastSin(time * 0.001) * 0.15; // Subtle pulse effect
   
   ctx.save();
   
@@ -92,8 +92,8 @@ export const drawBlackHole = (
     particle.angle += particle.speed * deltaTime * particleSpeed;
 
     // Update position
-    particle.x = blackHole.x + Math.cos(particle.angle) * particle.distance;
-    particle.y = blackHole.y + Math.sin(particle.angle) * particle.distance;
+    particle.x = blackHole.x + fastCos(particle.angle) * particle.distance;
+    particle.y = blackHole.y + fastSin(particle.angle) * particle.distance;
 
     // Draw particle
     ctx.beginPath();

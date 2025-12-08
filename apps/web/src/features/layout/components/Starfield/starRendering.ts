@@ -13,7 +13,7 @@ import {
 import { calculatePulsation, createSoftenedColor, hexToRgb, updateStarPosition } from "./starUtils";
 import { Planet } from "./types";
 import { SUNS } from "./cosmos/cosmicHierarchy";
-import { TWO_PI } from "./math";
+import { TWO_PI, fastSin, fastCos } from "./math";
 import { SIZE_CONFIG, CAMERA_CONFIG } from "./physicsConfig";
 
 // Image cache to avoid creating new Image objects every frame
@@ -365,8 +365,8 @@ function drawPlanetAIIcon(ctx: CanvasRenderingContext2D, x: number, y: number, s
   const nodeCount = 4;
   for (let i = 0; i < nodeCount; i++) {
     const angle = (i * TWO_PI / nodeCount) - Math.PI / 4;
-    const px = x + r * Math.cos(angle);
-    const py = y + r * Math.sin(angle);
+    const px = x + r * fastCos(angle);
+    const py = y + r * fastSin(angle);
     
     // Draw node
     ctx.beginPath();
@@ -391,8 +391,8 @@ function drawPlanetBlockchainIcon(ctx: CanvasRenderingContext2D, x: number, y: n
   ctx.beginPath();
   for (let i = 0; i < 6; i++) {
     const angle = (i * Math.PI / 3) - Math.PI / 2;
-    const px = x + r * Math.cos(angle);
-    const py = y + r * Math.sin(angle);
+    const px = x + r * fastCos(angle);
+    const py = y + r * fastSin(angle);
     if (i === 0) {
       ctx.moveTo(px, py);
     } else {
@@ -461,8 +461,8 @@ function drawPlanetMobilityIcon(ctx: CanvasRenderingContext2D, x: number, y: num
   for (let i = 0; i < spokeCount; i++) {
     const angle = (i * TWO_PI / spokeCount) + Math.PI / 4;
     ctx.beginPath();
-    ctx.moveTo(x + innerR * Math.cos(angle), y + innerR * Math.sin(angle));
-    ctx.lineTo(x + r * Math.cos(angle), y + r * Math.sin(angle));
+    ctx.moveTo(x + innerR * fastCos(angle), y + innerR * fastSin(angle));
+    ctx.lineTo(x + r * fastCos(angle), y + r * fastSin(angle));
     ctx.stroke();
   }
 }
@@ -479,8 +479,8 @@ function drawPlanetDefaultIcon(ctx: CanvasRenderingContext2D, x: number, y: numb
   for (let i = 0; i < points * 2; i++) {
     const angle = (i * Math.PI / points) - Math.PI / 2;
     const r = i % 2 === 0 ? outerR : innerR;
-    const px = x + r * Math.cos(angle);
-    const py = y + r * Math.sin(angle);
+    const px = x + r * fastCos(angle);
+    const py = y + r * fastSin(angle);
     if (i === 0) {
       ctx.moveTo(px, py);
     } else {

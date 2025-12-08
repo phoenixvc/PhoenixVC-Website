@@ -2,6 +2,7 @@
 // Single Responsibility: Orchestrate sun drawing by combining all visual layers
 
 import { Planet } from "../../types";
+import { fastSin } from "../../math";
 import {
   getSunStates,
   initializeSunStates,
@@ -117,16 +118,15 @@ export function drawSuns(
     const pulseSpeed2 = isHighlighted ? pulse.speed2.highlighted : pulse.speed2.normal;
     const pulseSpeed3 = isHighlighted ? pulse.speed3.highlighted : pulse.speed3.normal;
     const pulseAmount = isHighlighted ? pulse.amount.highlighted : (isPropelling ? pulse.amount.propelling : pulse.amount.normal);
-    const pulse1 = 1 + pulseAmount * Math.sin(time * pulseSpeed1);
-    const pulse2 = 1 + (pulseAmount * 0.6) * Math.sin(time * pulseSpeed2 + Math.PI / 3);
-    const pulse3 = 1 + (pulseAmount * 0.4) * Math.sin(time * pulseSpeed3 + Math.PI / 1.5);
+    const pulse1 = 1 + pulseAmount * fastSin(time * pulseSpeed1);
+    const pulse2 = 1 + (pulseAmount * 0.6) * fastSin(time * pulseSpeed2 + Math.PI / 3);
+    const pulse3 = 1 + (pulseAmount * 0.4) * fastSin(time * pulseSpeed3 + Math.PI / 1.5);
     const pulseValue = (pulse1 + pulse2 + pulse3) / 3;
     const size = baseSize * pulseValue * (isHighlighted ? pulse.highlightScale : 1);
 
     // Use pre-computed RGB values from SunState to avoid parsing hex every frame
     const rgbStr = sunState.colorRgbStr;
-    const rgb = sunState.colorRgb;
-    const secondaryRgbStr = `${Math.min(255, rgb.r + 40)}, ${Math.min(255, rgb.g + 20)}, ${rgb.b}`;
+    const secondaryRgbStr = sunState.secondaryRgbStr;
 
     // Draw all sun layers in order (back to front)
     drawSunHalo(ctx, x, y, size, rgbStr, isHighlighted, isDarkMode, layers);

@@ -11,7 +11,7 @@ import { getSunStates } from "./sunSystem";
 import { PortfolioProject, HoverInfo, Planet, Satellite } from "./types";
 import { calculateCenter } from "./utils";
 import { logger } from "@/utils/logger";
-import { TWO_PI } from "./math";
+import { TWO_PI, fastSin, fastCos } from "./math";
 
 // Initialize portfolio items as orbiting comets/planets
 export const initPlanets = (
@@ -44,8 +44,8 @@ export const initPlanets = (
     const orbitSpeed = item.speed ||
       (ORBIT_CONFIG.orbit.baseSpeed + (ORBIT_CONFIG.orbit.speedVariation * (index % 3)));
 
-    const x = centerX + Math.cos(baseAngle) * orbitRadius;
-    const y = centerY + Math.sin(baseAngle) * orbitRadius;
+    const x = centerX + fastCos(baseAngle) * orbitRadius;
+    const y = centerY + fastSin(baseAngle) * orbitRadius;
 
     const vx = 0;
     const vy = 0;

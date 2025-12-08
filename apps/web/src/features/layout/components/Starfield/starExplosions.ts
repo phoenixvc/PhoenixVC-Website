@@ -5,7 +5,7 @@ import { Star } from "./types";
 import { distance } from "./utils";
 import { GLOBAL_PHYSICS, EXPLOSION_PHYSICS, STAR_PHYSICS } from "./physicsConfig";
 import { getFrameTime } from "./frameCache";
-import { TWO_PI } from "./math";
+import { TWO_PI, fastSin, fastCos } from "./math";
 
 // ==========================================
 // Explosion Constants
@@ -86,8 +86,8 @@ export function applyExplosionForce(
       const angle = Math.atan2(star.y - y, star.x - x);
 
       // Apply force with velocity clamping
-      star.vx += Math.cos(angle) * explosionForce;
-      star.vy += Math.sin(angle) * explosionForce;
+      star.vx += fastCos(angle) * explosionForce;
+      star.vy += fastSin(angle) * explosionForce;
 
       const currentVelocity = Math.sqrt(star.vx * star.vx + star.vy * star.vy);
       const maxExplosionVelocity = EXPLOSION_PHYSICS.maxVelocity * GLOBAL_SPEED_MULTIPLIER;
