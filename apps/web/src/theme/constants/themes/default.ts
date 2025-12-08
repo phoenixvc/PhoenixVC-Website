@@ -16,7 +16,7 @@ import {
 import {
   animations
 } from "../tokens/animations";
-import { Theme } from "@/theme";
+import { Theme } from "../../types/core/base";
 import { radii, transitionDurations, transitionEasings, zIndices } from "../tokens";
 
 /**
