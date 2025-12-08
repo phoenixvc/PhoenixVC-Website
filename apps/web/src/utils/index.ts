@@ -20,6 +20,7 @@ export {
   type FeatureFlag,
   type FeatureCategory,
   type FeatureFlagsState,
+  type FrameSnapshot,
 } from './FeatureFlags';
 
 // Web Vitals

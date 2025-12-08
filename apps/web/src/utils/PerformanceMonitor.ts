@@ -70,6 +70,7 @@ const DEFAULT_THRESHOLDS: PerformanceThresholds = {
 
 const SAMPLE_SIZE = 300;      // ~5 seconds at 60fps
 const REPORT_INTERVAL = 5000; // Report every 5 seconds
+const MAX_SECTIONS = 20;      // Memory protection: limit tracked sections
 
 class PerformanceMonitorImpl {
   private logger: ILogger;
@@ -91,9 +92,9 @@ class PerformanceMonitorImpl {
   private jankCount = 0;
   private droppedFrames = 0;
 
-  // Callbacks
-  private onMetricsUpdate: PerformanceEventCallback | null = null;
-  private onRecommendation: RecommendationCallback | null = null;
+  // Callbacks - using Sets for multiple subscribers (consistent with FeatureFlags pattern)
+  private metricsCallbacks: Set<PerformanceEventCallback> = new Set();
+  private recommendationCallbacks: Set<RecommendationCallback> = new Set();
 
   // Auto-adjustment tracking
   private consecutivePoorFrames = 0;
@@ -210,6 +211,22 @@ class PerformanceMonitorImpl {
 
     let samples = this.sectionTimings.get(name);
     if (!samples) {
+      // Memory protection: limit number of tracked sections
+      if (this.sectionTimings.size >= MAX_SECTIONS) {
+        // Find and remove the section with the oldest/fewest samples
+        let minSamples = Infinity;
+        let oldestSection = '';
+        this.sectionTimings.forEach((s, n) => {
+          if (s.length < minSamples) {
+            minSamples = s.length;
+            oldestSection = n;
+          }
+        });
+        if (oldestSection) {
+          this.sectionTimings.delete(oldestSection);
+          this.logger.debug(`Removed stale section '${oldestSection}' to make room for '${name}'`);
+        }
+      }
       samples = [];
       this.sectionTimings.set(name, samples);
     }
@@ -455,15 +472,10 @@ class PerformanceMonitorImpl {
       }
     });
 
-    // If performance is good, suggest enabling features
-    if (metrics.rating === 'excellent' && this.consecutiveGoodFrames > 60) {
-      recommendations.push({
-        feature: 'offscreenCanvas',
-        action: 'enable',
-        reason: 'Good performance - can enable offscreen canvas for potential improvement',
-        priority: 3,
-      });
-    }
+    // Note: We intentionally do NOT recommend enabling offscreenCanvas here.
+    // Offscreen canvas only benefits static or slowly-updating content.
+    // In this starfield, all content moves every frame, so offscreen canvas
+    // would add overhead without benefit. See useOffscreenCanvas.ts for details.
 
     // Sort by priority
     recommendations.sort((a, b) => b.priority - a.priority);
@@ -472,31 +484,29 @@ class PerformanceMonitorImpl {
   }
 
   /**
-   * Check if offline canvas would be beneficial
+   * Check if offscreen canvas would be beneficial
+   *
+   * IMPORTANT: Offscreen canvas only helps for STATIC or SLOWLY-UPDATING content.
+   * For content that changes every frame (like moving stars), it adds overhead.
+   *
+   * Good use cases:
+   * - Static backgrounds (gradients, nebula images)
+   * - UI layers that update infrequently
+   * - Pre-rendered complex shapes
+   *
+   * Bad use cases:
+   * - Moving particles/stars (changes every frame)
+   * - Any content that needs full redraw each frame
+   *
+   * @returns false - Currently no static content in starfield that would benefit
    */
   shouldUseOffscreenCanvas(): boolean {
-    const metrics = this.getMetrics();
-
-    // Don't use if we don't have enough samples
-    if (metrics.sampleCount < 60) return false;
-
-    // Use offscreen canvas if:
-    // 1. We have good performance and want to improve further
-    // 2. We have poor performance and want to offload work
-    // 3. The browser supports it
-
+    // Currently returns false because all starfield content moves every frame.
+    // If static backgrounds or UI layers are added, this could be reconsidered.
+    // The check for OffscreenCanvas support is kept for when this is revisited.
     if (typeof OffscreenCanvas === 'undefined') return false;
 
-    // If performance is excellent, offscreen might help with consistency
-    if (metrics.rating === 'excellent' || metrics.rating === 'good') {
-      return true;
-    }
-
-    // If performance is poor but not critical, offscreen might help
-    if (metrics.rating === 'acceptable' || metrics.rating === 'poor') {
-      return true;
-    }
-
+    // TODO: Return true when static content layers are identified
     return false;
   }
 
@@ -541,28 +551,43 @@ class PerformanceMonitorImpl {
 
     this.logger.groupEnd();
 
-    // Trigger callbacks
-    if (this.onMetricsUpdate) {
-      this.onMetricsUpdate(metrics);
-    }
+    // Trigger callbacks (using Sets for multiple subscribers)
+    this.metricsCallbacks.forEach(callback => {
+      try {
+        callback(metrics);
+      } catch (error) {
+        this.logger.error('Error in metrics callback', error);
+      }
+    });
 
-    if (this.onRecommendation && recommendations.length > 0) {
-      this.onRecommendation(recommendations);
+    // Trigger recommendation callbacks
+    if (recommendations.length > 0) {
+      this.recommendationCallbacks.forEach(callback => {
+        try {
+          callback(recommendations);
+        } catch (error) {
+          this.logger.error('Error in recommendations callback', error);
+        }
+      });
     }
   }
 
   /**
    * Register callback for metrics updates
+   * @returns Unsubscribe function
    */
-  onMetrics(callback: PerformanceEventCallback): void {
-    this.onMetricsUpdate = callback;
+  onMetrics(callback: PerformanceEventCallback): () => void {
+    this.metricsCallbacks.add(callback);
+    return () => this.metricsCallbacks.delete(callback);
   }
 
   /**
    * Register callback for recommendations
+   * @returns Unsubscribe function
    */
-  onRecommendations(callback: RecommendationCallback): void {
-    this.onRecommendation = callback;
+  onRecommendations(callback: RecommendationCallback): () => void {
+    this.recommendationCallbacks.add(callback);
+    return () => this.recommendationCallbacks.delete(callback);
   }
 
   /**

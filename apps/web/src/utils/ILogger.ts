@@ -14,7 +14,7 @@ export interface ILogger {
   groupEnd(): void;
   table(data: unknown): void;
   time(label: string): void;
-  timeEnd(label: string): void;
+  timeEnd(label: string): number;  // Returns duration in ms
   setLevel(level: LogLevel): void;
   getLevel(): LogLevel;
   isEnabled(): boolean;

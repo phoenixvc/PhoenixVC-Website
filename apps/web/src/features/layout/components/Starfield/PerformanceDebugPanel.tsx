@@ -24,14 +24,17 @@ interface PerformanceDebugPanelProps {
 }
 
 // Map section names to feature flags for linking metrics to features
+// IMPORTANT: Only include mappings where the flag DIRECTLY controls the section.
+// Misleading mappings removed:
+// - 'stars' was mapped to 'glowEffects' but stars section includes ALL star drawing
+// - 'planets' was mapped to 'planetSatellites' but planets section includes all rendering
+// - 'mouseEffects' was mapped to 'hoverEffects' but mouseEffects includes more
 const SECTION_TO_FLAG: Record<string, keyof FeatureFlagsState> = {
-  stars: 'glowEffects',
-  connections: 'starConnections',
-  suns: 'sunEffects',
-  particles: 'particleEffects',
-  blackHoles: 'blackHoleEffects',
-  planets: 'planetSatellites',
-  mouseEffects: 'hoverEffects',
+  connections: 'starConnections',   // starConnections flag directly controls this section
+  suns: 'sunEffects',               // sunEffects flag controls whether suns are drawn
+  particles: 'particleEffects',     // particleEffects flag controls this section
+  blackHoles: 'blackHoleEffects',   // blackHoleEffects flag controls this section
+  // Note: 'stars', 'planets', 'mouseEffects' have no direct toggle - they're always rendered
 };
 
 // Colors for performance impact visualization
@@ -156,6 +159,26 @@ const PerformanceDebugPanel: React.FC<PerformanceDebugPanelProps> = ({
     a.download = 'feature-flags.json';
     a.click();
     URL.revokeObjectURL(url);
+  }, []);
+
+  const handleImportConfig = useCallback(() => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json,application/json';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const content = event.target?.result as string;
+        if (content) {
+          featureFlags.importConfig(content);
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
   }, []);
 
   const toggleCategory = useCallback((category: FeatureCategory) => {
@@ -564,6 +587,14 @@ const PerformanceDebugPanel: React.FC<PerformanceDebugPanelProps> = ({
             }}
           >
             Export
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleImportConfig();
+            }}
+          >
+            Import
           </button>
           <button
             onClick={(e) => {

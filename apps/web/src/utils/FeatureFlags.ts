@@ -73,6 +73,12 @@ export type FeatureFlagChangeCallback = (
   previousValue?: number
 ) => void;
 
+// Frame snapshot for caching during render - avoids repeated isEnabled() calls
+export interface FrameSnapshot {
+  enabled: Record<keyof FeatureFlagsState, boolean>;
+  values: Record<keyof FeatureFlagsState, number | undefined>;
+}
+
 const STORAGE_KEY = 'phoenixvc_featureFlags';
 
 // Default feature flags - start with most features enabled for monitoring
@@ -293,11 +299,13 @@ const DEFAULT_FLAGS: FeatureFlagsState = {
 };
 
 // Hysteresis configuration to prevent flicker from rapid auto-adjustments
+// Note: Recommendations are generated every 5 seconds (REPORT_INTERVAL in PerformanceMonitor)
+// So we use time-based consistency instead of consecutive call counting
 const HYSTERESIS_CONFIG = {
-  cooldownMs: 3000,           // Minimum time between auto-adjustments for same flag
+  cooldownMs: 5000,           // Minimum time between auto-adjustments for same flag
+  consistencyWindowMs: 15000, // Must see same recommendation for this duration before acting
   enableThresholdFps: 50,     // Must exceed this FPS to re-enable a disabled feature
   disableThresholdFps: 35,    // Must drop below this FPS to disable a feature
-  consecutiveFrames: 5,       // Number of consecutive checks before acting
 };
 
 class FeatureFlagsManager {
@@ -310,12 +318,98 @@ class FeatureFlagsManager {
   // Hysteresis state to prevent flicker
   private lastAdjustTime: Map<string, number> = new Map();
   private disabledByAutoAdjust: Set<string> = new Set();
-  private consecutiveRecommendations: Map<string, number> = new Map();
+  // Track when we first saw a recommendation and what action it was
+  private recommendationFirstSeen: Map<string, { action: string; timestamp: number }> = new Map();
 
   constructor() {
     this.logger = rootLogger.createChild('FeatureFlags');
     this.flags = this.loadFromStorage();
+    this.applyDeviceDefaults();
     this.subscribeToPerformance();
+  }
+
+  /**
+   * Detect device capabilities and apply appropriate defaults
+   * Called once on initialization to prevent waiting for performance degradation
+   */
+  private applyDeviceDefaults(): void {
+    const capabilities = this.detectDeviceCapabilities();
+    this.logger.debug('Device capabilities:', capabilities);
+
+    // If we already have stored settings, don't override them
+    if (localStorage.getItem(STORAGE_KEY)) {
+      this.logger.debug('Stored settings found, skipping device defaults');
+      return;
+    }
+
+    // Apply reduced defaults for low-power devices
+    if (capabilities.isLowPower) {
+      this.logger.info('Low-power device detected, applying reduced defaults');
+
+      // Disable expensive effects
+      if (this.flags.glowEffects) this.flags.glowEffects.enabled = false;
+      if (this.flags.twinkleEffects) this.flags.twinkleEffects.enabled = false;
+      if (this.flags.particleEffects) {
+        this.flags.particleEffects.enabled = true;
+        this.flags.particleEffects.value = 50; // 50% particles
+      }
+      if (this.flags.starConnections) this.flags.starConnections.enabled = false;
+      if (this.flags.sunFlares) this.flags.sunFlares.enabled = false;
+      if (this.flags.sunCorona) this.flags.sunCorona.enabled = false;
+
+      this.saveToStorage();
+    } else if (capabilities.isMobile) {
+      this.logger.info('Mobile device detected, applying moderate defaults');
+
+      // Reduce particle effects on mobile
+      if (this.flags.particleEffects) {
+        this.flags.particleEffects.value = 75; // 75% particles
+      }
+      // Reduce star connections distance on mobile
+      if (this.flags.starConnections) {
+        this.flags.starConnections.value = 100; // Shorter connection distance
+      }
+
+      this.saveToStorage();
+    }
+  }
+
+  /**
+   * Detect device capabilities for initial feature adjustment
+   */
+  private detectDeviceCapabilities(): {
+    isMobile: boolean;
+    isLowPower: boolean;
+    coreCount: number;
+    hasLowMemory: boolean;
+    isBatteryLow: boolean;
+  } {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    ) || window.innerWidth < 768;
+
+    // Check hardware concurrency (number of logical processors)
+    const coreCount = navigator.hardwareConcurrency || 4;
+    const isLowCoreCount = coreCount <= 2;
+
+    // Check device memory if available (Chrome/Edge)
+    const deviceMemory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
+    const hasLowMemory = deviceMemory !== undefined && deviceMemory <= 4;
+
+    // For now, assume battery is not low (Battery API requires async and user permission)
+    // Could be enhanced with Battery API if needed
+    const isBatteryLow = false;
+
+    // Device is "low power" if it's mobile with few cores or low memory
+    const isLowPower = (isMobile && isLowCoreCount) || hasLowMemory;
+
+    return {
+      isMobile,
+      isLowPower,
+      coreCount,
+      hasLowMemory,
+      isBatteryLow,
+    };
   }
 
   /**
@@ -374,9 +468,13 @@ class FeatureFlagsManager {
 
   /**
    * Apply performance recommendations with hysteresis to prevent flicker
+   * Uses time-based consistency: must see the same recommendation for X seconds before acting
    */
   private applyRecommendations(recommendations: PerformanceRecommendation[]): void {
     const now = Date.now();
+
+    // Track which flags got recommendations this cycle (to clear stale entries)
+    const seenThisCycle = new Set<string>();
 
     recommendations.forEach(rec => {
       const flagName = rec.feature as keyof FeatureFlagsState;
@@ -384,27 +482,34 @@ class FeatureFlagsManager {
 
       if (!flag || !flag.impactsPerformance) return;
 
+      seenThisCycle.add(flagName);
+
       // Check cooldown - don't adjust the same flag too frequently
       const lastAdjust = this.lastAdjustTime.get(flagName) ?? 0;
       if (now - lastAdjust < HYSTERESIS_CONFIG.cooldownMs) {
         return; // Still in cooldown
       }
 
-      // Track consecutive recommendations for this flag
-      const currentCount = this.consecutiveRecommendations.get(flagName) ?? 0;
+      // Check if we've seen this recommendation before
+      const existing = this.recommendationFirstSeen.get(flagName);
 
       if (rec.action === 'disable' && flag.enabled) {
-        // Require consecutive recommendations before disabling
-        if (currentCount < HYSTERESIS_CONFIG.consecutiveFrames) {
-          this.consecutiveRecommendations.set(flagName, currentCount + 1);
-          return; // Not enough consecutive recommendations yet
+        // Check if this is the same recommendation we've been tracking
+        if (existing?.action === 'disable') {
+          // Check if we've been seeing this consistently for long enough
+          const duration = now - existing.timestamp;
+          if (duration >= HYSTERESIS_CONFIG.consistencyWindowMs) {
+            this.logger.info(`Auto-disabling ${flagName} after ${(duration / 1000).toFixed(1)}s: ${rec.reason}`);
+            this.setEnabled(flagName, false);
+            this.disabledByAutoAdjust.add(flagName);
+            this.lastAdjustTime.set(flagName, now);
+            this.recommendationFirstSeen.delete(flagName);
+          }
+          // else: keep waiting for consistency window
+        } else {
+          // First time seeing this recommendation, or action changed - start tracking
+          this.recommendationFirstSeen.set(flagName, { action: 'disable', timestamp: now });
         }
-
-        this.logger.info(`Auto-disabling ${flagName}: ${rec.reason}`);
-        this.setEnabled(flagName, false);
-        this.disabledByAutoAdjust.add(flagName);
-        this.lastAdjustTime.set(flagName, now);
-        this.consecutiveRecommendations.set(flagName, 0);
 
       } else if (rec.action === 'enable' && !flag.enabled) {
         // Only re-enable if it was disabled by auto-adjust (not manually)
@@ -412,30 +517,44 @@ class FeatureFlagsManager {
           return;
         }
 
-        // Require consecutive recommendations before re-enabling
-        if (currentCount < HYSTERESIS_CONFIG.consecutiveFrames) {
-          this.consecutiveRecommendations.set(flagName, currentCount + 1);
-          return;
+        if (existing?.action === 'enable') {
+          const duration = now - existing.timestamp;
+          if (duration >= HYSTERESIS_CONFIG.consistencyWindowMs) {
+            this.logger.info(`Auto-enabling ${flagName} after ${(duration / 1000).toFixed(1)}s: ${rec.reason}`);
+            this.setEnabled(flagName, true);
+            this.disabledByAutoAdjust.delete(flagName);
+            this.lastAdjustTime.set(flagName, now);
+            this.recommendationFirstSeen.delete(flagName);
+          }
+        } else {
+          this.recommendationFirstSeen.set(flagName, { action: 'enable', timestamp: now });
         }
-
-        this.logger.info(`Auto-enabling ${flagName}: ${rec.reason}`);
-        this.setEnabled(flagName, true);
-        this.disabledByAutoAdjust.delete(flagName);
-        this.lastAdjustTime.set(flagName, now);
-        this.consecutiveRecommendations.set(flagName, 0);
 
       } else if (rec.action === 'reduce' && flag.value !== undefined) {
-        // For value reductions, apply immediately but with cooldown
-        const newValue = flag.value * 0.75;
-        const minValue = flag.minValue ?? 0;
-        if (newValue >= minValue) {
-          this.logger.info(`Auto-reducing ${flagName} to ${newValue.toFixed(0)}: ${rec.reason}`);
-          this.setValue(flagName, newValue);
-          this.lastAdjustTime.set(flagName, now);
+        // For value reductions, require same consistency window
+        if (existing?.action === 'reduce') {
+          const duration = now - existing.timestamp;
+          if (duration >= HYSTERESIS_CONFIG.consistencyWindowMs) {
+            const newValue = flag.value * 0.75;
+            const minValue = flag.minValue ?? 0;
+            if (newValue >= minValue) {
+              this.logger.info(`Auto-reducing ${flagName} to ${newValue.toFixed(0)} after ${(duration / 1000).toFixed(1)}s: ${rec.reason}`);
+              this.setValue(flagName, newValue);
+              this.lastAdjustTime.set(flagName, now);
+              this.recommendationFirstSeen.delete(flagName);
+            }
+          }
+        } else {
+          this.recommendationFirstSeen.set(flagName, { action: 'reduce', timestamp: now });
         }
-      } else {
-        // Clear consecutive count if recommendation changes
-        this.consecutiveRecommendations.set(flagName, 0);
+      }
+    });
+
+    // Clear tracking for flags that didn't get recommendations this cycle
+    // (performance recovered, so reset the timer)
+    this.recommendationFirstSeen.forEach((_, flagName) => {
+      if (!seenThisCycle.has(flagName)) {
+        this.recommendationFirstSeen.delete(flagName);
       }
     });
   }
@@ -478,6 +597,27 @@ class FeatureFlagsManager {
     }
 
     return flag.enabled;
+  }
+
+  /**
+   * Get a snapshot of all enabled states and values for caching during a frame
+   * Call this once at the start of each frame and use the returned object
+   * to avoid repeated isEnabled() calls during rendering
+   *
+   * @returns Object with enabled states and values for all flags
+   */
+  getFrameSnapshot(): FrameSnapshot {
+    const snapshot: FrameSnapshot = {
+      enabled: {} as Record<keyof FeatureFlagsState, boolean>,
+      values: {} as Record<keyof FeatureFlagsState, number | undefined>,
+    };
+
+    (Object.keys(this.flags) as Array<keyof FeatureFlagsState>).forEach(key => {
+      snapshot.enabled[key] = this.isEnabled(key);
+      snapshot.values[key] = this.flags[key].value;
+    });
+
+    return snapshot;
   }
 
   /**
