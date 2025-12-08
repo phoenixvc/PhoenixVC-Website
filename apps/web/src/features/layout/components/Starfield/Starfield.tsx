@@ -868,9 +868,27 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     }
   }, []);
 
+  // Helper function to calculate camera center adjusted for sidebar offset
+  // This ensures content appears centered in the visible viewport area
+  const calculateAdjustedCameraCenter = useCallback((targetX: number, targetY: number): { cx: number; cy: number } => {
+    const canvas = dimensionsRef.current;
+    if (!canvas || canvas.width === 0 || canvas.height === 0) {
+      // If canvas dimensions not available, return unadjusted position
+      // This is safe because it will be recalculated when dimensions are available
+      return { cx: targetX, cy: targetY };
+    }
+    
+    const sidebarOffsetNormalized = sidebarWidth / canvas.width;
+    
+    // Shift camera center right by half the sidebar width to compensate for visual offset
+    return {
+      cx: targetX + sidebarOffsetNormalized / 2,
+      cy: targetY
+    };
+  }, [dimensionsRef, sidebarWidth]);
+
   // Function to zoom the camera to focus on a specific sun
   const zoomToSun = useCallback((sunId: string): void => {
-
     // Cancel any existing camera animation
     if (cameraAnimationRef.current) {
       cancelAnimationFrame(cameraAnimationRef.current);
@@ -881,12 +899,17 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
       setFocusedSunId(null);
 
       // Set camera target to zoom out
+      // Center should account for sidebar offset to maintain proper visual centering
+      const { cx, cy } = calculateAdjustedCameraCenter(
+        CAMERA_CONFIG.defaultCenterX,
+        CAMERA_CONFIG.defaultCenterY
+      );
       setInternalCamera(prev => ({
         ...prev,
         target: {
-          cx: 0.5,
-          cy: 0.5,
-          zoom: 1
+          cx,
+          cy,
+          zoom: CAMERA_CONFIG.defaultZoom
         }
       }));
       return;
@@ -938,17 +961,19 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
       : CAMERA_CONFIG.sunFocusZoom;
 
     // Set camera target to zoom in on the sun
-    // Sun position is normalized (0-1), camera uses same coordinates
+    // Use helper function to adjust camera center accounting for sidebar offset
+    const { cx, cy } = calculateAdjustedCameraCenter(sunPosition.x, sunPosition.y);
+    
     setInternalCamera(prev => ({
       ...prev,
       target: {
-        cx: sunPosition.x,
-        cy: sunPosition.y,
+        cx,
+        cy,
         zoom: calculatedZoom
       }
     }));
 
-  }, [focusedSunId, employeeStarsRef, dimensionsRef]);
+  }, [focusedSunId, employeeStarsRef, dimensionsRef, calculateAdjustedCameraCenter]);
 
   // Smooth camera lerp animation - only runs when there's an active target
   // Use a serialized target key to detect when target changes
@@ -1284,7 +1309,11 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
           onClick={(): void => zoomToSun(focusedSunId)}
           style={{
             // Center button in visible content area, accounting for sidebar width
-            left: `calc(50% + ${sidebarWidth / 2}px)`
+            // The button uses transform: translateX(-50%) in CSS, so we need to position
+            // its left edge at the center of the visible content area
+            left: `calc(50% + ${sidebarWidth / 2}px)`,
+            // Ensure the inline style overrides the CSS default
+            position: 'fixed' as const
           }}
         >
           <span className={styles.zoomOutIcon}>←</span>
