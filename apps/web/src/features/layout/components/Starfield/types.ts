@@ -17,8 +17,18 @@ export interface CenterPosition {
 
 // Portfolio project types - re-exported from centralized source
 // Local type kept for backward compatibility with optional fields
-export type ProjectStatus = "alpha" | "pre-alpha" | "early-stage" | "growth" | "active";
-export type FocusAreaId = "ai-ml" | "fintech-blockchain" | "defense-security" | "mobility-transportation" | "infrastructure";
+export type ProjectStatus =
+  | "alpha"
+  | "pre-alpha"
+  | "early-stage"
+  | "growth"
+  | "active";
+export type FocusAreaId =
+  | "ai-ml"
+  | "fintech-blockchain"
+  | "defense-security"
+  | "mobility-transportation"
+  | "infrastructure";
 
 export interface PortfolioProject {
   id: string;
@@ -84,7 +94,14 @@ export interface Planet {
   isHovered?: boolean;
   isSelected?: boolean;
   orbitalDirection: "clockwise" | "counterclockwise";
-  pathType: "comet" | "satellite" | "planet" | "asteroid" | "star" | "binary" | "elliptical";
+  pathType:
+    | "comet"
+    | "satellite"
+    | "planet"
+    | "asteroid"
+    | "star"
+    | "binary"
+    | "elliptical";
   pathEccentricity: number; // 0-1 value where 0 is perfect circle, 1 is extremely elliptical
   pathTilt: number; // Angle in degrees for the tilt of the orbital plane
   trailLength?: number; // For comet-like objects with visible trails
@@ -344,7 +361,13 @@ export interface HeroStarfieldProps {
 
 // Theme types
 export type ThemeMode = "light" | "dark" | "auto";
-export type ColorScheme = "purple" | "blue" | "green" | "amber" | "red" | string;
+export type ColorScheme =
+  | "purple"
+  | "blue"
+  | "green"
+  | "amber"
+  | "red"
+  | string;
 
 // Debug types
 export interface DebugSettings {
@@ -362,7 +385,7 @@ export interface DebugSettings {
   sidebarWidth: number;
   repulsionRadius: number;
   repulsionForce: number;
-  repulsionEnabled: boolean; 
+  repulsionEnabled: boolean;
 }
 
 export interface UseDebugControlsProps {
@@ -415,7 +438,12 @@ export interface AnimationLoopProps {
   setGameState: React.Dispatch<React.SetStateAction<GameState>>;
   collisionEffects: CollisionEffect[];
   setCollisionEffects: React.Dispatch<React.SetStateAction<CollisionEffect[]>>;
-  createCollisionEffect: (x: number, y: number, color: string, score: number) => CollisionEffect;
+  createCollisionEffect: (
+    x: number,
+    y: number,
+    color: string,
+    score: number,
+  ) => CollisionEffect;
   isDarkMode: boolean;
   frameCountRef: React.MutableRefObject<number>;
   debugMode?: boolean;
@@ -426,7 +454,7 @@ export interface AnimationLoopProps {
     mousePosition: MousePosition,
     stars: Star[],
     mouseEffectRadius: number,
-    timestamp?: number
+    timestamp?: number,
   ) => void;
   maxVelocity?: number;
   animationSpeed?: number;
@@ -480,7 +508,7 @@ export interface StarfieldProps {
     mousePosition: { x: number; y: number; isOnScreen?: boolean } | null,
     stars: Star[],
     mouseEffectRadius: number,
-    timestamp?: number
+    timestamp?: number,
   ) => void;
 
   enableCosmicNavigation?: boolean;
@@ -499,7 +527,12 @@ declare global {
   interface Window {
     planets?: Planet[];
     starfieldAPI?: {
-      applyForce: (x: number, y: number, radius: number, force: number) => number;
+      applyForce: (
+        x: number,
+        y: number,
+        radius: number,
+        force: number,
+      ) => number;
       getStarsCount: () => number;
       createExplosion: (x: number, y: number) => boolean;
     };

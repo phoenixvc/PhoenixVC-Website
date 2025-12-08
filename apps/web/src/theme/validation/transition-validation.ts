@@ -3,7 +3,7 @@ import { ThemeValidationError } from "./theme-validation-error";
 
 export class TransitionValidation {
   static validateTransitionConfig(
-    transition: Partial<ThemeInitOptions["transition"]>
+    transition: Partial<ThemeInitOptions["transition"]>,
   ): ValidationResult {
     const errors: ThemeValidationError[] = [];
 
@@ -12,8 +12,8 @@ export class TransitionValidation {
         new ThemeValidationError(
           "Transition configuration must be an object",
           "INVALID_TYPE",
-          "transition"
-        )
+          "transition",
+        ),
       );
     } else {
       if (transition.duration && typeof transition.duration !== "number") {
@@ -22,8 +22,8 @@ export class TransitionValidation {
             "Transition duration must be a number",
             "INVALID_TYPE",
             "transition.duration",
-            { received: typeof transition.duration, expected: "number" }
-          )
+            { received: typeof transition.duration, expected: "number" },
+          ),
         );
       }
       if (transition.timing && typeof transition.timing !== "string") {
@@ -32,8 +32,8 @@ export class TransitionValidation {
             "Transition timing function must be a string",
             "INVALID_TYPE",
             "transition.timing",
-            { received: typeof transition.timing, expected: "string" }
-          )
+            { received: typeof transition.timing, expected: "string" },
+          ),
         );
       }
       if (transition.properties && !Array.isArray(transition.properties)) {
@@ -42,8 +42,8 @@ export class TransitionValidation {
             "Transition properties must be an array",
             "INVALID_TYPE",
             "transition.properties",
-            { received: typeof transition.properties, expected: "array" }
-          )
+            { received: typeof transition.properties, expected: "array" },
+          ),
         );
       }
     }

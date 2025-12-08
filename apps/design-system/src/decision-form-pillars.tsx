@@ -12,7 +12,9 @@ const DesignDecisionForm = () => {
     <div className="max-w-3xl mx-auto p-6 space-y-8">
       <div className="space-y-2">
         <h1 className="text-3xl font-bold">Phoenix VC Design Direction</h1>
-        <p className="text-gray-600">Align design decisions with our core pillars</p>
+        <p className="text-gray-600">
+          Align design decisions with our core pillars
+        </p>
       </div>
 
       <div className="space-y-8">
@@ -22,7 +24,7 @@ const DesignDecisionForm = () => {
             <h2 className="text-xl font-semibold">Trust & Credibility</h2>
             <Separator className="flex-1" />
           </div>
-          
+
           <div className="grid gap-4">
             <div>
               <Label>Visual Language Priority</Label>
@@ -60,14 +62,19 @@ const DesignDecisionForm = () => {
         {/* Innovation & Forward-thinking Section */}
         <section className="space-y-4">
           <div className="flex items-center space-x-2">
-            <h2 className="text-xl font-semibold">Innovation & Forward-thinking</h2>
+            <h2 className="text-xl font-semibold">
+              Innovation & Forward-thinking
+            </h2>
             <Separator className="flex-1" />
           </div>
 
           <div className="grid gap-4">
             <div>
               <Label>Interactive Elements</Label>
-              <RadioGroup defaultValue="balanced" className="grid grid-cols-2 gap-4 mt-2">
+              <RadioGroup
+                defaultValue="balanced"
+                className="grid grid-cols-2 gap-4 mt-2"
+              >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="minimal" id="minimal" />
                   <Label htmlFor="minimal">Minimal & Focused</Label>
@@ -106,7 +113,9 @@ const DesignDecisionForm = () => {
         {/* Global Reach Section */}
         <section className="space-y-4">
           <div className="flex items-center space-x-2">
-            <h2 className="text-xl font-semibold">Global Reach & Accessibility</h2>
+            <h2 className="text-xl font-semibold">
+              Global Reach & Accessibility
+            </h2>
             <Separator className="flex-1" />
           </div>
 
@@ -174,7 +183,7 @@ const DesignDecisionForm = () => {
             <Separator className="flex-1" />
           </div>
 
-          <Textarea 
+          <Textarea
             placeholder="Enter any specific requirements or strategic considerations..."
             className="h-32"
           />

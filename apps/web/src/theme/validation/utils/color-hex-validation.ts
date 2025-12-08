@@ -1,6 +1,13 @@
-import { ColorDefinition, ValidationResult, ValidationErrorDetails } from "@/theme/types";
+import {
+  ColorDefinition,
+  ValidationResult,
+  ValidationErrorDetails,
+} from "@/theme/types";
 
-export const validateHexOnly = (colorDef: ColorDefinition, path?: string): ValidationResult => {
+export const validateHexOnly = (
+  colorDef: ColorDefinition,
+  path?: string,
+): ValidationResult => {
   const hex = colorDef.hex;
   const hexRegex = /^#?([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$/;
 

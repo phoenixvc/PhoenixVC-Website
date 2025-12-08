@@ -11,7 +11,7 @@ export default defineConfig({
   css: {
     modules: {
       localsConvention: "camelCase", // Ensures CSS Modules are properly read
-    }
+    },
   },
   resolve: {
     alias: {

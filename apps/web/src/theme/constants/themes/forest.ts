@@ -1,4 +1,18 @@
-import { ComponentVariants, Theme, ThemeBorders, ThemeBreakpoints, ThemeColors, ThemeConfig, ThemeScheme, ThemeShadows, ThemeSpacing, ThemeTransitions, ThemeTypography, ThemeVariables, ThemeZIndex } from "@/theme/types";
+import {
+  ComponentVariants,
+  Theme,
+  ThemeBorders,
+  ThemeBreakpoints,
+  ThemeColors,
+  ThemeConfig,
+  ThemeScheme,
+  ThemeShadows,
+  ThemeSpacing,
+  ThemeTransitions,
+  ThemeTypography,
+  ThemeVariables,
+  ThemeZIndex,
+} from "@/theme/types";
 import ColorUtils from "@/theme/utils/color-utils";
 import { createColor, grayPalette, greenPalette, redPalette } from "./colors";
 import tealPalette from "./colors/teal";
@@ -35,7 +49,7 @@ export const forestColorScheme: ThemeScheme = {
     background: createColor("#FFFFFF"),
     text: {
       primary: createColor("#1E293B"),
-      secondary: createColor("#64748B")
+      secondary: createColor("#64748B"),
     },
     muted: createColor("#64748B"),
     border: createColor("#E2E8F0"),
@@ -44,13 +58,13 @@ export const forestColorScheme: ThemeScheme = {
     hover: createColor("rgba(20, 83, 45, 0.04)"),
     active: createColor("rgba(20, 83, 45, 0.08)"),
     focus: createColor("rgba(5, 150, 105, 0.5)"),
-    disabled: createColor("rgba(0, 0, 0, 0.26)")
+    disabled: createColor("rgba(0, 0, 0, 0.26)"),
   },
   dark: {
     background: createColor("#0F172A"),
     text: {
       primary: createColor("#F8FAFC"),
-      secondary: createColor("#94A3B8")
+      secondary: createColor("#94A3B8"),
     },
     muted: createColor("#94A3B8"),
     border: createColor("#334155"),
@@ -59,8 +73,8 @@ export const forestColorScheme: ThemeScheme = {
     hover: createColor("rgba(255, 255, 255, 0.08)"),
     active: createColor("rgba(255, 255, 255, 0.16)"),
     focus: createColor("rgba(5, 150, 105, 0.6)"),
-    disabled: createColor("rgba(255, 255, 255, 0.3)")
-  }
+    disabled: createColor("rgba(255, 255, 255, 0.3)"),
+  },
 };
 
 /**
@@ -68,14 +82,14 @@ export const forestColorScheme: ThemeScheme = {
  */
 export const forestColors: ThemeColors = {
   schemes: {
-    default: forestColorScheme
+    default: forestColorScheme,
   },
   semantic: {
     success: createColor(greenPalette[600].hex),
     warning: createColor(yellowPalette[500].hex),
     error: createColor(redPalette[500].hex),
-    info: createColor(tealPalette[400].hex)
-  }
+    info: createColor(tealPalette[400].hex),
+  },
 };
 
 /**
@@ -90,12 +104,12 @@ export const forestTheme: Theme = {
     fontFamily: {
       base: "\"Noto Sans\", system-ui, sans-serif",
       heading: "\"Bitter\", serif",
-      monospace: "\"Fira Code\", monospace"
+      monospace: "\"Fira Code\", monospace",
     },
     fontSize: typedDefaultTheme.typography.fontSize,
     fontWeight: typedDefaultTheme.typography.fontWeight,
     lineHeight: typedDefaultTheme.typography.lineHeight,
-    letterSpacing: typedDefaultTheme.typography.letterSpacing
+    letterSpacing: typedDefaultTheme.typography.letterSpacing,
   },
   borders: {
     radius: {
@@ -103,18 +117,18 @@ export const forestTheme: Theme = {
       sm: typedDefaultTheme.borders.radius.sm,
       md: "0.375rem",
       lg: typedDefaultTheme.borders.radius.lg,
-      full: typedDefaultTheme.borders.radius.full
+      full: typedDefaultTheme.borders.radius.full,
     },
     width: typedDefaultTheme.borders.width,
-    style: typedDefaultTheme.borders.style
+    style: typedDefaultTheme.borders.style,
   },
   shadows: {
     none: typedDefaultTheme.shadows.none,
     sm: typedDefaultTheme.shadows.sm,
     md: "0 4px 12px rgba(5, 150, 105, 0.15)",
     lg: "0 10px 25px rgba(5, 150, 105, 0.2)",
-    xl: typedDefaultTheme.shadows.xl
-  }
+    xl: typedDefaultTheme.shadows.xl,
+  },
 };
 
 export default forestTheme;

@@ -17,6 +17,6 @@ export const createTypographyRegistry = (): TypographyRegistry => {
   return {
     presets: new Map(),
     scales: new Map(),
-    components: new Map()
+    components: new Map(),
   };
 };

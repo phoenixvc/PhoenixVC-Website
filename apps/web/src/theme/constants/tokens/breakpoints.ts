@@ -37,7 +37,10 @@ export function down(key: keyof typeof breakpoints): string {
   return `@media (max-width: ${nextBreakpoint - 0.05}px)`;
 }
 
-export function between(start: keyof typeof breakpoints, end: keyof typeof breakpoints): string {
+export function between(
+  start: keyof typeof breakpoints,
+  end: keyof typeof breakpoints,
+): string {
   const keys = Object.keys(breakpoints) as Array<keyof typeof breakpoints>;
   const endIndex = keys.indexOf(end);
 

@@ -1,6 +1,6 @@
 // features/investment-focus/animations/index.ts
-import { containerVariants, itemVariants } from '@/animations/variants';
-import { Variants } from 'framer-motion';
+import { containerVariants, itemVariants } from "@/animations/variants";
+import { Variants } from "framer-motion";
 
 // TODO: Production hardening:
 // 1. Create a more specific `cardVariants` in the central animation file.
@@ -12,7 +12,7 @@ const cardVariants: Variants = {
     y: -8,
     transition: {
       duration: 0.2,
-      ease: 'easeInOut',
+      ease: "easeInOut",
     },
   },
 };
@@ -22,7 +22,7 @@ const iconVariants: Variants = {
     scale: 1.1,
     transition: {
       duration: 0.2,
-      ease: 'easeInOut',
+      ease: "easeInOut",
     },
   },
 };

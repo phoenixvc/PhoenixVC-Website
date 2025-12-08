@@ -37,7 +37,12 @@ const AnimatedSVG: React.FC<React.SVGProps<SVGSVGElement>> = (props) => {
           <animateMotion dur="10s" repeatCount="indefinite" rotate="auto">
             <mpath href="#flightPath" />
           </animateMotion>
-          <animate attributeName="opacity" values="1;0;1" dur="10s" repeatCount="indefinite" />
+          <animate
+            attributeName="opacity"
+            values="1;0;1"
+            dur="10s"
+            repeatCount="indefinite"
+          />
           <animate
             attributeName="d"
             values="M50,25 C60,10 70,5 85,5...; M200,260 C200,280 230,320 200,340 C170,320 200,280 200,260; M50,25 C60,10 70,5 85,5..."

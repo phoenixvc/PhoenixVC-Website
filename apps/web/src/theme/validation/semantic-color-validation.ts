@@ -1,9 +1,19 @@
-import { SemanticColors, ValidationResult, ValidationError, ThemeError } from "@/theme/types";
+import {
+  SemanticColors,
+  ValidationResult,
+  ValidationError,
+  ThemeError,
+} from "@/theme/types";
 import { validateHexOnly } from "./utils/color-hex-validation";
 import { createValidationResult } from "./utils/create-validation-result";
 
 export class SemanticColorValidation {
-  static REQUIRED_SEMANTIC_COLORS = ["success", "error", "warning", "info"] as const;
+  static REQUIRED_SEMANTIC_COLORS = [
+    "success",
+    "error",
+    "warning",
+    "info",
+  ] as const;
 
   static validateSemanticColors(semantic: SemanticColors): ValidationResult {
     const errors: ValidationError[] = [];

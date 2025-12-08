@@ -31,13 +31,19 @@ const Contact: FC<ContactProps> = memo(() => {
   });
 
   const handleSubmit = useCallback(async (data: ContactFormData) => {
-    setState((prev) => ({ ...prev, isLoading: true, error: null, success: false }));
+    setState((prev) => ({
+      ...prev,
+      isLoading: true,
+      error: null,
+      success: false,
+    }));
 
     try {
       // Call your Azure Function - use the local URL during development
-      const functionUrl = process.env.NODE_ENV === "production"
-        ? "https://phoenixvc-api.azurewebsites.net/api/sendContactEmail"
-        : "http://localhost:7071/api/sendContactEmail";
+      const functionUrl =
+        process.env.NODE_ENV === "production"
+          ? "https://phoenixvc-api.azurewebsites.net/api/sendContactEmail"
+          : "http://localhost:7071/api/sendContactEmail";
 
       const response = await fetch(functionUrl, {
         method: "POST",
@@ -53,14 +59,16 @@ const Contact: FC<ContactProps> = memo(() => {
       }
 
       // Success!
-      setState(prev => ({ ...prev, success: true }));
+      setState((prev) => ({ ...prev, success: true }));
       logger.info("Form submitted successfully:", data);
-
     } catch (error) {
       logger.error("Error submitting form:", error);
       setState((prev) => ({
         ...prev,
-        error: error instanceof Error ? error.message : "Failed to submit form. Please try again.",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to submit form. Please try again.",
       }));
     } finally {
       setState((prev) => ({ ...prev, isLoading: false }));
@@ -68,12 +76,19 @@ const Contact: FC<ContactProps> = memo(() => {
   }, []);
 
   // Wrap the async call in a synchronous handler
-  const handleSubmitWrapper = useCallback((data: ContactFormData) => {
-    void handleSubmit(data);
-  }, [handleSubmit]);
+  const handleSubmitWrapper = useCallback(
+    (data: ContactFormData) => {
+      void handleSubmit(data);
+    },
+    [handleSubmit],
+  );
 
   return (
-    <section id="contact" ref={sectionRef} className={`${styles.section} ${isDarkMode ? styles.darkMode : styles.lightMode}`}>
+    <section
+      id="contact"
+      ref={sectionRef}
+      className={`${styles.section} ${isDarkMode ? styles.darkMode : styles.lightMode}`}
+    >
       <div className={styles.container}>
         <motion.div
           className={styles.content}
@@ -89,13 +104,19 @@ const Contact: FC<ContactProps> = memo(() => {
           />
 
           {state.error && (
-            <motion.div className={styles.error} variants={contactAnimations.item}>
+            <motion.div
+              className={styles.error}
+              variants={contactAnimations.item}
+            >
               {state.error}
             </motion.div>
           )}
 
           {state.success && (
-            <motion.div className={styles.success} variants={contactAnimations.item}>
+            <motion.div
+              className={styles.success}
+              variants={contactAnimations.item}
+            >
               Thank you for your message! We'll get back to you soon.
             </motion.div>
           )}

@@ -3,20 +3,20 @@
 import { ComponentColorSet } from "../../components";
 
 export interface ListTreeMappings {
-    list: ComponentColorSet & {
-        item: {
-            hover: string;
-            active: string;
-            selected: string;
-        };
-        divider: string;
+  list: ComponentColorSet & {
+    item: {
+      hover: string;
+      active: string;
+      selected: string;
     };
-    tree: ComponentColorSet & {
-        item: {
-            hover: string;
-            active: string;
-            selected: string;
-        };
-        expandIcon: string;
+    divider: string;
+  };
+  tree: ComponentColorSet & {
+    item: {
+      hover: string;
+      active: string;
+      selected: string;
     };
+    expandIcon: string;
+  };
 }

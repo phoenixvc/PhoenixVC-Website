@@ -2,7 +2,6 @@
 
 import { SidebarVariant } from "@/theme";
 
-
 /**
  * Default sidebar variant with modern styling - simplified with only hex values
  */
@@ -13,8 +12,8 @@ export const defaultSidebarVariant: Partial<SidebarVariant> = {
     border: { hex: "#dee2e6" },
     style: {
       boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-      borderRadius: "0.375rem"
-    }
+      borderRadius: "0.375rem",
+    },
   },
   group: {
     container: {
@@ -22,8 +21,8 @@ export const defaultSidebarVariant: Partial<SidebarVariant> = {
       foreground: { hex: "#212529" },
       border: { hex: "transparent" },
       style: {
-        padding: "0.5rem 0"
-      }
+        padding: "0.5rem 0",
+      },
     },
     title: {
       background: { hex: "transparent" },
@@ -33,12 +32,12 @@ export const defaultSidebarVariant: Partial<SidebarVariant> = {
         fontSize: "0.75rem",
         fontWeight: "600",
         textTransform: "uppercase",
-        letterSpacing: "0.05em"
-      }
+        letterSpacing: "0.05em",
+      },
     },
     style: {
-      marginBottom: "0.75rem"
-    }
+      marginBottom: "0.75rem",
+    },
   },
   item: {
     default: {
@@ -48,40 +47,40 @@ export const defaultSidebarVariant: Partial<SidebarVariant> = {
       hover: {
         background: { hex: "#e9ecef" },
         foreground: { hex: "#212529" },
-        border: { hex: "transparent" }
+        border: { hex: "transparent" },
       },
       active: {
         background: { hex: "#dee2e6" },
         foreground: { hex: "#212529" },
-        border: { hex: "transparent" }
+        border: { hex: "transparent" },
       },
       focus: {
         background: { hex: "#e9ecef" },
         foreground: { hex: "#212529" },
-        border: { hex: "#0d6efd" }
+        border: { hex: "#0d6efd" },
       },
       disabled: {
         background: { hex: "transparent" },
         foreground: { hex: "#adb5bd" },
-        border: { hex: "transparent" }
+        border: { hex: "transparent" },
       },
       style: {
         padding: "0.5rem 1rem",
         borderRadius: "0.25rem",
-        transition: "all 0.2s ease-in-out"
-      }
+        transition: "all 0.2s ease-in-out",
+      },
     },
     active: {
       background: { hex: "#0d6efd" },
       foreground: { hex: "#ffffff" },
       border: { hex: "#0a58ca" },
       style: {
-        fontWeight: "500"
-      }
+        fontWeight: "500",
+      },
     },
     style: {
-      margin: "0.125rem 0"
-    }
+      margin: "0.125rem 0",
+    },
   },
   divider: { hex: "#dee2e6" },
   icon: {
@@ -89,16 +88,16 @@ export const defaultSidebarVariant: Partial<SidebarVariant> = {
     active: { hex: "#ffffff" },
     style: {
       marginRight: "0.5rem",
-      fontSize: "1rem"
-    }
+      fontSize: "1rem",
+    },
   },
   style: {
     width: "100%",
     maxWidth: "280px",
     padding: "1rem",
     height: "100%",
-    overflowY: "auto"
-  }
+    overflowY: "auto",
+  },
 };
 
 /**
@@ -111,8 +110,8 @@ export const compactSidebarVariant: SidebarVariant = {
     border: { hex: "#dee2e6" },
     style: {
       boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-      borderRadius: "0.375rem"
-    }
+      borderRadius: "0.375rem",
+    },
   },
   group: {
     container: {
@@ -120,8 +119,8 @@ export const compactSidebarVariant: SidebarVariant = {
       foreground: { hex: "#212529" },
       border: { hex: "transparent" },
       style: {
-        padding: "0.25rem 0"
-      }
+        padding: "0.25rem 0",
+      },
     },
     title: {
       background: { hex: "transparent" },
@@ -131,12 +130,12 @@ export const compactSidebarVariant: SidebarVariant = {
         fontSize: "0.7rem",
         fontWeight: "600",
         textTransform: "uppercase",
-        letterSpacing: "0.05em"
-      }
+        letterSpacing: "0.05em",
+      },
     },
     style: {
-      marginBottom: "0.5rem"
-    }
+      marginBottom: "0.5rem",
+    },
   },
   item: {
     default: {
@@ -146,41 +145,41 @@ export const compactSidebarVariant: SidebarVariant = {
       hover: {
         background: { hex: "#e9ecef" },
         foreground: { hex: "#212529" },
-        border: { hex: "transparent" }
+        border: { hex: "transparent" },
       },
       active: {
         background: { hex: "#dee2e6" },
         foreground: { hex: "#212529" },
-        border: { hex: "transparent" }
+        border: { hex: "transparent" },
       },
       focus: {
         background: { hex: "#e9ecef" },
         foreground: { hex: "#212529" },
-        border: { hex: "#0d6efd" }
+        border: { hex: "#0d6efd" },
       },
       disabled: {
         background: { hex: "transparent" },
         foreground: { hex: "#adb5bd" },
-        border: { hex: "transparent" }
+        border: { hex: "transparent" },
       },
       style: {
         padding: "0.35rem 0.75rem",
         borderRadius: "0.25rem",
         transition: "all 0.2s ease-in-out",
-        fontSize: "0.875rem"
-      }
+        fontSize: "0.875rem",
+      },
     },
     active: {
       background: { hex: "#0d6efd" },
       foreground: { hex: "#ffffff" },
       border: { hex: "#0a58ca" },
       style: {
-        fontWeight: "500"
-      }
+        fontWeight: "500",
+      },
     },
     style: {
-      margin: "0.125rem 0"
-    }
+      margin: "0.125rem 0",
+    },
   },
   divider: { hex: "#dee2e6" },
   icon: {
@@ -188,16 +187,16 @@ export const compactSidebarVariant: SidebarVariant = {
     active: { hex: "#ffffff" },
     style: {
       marginRight: "0.375rem",
-      fontSize: "0.875rem"
-    }
+      fontSize: "0.875rem",
+    },
   },
   style: {
     width: "100%",
     maxWidth: "220px",
     padding: "0.75rem",
     height: "100%",
-    overflowY: "auto"
-  }
+    overflowY: "auto",
+  },
 };
 
 /**
@@ -210,8 +209,8 @@ export const darkSidebarVariant: SidebarVariant = {
     border: { hex: "#343a40" },
     style: {
       boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
-      borderRadius: "0.375rem"
-    }
+      borderRadius: "0.375rem",
+    },
   },
   group: {
     container: {
@@ -219,8 +218,8 @@ export const darkSidebarVariant: SidebarVariant = {
       foreground: { hex: "#e9ecef" },
       border: { hex: "transparent" },
       style: {
-        padding: "0.5rem 0"
-      }
+        padding: "0.5rem 0",
+      },
     },
     title: {
       background: { hex: "transparent" },
@@ -230,12 +229,12 @@ export const darkSidebarVariant: SidebarVariant = {
         fontSize: "0.75rem",
         fontWeight: "600",
         textTransform: "uppercase",
-        letterSpacing: "0.05em"
-      }
+        letterSpacing: "0.05em",
+      },
     },
     style: {
-      marginBottom: "0.75rem"
-    }
+      marginBottom: "0.75rem",
+    },
   },
   item: {
     default: {
@@ -245,40 +244,40 @@ export const darkSidebarVariant: SidebarVariant = {
       hover: {
         background: { hex: "#343a40" },
         foreground: { hex: "#f8f9fa" },
-        border: { hex: "transparent" }
+        border: { hex: "transparent" },
       },
       active: {
         background: { hex: "#495057" },
         foreground: { hex: "#f8f9fa" },
-        border: { hex: "transparent" }
+        border: { hex: "transparent" },
       },
       focus: {
         background: { hex: "#343a40" },
         foreground: { hex: "#f8f9fa" },
-        border: { hex: "#0d6efd" }
+        border: { hex: "#0d6efd" },
       },
       disabled: {
         background: { hex: "transparent" },
         foreground: { hex: "#6c757d" },
-        border: { hex: "transparent" }
+        border: { hex: "transparent" },
       },
       style: {
         padding: "0.5rem 1rem",
         borderRadius: "0.25rem",
-        transition: "all 0.2s ease-in-out"
-      }
+        transition: "all 0.2s ease-in-out",
+      },
     },
     active: {
       background: { hex: "#0d6efd" },
       foreground: { hex: "#ffffff" },
       border: { hex: "#0a58ca" },
       style: {
-        fontWeight: "500"
-      }
+        fontWeight: "500",
+      },
     },
     style: {
-      margin: "0.125rem 0"
-    }
+      margin: "0.125rem 0",
+    },
   },
   divider: { hex: "#495057" },
   icon: {
@@ -286,14 +285,14 @@ export const darkSidebarVariant: SidebarVariant = {
     active: { hex: "#ffffff" },
     style: {
       marginRight: "0.5rem",
-      fontSize: "1rem"
-    }
+      fontSize: "1rem",
+    },
   },
   style: {
     width: "100%",
     maxWidth: "280px",
     padding: "1rem",
     height: "100%",
-    overflowY: "auto"
-  }
+    overflowY: "auto",
+  },
 };

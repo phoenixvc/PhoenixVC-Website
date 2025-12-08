@@ -7,7 +7,9 @@ import { createValidationResult } from "./utils/create-validation-result";
 export class BaseColorValidation {
   static REQUIRED_BASE_COLORS = ["primary", "secondary", "accent"] as const;
 
-  static validateBaseColors(base: Record<string, ColorDefinition>): ValidationResult {
+  static validateBaseColors(
+    base: Record<string, ColorDefinition>,
+  ): ValidationResult {
     const errors: ThemeValidationError[] = [];
 
     if (!base || typeof base !== "object") {
@@ -16,8 +18,8 @@ export class BaseColorValidation {
           "Theme must include base colors as an object",
           ThemeError.COLOR_MISSING_PROPERTIES,
           "base",
-          { received: typeof base, expected: "object" }
-        )
+          { received: typeof base, expected: "object" },
+        ),
       );
     } else {
       this.REQUIRED_BASE_COLORS.forEach((color) => {
@@ -27,8 +29,8 @@ export class BaseColorValidation {
               `Missing base color: ${color}`,
               ThemeError.COLOR_MISSING_PROPERTIES,
               `base.${color}`,
-              { missingColor: color }
-            )
+              { missingColor: color },
+            ),
           );
         } else {
           try {
@@ -40,8 +42,8 @@ export class BaseColorValidation {
                   `Invalid color definition for ${color}: ${error.message}`,
                   ThemeError.COLOR_MISSING_PROPERTIES,
                   `base.${color}`,
-                  error.details
-                )
+                  error.details,
+                ),
               );
             } else {
               throw error; // Re-throw unexpected errors

@@ -1,6 +1,9 @@
 // theme/registry/variant-resolution/tab-strategy.ts
 
-import { ComponentVariantType, isTabVariant } from "../../types/mappings/component-variants";
+import {
+  ComponentVariantType,
+  isTabVariant,
+} from "../../types/mappings/component-variants";
 import { PatternResolutionStrategy } from "./variant-resolution-strategy";
 
 /**
@@ -14,7 +17,7 @@ export class TabStrategy extends PatternResolutionStrategy {
   resolveVariant(
     componentVariants: Record<string, ComponentVariantType>,
     baseVariant: string,
-    dynamicPattern: string
+    dynamicPattern: string,
   ): ComponentVariantType | undefined {
     const baseStyles = componentVariants[baseVariant] as ComponentVariantType;
     if (!baseStyles) return componentVariants.default as ComponentVariantType;
@@ -29,7 +32,7 @@ export class TabStrategy extends PatternResolutionStrategy {
     if (isTabVariant(baseStyles)) {
       return {
         ...baseStyles,
-        ...baseStyles.selected
+        ...baseStyles.selected,
       } as ComponentVariantType;
     }
 

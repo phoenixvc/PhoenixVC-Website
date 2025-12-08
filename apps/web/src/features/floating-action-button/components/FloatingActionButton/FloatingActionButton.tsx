@@ -7,11 +7,7 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
   label,
 }) => {
   return (
-    <button
-      className={styles.fab}
-      onClick={onClick}
-      aria-label={label}
-    >
+    <button className={styles.fab} onClick={onClick} aria-label={label}>
       {icon}
     </button>
   );

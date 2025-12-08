@@ -7,7 +7,9 @@ interface AutoZoomGalaxyProps {
   camera: Camera;
   setCamera: React.Dispatch<React.SetStateAction<Camera>>;
   navigationState: CosmicNavigationState;
-  setNavigationState: React.Dispatch<React.SetStateAction<CosmicNavigationState>>;
+  setNavigationState: React.Dispatch<
+    React.SetStateAction<CosmicNavigationState>
+  >;
   canvasWidth: number;
   canvasHeight: number;
 }
@@ -18,7 +20,7 @@ const AutoZoomGalaxy: React.FC<AutoZoomGalaxyProps> = ({
   navigationState: _navigationState,
   setNavigationState,
   canvasWidth,
-  canvasHeight
+  canvasHeight,
 }) => {
   const [hoveredGalaxyId, setHoveredGalaxyId] = useState<string | null>(null);
   // Use ReturnType<typeof setTimeout> for the timeout ref
@@ -28,8 +30,8 @@ const AutoZoomGalaxy: React.FC<AutoZoomGalaxyProps> = ({
   // Function to check if mouse is over a galaxy
   const checkGalaxyHover = (mouseX: number, mouseY: number): void => {
     // Convert screen coordinates to world coordinates
-    const worldX = (mouseX / canvasWidth);
-    const worldY = (mouseY / canvasHeight);
+    const worldX = mouseX / canvasWidth;
+    const worldY = mouseY / canvasHeight;
 
     // Check if mouse is over any galaxy
     for (const galaxy of GALAXIES) {
@@ -92,21 +94,21 @@ const AutoZoomGalaxy: React.FC<AutoZoomGalaxyProps> = ({
           isZoomingRef.current = true;
 
           // Set camera target to zoom into the galaxy
-          setCamera(prev => ({
+          setCamera((prev) => ({
             ...prev,
             target: {
               cx: galaxy.position.x,
               cy: galaxy.position.y,
-              zoom: 2.5 // Zoom level for galaxies
-            }
+              zoom: 2.5, // Zoom level for galaxies
+            },
           }));
 
           // Update navigation state
-          setNavigationState(prev => ({
+          setNavigationState((prev) => ({
             ...prev,
             currentLevel: "galaxy",
             currentGalaxyId: galaxy.id,
-            isTransitioning: true
+            isTransitioning: true,
           }));
         }
       }, 300); // 300ms delay before zooming
@@ -116,21 +118,21 @@ const AutoZoomGalaxy: React.FC<AutoZoomGalaxyProps> = ({
         isZoomingRef.current = false;
 
         // Reset camera to universe view
-        setCamera(prev => ({
+        setCamera((prev) => ({
           ...prev,
           target: {
             cx: 0.5, // Center of universe
             cy: 0.5,
-            zoom: 1 // Default zoom level
-          }
+            zoom: 1, // Default zoom level
+          },
         }));
 
         // Update navigation state
-        setNavigationState(prev => ({
+        setNavigationState((prev) => ({
           ...prev,
           currentLevel: "universe",
           currentGalaxyId: undefined,
-          isTransitioning: true
+          isTransitioning: true,
         }));
       }, 500); // Longer delay before zooming out
     }

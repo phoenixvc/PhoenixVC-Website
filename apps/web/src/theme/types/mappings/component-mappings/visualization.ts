@@ -3,11 +3,11 @@
 import { ChartColorSet } from "../../components";
 
 export interface VisualizationMappings {
-    chart: ChartColorSet;
-    datavis: {
-        categorical: string[];
-        sequential: string[];
-        diverging: string[];
-        qualitative: string[];
-    };
+  chart: ChartColorSet;
+  datavis: {
+    categorical: string[];
+    sequential: string[];
+    diverging: string[];
+    qualitative: string[];
+  };
 }

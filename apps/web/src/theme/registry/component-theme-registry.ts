@@ -22,7 +22,7 @@ export interface ComponentThemeRegistry extends ComponentVariants {
 }
 
 export function createComponentRegistry(
-  initialComponents?: Partial<ComponentThemeRegistry>
+  initialComponents?: Partial<ComponentThemeRegistry>,
 ): ComponentThemeRegistry {
   // Create an empty base registry
   const baseRegistry: ComponentThemeRegistry = {} as ComponentThemeRegistry;

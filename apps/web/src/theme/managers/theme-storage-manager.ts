@@ -12,7 +12,7 @@ export class ThemeStorageManager {
     THEME_MODE: THEME_CONSTANTS.STORAGE.KEYS.THEME_MODE,
     CUSTOM_THEMES: THEME_CONSTANTS.STORAGE.KEYS.CUSTOM_THEMES,
     USE_SYSTEM: "use_system_theme", // Adding this explicitly since it's missing from THEME_CONSTANTS
-    THEME_DATA_PREFIX: "theme_data_"
+    THEME_DATA_PREFIX: "theme_data_",
   };
 
   private static readonly VALID_THEMES = THEME_CONSTANTS.COLOR_SCHEMES;
@@ -32,7 +32,8 @@ export class ThemeStorageManager {
   /**
    * Store custom provider reference
    */
-  private static _customProvider: StorageOptions["customProvider"] | null = null;
+  private static _customProvider: StorageOptions["customProvider"] | null =
+    null;
 
   /**
    * Configure storage options
@@ -57,12 +58,22 @@ export class ThemeStorageManager {
 
       // Migrate data if provider changed
       if (options.provider && options.provider !== currentProvider) {
-        await this._migrateData(currentProvider, options.provider, options.customProvider);
+        await this._migrateData(
+          currentProvider,
+          options.provider,
+          options.customProvider,
+        );
       }
 
-      console.log("[ThemeStorageManager] Storage configured:", options.provider || "localStorage");
+      console.log(
+        "[ThemeStorageManager] Storage configured:",
+        options.provider || "localStorage",
+      );
     } catch (error) {
-      console.error("[ThemeStorageManager] Failed to configure storage:", error);
+      console.error(
+        "[ThemeStorageManager] Failed to configure storage:",
+        error,
+      );
       throw error;
     }
   }
@@ -72,7 +83,7 @@ export class ThemeStorageManager {
    */
   private static _configureProvider(
     provider: StorageOptions["provider"],
-    customProvider?: StorageOptions["customProvider"]
+    customProvider?: StorageOptions["customProvider"],
   ): void {
     // Validate provider
     if (provider === "custom" && !customProvider) {
@@ -119,7 +130,7 @@ export class ThemeStorageManager {
   private static async _migrateData(
     fromProvider: StorageOptions["provider"],
     toProvider: StorageOptions["provider"],
-    customProvider?: StorageOptions["customProvider"]
+    customProvider?: StorageOptions["customProvider"],
   ): Promise<void> {
     try {
       // Get all theme data from current provider
@@ -152,7 +163,9 @@ export class ThemeStorageManager {
       this._storageProvider = originalProvider;
       this._customProvider = originalCustomProvider;
 
-      console.log(`[ThemeStorageManager] Data migrated from ${fromProvider} to ${toProvider}`);
+      console.log(
+        `[ThemeStorageManager] Data migrated from ${fromProvider} to ${toProvider}`,
+      );
     } catch (error) {
       console.error("[ThemeStorageManager] Failed to migrate data:", error);
       throw error;
@@ -224,7 +237,10 @@ export class ThemeStorageManager {
 
       // Use the configured provider
       if (this._storageProvider === "custom" && this._customProvider) {
-        const result = this._customProvider.setItem(prefixedKey, serializedValue);
+        const result = this._customProvider.setItem(
+          prefixedKey,
+          serializedValue,
+        );
         if (result instanceof Promise) {
           await result;
         }
@@ -272,8 +288,10 @@ export class ThemeStorageManager {
    * @returns type predicate for ThemeName
    */
   private static isValidThemeName(value: unknown): value is ThemeName {
-    return typeof value === "string" &&
-      this.VALID_THEMES.includes(value as ThemeName);
+    return (
+      typeof value === "string" &&
+      this.VALID_THEMES.includes(value as ThemeName)
+    );
   }
 
   /**
@@ -282,8 +300,9 @@ export class ThemeStorageManager {
    * @returns type predicate for Mode
    */
   private static isValidMode(value: unknown): value is ThemeMode {
-    return typeof value === "string" &&
-      this.VALID_MODES.includes(value as ThemeMode);
+    return (
+      typeof value === "string" && this.VALID_MODES.includes(value as ThemeMode)
+    );
   }
 
   /**
@@ -353,7 +372,10 @@ export class ThemeStorageManager {
    * @param theme The theme data to save
    * @returns boolean indicating success
    */
-  static async saveThemeData(themeName: ThemeName, theme: ThemeColors): Promise<boolean> {
+  static async saveThemeData(
+    themeName: ThemeName,
+    theme: ThemeColors,
+  ): Promise<boolean> {
     if (typeof window === "undefined") return false;
 
     try {
@@ -368,7 +390,9 @@ export class ThemeStorageManager {
 
       // Check size before saving
       if (themeJson.length > this.MAX_THEME_SIZE) {
-        console.warn(`[ThemeStorage] Theme ${themeName} exceeds max size (${themeJson.length} bytes)`);
+        console.warn(
+          `[ThemeStorage] Theme ${themeName} exceeds max size (${themeJson.length} bytes)`,
+        );
         return false;
       }
 
@@ -422,7 +446,10 @@ export class ThemeStorageManager {
         return localStorage.getItem(key) !== null;
       }
     } catch (error) {
-      console.error(`[ThemeStorage] Error checking theme data for ${themeName}:`, error);
+      console.error(
+        `[ThemeStorage] Error checking theme data for ${themeName}:`,
+        error,
+      );
       return false;
     }
   }
@@ -449,7 +476,10 @@ export class ThemeStorageManager {
         localStorage.removeItem(key);
       }
     } catch (error) {
-      console.error(`[ThemeStorage] Error removing theme data for ${themeName}:`, error);
+      console.error(
+        `[ThemeStorage] Error removing theme data for ${themeName}:`,
+        error,
+      );
       throw error;
     }
   }
@@ -498,7 +528,9 @@ export class ThemeStorageManager {
       if (this._storageProvider === "custom" && this._customProvider) {
         // For custom providers, we'd need to implement a way to list all keys
         // This is a simplified version that assumes we can't list keys
-        console.warn("[ThemeStorage] Cannot clear all theme data for custom provider");
+        console.warn(
+          "[ThemeStorage] Cannot clear all theme data for custom provider",
+        );
       } else if (this._storageProvider === "sessionStorage") {
         const keysToRemove: string[] = [];
         for (let i = 0; i < sessionStorage.length; i++) {
@@ -546,7 +578,9 @@ export class ThemeStorageManager {
       if (this._storageProvider === "custom" && this._customProvider) {
         // For custom providers, we'd need to implement a way to list all keys
         // This is a simplified version that assumes we can't list keys
-        console.warn("[ThemeStorage] Cannot get stored theme names for custom provider");
+        console.warn(
+          "[ThemeStorage] Cannot get stored theme names for custom provider",
+        );
         return [];
       } else if (this._storageProvider === "sessionStorage") {
         for (let i = 0; i < sessionStorage.length; i++) {
@@ -627,7 +661,7 @@ export class ThemeStorageManager {
       return {
         themeCount: themeNames.length,
         themeNames,
-        totalBytes
+        totalBytes,
       };
     } catch (err) {
       console.error("[ThemeStorage] Failed to get theme storage info:", err);
@@ -649,7 +683,9 @@ export class ThemeStorageManager {
    * @param result The result which might be a Promise
    * @returns A Promise that resolves to the result
    */
-  private static async handlePromiseOrValue<T>(result: T | Promise<T>): Promise<T> {
+  private static async handlePromiseOrValue<T>(
+    result: T | Promise<T>,
+  ): Promise<T> {
     if (result instanceof Promise) {
       return await result;
     }

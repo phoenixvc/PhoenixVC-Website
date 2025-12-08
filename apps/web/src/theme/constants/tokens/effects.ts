@@ -50,6 +50,12 @@ export const backdropFilterCombinations = {
   softGlass: createBackdropFilter(backdropFilters.blur("sm")),
   frostedGlass: createBackdropFilter(backdropFilters.blur("md")),
   heavyFrost: createBackdropFilter(backdropFilters.blur("lg")),
-  dimmedGlass: createBackdropFilter(backdropFilters.blur("md"), backdropFilters.brightness(90)),
-  darkGlass: createBackdropFilter(backdropFilters.blur("md"), backdropFilters.brightness(70)),
+  dimmedGlass: createBackdropFilter(
+    backdropFilters.blur("md"),
+    backdropFilters.brightness(90),
+  ),
+  darkGlass: createBackdropFilter(
+    backdropFilters.blur("md"),
+    backdropFilters.brightness(70),
+  ),
 } as const;

@@ -27,7 +27,10 @@ const Team: FC = memo(() => {
   const isDarkMode = themeMode === "dark";
 
   return (
-    <section id="team" className={`${styles.section} ${isDarkMode ? styles.darkMode : styles.lightMode}`}>
+    <section
+      id="team"
+      className={`${styles.section} ${isDarkMode ? styles.darkMode : styles.lightMode}`}
+    >
       <motion.div
         className="container mx-auto px-6 max-w-6xl"
         initial="hidden"
@@ -45,7 +48,11 @@ const Team: FC = memo(() => {
 
         <div className={styles.teamGrid}>
           {teamMembers.map((member) => (
-            <motion.div key={member.name} variants={itemVariants} className={styles.teamMember}>
+            <motion.div
+              key={member.name}
+              variants={itemVariants}
+              className={styles.teamMember}
+            >
               <div className={styles.avatar}></div>
               <h4 className={styles.name}>{member.name}</h4>
               <p className={styles.role}>{member.role}</p>
@@ -59,7 +66,11 @@ const Team: FC = memo(() => {
 
         <div className={styles.teamGrid}>
           {advisors.map((advisor) => (
-            <motion.div key={advisor.name} variants={itemVariants} className={styles.teamMember}>
+            <motion.div
+              key={advisor.name}
+              variants={itemVariants}
+              className={styles.teamMember}
+            >
               <div className={styles.avatar}></div>
               <h4 className={styles.name}>{advisor.name}</h4>
               <p className={styles.role}>{advisor.role}</p>

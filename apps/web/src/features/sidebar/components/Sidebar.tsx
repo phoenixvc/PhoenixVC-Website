@@ -13,7 +13,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   collapsed = false,
   onToggle: _onToggle,
   onCollapse,
-  mode: _mode = "dark"
+  mode: _mode = "dark",
 }): React.ReactElement | null => {
   const [currentPath, setCurrentPath] = useState("");
 
@@ -54,8 +54,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
     collapsed ? styles.sidebarCollapsed : "",
     isDarkMode ? styles.darkMode : styles.lightMode,
     isMobile ? styles.mobileSidebar : "",
-    isMobile && isOpen ? styles.sidebarExpanded : ""
-  ].filter(Boolean).join(" ");
+    isMobile && isOpen ? styles.sidebarExpanded : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   // Function to check if a link is active
   const isLinkActive = (href: string): boolean => {
@@ -80,7 +82,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={onCollapse}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
-            <ChevronLeft size={20} className={collapsed ? styles.rotateIcon : ""} />
+            <ChevronLeft
+              size={20}
+              className={collapsed ? styles.rotateIcon : ""}
+            />
           </button>
         )}
         {isMobile && onClose && (
@@ -107,9 +112,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     isLinkActive(item.href) ? styles.sidebarLinkActive : ""
                   }`}
                 >
-                  <span className={styles.sidebarIcon}>
-                    {item.icon}
-                  </span>
+                  <span className={styles.sidebarIcon}>{item.icon}</span>
                   <span className={styles.sidebarLabel}>{item.label}</span>
                 </a>
               ))}

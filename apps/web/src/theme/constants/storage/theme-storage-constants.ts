@@ -2,21 +2,27 @@
 
 import { ThemeMode, ThemeName } from "@/theme/types";
 
-
 export const THEME_STORAGE_CONSTANTS = {
   KEYS: {
     THEME_NAME: "theme_name",
     THEME_MODE: "theme_mode",
     USE_SYSTEM: "use_system_theme",
     CUSTOM_THEMES: "custom_themes",
-    THEME_DATA_PREFIX: "theme_data_"
+    THEME_DATA_PREFIX: "theme_data_",
   },
   DEFAULTS: {
     THEME_NAME: "classic" as ThemeName,
     THEME_MODE: "light" as ThemeMode,
-    USE_SYSTEM: true
+    USE_SYSTEM: true,
   },
-  VALID_THEMES: ["classic", "forest", "ocean", "phoenix", "lavender", "cloud"] as ThemeName[],
+  VALID_THEMES: [
+    "classic",
+    "forest",
+    "ocean",
+    "phoenix",
+    "lavender",
+    "cloud",
+  ] as ThemeName[],
   VALID_MODES: ["light", "dark"] as ThemeMode[],
 
   // Added missing constants

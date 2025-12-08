@@ -19,7 +19,7 @@ const Tooltip: FC<TooltipProps> = ({
   isPinned = false,
   isDarkMode = true,
   onPin,
-  onUnpin
+  onUnpin,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -30,11 +30,17 @@ const Tooltip: FC<TooltipProps> = ({
   }, []);
 
   // Calculate tooltip position to ensure it stays within viewport
-  const adjustPosition = (): { left: number; top: number; position: "fixed" } => {
+  const adjustPosition = (): {
+    left: number;
+    top: number;
+    position: "fixed";
+  } => {
     const tooltipWidth = 280;
     const tooltipHeight = 250;
-    const windowWidth = typeof window !== "undefined" ? window.innerWidth : 1200;
-    const windowHeight = typeof window !== "undefined" ? window.innerHeight : 800;
+    const windowWidth =
+      typeof window !== "undefined" ? window.innerWidth : 1200;
+    const windowHeight =
+      typeof window !== "undefined" ? window.innerHeight : 800;
 
     let tooltipX = x + 20;
     let tooltipY = y - tooltipHeight / 2;
@@ -52,22 +58,26 @@ const Tooltip: FC<TooltipProps> = ({
     return {
       left: tooltipX,
       top: tooltipY,
-      position: "fixed" as const
+      position: "fixed" as const,
     };
   };
 
   const position = adjustPosition();
 
   // Extract data from project object
-  const yearsExperience = project.experience ||
-                         (project.mass ? Math.floor(project.mass / 10) : 5) +
-                         Math.floor(Math.random() * 5);
-  const expertise = project.expertise ||
-                   (project.position ? project.position.split(" ").slice(-1)[0] : "Technology");
+  const yearsExperience =
+    project.experience ||
+    (project.mass ? Math.floor(project.mass / 10) : 5) +
+      Math.floor(Math.random() * 5);
+  const expertise =
+    project.expertise ||
+    (project.position
+      ? project.position.split(" ").slice(-1)[0]
+      : "Technology");
   const badgeText = project.department || project.product || "Team Member";
   const projectCount = Array.isArray(project.projects)
     ? project.projects.length
-    : (project.projects || 0);
+    : project.projects || 0;
 
   // Event handlers
   const handleTooltipClick = (e: React.MouseEvent): void => {
@@ -104,15 +114,17 @@ const Tooltip: FC<TooltipProps> = ({
       onClick={handleTooltipClick}
     >
       {isPinned && (
-        <div
-          className={styles.tooltipCloseButton}
-          onClick={handleCloseClick}
-        >×</div>
+        <div className={styles.tooltipCloseButton} onClick={handleCloseClick}>
+          ×
+        </div>
       )}
 
-      <div className={styles.tooltipGlowEffect} style={{
-        background: `radial-gradient(circle at left center, ${isDarkMode ? "rgba(157, 78, 221, 0.12)" : "rgba(123, 44, 191, 0.08)"} 0%, rgba(0, 0, 0, 0) 70%)`
-      }} />
+      <div
+        className={styles.tooltipGlowEffect}
+        style={{
+          background: `radial-gradient(circle at left center, ${isDarkMode ? "rgba(157, 78, 221, 0.12)" : "rgba(123, 44, 191, 0.08)"} 0%, rgba(0, 0, 0, 0) 70%)`,
+        }}
+      />
 
       <div className={styles.tooltipHeader}>
         {project.image && (
@@ -120,7 +132,7 @@ const Tooltip: FC<TooltipProps> = ({
             className={styles.tooltipAvatar}
             style={{
               border: `3px solid ${projectColor}`,
-              boxShadow: `0 0 10px ${isDarkMode ? "rgba(157, 78, 221, 0.2)" : "rgba(123, 44, 191, 0.12)"}`
+              boxShadow: `0 0 10px ${isDarkMode ? "rgba(157, 78, 221, 0.2)" : "rgba(123, 44, 191, 0.12)"}`,
             }}
           >
             <img src={project.image} alt={project.name} />

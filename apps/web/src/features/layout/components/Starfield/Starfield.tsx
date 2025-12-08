@@ -1,4 +1,12 @@
-import { useRef, useEffect, useState, useMemo, useCallback, forwardRef, useImperativeHandle } from "react";
+import {
+  useRef,
+  useEffect,
+  useState,
+  useMemo,
+  useCallback,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import styles from "./starfield.module.css";
 import { logger } from "@/utils/logger";
 import {
@@ -7,11 +15,16 @@ import {
   GameState,
   InteractiveStarfieldProps,
   MousePosition,
-  DebugSettings
+  DebugSettings,
 } from "./types";
 import { Camera } from "./cosmos/types";
 import { ProjectTooltip } from "./projectTooltip";
-import { fetchIpAddress, getHighScoresForIP, initGameState, saveScore } from "./gameState";
+import {
+  fetchIpAddress,
+  getHighScoresForIP,
+  initGameState,
+  saveScore,
+} from "./gameState";
 import ScoreOverlay from "./scoreOverlay";
 import { useAnimationLoop } from "./hooks/useAnimationLoop";
 import { useMouseInteraction } from "./hooks/useMouseInteraction";
@@ -19,465 +32,450 @@ import { useParticleEffects } from "./hooks/useParticleEffects";
 import { useDebugControls } from "./hooks/useDebugControls";
 import DebugControlsOverlay from "./DebugControlsOverlay";
 import { useStarInitialization } from "./hooks/useStarInitialization";
-import { applyClickForce, createClickExplosion, resetConnectionStagger } from "./stars";
-import { checkSunHover, resetAnimationModuleState } from "./hooks/animation/animate";
-import { applyClickRepulsionToSunsCanvas, getSunPosition, getSunStates, resetSunSystem } from "./sunSystem";
+import {
+  applyClickForce,
+  createClickExplosion,
+  resetConnectionStagger,
+} from "./stars";
+import {
+  checkSunHover,
+  resetAnimationModuleState,
+} from "./hooks/animation/animate";
+import {
+  applyClickRepulsionToSunsCanvas,
+  getSunPosition,
+  getSunStates,
+  resetSunSystem,
+} from "./sunSystem";
 import { applyClickRepulsionToPlanets } from "./Planets";
 import SunTooltip, { SunInfo } from "./sunTooltip";
 import { EFFECT_TIMING, CAMERA_CONFIG } from "./physicsConfig";
 
 // Define the ref type
 export type StarfieldRef = {
-  updateDebugSetting: <K extends keyof DebugSettings>(_key: K, _value: DebugSettings[K]) => void;
+  updateDebugSetting: <K extends keyof DebugSettings>(
+    _key: K,
+    _value: DebugSettings[K],
+  ) => void;
 };
 
 // Convert to forwardRef
-const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>(({
-  enableFlowEffect = false,
-  enableBlackHole = true,
-  enableMouseInteraction = true,
-  enableEmployeeStars = true,
-  starDensity = 1.0,
-  colorScheme = "white",
-  starSize = 1.0,
-  sidebarWidth = 0,
-  centerOffsetX = 0,
-  centerOffsetY = 0,
-  flowStrength = 0.01,
-  gravitationalPull = 0.05,
-  particleSpeed = 0.00001,
-  employeeStarSize = 0.7,
-  employeeDisplayStyle = "avatar",
-  blackHoleSize = 1.0,
-  heroMode = false,
-  containerRef = null,
-  lineConnectionDistance = 150,
-  lineOpacity = 0.3,
-  mouseEffectRadius = 150,
-  mouseEffectColor = "rgba(255, 255, 255, 0.1)",
-  initialMousePosition = null,
-  isDarkMode = false,
-  gameMode = false,
-  debugMode = false,
-  maxVelocity = 0.5,
-  animationSpeed = 1.0,
-  drawDebugInfo: externalDrawDebugInfo
-}, ref) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const dimensionsRef = useRef({ width: 0, height: 0 });
-  const containerBoundsRef = useRef({ left: 0, right: 0, top: 0, bottom: 0, width: 0, height: 0 });
-  const centerPositionRef = useRef({ x: 0, y: 0 });
-  const frameCountRef = useRef(0);
-  const hasRunInitialSetupRef = useRef(false);
-  const cancelAnimationRef = useRef<() => void>(() => {});
-  const animationControllerRef = useRef<{
-    cancelAnimation: () => void;
-    restartAnimation: () => void;
-  }>({
-    cancelAnimation: () => {},
-    restartAnimation: () => {}
-  });
+const InteractiveStarfield = forwardRef<
+  StarfieldRef,
+  InteractiveStarfieldProps
+>(
+  (
+    {
+      enableFlowEffect = false,
+      enableBlackHole = true,
+      enableMouseInteraction = true,
+      enableEmployeeStars = true,
+      starDensity = 1.0,
+      colorScheme = "white",
+      starSize = 1.0,
+      sidebarWidth = 0,
+      centerOffsetX = 0,
+      centerOffsetY = 0,
+      flowStrength = 0.01,
+      gravitationalPull = 0.05,
+      particleSpeed = 0.00001,
+      employeeStarSize = 0.7,
+      employeeDisplayStyle = "avatar",
+      blackHoleSize = 1.0,
+      heroMode = false,
+      containerRef = null,
+      lineConnectionDistance = 150,
+      lineOpacity = 0.3,
+      mouseEffectRadius = 150,
+      mouseEffectColor = "rgba(255, 255, 255, 0.1)",
+      initialMousePosition = null,
+      isDarkMode = false,
+      gameMode = false,
+      debugMode = false,
+      maxVelocity = 0.5,
+      animationSpeed = 1.0,
+      drawDebugInfo: externalDrawDebugInfo,
+    },
+    ref,
+  ) => {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const dimensionsRef = useRef({ width: 0, height: 0 });
+    const containerBoundsRef = useRef({
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 0,
+      width: 0,
+      height: 0,
+    });
+    const centerPositionRef = useRef({ x: 0, y: 0 });
+    const frameCountRef = useRef(0);
+    const hasRunInitialSetupRef = useRef(false);
+    const cancelAnimationRef = useRef<() => void>(() => {});
+    const animationControllerRef = useRef<{
+      cancelAnimation: () => void;
+      restartAnimation: () => void;
+    }>({
+      cancelAnimation: () => {},
+      restartAnimation: () => {},
+    });
 
-  // Track if starfield initialization is complete (hide initial positioning animation)
-  const [isStarfieldReady, setIsStarfieldReady] = useState(false);
-  const initializationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    // Track if starfield initialization is complete (hide initial positioning animation)
+    const [isStarfieldReady, setIsStarfieldReady] = useState(false);
+    const initializationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+      null,
+    );
 
-  // FPS tracking state
-  const [currentFps, setCurrentFps] = useState<number>(0);
-  const [timestamp, setTimestamp] = useState<number>(0);
-  const fpsValuesRef = useRef<number[]>([]);
+    // FPS tracking state
+    const [currentFps, setCurrentFps] = useState<number>(0);
+    const [timestamp, setTimestamp] = useState<number>(0);
+    const fpsValuesRef = useRef<number[]>([]);
 
-  const updateFpsData = useCallback((fps: number, currentTimestamp: number): void => {
-    setCurrentFps(fps);
-    setTimestamp(currentTimestamp);
-  }, []);
-
-  // Project hover state
-  const [hoverInfo, setHoverInfo] = useState<HoverInfo>({
-    project: null,
-    x: 0,
-    y: 0,
-    show: false
-  });
-  const [pinnedProject, setPinnedProject] = useState<PortfolioProject | null>(null);
-  const [pinnedPosition, setPinnedPosition] = useState({ x: 0, y: 0 });
-  // Track if mouse is over the project tooltip to prevent hiding while interacting
-  const isMouseOverProjectTooltipRef = useRef(false);
-  // Ref for debouncing project tooltip hide
-  const projectTooltipHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Delay in ms before hiding tooltip after mouse leaves (allows time to move to tooltip)
-  const TOOLTIP_HIDE_DELAY_MS = 200;
-
-  const handlePinProject = (project: PortfolioProject): void => {
-    setPinnedProject(project);
-    setPinnedPosition({ x: mousePosition.x, y: mousePosition.y });
-    // Hide hover tooltip when pinning
-    setHoverInfo({ project: null, x: 0, y: 0, show: false });
-  };
-
-  const handleUnpinProject = (): void => {
-    setPinnedProject(null);
-  };
-
-  // Handlers for project tooltip mouse enter/leave
-  const handleProjectTooltipMouseEnter = (): void => {
-    // Clear any pending hide timeout when mouse enters tooltip
-    if (projectTooltipHideTimeoutRef.current) {
-      clearTimeout(projectTooltipHideTimeoutRef.current);
-      projectTooltipHideTimeoutRef.current = null;
-    }
-    isMouseOverProjectTooltipRef.current = true;
-  };
-
-  const handleProjectTooltipMouseLeave = (): void => {
-    isMouseOverProjectTooltipRef.current = false;
-    // Start hide timeout when mouse leaves tooltip
-    projectTooltipHideTimeoutRef.current = setTimeout(() => {
-      setHoverInfo(prev => ({ ...prev, show: false }));
-    }, TOOLTIP_HIDE_DELAY_MS);
-  };
-
-  // Sun hover state for focus area suns
-  const [hoveredSun, setHoveredSun] = useState<SunInfo | null>(null);
-  const [hoveredSunId, setHoveredSunId] = useState<string | null>(null);
-  // Ref to track current value and avoid unnecessary state updates
-  const hoveredSunIdRef = useRef<string | null>(null);
-  // Ref for debouncing sun tooltip hide
-  const sunHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Focused sun state - when user clicks on a focus area, we scope the view
-  const [focusedSunId, setFocusedSunId] = useState<string | null>(null);
-  const focusAnimationRef = useRef<number | null>(null);
-  
-  // Internal camera state for sun zoom functionality
-  const [internalCamera, setInternalCamera] = useState<Camera>({
-    cx: CAMERA_CONFIG.defaultCenterX,
-    cy: CAMERA_CONFIG.defaultCenterY,
-    zoom: CAMERA_CONFIG.defaultZoom,
-    target: undefined
-  });
-  const cameraAnimationRef = useRef<number | null>(null);
-  
-  // Store current camera state in a ref for animation loop access
-  // This ref holds the ANIMATED camera position (not the target)
-  const cameraStateRef = useRef({ 
-    cx: CAMERA_CONFIG.defaultCenterX, 
-    cy: CAMERA_CONFIG.defaultCenterY, 
-    zoom: CAMERA_CONFIG.defaultZoom 
-  });
-
-  // Game state
-  const [gameState, setGameState] = useState<GameState>(initGameState());
-  const prevModeRef = useRef<boolean>(false);
-
-  // Use debug controls hook
-  const {
-    debugSettings,
-    updateDebugSetting,
-    drawDebugInfo
-  } = useDebugControls({
-    initialDebugMode: debugMode,
-    initialAnimationSpeed: animationSpeed,
-    initialMaxVelocity: maxVelocity,
-    initialFlowStrength: flowStrength * 5,
-    initialGravitationalPull: gravitationalPull,
-    initialParticleSpeed: particleSpeed,
-    initialStarSize: starSize,
-    initialEmployeeOrbitSpeed: 0.01,
-    initialMouseEffectRadius: mouseEffectRadius,
-    initialLineConnectionDistance: lineConnectionDistance,
-    initialLineOpacity: lineOpacity,
-    sidebarWidth: sidebarWidth
-  });
-
-  // Expose updateDebugSetting to parent components through ref
-  useImperativeHandle(ref, (): StarfieldRef => ({
-    updateDebugSetting: (key, value): void => {
-      updateDebugSetting(key, value);
-    }
-  }), [updateDebugSetting]);
-
-  const {
-    clickBursts,
-    setClickBursts,
-    clickBurstsRef,
-    collisionEffects,
-    setCollisionEffects,
-    createCollisionEffect
-  } = useParticleEffects();
-
-  // Use the star initialization hook
-  const {
-    stars,
-    starsRef,
-    blackHoles: _blackHoles,
-    blackHolesRef,
-    employeeStars: _employeeStars,
-    employeeStarsRef,
-    initializeElements,
-    ensureStarsExist,
-    resetStars,
-    isStarsInitializedRef
-  } = useStarInitialization({
-    canvasRef,
-    dimensionsRef,
-    starDensity,
-    sidebarWidth,
-    centerOffsetX,
-    centerOffsetY,
-    starSize,
-    colorScheme,
-    enableBlackHole,
-    blackHoleSize,
-    particleSpeed,
-    enableEmployeeStars,
-    employeeStarSize,
-    debugSettings,
-    cancelAnimation: () => cancelAnimationRef.current()
-  });
-
-  const mousePositionRef = useRef<MousePosition>({
-    x: window.innerWidth / 2,
-    y: window.innerHeight / 2,
-    lastX: window.innerWidth / 2,
-    lastY: window.innerHeight / 2,
-    speedX: 0,
-    speedY: 0,
-    isClicked: false,
-    clickTime: 0,
-    isOnScreen: true // Force to true for testing
-  });
-
-  // Get mouse interaction hooks
-  const { mousePosition, setMousePosition, handleMouseEvents } = useMouseInteraction(
-    enableMouseInteraction,
-    mouseEffectRadius,
-    stars,
-    gameMode,
-    gameState,
-    setGameState
-  );
-
-  useEffect(() => {
-    // Update the ref with the latest state
-    mousePositionRef.current = mousePosition;
-
-  }, [mousePosition]);
-
-  // Create a custom debug draw function that uses either the external or internal debug function
-  const customDrawDebugInfo = useCallback((ctx: CanvasRenderingContext2D): void => {
-    if (externalDrawDebugInfo) {
-      externalDrawDebugInfo(
-        ctx,
-        dimensionsRef.current.width,
-        dimensionsRef.current.height,
-        mousePosition,
-        starsRef.current,
-        debugSettings.mouseEffectRadius
-      );
-    } else {
-      // Use the default debug info function if none is provided
-      drawDebugInfo(
-        ctx,
-        dimensionsRef.current.width,
-        dimensionsRef.current.height,
-        mousePosition,
-        starsRef.current,
-        debugSettings.mouseEffectRadius
-      );
-    }
-  }, [drawDebugInfo, externalDrawDebugInfo, mousePosition, debugSettings.mouseEffectRadius, starsRef]);
-
-  useEffect(() => {
-    // Create a global API for testing
-    window.starfieldAPI = {
-      applyForce: (x: number, y: number, radius: number, force: number): number => {
-        if (starsRef.current && starsRef.current.length > 0) {
-          return applyClickForce(starsRef.current, x, y, radius, force);
-        }
-        return 0;
+    const updateFpsData = useCallback(
+      (fps: number, currentTimestamp: number): void => {
+        setCurrentFps(fps);
+        setTimestamp(currentTimestamp);
       },
-      getStarsCount: (): number => starsRef.current?.length || 0,
-      createExplosion: (x: number, y: number): boolean => {
-        if (canvasRef.current) {
-          const ctx = canvasRef.current.getContext("2d");
-          if (ctx) {
-            createClickExplosion(ctx, x, y, 300, "rgba(255, 255, 255, 0.9)", 1000);
-            return true;
-          }
+      [],
+    );
+
+    // Project hover state
+    const [hoverInfo, setHoverInfo] = useState<HoverInfo>({
+      project: null,
+      x: 0,
+      y: 0,
+      show: false,
+    });
+    const [pinnedProject, setPinnedProject] = useState<PortfolioProject | null>(
+      null,
+    );
+    const [pinnedPosition, setPinnedPosition] = useState({ x: 0, y: 0 });
+    // Track if mouse is over the project tooltip to prevent hiding while interacting
+    const isMouseOverProjectTooltipRef = useRef(false);
+    // Ref for debouncing project tooltip hide
+    const projectTooltipHideTimeoutRef = useRef<ReturnType<
+      typeof setTimeout
+    > | null>(null);
+    // Delay in ms before hiding tooltip after mouse leaves (allows time to move to tooltip)
+    const TOOLTIP_HIDE_DELAY_MS = 200;
+
+    const handlePinProject = (project: PortfolioProject): void => {
+      setPinnedProject(project);
+      setPinnedPosition({ x: mousePosition.x, y: mousePosition.y });
+      // Hide hover tooltip when pinning
+      setHoverInfo({ project: null, x: 0, y: 0, show: false });
+    };
+
+    const handleUnpinProject = (): void => {
+      setPinnedProject(null);
+    };
+
+    // Handlers for project tooltip mouse enter/leave
+    const handleProjectTooltipMouseEnter = (): void => {
+      // Clear any pending hide timeout when mouse enters tooltip
+      if (projectTooltipHideTimeoutRef.current) {
+        clearTimeout(projectTooltipHideTimeoutRef.current);
+        projectTooltipHideTimeoutRef.current = null;
+      }
+      isMouseOverProjectTooltipRef.current = true;
+    };
+
+    const handleProjectTooltipMouseLeave = (): void => {
+      isMouseOverProjectTooltipRef.current = false;
+      // Start hide timeout when mouse leaves tooltip
+      projectTooltipHideTimeoutRef.current = setTimeout(() => {
+        setHoverInfo((prev) => ({ ...prev, show: false }));
+      }, TOOLTIP_HIDE_DELAY_MS);
+    };
+
+    // Sun hover state for focus area suns
+    const [hoveredSun, setHoveredSun] = useState<SunInfo | null>(null);
+    const [hoveredSunId, setHoveredSunId] = useState<string | null>(null);
+    // Ref to track current value and avoid unnecessary state updates
+    const hoveredSunIdRef = useRef<string | null>(null);
+    // Ref for debouncing sun tooltip hide
+    const sunHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+      null,
+    );
+
+    // Focused sun state - when user clicks on a focus area, we scope the view
+    const [focusedSunId, setFocusedSunId] = useState<string | null>(null);
+    const focusAnimationRef = useRef<number | null>(null);
+
+    // Internal camera state for sun zoom functionality
+    const [internalCamera, setInternalCamera] = useState<Camera>({
+      cx: CAMERA_CONFIG.defaultCenterX,
+      cy: CAMERA_CONFIG.defaultCenterY,
+      zoom: CAMERA_CONFIG.defaultZoom,
+      target: undefined,
+    });
+    const cameraAnimationRef = useRef<number | null>(null);
+
+    // Store current camera state in a ref for animation loop access
+    // This ref holds the ANIMATED camera position (not the target)
+    const cameraStateRef = useRef({
+      cx: CAMERA_CONFIG.defaultCenterX,
+      cy: CAMERA_CONFIG.defaultCenterY,
+      zoom: CAMERA_CONFIG.defaultZoom,
+    });
+
+    // Game state
+    const [gameState, setGameState] = useState<GameState>(initGameState());
+    const prevModeRef = useRef<boolean>(false);
+
+    // Use debug controls hook
+    const { debugSettings, updateDebugSetting, drawDebugInfo } =
+      useDebugControls({
+        initialDebugMode: debugMode,
+        initialAnimationSpeed: animationSpeed,
+        initialMaxVelocity: maxVelocity,
+        initialFlowStrength: flowStrength * 5,
+        initialGravitationalPull: gravitationalPull,
+        initialParticleSpeed: particleSpeed,
+        initialStarSize: starSize,
+        initialEmployeeOrbitSpeed: 0.01,
+        initialMouseEffectRadius: mouseEffectRadius,
+        initialLineConnectionDistance: lineConnectionDistance,
+        initialLineOpacity: lineOpacity,
+        sidebarWidth: sidebarWidth,
+      });
+
+    // Expose updateDebugSetting to parent components through ref
+    useImperativeHandle(
+      ref,
+      (): StarfieldRef => ({
+        updateDebugSetting: (key, value): void => {
+          updateDebugSetting(key, value);
+        },
+      }),
+      [updateDebugSetting],
+    );
+
+    const {
+      clickBursts,
+      setClickBursts,
+      clickBurstsRef,
+      collisionEffects,
+      setCollisionEffects,
+      createCollisionEffect,
+    } = useParticleEffects();
+
+    // Use the star initialization hook
+    const {
+      stars,
+      starsRef,
+      blackHoles: _blackHoles,
+      blackHolesRef,
+      employeeStars: _employeeStars,
+      employeeStarsRef,
+      initializeElements,
+      ensureStarsExist,
+      resetStars,
+      isStarsInitializedRef,
+    } = useStarInitialization({
+      canvasRef,
+      dimensionsRef,
+      starDensity,
+      sidebarWidth,
+      centerOffsetX,
+      centerOffsetY,
+      starSize,
+      colorScheme,
+      enableBlackHole,
+      blackHoleSize,
+      particleSpeed,
+      enableEmployeeStars,
+      employeeStarSize,
+      debugSettings,
+      cancelAnimation: () => cancelAnimationRef.current(),
+    });
+
+    const mousePositionRef = useRef<MousePosition>({
+      x: window.innerWidth / 2,
+      y: window.innerHeight / 2,
+      lastX: window.innerWidth / 2,
+      lastY: window.innerHeight / 2,
+      speedX: 0,
+      speedY: 0,
+      isClicked: false,
+      clickTime: 0,
+      isOnScreen: true, // Force to true for testing
+    });
+
+    // Get mouse interaction hooks
+    const { mousePosition, setMousePosition, handleMouseEvents } =
+      useMouseInteraction(
+        enableMouseInteraction,
+        mouseEffectRadius,
+        stars,
+        gameMode,
+        gameState,
+        setGameState,
+      );
+
+    useEffect(() => {
+      // Update the ref with the latest state
+      mousePositionRef.current = mousePosition;
+    }, [mousePosition]);
+
+    // Create a custom debug draw function that uses either the external or internal debug function
+    const customDrawDebugInfo = useCallback(
+      (ctx: CanvasRenderingContext2D): void => {
+        if (externalDrawDebugInfo) {
+          externalDrawDebugInfo(
+            ctx,
+            dimensionsRef.current.width,
+            dimensionsRef.current.height,
+            mousePosition,
+            starsRef.current,
+            debugSettings.mouseEffectRadius,
+          );
+        } else {
+          // Use the default debug info function if none is provided
+          drawDebugInfo(
+            ctx,
+            dimensionsRef.current.width,
+            dimensionsRef.current.height,
+            mousePosition,
+            starsRef.current,
+            debugSettings.mouseEffectRadius,
+          );
         }
-        return false;
-      }
-    };
+      },
+      [
+        drawDebugInfo,
+        externalDrawDebugInfo,
+        mousePosition,
+        debugSettings.mouseEffectRadius,
+        starsRef,
+      ],
+    );
 
-    return (): void => {
-      delete window.starfieldAPI;
-    };
-  }, [starsRef]);
-
-  // Initialize elements on mount - intentionally runs once
-  useEffect(() => {
-    const initTimeout = setTimeout((): void => {
-      if (!isStarsInitializedRef.current || starsRef.current.length === 0) {
-        initializeElements();
-
-        // Force animation restart after initialization
-        setTimeout((): void => {
-          if (animationControllerRef.current) {
-            animationControllerRef.current.restartAnimation();
+    useEffect(() => {
+      // Create a global API for testing
+      window.starfieldAPI = {
+        applyForce: (
+          x: number,
+          y: number,
+          radius: number,
+          force: number,
+        ): number => {
+          if (starsRef.current && starsRef.current.length > 0) {
+            return applyClickForce(starsRef.current, x, y, radius, force);
           }
-        }, 200);
-      }
-    }, 100);
+          return 0;
+        },
+        getStarsCount: (): number => starsRef.current?.length || 0,
+        createExplosion: (x: number, y: number): boolean => {
+          if (canvasRef.current) {
+            const ctx = canvasRef.current.getContext("2d");
+            if (ctx) {
+              createClickExplosion(
+                ctx,
+                x,
+                y,
+                300,
+                "rgba(255, 255, 255, 0.9)",
+                1000,
+              );
+              return true;
+            }
+          }
+          return false;
+        },
+      };
 
-    return (): void => clearTimeout(initTimeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      return (): void => {
+        delete window.starfieldAPI;
+      };
+    }, [starsRef]);
 
-  // Detect debug mode changes
-  useEffect(() => {
-    const lastDebugMode = debugSettings.isDebugMode;
+    // Initialize elements on mount - intentionally runs once
+    useEffect(() => {
+      const initTimeout = setTimeout((): void => {
+        if (!isStarsInitializedRef.current || starsRef.current.length === 0) {
+          initializeElements();
 
-    // When debug mode changes, ensure stars are reset properly
-    return (): void => {
-      if (lastDebugMode !== debugSettings.isDebugMode) {
-        setTimeout((): void => {
-          resetStars();
-        }, 50);
-      }
-    };
-  }, [debugSettings.isDebugMode, resetStars]);
+          // Force animation restart after initialization
+          setTimeout((): void => {
+            if (animationControllerRef.current) {
+              animationControllerRef.current.restartAnimation();
+            }
+          }, 200);
+        }
+      }, 100);
 
-  // Fetch IP address on component mount for game mode
-  useEffect(() => {
-    if (gameMode) {
-      const getIP = async (): Promise<void> => {
-        const ip = await fetchIpAddress();
-        if (ip) {
-          setGameState(prev => ({
-            ...prev,
-            ipAddress: ip,
-            highScores: getHighScoresForIP(ip)
-          }));
+      return (): void => clearTimeout(initTimeout);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Detect debug mode changes
+    useEffect(() => {
+      const lastDebugMode = debugSettings.isDebugMode;
+
+      // When debug mode changes, ensure stars are reset properly
+      return (): void => {
+        if (lastDebugMode !== debugSettings.isDebugMode) {
+          setTimeout((): void => {
+            resetStars();
+          }, 50);
         }
       };
-      void getIP(); // Actually invoke the async function
-    }
-  }, [gameMode]);
+    }, [debugSettings.isDebugMode, resetStars]);
 
-  useEffect(() => {
-    const handleGlobalClick = (e: MouseEvent): void => {
-      // If we have a pinned project and click is not on tooltip
-      if (pinnedProject && canvasRef.current && e.target === canvasRef.current) {
-        handleUnpinProject();
-      }
-    };
-
-    window.addEventListener("click", handleGlobalClick);
-    return (): void => window.removeEventListener("click", handleGlobalClick);
-  }, [pinnedProject]);
-
-  // Set up canvas and handle resize
-  useEffect(() => {
-    if (hasRunInitialSetupRef.current) {
-      return;
-    }
-
-    const canvas = canvasRef.current;
-    if (!canvas) {
-      return;
-    }
-
-    // Handle resize without triggering state updates in a loop
-    const handleResize = (): void => {
-      const { innerWidth: width, innerHeight: height } = window;
-
-      // Set canvas dimensions directly
-      canvas.width = width;
-      canvas.height = height;
-
-      // Update refs directly
-      dimensionsRef.current = { width, height };
-
-      // Update container bounds if in hero mode
-      if (heroMode && containerRef?.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        containerBoundsRef.current = {
-          left: rect.left,
-          right: rect.right,
-          top: rect.top,
-          bottom: rect.bottom,
-          width: rect.width,
-          height: rect.height
+    // Fetch IP address on component mount for game mode
+    useEffect(() => {
+      if (gameMode) {
+        const getIP = async (): Promise<void> => {
+          const ip = await fetchIpAddress();
+          if (ip) {
+            setGameState((prev) => ({
+              ...prev,
+              ipAddress: ip,
+              highScores: getHighScoresForIP(ip),
+            }));
+          }
         };
-        centerPositionRef.current = {
-          x: rect.left + rect.width / 2,
-          y: rect.top + rect.height / 2
-        };
+        void getIP(); // Actually invoke the async function
+      }
+    }, [gameMode]);
+
+    useEffect(() => {
+      const handleGlobalClick = (e: MouseEvent): void => {
+        // If we have a pinned project and click is not on tooltip
+        if (
+          pinnedProject &&
+          canvasRef.current &&
+          e.target === canvasRef.current
+        ) {
+          handleUnpinProject();
+        }
+      };
+
+      window.addEventListener("click", handleGlobalClick);
+      return (): void => window.removeEventListener("click", handleGlobalClick);
+    }, [pinnedProject]);
+
+    // Set up canvas and handle resize
+    useEffect(() => {
+      if (hasRunInitialSetupRef.current) {
+        return;
       }
 
-      // Call initialize directly
-      setTimeout((): void => {
-        initializeElements();
-      }, 50);
-    };
-
-    // Initial setup
-    handleResize();
-
-    // Add resize event listener
-    window.addEventListener("resize", handleResize);
-
-    // Add mouse event listeners
-    if (enableMouseInteraction) {
-      handleMouseEvents.setup();
-    }
-
-    // Mark initial setup as complete
-    hasRunInitialSetupRef.current = true;
-
-    // Cleanup
-    return (): void => {
-      window.removeEventListener("resize", handleResize);
-
-      if (enableMouseInteraction) {
-        handleMouseEvents.cleanup();
-      }
-
-      // Save score when component unmounts
-      if (gameMode && gameState.score > 0 && gameState.ipAddress) {
-        saveScore(gameState);
-      }
-    };
-  }, [
-    enableMouseInteraction,
-    heroMode,
-    containerRef,
-    gameMode,
-    gameState,
-    handleMouseEvents,
-    initializeElements
-  ]);
-
-  useEffect(() => {
-    const currentMode = isDarkMode;
-
-    // Only run this effect if the mode has actually changed
-    if (currentMode !== prevModeRef.current) {
-      prevModeRef.current = currentMode;
-
-      // First stop the current animation
-      cancelAnimationRef.current();
-
-      // Force a complete reset of stars
-      resetStars();
-
-      // Recalculate canvas dimensions to fix coordinate offset issues
       const canvas = canvasRef.current;
-      if (canvas) {
+      if (!canvas) {
+        return;
+      }
+
+      // Handle resize without triggering state updates in a loop
+      const handleResize = (): void => {
         const { innerWidth: width, innerHeight: height } = window;
+
+        // Set canvas dimensions directly
         canvas.width = width;
         canvas.height = height;
+
+        // Update refs directly
         dimensionsRef.current = { width, height };
 
         // Update container bounds if in hero mode
@@ -489,657 +487,755 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
             top: rect.top,
             bottom: rect.bottom,
             width: rect.width,
-            height: rect.height
+            height: rect.height,
           };
           centerPositionRef.current = {
             x: rect.left + rect.width / 2,
-            y: rect.top + rect.height / 2
+            y: rect.top + rect.height / 2,
           };
         }
+
+        // Call initialize directly
+        setTimeout((): void => {
+          initializeElements();
+        }, 50);
+      };
+
+      // Initial setup
+      handleResize();
+
+      // Add resize event listener
+      window.addEventListener("resize", handleResize);
+
+      // Add mouse event listeners
+      if (enableMouseInteraction) {
+        handleMouseEvents.setup();
       }
 
-      // Reset animation error count and ensure stars exist
-      if (ensureStarsExist) {
-        ensureStarsExist();
-      }
+      // Mark initial setup as complete
+      hasRunInitialSetupRef.current = true;
 
-      // Then restart with a delay to ensure everything is ready
-      const restartTimeout = setTimeout((): void => {
-        // Use the stored animation controller to restart
-        if (animationControllerRef.current) {
-          animationControllerRef.current.restartAnimation();
-        }
-      }, 300);
-
+      // Cleanup
       return (): void => {
-        clearTimeout(restartTimeout);
+        window.removeEventListener("resize", handleResize);
+
+        if (enableMouseInteraction) {
+          handleMouseEvents.cleanup();
+        }
+
+        // Save score when component unmounts
+        if (gameMode && gameState.score > 0 && gameState.ipAddress) {
+          saveScore(gameState);
+        }
       };
-    }
-  }, [isDarkMode, resetStars, ensureStarsExist, heroMode, containerRef]);
+    }, [
+      enableMouseInteraction,
+      heroMode,
+      containerRef,
+      gameMode,
+      gameState,
+      handleMouseEvents,
+      initializeElements,
+    ]);
 
-  // Apply initial mouse position if provided
-  useEffect(() => {
-    if (initialMousePosition && initialMousePosition.isActive) {
-      setMousePosition(prev => ({
-        ...prev,
-        x: initialMousePosition.x,
-        y: initialMousePosition.y,
-        lastX: initialMousePosition.x,
-        lastY: initialMousePosition.y,
-        isOnScreen: true
-      }));
-    }
-  }, [initialMousePosition, setMousePosition]);
+    useEffect(() => {
+      const currentMode = isDarkMode;
 
-  // Mouse tracking effect with proper cleanup
-  useEffect(() => {
-    // Throttle state for mousemove handler (16ms = 60fps target)
-    let lastMouseMoveTime = 0;
-    const MOUSE_MOVE_THROTTLE_MS = 16;
+      // Only run this effect if the mode has actually changed
+      if (currentMode !== prevModeRef.current) {
+        prevModeRef.current = currentMode;
 
-    // Define all handlers as named functions for proper cleanup
-    const handleMouseMove = (e: MouseEvent): void => {
-      // Throttle mouse move processing to reduce CPU overhead
-      const now = performance.now();
-      if (now - lastMouseMoveTime < MOUSE_MOVE_THROTTLE_MS) {
-        // Still update ref position for smooth animation (but skip expensive processing)
-        mousePositionRef.current.x = e.clientX;
-        mousePositionRef.current.y = e.clientY;
-        return;
+        // First stop the current animation
+        cancelAnimationRef.current();
+
+        // Force a complete reset of stars
+        resetStars();
+
+        // Recalculate canvas dimensions to fix coordinate offset issues
+        const canvas = canvasRef.current;
+        if (canvas) {
+          const { innerWidth: width, innerHeight: height } = window;
+          canvas.width = width;
+          canvas.height = height;
+          dimensionsRef.current = { width, height };
+
+          // Update container bounds if in hero mode
+          if (heroMode && containerRef?.current) {
+            const rect = containerRef.current.getBoundingClientRect();
+            containerBoundsRef.current = {
+              left: rect.left,
+              right: rect.right,
+              top: rect.top,
+              bottom: rect.bottom,
+              width: rect.width,
+              height: rect.height,
+            };
+            centerPositionRef.current = {
+              x: rect.left + rect.width / 2,
+              y: rect.top + rect.height / 2,
+            };
+          }
+        }
+
+        // Reset animation error count and ensure stars exist
+        if (ensureStarsExist) {
+          ensureStarsExist();
+        }
+
+        // Then restart with a delay to ensure everything is ready
+        const restartTimeout = setTimeout((): void => {
+          // Use the stored animation controller to restart
+          if (animationControllerRef.current) {
+            animationControllerRef.current.restartAnimation();
+          }
+        }, 300);
+
+        return (): void => {
+          clearTimeout(restartTimeout);
+        };
       }
-      lastMouseMoveTime = now;
+    }, [isDarkMode, resetStars, ensureStarsExist, heroMode, containerRef]);
 
-      const newPosition = {
-        x: e.clientX,
-        y: e.clientY,
-        lastX: mousePositionRef.current.x,
-        lastY: mousePositionRef.current.y,
-        speedX: e.clientX - mousePositionRef.current.x,
-        speedY: e.clientY - mousePositionRef.current.y,
-        isClicked: mousePositionRef.current.isClicked,
-        clickTime: mousePositionRef.current.clickTime,
-        isOnScreen: true
-      };
+    // Apply initial mouse position if provided
+    useEffect(() => {
+      if (initialMousePosition && initialMousePosition.isActive) {
+        setMousePosition((prev) => ({
+          ...prev,
+          x: initialMousePosition.x,
+          y: initialMousePosition.y,
+          lastX: initialMousePosition.x,
+          lastY: initialMousePosition.y,
+          isOnScreen: true,
+        }));
+      }
+    }, [initialMousePosition, setMousePosition]);
 
-      // Update both the state and the ref directly
-      setMousePosition(newPosition);
-      mousePositionRef.current = newPosition;
+    // Mouse tracking effect with proper cleanup
+    useEffect(() => {
+      // Throttle state for mousemove handler (16ms = 60fps target)
+      let lastMouseMoveTime = 0;
+      const MOUSE_MOVE_THROTTLE_MS = 16;
 
-      // Check for sun hover - but only if mouse is directly over the canvas (not over content on top)
-      if (canvasRef.current) {
-        const rect = canvasRef.current.getBoundingClientRect();
-        const canvasX = e.clientX - rect.left;
-        const canvasY = e.clientY - rect.top;
-        
-        // Check if the actual element under the cursor is within the starfield area
-        // This allows sun tooltips to show when hovering over the canvas or its background elements
-        // but not when hovering over content cards or other UI elements above the starfield
-        const elementUnderCursor = document.elementFromPoint(e.clientX, e.clientY);
-        
-        // Expanded check: allow interaction when hovering over:
-        // 1. The canvas itself
-        // 2. Elements with data-starfield attribute
-        // 3. Elements with data-starfield-passthrough attribute (transparent overlays like hero section)
-        const isCanvas = elementUnderCursor === canvasRef.current;
-        const isWithinStarfieldData = elementUnderCursor?.closest("[data-starfield]") !== null;
-        const isWithinStarfieldPassthrough = elementUnderCursor?.closest("[data-starfield-passthrough]") !== null;
-        const isWithinStarfield = isCanvas || isWithinStarfieldData || isWithinStarfieldPassthrough;
-        
-        // Also check if we're within canvas bounds
-        const isWithinBounds = canvasX >= 0 && canvasX <= rect.width && 
-                               canvasY >= 0 && canvasY <= rect.height;
-        const isOverCanvas = isWithinStarfield && isWithinBounds;
-        
-        const sunHoverResult = isOverCanvas ? checkSunHover(canvasX, canvasY, rect.width, rect.height) : null;
+      // Define all handlers as named functions for proper cleanup
+      const handleMouseMove = (e: MouseEvent): void => {
+        // Throttle mouse move processing to reduce CPU overhead
+        const now = performance.now();
+        if (now - lastMouseMoveTime < MOUSE_MOVE_THROTTLE_MS) {
+          // Still update ref position for smooth animation (but skip expensive processing)
+          mousePositionRef.current.x = e.clientX;
+          mousePositionRef.current.y = e.clientY;
+          return;
+        }
+        lastMouseMoveTime = now;
 
-        if (sunHoverResult) {
-          // Clear any pending hide timeout since we're hovering over a sun
-          if (sunHideTimeoutRef.current) {
-            clearTimeout(sunHideTimeoutRef.current);
-            sunHideTimeoutRef.current = null;
-          }
-          // Only update state if the hovered sun changed
-          // Use the sun's fixed position (converted to viewport coordinates) instead of following the mouse
-          // This keeps the tooltip stable so users can click on it
-          if (hoveredSunIdRef.current !== sunHoverResult.sun.id) {
-            hoveredSunIdRef.current = sunHoverResult.sun.id;
-            setHoveredSunId(sunHoverResult.sun.id);
-            // Convert canvas-relative sun position to viewport coordinates
-            const sunScreenX = sunHoverResult.x + rect.left;
-            const sunScreenY = sunHoverResult.y + rect.top;
-            setHoveredSun({
-              id: sunHoverResult.sun.id,
-              name: sunHoverResult.sun.name,
-              description: sunHoverResult.sun.description,
-              color: sunHoverResult.sun.color || "#ffffff",
-              x: sunScreenX,
-              y: sunScreenY
-            });
-          }
-          // Don't update position when hovering over the same sun - keep tooltip stable
-          // Change cursor to pointer
-          if (canvasRef.current) {
-            canvasRef.current.style.cursor = "pointer";
-          }
-        } else {
-          // Only clear state if we were previously hovering (avoid unnecessary updates)
-          // Add a delay to allow user to move mouse to the tooltip
-          if (hoveredSunIdRef.current !== null) {
-            // Clear any existing hide timeout
+        const newPosition = {
+          x: e.clientX,
+          y: e.clientY,
+          lastX: mousePositionRef.current.x,
+          lastY: mousePositionRef.current.y,
+          speedX: e.clientX - mousePositionRef.current.x,
+          speedY: e.clientY - mousePositionRef.current.y,
+          isClicked: mousePositionRef.current.isClicked,
+          clickTime: mousePositionRef.current.clickTime,
+          isOnScreen: true,
+        };
+
+        // Update both the state and the ref directly
+        setMousePosition(newPosition);
+        mousePositionRef.current = newPosition;
+
+        // Check for sun hover - but only if mouse is directly over the canvas (not over content on top)
+        if (canvasRef.current) {
+          const rect = canvasRef.current.getBoundingClientRect();
+          const canvasX = e.clientX - rect.left;
+          const canvasY = e.clientY - rect.top;
+
+          // Check if the actual element under the cursor is within the starfield area
+          // This allows sun tooltips to show when hovering over the canvas or its background elements
+          // but not when hovering over content cards or other UI elements above the starfield
+          const elementUnderCursor = document.elementFromPoint(
+            e.clientX,
+            e.clientY,
+          );
+
+          // Expanded check: allow interaction when hovering over:
+          // 1. The canvas itself
+          // 2. Elements with data-starfield attribute
+          // 3. Elements with data-starfield-passthrough attribute (transparent overlays like hero section)
+          const isCanvas = elementUnderCursor === canvasRef.current;
+          const isWithinStarfieldData =
+            elementUnderCursor?.closest("[data-starfield]") !== null;
+          const isWithinStarfieldPassthrough =
+            elementUnderCursor?.closest("[data-starfield-passthrough]") !==
+            null;
+          const isWithinStarfield =
+            isCanvas || isWithinStarfieldData || isWithinStarfieldPassthrough;
+
+          // Also check if we're within canvas bounds
+          const isWithinBounds =
+            canvasX >= 0 &&
+            canvasX <= rect.width &&
+            canvasY >= 0 &&
+            canvasY <= rect.height;
+          const isOverCanvas = isWithinStarfield && isWithinBounds;
+
+          const sunHoverResult = isOverCanvas
+            ? checkSunHover(canvasX, canvasY, rect.width, rect.height)
+            : null;
+
+          if (sunHoverResult) {
+            // Clear any pending hide timeout since we're hovering over a sun
             if (sunHideTimeoutRef.current) {
               clearTimeout(sunHideTimeoutRef.current);
+              sunHideTimeoutRef.current = null;
             }
-            // Set a new hide timeout with 300ms delay
-            sunHideTimeoutRef.current = setTimeout(() => {
-              hoveredSunIdRef.current = null;
-              setHoveredSunId(null);
-              setHoveredSun(null);
-              // Reset cursor
-              if (canvasRef.current) {
-                canvasRef.current.style.cursor = "default";
+            // Only update state if the hovered sun changed
+            // Use the sun's fixed position (converted to viewport coordinates) instead of following the mouse
+            // This keeps the tooltip stable so users can click on it
+            if (hoveredSunIdRef.current !== sunHoverResult.sun.id) {
+              hoveredSunIdRef.current = sunHoverResult.sun.id;
+              setHoveredSunId(sunHoverResult.sun.id);
+              // Convert canvas-relative sun position to viewport coordinates
+              const sunScreenX = sunHoverResult.x + rect.left;
+              const sunScreenY = sunHoverResult.y + rect.top;
+              setHoveredSun({
+                id: sunHoverResult.sun.id,
+                name: sunHoverResult.sun.name,
+                description: sunHoverResult.sun.description,
+                color: sunHoverResult.sun.color || "#ffffff",
+                x: sunScreenX,
+                y: sunScreenY,
+              });
+            }
+            // Don't update position when hovering over the same sun - keep tooltip stable
+            // Change cursor to pointer
+            if (canvasRef.current) {
+              canvasRef.current.style.cursor = "pointer";
+            }
+          } else {
+            // Only clear state if we were previously hovering (avoid unnecessary updates)
+            // Add a delay to allow user to move mouse to the tooltip
+            if (hoveredSunIdRef.current !== null) {
+              // Clear any existing hide timeout
+              if (sunHideTimeoutRef.current) {
+                clearTimeout(sunHideTimeoutRef.current);
               }
-            }, 300);
+              // Set a new hide timeout with 300ms delay
+              sunHideTimeoutRef.current = setTimeout(() => {
+                hoveredSunIdRef.current = null;
+                setHoveredSunId(null);
+                setHoveredSun(null);
+                // Reset cursor
+                if (canvasRef.current) {
+                  canvasRef.current.style.cursor = "default";
+                }
+              }, 300);
+            }
           }
         }
-      }
-    };
-
-    const handleMouseDown = (): void => {
-      mousePositionRef.current = {
-        ...mousePositionRef.current,
-        isClicked: true,
-        clickTime: Date.now()
       };
-      setMousePosition({
-        ...mousePositionRef.current,
-        isClicked: true,
-        clickTime: Date.now()
-      });
-    };
 
-    const handleMouseUp = (): void => {
-      mousePositionRef.current = {
-        ...mousePositionRef.current,
-        isClicked: false
+      const handleMouseDown = (): void => {
+        mousePositionRef.current = {
+          ...mousePositionRef.current,
+          isClicked: true,
+          clickTime: Date.now(),
+        };
+        setMousePosition({
+          ...mousePositionRef.current,
+          isClicked: true,
+          clickTime: Date.now(),
+        });
       };
-      setMousePosition({
-        ...mousePositionRef.current,
-        isClicked: false
-      });
-    };
 
-    // Add all event listeners
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mousedown", handleMouseDown);
-    window.addEventListener("mouseup", handleMouseUp);
+      const handleMouseUp = (): void => {
+        mousePositionRef.current = {
+          ...mousePositionRef.current,
+          isClicked: false,
+        };
+        setMousePosition({
+          ...mousePositionRef.current,
+          isClicked: false,
+        });
+      };
 
-    // Cleanup - remove all listeners with correct references
-    return (): void => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mousedown", handleMouseDown);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [setMousePosition]);
+      // Add all event listeners
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mousedown", handleMouseDown);
+      window.addEventListener("mouseup", handleMouseUp);
 
-  // Refs for frequently-changing values to avoid useMemo recalculation every frame
-  // These are updated via useEffect and accessed in animation loop via refs
-  const hoverInfoRef = useRef(hoverInfo);
-  const gameStateRef = useRef(gameState);
-  const clickBurstsRefLocal = useRef(clickBursts);
-  const collisionEffectsRef = useRef(collisionEffects);
+      // Cleanup - remove all listeners with correct references
+      return (): void => {
+        window.removeEventListener("mousemove", handleMouseMove);
+        window.removeEventListener("mousedown", handleMouseDown);
+        window.removeEventListener("mouseup", handleMouseUp);
+      };
+    }, [setMousePosition]);
 
-  // Keep refs in sync with state (but don't trigger useMemo recalculation)
-  useEffect(() => { hoverInfoRef.current = hoverInfo; }, [hoverInfo]);
-  useEffect(() => { gameStateRef.current = gameState; }, [gameState]);
-  useEffect(() => { clickBurstsRefLocal.current = clickBursts; }, [clickBursts]);
-  useEffect(() => { collisionEffectsRef.current = collisionEffects; }, [collisionEffects]);
+    // Refs for frequently-changing values to avoid useMemo recalculation every frame
+    // These are updated via useEffect and accessed in animation loop via refs
+    const hoverInfoRef = useRef(hoverInfo);
+    const gameStateRef = useRef(gameState);
+    const clickBurstsRefLocal = useRef(clickBursts);
+    const collisionEffectsRef = useRef(collisionEffects);
 
-  // Memoize animation loop parameters to prevent unnecessary re-renders
-  // PERFORMANCE: Only include STATIC dependencies that rarely change
-  // Dynamic values (mousePosition, hoverInfo, gameState, etc.) are accessed via refs
-  // to prevent useMemo recalculation 60x/sec
-  const animationParams = useMemo(() => ({
-    canvasRef,
-    dimensions: dimensionsRef.current,
-    stars: starsRef.current,
-    blackHoles: blackHolesRef.current,
-    mousePosition: mousePositionRef.current, // Read from ref, not state
-    enableFlowEffect,
-    enableBlackHole,
-    enableMouseInteraction,
-    enablePlanets: enableEmployeeStars,
-    flowStrength: debugSettings.flowStrength,
-    gravitationalPull: debugSettings.gravitationalPull,
-    particleSpeed: debugSettings.particleSpeed,
-    planetSize: employeeStarSize,
-    employeeDisplayStyle,
-    heroMode,
-    centerPosition: centerPositionRef.current,
-    hoverInfo: hoverInfoRef.current, // Read from ref
-    setHoverInfo,
-    colorScheme,
-    lineConnectionDistance: debugSettings.lineConnectionDistance,
-    lineOpacity: debugSettings.lineOpacity,
-    mouseEffectRadius: debugSettings.mouseEffectRadius,
-    mouseEffectColor,
-    clickBursts: clickBurstsRefLocal.current, // Read from ref
-    setClickBursts,
-    clickBurstsRef,
-    gameMode,
-    gameState: gameStateRef.current, // Read from ref
-    setGameState,
-    collisionEffects: collisionEffectsRef.current, // Read from ref
-    setCollisionEffects,
-    createCollisionEffect,
-    isDarkMode,
-    frameCountRef,
-    debugMode: debugSettings.isDebugMode,
-    drawDebugInfo: customDrawDebugInfo,
-    maxVelocity: debugSettings.maxVelocity,
-    animationSpeed: debugSettings.animationSpeed,
-    starSize: starSize,
-    starsRef,
-    blackHolesRef,
-    planetsRef: employeeStarsRef,
-    ensureStarsExist,
-    updateFpsData,
-    fpsValuesRef,
-    hoveredSunId,
-    focusedSunId,
-    camera: internalCamera,
-    setCamera: setInternalCamera,
-    isMouseOverProjectTooltipRef,
-    cameraRef: cameraStateRef,
-    sidebarWidth
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [
-    // STATIC dependencies only - these rarely change
-    enableFlowEffect,
-    enableBlackHole,
-    enableMouseInteraction,
-    enableEmployeeStars,
-    heroMode,
-    gameMode,
-    debugSettings.isDebugMode,
-    debugSettings.maxVelocity,
-    debugSettings.animationSpeed,
-    debugSettings.flowStrength,
-    debugSettings.gravitationalPull,
-    debugSettings.mouseEffectRadius,
-    debugSettings.lineConnectionDistance,
-    debugSettings.lineOpacity,
-    colorScheme,
-    employeeStarSize,
-    employeeDisplayStyle,
-    mouseEffectColor,
-    isDarkMode,
-    starSize,
-    hoveredSunId,
-    focusedSunId,
-    sidebarWidth
-    // NOTE: mousePosition, hoverInfo, gameState, clickBursts, collisionEffects
-    // are INTENTIONALLY excluded - they are accessed via refs to prevent
-    // useMemo recalculation 60x/sec during animation
-  ]);
+    // Keep refs in sync with state (but don't trigger useMemo recalculation)
+    useEffect(() => {
+      hoverInfoRef.current = hoverInfo;
+    }, [hoverInfo]);
+    useEffect(() => {
+      gameStateRef.current = gameState;
+    }, [gameState]);
+    useEffect(() => {
+      clickBurstsRefLocal.current = clickBursts;
+    }, [clickBursts]);
+    useEffect(() => {
+      collisionEffectsRef.current = collisionEffects;
+    }, [collisionEffects]);
 
-  // Use the animation loop with memoized parameters - ONLY CALL THIS ONCE
-  const { cancelAnimation, restartAnimation } = useAnimationLoop(animationParams);
+    // Memoize animation loop parameters to prevent unnecessary re-renders
+    // PERFORMANCE: Only include STATIC dependencies that rarely change
+    // Dynamic values (mousePosition, hoverInfo, gameState, etc.) are accessed via refs
+    // to prevent useMemo recalculation 60x/sec
+    const animationParams = useMemo(
+      () => ({
+        canvasRef,
+        dimensions: dimensionsRef.current,
+        stars: starsRef.current,
+        blackHoles: blackHolesRef.current,
+        mousePosition: mousePositionRef.current, // Read from ref, not state
+        enableFlowEffect,
+        enableBlackHole,
+        enableMouseInteraction,
+        enablePlanets: enableEmployeeStars,
+        flowStrength: debugSettings.flowStrength,
+        gravitationalPull: debugSettings.gravitationalPull,
+        particleSpeed: debugSettings.particleSpeed,
+        planetSize: employeeStarSize,
+        employeeDisplayStyle,
+        heroMode,
+        centerPosition: centerPositionRef.current,
+        hoverInfo: hoverInfoRef.current, // Read from ref
+        setHoverInfo,
+        colorScheme,
+        lineConnectionDistance: debugSettings.lineConnectionDistance,
+        lineOpacity: debugSettings.lineOpacity,
+        mouseEffectRadius: debugSettings.mouseEffectRadius,
+        mouseEffectColor,
+        clickBursts: clickBurstsRefLocal.current, // Read from ref
+        setClickBursts,
+        clickBurstsRef,
+        gameMode,
+        gameState: gameStateRef.current, // Read from ref
+        setGameState,
+        collisionEffects: collisionEffectsRef.current, // Read from ref
+        setCollisionEffects,
+        createCollisionEffect,
+        isDarkMode,
+        frameCountRef,
+        debugMode: debugSettings.isDebugMode,
+        drawDebugInfo: customDrawDebugInfo,
+        maxVelocity: debugSettings.maxVelocity,
+        animationSpeed: debugSettings.animationSpeed,
+        starSize: starSize,
+        starsRef,
+        blackHolesRef,
+        planetsRef: employeeStarsRef,
+        ensureStarsExist,
+        updateFpsData,
+        fpsValuesRef,
+        hoveredSunId,
+        focusedSunId,
+        camera: internalCamera,
+        setCamera: setInternalCamera,
+        isMouseOverProjectTooltipRef,
+        cameraRef: cameraStateRef,
+        sidebarWidth,
+      }),
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [
+        // STATIC dependencies only - these rarely change
+        enableFlowEffect,
+        enableBlackHole,
+        enableMouseInteraction,
+        enableEmployeeStars,
+        heroMode,
+        gameMode,
+        debugSettings.isDebugMode,
+        debugSettings.maxVelocity,
+        debugSettings.animationSpeed,
+        debugSettings.flowStrength,
+        debugSettings.gravitationalPull,
+        debugSettings.mouseEffectRadius,
+        debugSettings.lineConnectionDistance,
+        debugSettings.lineOpacity,
+        colorScheme,
+        employeeStarSize,
+        employeeDisplayStyle,
+        mouseEffectColor,
+        isDarkMode,
+        starSize,
+        hoveredSunId,
+        focusedSunId,
+        sidebarWidth,
+        // NOTE: mousePosition, hoverInfo, gameState, clickBursts, collisionEffects
+        // are INTENTIONALLY excluded - they are accessed via refs to prevent
+        // useMemo recalculation 60x/sec during animation
+      ],
+    );
 
-  // Update the refs with the animation controller functions
-  useEffect(() => {
-    animationControllerRef.current = {
-      cancelAnimation,
-      restartAnimation
-    };
-    cancelAnimationRef.current = cancelAnimation;
-  }, [cancelAnimation, restartAnimation]);
+    // Use the animation loop with memoized parameters - ONLY CALL THIS ONCE
+    const { cancelAnimation, restartAnimation } =
+      useAnimationLoop(animationParams);
 
-  // Clean up animation on unmount
-  useEffect(() => {
-    return (): void => {
-      cancelAnimationRef.current();
-    };
-  }, []);
+    // Update the refs with the animation controller functions
+    useEffect(() => {
+      animationControllerRef.current = {
+        cancelAnimation,
+        restartAnimation,
+      };
+      cancelAnimationRef.current = cancelAnimation;
+    }, [cancelAnimation, restartAnimation]);
 
-  // Clean up module-level state on unmount to prevent memory leaks
-  useEffect(() => {
-    return (): void => {
-      // Reset all module-level states when component unmounts
-      // This prevents stale state and memory leaks on remount
-      resetSunSystem();
-      resetAnimationModuleState();
-      resetConnectionStagger();
+    // Clean up animation on unmount
+    useEffect(() => {
+      return (): void => {
+        cancelAnimationRef.current();
+      };
+    }, []);
 
-      // Clear any lingering timeouts
-      if (sunHideTimeoutRef.current) {
-        clearTimeout(sunHideTimeoutRef.current);
-        sunHideTimeoutRef.current = null;
-      }
-      if (projectTooltipHideTimeoutRef.current) {
-        clearTimeout(projectTooltipHideTimeoutRef.current);
-        projectTooltipHideTimeoutRef.current = null;
-      }
-      if (cameraAnimationRef.current) {
-        cancelAnimationFrame(cameraAnimationRef.current);
-        cameraAnimationRef.current = null;
-      }
-      if (focusAnimationRef.current) {
-        cancelAnimationFrame(focusAnimationRef.current);
-        focusAnimationRef.current = null;
-      }
+    // Clean up module-level state on unmount to prevent memory leaks
+    useEffect(() => {
+      return (): void => {
+        // Reset all module-level states when component unmounts
+        // This prevents stale state and memory leaks on remount
+        resetSunSystem();
+        resetAnimationModuleState();
+        resetConnectionStagger();
 
-      // Clean up global API
-      if (window.starfieldAPI) {
-        delete window.starfieldAPI;
-      }
-    };
-  }, []);
+        // Clear any lingering timeouts
+        if (sunHideTimeoutRef.current) {
+          clearTimeout(sunHideTimeoutRef.current);
+          sunHideTimeoutRef.current = null;
+        }
+        if (projectTooltipHideTimeoutRef.current) {
+          clearTimeout(projectTooltipHideTimeoutRef.current);
+          projectTooltipHideTimeoutRef.current = null;
+        }
+        if (cameraAnimationRef.current) {
+          cancelAnimationFrame(cameraAnimationRef.current);
+          cameraAnimationRef.current = null;
+        }
+        if (focusAnimationRef.current) {
+          cancelAnimationFrame(focusAnimationRef.current);
+          focusAnimationRef.current = null;
+        }
 
-  // Delay showing starfield until initialization is complete
-  // This prevents users from seeing the initial movement to designated positions
-  useEffect(() => {
-    // Clear any existing timer
-    if (initializationTimerRef.current) {
-      clearTimeout(initializationTimerRef.current);
-    }
+        // Clean up global API
+        if (window.starfieldAPI) {
+          delete window.starfieldAPI;
+        }
+      };
+    }, []);
 
-    // Wait for stars, planets, and suns to reach their initial positions
-    // The delay allows the physics engine to position elements before showing
-    initializationTimerRef.current = setTimeout((): void => {
-      setIsStarfieldReady(true);
-    }, EFFECT_TIMING.starfieldInitializationDelay);
-
-    return (): void => {
+    // Delay showing starfield until initialization is complete
+    // This prevents users from seeing the initial movement to designated positions
+    useEffect(() => {
+      // Clear any existing timer
       if (initializationTimerRef.current) {
         clearTimeout(initializationTimerRef.current);
       }
-    };
-  }, []); // Run once on mount
 
-  // Update employee stars when orbit speed changes
-  const _handleEmployeeOrbitSpeedChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    const newSpeed = parseFloat(e.target.value);
-    updateDebugSetting("employeeOrbitSpeed", newSpeed);
+      // Wait for stars, planets, and suns to reach their initial positions
+      // The delay allows the physics engine to position elements before showing
+      initializationTimerRef.current = setTimeout((): void => {
+        setIsStarfieldReady(true);
+      }, EFFECT_TIMING.starfieldInitializationDelay);
 
-    // Update employee stars with new orbit speed
-    if (employeeStarsRef.current.length > 0) {
-      const updatedEmployeeStars = employeeStarsRef.current.map(empStar => ({
-        ...empStar,
-        orbitSpeed: newSpeed
-      }));
-
-      employeeStarsRef.current = updatedEmployeeStars;
-    }
-  };
-
-  const applyStarfieldRepulsion = useCallback((x: number, y: number, radius: number = 300, force: number = 100): number => {
-
-    if (window.starfieldAPI) {
-      // Log before calling the API
-
-      // Call the API function
-      const affectedStars = window.starfieldAPI.applyForce(x, y, radius, force);
-
-      // Log the result
-
-      // Create an explosion effect
-      window.starfieldAPI.createExplosion(x, y);
-
-      return affectedStars;
-    } else {
-      logger.warn("[Starfield] starfieldAPI is not available");
-      return 0;
-    }
-  }, []);
-
-  // Function to zoom the camera to focus on a specific sun
-  const zoomToSun = useCallback((sunId: string): void => {
-
-    // Cancel any existing camera animation
-    if (cameraAnimationRef.current) {
-      cancelAnimationFrame(cameraAnimationRef.current);
-    }
-
-    // If clicking on the same sun, toggle off (zoom out)
-    if (focusedSunId === sunId) {
-      setFocusedSunId(null);
-
-      // Set camera target to zoom out
-      setInternalCamera(prev => ({
-        ...prev,
-        target: {
-          cx: 0.5,
-          cy: 0.5,
-          zoom: 1
+      return (): void => {
+        if (initializationTimerRef.current) {
+          clearTimeout(initializationTimerRef.current);
         }
-      }));
-      return;
-    }
+      };
+    }, []); // Run once on mount
 
-    // Get the sun's current position
-    const sunPosition = getSunPosition(sunId);
-    if (!sunPosition) {
-      logger.warn(`[Starfield] Could not find sun with id: ${sunId}`);
-      return;
-    }
+    // Update employee stars when orbit speed changes
+    const _handleEmployeeOrbitSpeedChange = (
+      e: React.ChangeEvent<HTMLInputElement>,
+    ): void => {
+      const newSpeed = parseFloat(e.target.value);
+      updateDebugSetting("employeeOrbitSpeed", newSpeed);
 
-    setFocusedSunId(sunId);
+      // Update employee stars with new orbit speed
+      if (employeeStarsRef.current.length > 0) {
+        const updatedEmployeeStars = employeeStarsRef.current.map(
+          (empStar) => ({
+            ...empStar,
+            orbitSpeed: newSpeed,
+          }),
+        );
 
-    // Calculate the maximum orbit radius of planets around this sun
-    // This helps determine the optimal zoom level
-    const planetsForSun = employeeStarsRef.current.filter(
-      planet => planet.orbitParentId === sunId
+        employeeStarsRef.current = updatedEmployeeStars;
+      }
+    };
+
+    const applyStarfieldRepulsion = useCallback(
+      (
+        x: number,
+        y: number,
+        radius: number = 300,
+        force: number = 100,
+      ): number => {
+        if (window.starfieldAPI) {
+          // Log before calling the API
+
+          // Call the API function
+          const affectedStars = window.starfieldAPI.applyForce(
+            x,
+            y,
+            radius,
+            force,
+          );
+
+          // Log the result
+
+          // Create an explosion effect
+          window.starfieldAPI.createExplosion(x, y);
+
+          return affectedStars;
+        } else {
+          logger.warn("[Starfield] starfieldAPI is not available");
+          return 0;
+        }
+      },
+      [],
     );
 
-    let maxOrbitRadius = 0;
-    if (planetsForSun.length > 0) {
-      planetsForSun.forEach(planet => {
-        if (planet.orbitRadius) {
-          maxOrbitRadius = Math.max(maxOrbitRadius, planet.orbitRadius);
+    // Function to zoom the camera to focus on a specific sun
+    const zoomToSun = useCallback(
+      (sunId: string): void => {
+        // Cancel any existing camera animation
+        if (cameraAnimationRef.current) {
+          cancelAnimationFrame(cameraAnimationRef.current);
         }
-      });
-    }
 
-    // Calculate zoom level based on orbit size
-    // Default to sunFocusZoom if no planets, otherwise calculate dynamically
-    // Base zoom is 2.5, but we reduce it if planets orbit far from the sun
-    // Normalized maxOrbitRadius (typical range: 50-200 pixels on a 1000px canvas)
-    const canvasSize = dimensionsRef.current
-      ? Math.min(dimensionsRef.current.width, dimensionsRef.current.height)
-      : 1000; // Default fallback size
-    const normalizedOrbitRadius = maxOrbitRadius / canvasSize;
+        // If clicking on the same sun, toggle off (zoom out)
+        if (focusedSunId === sunId) {
+          setFocusedSunId(null);
 
-    // Calculate zoom: larger orbits = less zoom to fit everything in view
-    // Zoom range: minSunFocusZoom to maxSunFocusZoom depending on orbit size
-    const calculatedZoom = normalizedOrbitRadius > 0
-      ? Math.max(
-          CAMERA_CONFIG.minSunFocusZoom,
-          Math.min(
-            CAMERA_CONFIG.maxSunFocusZoom,
-            CAMERA_CONFIG.sunFocusZoomDivisor / (1 + normalizedOrbitRadius * CAMERA_CONFIG.sunFocusOrbitMultiplier)
-          )
-        )
-      : CAMERA_CONFIG.sunFocusZoom;
+          // Set camera target to zoom out
+          setInternalCamera((prev) => ({
+            ...prev,
+            target: {
+              cx: 0.5,
+              cy: 0.5,
+              zoom: 1,
+            },
+          }));
+          return;
+        }
 
-    // Set camera target to zoom in on the sun
-    // Sun position is normalized (0-1), camera uses same coordinates
-    setInternalCamera(prev => ({
-      ...prev,
-      target: {
-        cx: sunPosition.x,
-        cy: sunPosition.y,
-        zoom: calculatedZoom
-      }
-    }));
+        // Get the sun's current position
+        const sunPosition = getSunPosition(sunId);
+        if (!sunPosition) {
+          logger.warn(`[Starfield] Could not find sun with id: ${sunId}`);
+          return;
+        }
 
-  }, [focusedSunId, employeeStarsRef, dimensionsRef]);
+        setFocusedSunId(sunId);
 
-  // Smooth camera lerp animation - only runs when there's an active target
-  // Use a serialized target key to detect when target changes
-  const targetKey = internalCamera.target 
-    ? `${internalCamera.target.cx}-${internalCamera.target.cy}-${internalCamera.target.zoom}` 
-    : null;
-  
-  useEffect(() => {
-    // Helper function to sync cameraStateRef with current internalCamera position
-    const syncCameraStateRef = () => {
-      cameraStateRef.current = {
-        cx: internalCamera.cx,
-        cy: internalCamera.cy,
-        zoom: internalCamera.zoom
+        // Calculate the maximum orbit radius of planets around this sun
+        // This helps determine the optimal zoom level
+        const planetsForSun = employeeStarsRef.current.filter(
+          (planet) => planet.orbitParentId === sunId,
+        );
+
+        let maxOrbitRadius = 0;
+        if (planetsForSun.length > 0) {
+          planetsForSun.forEach((planet) => {
+            if (planet.orbitRadius) {
+              maxOrbitRadius = Math.max(maxOrbitRadius, planet.orbitRadius);
+            }
+          });
+        }
+
+        // Calculate zoom level based on orbit size
+        // Default to sunFocusZoom if no planets, otherwise calculate dynamically
+        // Base zoom is 2.5, but we reduce it if planets orbit far from the sun
+        // Normalized maxOrbitRadius (typical range: 50-200 pixels on a 1000px canvas)
+        const canvasSize = dimensionsRef.current
+          ? Math.min(dimensionsRef.current.width, dimensionsRef.current.height)
+          : 1000; // Default fallback size
+        const normalizedOrbitRadius = maxOrbitRadius / canvasSize;
+
+        // Calculate zoom: larger orbits = less zoom to fit everything in view
+        // Zoom range: minSunFocusZoom to maxSunFocusZoom depending on orbit size
+        const calculatedZoom =
+          normalizedOrbitRadius > 0
+            ? Math.max(
+                CAMERA_CONFIG.minSunFocusZoom,
+                Math.min(
+                  CAMERA_CONFIG.maxSunFocusZoom,
+                  CAMERA_CONFIG.sunFocusZoomDivisor /
+                    (1 +
+                      normalizedOrbitRadius *
+                        CAMERA_CONFIG.sunFocusOrbitMultiplier),
+                ),
+              )
+            : CAMERA_CONFIG.sunFocusZoom;
+
+        // Set camera target to zoom in on the sun
+        // Sun position is normalized (0-1), camera uses same coordinates
+        setInternalCamera((prev) => ({
+          ...prev,
+          target: {
+            cx: sunPosition.x,
+            cy: sunPosition.y,
+            zoom: calculatedZoom,
+          },
+        }));
+      },
+      [focusedSunId, employeeStarsRef, dimensionsRef],
+    );
+
+    // Smooth camera lerp animation - only runs when there's an active target
+    // Use a serialized target key to detect when target changes
+    const targetKey = internalCamera.target
+      ? `${internalCamera.target.cx}-${internalCamera.target.cy}-${internalCamera.target.zoom}`
+      : null;
+
+    useEffect(() => {
+      // Helper function to sync cameraStateRef with current internalCamera position
+      const syncCameraStateRef = (): void => {
+        cameraStateRef.current = {
+          cx: internalCamera.cx,
+          cy: internalCamera.cy,
+          zoom: internalCamera.zoom,
+        };
       };
-    };
-    
-    // Only start animation if there's an active target
-    if (!internalCamera.target) {
-      // No target, ensure any running animation is stopped
-      if (cameraAnimationRef.current) {
-        cancelAnimationFrame(cameraAnimationRef.current);
-        cameraAnimationRef.current = null;
-      }
-      // Sync cameraStateRef with current camera position when no target
-      syncCameraStateRef();
-      return;
-    }
-    
-    // Cancel any existing animation before starting a new one
-    // This handles switching between different zoom targets
-    if (cameraAnimationRef.current) {
-      cancelAnimationFrame(cameraAnimationRef.current);
-      cameraAnimationRef.current = null;
-    }
-    
-    // Sync cameraStateRef with current camera position before starting new animation
-    // This ensures the animation starts from the current visible position
-    syncCameraStateRef();
-    
-    // Store the target for this animation cycle
-    const targetCx = internalCamera.target.cx;
-    const targetCy = internalCamera.target.cy;
-    const targetZoom = internalCamera.target.zoom;
-    
-    const animateCamera = (): void => {
-      // Read the current animated position from ref (updated each frame)
-      const { cx: currentCx, cy: currentCy, zoom: currentZoom } = cameraStateRef.current;
-      
-      const smoothing = CAMERA_CONFIG.cameraSmoothingFactor;
-      const newCx = currentCx + (targetCx - currentCx) * smoothing;
-      const newCy = currentCy + (targetCy - currentCy) * smoothing;
-      const newZoom = currentZoom + (targetZoom - currentZoom) * smoothing;
-      
-      // Update the ref with the new animated position (for next frame)
-      cameraStateRef.current = { cx: newCx, cy: newCy, zoom: newZoom };
-      
-      // Check if we're close enough to target
-      const isCloseEnough = 
-        Math.abs(newCx - targetCx) < CAMERA_CONFIG.positionConvergenceThreshold &&
-        Math.abs(newCy - targetCy) < CAMERA_CONFIG.positionConvergenceThreshold &&
-        Math.abs(newZoom - targetZoom) < CAMERA_CONFIG.zoomConvergenceThreshold;
-      
-      if (isCloseEnough) {
-        // Reached target, set final values and clear target
-        cameraStateRef.current = { cx: targetCx, cy: targetCy, zoom: targetZoom };
-        setInternalCamera({
-          cx: targetCx,
-          cy: targetCy,
-          zoom: targetZoom,
-          target: undefined
-        });
-        cameraAnimationRef.current = null;
+
+      // Only start animation if there's an active target
+      if (!internalCamera.target) {
+        // No target, ensure any running animation is stopped
+        if (cameraAnimationRef.current) {
+          cancelAnimationFrame(cameraAnimationRef.current);
+          cameraAnimationRef.current = null;
+        }
+        // Sync cameraStateRef with current camera position when no target
+        syncCameraStateRef();
         return;
       }
-      
-      // Update React state to trigger re-render for visual updates
-      // (The animation loop reads from cameraStateRef, not React state)
-      setInternalCamera(prev => ({
-        cx: newCx,
-        cy: newCy,
-        zoom: newZoom,
-        target: prev.target // Keep the target
-      }));
-      
-      // Continue animation for next frame
-      cameraAnimationRef.current = requestAnimationFrame(animateCamera);
-    };
-    
-    // Start the animation
-    cameraAnimationRef.current = requestAnimationFrame(animateCamera);
 
-    return (): void => {
+      // Cancel any existing animation before starting a new one
+      // This handles switching between different zoom targets
       if (cameraAnimationRef.current) {
         cancelAnimationFrame(cameraAnimationRef.current);
         cameraAnimationRef.current = null;
       }
-    };
-    // targetKey is a stable serialized key derived from internalCamera.target
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [targetKey]);
 
-  // Legacy function kept for backward compatibility
-  const _scrollToFocusArea = useCallback((sunId: string, _sunX: number, _sunY: number): void => {
-    // Now just delegates to the camera zoom function
-    zoomToSun(sunId);
-  }, [zoomToSun]);
+      // Sync cameraStateRef with current camera position before starting new animation
+      // This ensures the animation starts from the current visible position
+      syncCameraStateRef();
 
-  // Update the click handler to use this unified function:
-  const handleCanvasClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>): void => {
-    if (!canvasRef.current) {
-      logger.warn("[Starfield] Click handler called but canvas ref is null");
-      return;
-    }
+      // Store the target for this animation cycle
+      const targetCx = internalCamera.target.cx;
+      const targetCy = internalCamera.target.cy;
+      const targetZoom = internalCamera.target.zoom;
 
-    // Get click coordinates relative to canvas
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+      const animateCamera = (): void => {
+        // Read the current animated position from ref (updated each frame)
+        const {
+          cx: currentCx,
+          cy: currentCy,
+          zoom: currentZoom,
+        } = cameraStateRef.current;
 
-    // First check if we clicked on a focus area sun BEFORE applying any repulsion
-    // This ensures the sun position is checked before any physics are applied
-    const sunHoverResult = checkSunHover(x, y, rect.width, rect.height);
-    
-    if (sunHoverResult) {
-      // Clicked on a sun - zoom to focus on that area
-      zoomToSun(sunHoverResult.sun.id);
-      return;
-    }
+        const smoothing = CAMERA_CONFIG.cameraSmoothingFactor;
+        const newCx = currentCx + (targetCx - currentCx) * smoothing;
+        const newCy = currentCy + (targetCy - currentCy) * smoothing;
+        const newZoom = currentZoom + (targetZoom - currentZoom) * smoothing;
 
-    // Only apply repulsion effects if we didn't click on a sun
-    // Apply repulsive force to suns (this stacks up with multiple clicks)
-    applyClickRepulsionToSunsCanvas(x, y, rect.width, rect.height);
+        // Update the ref with the new animated position (for next frame)
+        cameraStateRef.current = { cx: newCx, cy: newCy, zoom: newZoom };
 
-    // Apply repulsive force to planets/comets (orbiting portfolio items)
-    if (employeeStarsRef.current && employeeStarsRef.current.length > 0) {
-      applyClickRepulsionToPlanets(employeeStarsRef.current, x, y);
-    }
+        // Check if we're close enough to target
+        const isCloseEnough =
+          Math.abs(newCx - targetCx) <
+            CAMERA_CONFIG.positionConvergenceThreshold &&
+          Math.abs(newCy - targetCy) <
+            CAMERA_CONFIG.positionConvergenceThreshold &&
+          Math.abs(newZoom - targetZoom) <
+            CAMERA_CONFIG.zoomConvergenceThreshold;
 
-    // Use the unified function for regular click repulsion
-    applyStarfieldRepulsion(x, y);
+        if (isCloseEnough) {
+          // Reached target, set final values and clear target
+          cameraStateRef.current = {
+            cx: targetCx,
+            cy: targetCy,
+            zoom: targetZoom,
+          };
+          setInternalCamera({
+            cx: targetCx,
+            cy: targetCy,
+            zoom: targetZoom,
+            target: undefined,
+          });
+          cameraAnimationRef.current = null;
+          return;
+        }
 
-    // Update mouse position state
-    if (setMousePosition) {
-      setMousePosition(prev => ({
-        ...prev,
-        x: x,
-        y: y,
-        isClicked: false,
-        clickTime: Date.now()
-      }));
-    }
-  }, [canvasRef, setMousePosition, applyStarfieldRepulsion, zoomToSun, employeeStarsRef]);
+        // Update React state to trigger re-render for visual updates
+        // (The animation loop reads from cameraStateRef, not React state)
+        setInternalCamera((prev) => ({
+          cx: newCx,
+          cy: newCy,
+          zoom: newZoom,
+          target: prev.target, // Keep the target
+        }));
 
-  useEffect(() => {
-    if (canvasRef.current) {
+        // Continue animation for next frame
+        cameraAnimationRef.current = requestAnimationFrame(animateCamera);
+      };
 
-      // Add a direct DOM event listener as a backup
-      const canvas = canvasRef.current;
-      const clickHandler = (e: MouseEvent): void => {
+      // Start the animation
+      cameraAnimationRef.current = requestAnimationFrame(animateCamera);
+
+      return (): void => {
+        if (cameraAnimationRef.current) {
+          cancelAnimationFrame(cameraAnimationRef.current);
+          cameraAnimationRef.current = null;
+        }
+      };
+      // targetKey is a stable serialized key derived from internalCamera.target
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [targetKey]);
+
+    // Legacy function kept for backward compatibility
+    const _scrollToFocusArea = useCallback(
+      (sunId: string, _sunX: number, _sunY: number): void => {
+        // Now just delegates to the camera zoom function
+        zoomToSun(sunId);
+      },
+      [zoomToSun],
+    );
+
+    // Update the click handler to use this unified function:
+    const handleCanvasClick = useCallback(
+      (event: React.MouseEvent<HTMLCanvasElement>): void => {
+        if (!canvasRef.current) {
+          logger.warn(
+            "[Starfield] Click handler called but canvas ref is null",
+          );
+          return;
+        }
 
         // Get click coordinates relative to canvas
-        const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        const rect = canvasRef.current.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
 
         // First check if we clicked on a focus area sun BEFORE applying any repulsion
+        // This ensures the sun position is checked before any physics are applied
         const sunHoverResult = checkSunHover(x, y, rect.width, rect.height);
 
         if (sunHoverResult) {
@@ -1149,183 +1245,265 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
         }
 
         // Only apply repulsion effects if we didn't click on a sun
+        // Apply repulsive force to suns (this stacks up with multiple clicks)
         applyClickRepulsionToSunsCanvas(x, y, rect.width, rect.height);
 
-        // Apply repulsion to planets/comets
+        // Apply repulsive force to planets/comets (orbiting portfolio items)
         if (employeeStarsRef.current && employeeStarsRef.current.length > 0) {
           applyClickRepulsionToPlanets(employeeStarsRef.current, x, y);
         }
 
+        // Use the unified function for regular click repulsion
         applyStarfieldRepulsion(x, y);
-      };
 
-      canvas.addEventListener("click", clickHandler);
+        // Update mouse position state
+        if (setMousePosition) {
+          setMousePosition((prev) => ({
+            ...prev,
+            x: x,
+            y: y,
+            isClicked: false,
+            clickTime: Date.now(),
+          }));
+        }
+      },
+      [
+        canvasRef,
+        setMousePosition,
+        applyStarfieldRepulsion,
+        zoomToSun,
+        employeeStarsRef,
+      ],
+    );
 
-      return (): void => {
-        canvas.removeEventListener("click", clickHandler);
-      };
-    }
-  }, [canvasRef, applyStarfieldRepulsion, zoomToSun, employeeStarsRef]);
+    useEffect(() => {
+      if (canvasRef.current) {
+        // Add a direct DOM event listener as a backup
+        const canvas = canvasRef.current;
+        const clickHandler = (e: MouseEvent): void => {
+          // Get click coordinates relative to canvas
+          const rect = canvas.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
 
-  return (
-    <>
-      {/* Background elements with positive z-index */}
-      <div className={styles.starfieldWrapper} data-starfield>
-        <div className={`${styles.starfieldBackground} ${isDarkMode ? "" : styles.light}`}></div>
-        <div className={`${styles.nebulaOverlay} ${isDarkMode ? "" : styles.light}`}></div>
-        <div className={`${styles.frontierAccent} ${isDarkMode ? "" : styles.light}`}></div>
-        <div className={`${styles.purpleAccent} ${isDarkMode ? "" : styles.light}`}></div>
+          // First check if we clicked on a focus area sun BEFORE applying any repulsion
+          const sunHoverResult = checkSunHover(x, y, rect.width, rect.height);
 
-        {/* Canvas for interactive elements - fade in after initialization */}
-        <canvas
-          ref={canvasRef}
-          className={`${styles.starfieldCanvas} ${isStarfieldReady ? styles.starfieldReady : styles.starfieldInitializing}`}
-          aria-hidden="true"
-          onClick={(e): void => {
-            e.stopPropagation(); // Stop event propagation
-            handleCanvasClick(e);
-          }}
-          onTouchStart={(e): void => {
-            // Prevent default to avoid issues on touch
-            e.stopPropagation();
-          }}
-          onTouchEnd={(e): void => {
-            // Convert touch to click for mobile support
-            if (e.changedTouches.length > 0) {
-              const touch = e.changedTouches[0];
-              const rect = canvasRef.current?.getBoundingClientRect();
-              if (rect) {
-                const x = touch.clientX - rect.left;
-                const y = touch.clientY - rect.top;
+          if (sunHoverResult) {
+            // Clicked on a sun - zoom to focus on that area
+            zoomToSun(sunHoverResult.sun.id);
+            return;
+          }
 
-                // First check if we touched a sun BEFORE applying any repulsion
-                const sunHoverResult = checkSunHover(x, y, rect.width, rect.height);
+          // Only apply repulsion effects if we didn't click on a sun
+          applyClickRepulsionToSunsCanvas(x, y, rect.width, rect.height);
 
-                if (sunHoverResult) {
-                  zoomToSun(sunHoverResult.sun.id);
-                } else {
-                  // Only apply repulsion if we didn't touch a sun
-                  applyClickRepulsionToSunsCanvas(x, y, rect.width, rect.height);
-                  
-                  // Apply repulsion to planets/comets
-                  if (employeeStarsRef.current && employeeStarsRef.current.length > 0) {
-                    applyClickRepulsionToPlanets(employeeStarsRef.current, x, y);
+          // Apply repulsion to planets/comets
+          if (employeeStarsRef.current && employeeStarsRef.current.length > 0) {
+            applyClickRepulsionToPlanets(employeeStarsRef.current, x, y);
+          }
+
+          applyStarfieldRepulsion(x, y);
+        };
+
+        canvas.addEventListener("click", clickHandler);
+
+        return (): void => {
+          canvas.removeEventListener("click", clickHandler);
+        };
+      }
+    }, [canvasRef, applyStarfieldRepulsion, zoomToSun, employeeStarsRef]);
+
+    return (
+      <>
+        {/* Background elements with positive z-index */}
+        <div className={styles.starfieldWrapper} data-starfield>
+          <div
+            className={`${styles.starfieldBackground} ${isDarkMode ? "" : styles.light}`}
+          ></div>
+          <div
+            className={`${styles.nebulaOverlay} ${isDarkMode ? "" : styles.light}`}
+          ></div>
+          <div
+            className={`${styles.frontierAccent} ${isDarkMode ? "" : styles.light}`}
+          ></div>
+          <div
+            className={`${styles.purpleAccent} ${isDarkMode ? "" : styles.light}`}
+          ></div>
+
+          {/* Canvas for interactive elements - fade in after initialization */}
+          <canvas
+            ref={canvasRef}
+            className={`${styles.starfieldCanvas} ${isStarfieldReady ? styles.starfieldReady : styles.starfieldInitializing}`}
+            aria-hidden="true"
+            onClick={(e): void => {
+              e.stopPropagation(); // Stop event propagation
+              handleCanvasClick(e);
+            }}
+            onTouchStart={(e): void => {
+              // Prevent default to avoid issues on touch
+              e.stopPropagation();
+            }}
+            onTouchEnd={(e): void => {
+              // Convert touch to click for mobile support
+              if (e.changedTouches.length > 0) {
+                const touch = e.changedTouches[0];
+                const rect = canvasRef.current?.getBoundingClientRect();
+                if (rect) {
+                  const x = touch.clientX - rect.left;
+                  const y = touch.clientY - rect.top;
+
+                  // First check if we touched a sun BEFORE applying any repulsion
+                  const sunHoverResult = checkSunHover(
+                    x,
+                    y,
+                    rect.width,
+                    rect.height,
+                  );
+
+                  if (sunHoverResult) {
+                    zoomToSun(sunHoverResult.sun.id);
+                  } else {
+                    // Only apply repulsion if we didn't touch a sun
+                    applyClickRepulsionToSunsCanvas(
+                      x,
+                      y,
+                      rect.width,
+                      rect.height,
+                    );
+
+                    // Apply repulsion to planets/comets
+                    if (
+                      employeeStarsRef.current &&
+                      employeeStarsRef.current.length > 0
+                    ) {
+                      applyClickRepulsionToPlanets(
+                        employeeStarsRef.current,
+                        x,
+                        y,
+                      );
+                    }
+
+                    applyStarfieldRepulsion(x, y);
                   }
-                  
-                  applyStarfieldRepulsion(x, y);
                 }
               }
-            }
-          }}
-        />
-      </div>
+            }}
+          />
+        </div>
 
-      {/* Only render debug controls when debug mode is active */}
-      {debugSettings.isDebugMode && (
-        <DebugControlsOverlay
-          debugSettings={debugSettings}
-          updateDebugSetting={updateDebugSetting}
-          resetStars={resetStars}
-          sidebarWidth={sidebarWidth}
-          stars={stars}
-          mousePosition={mousePosition}
-          fps={currentFps}
-          timestamp={timestamp}
-          setMousePosition={setMousePosition}
-          isDarkMode={isDarkMode}
-        />
-      )}
+        {/* Only render debug controls when debug mode is active */}
+        {debugSettings.isDebugMode && (
+          <DebugControlsOverlay
+            debugSettings={debugSettings}
+            updateDebugSetting={updateDebugSetting}
+            resetStars={resetStars}
+            sidebarWidth={sidebarWidth}
+            stars={stars}
+            mousePosition={mousePosition}
+            fps={currentFps}
+            timestamp={timestamp}
+            setMousePosition={setMousePosition}
+            isDarkMode={isDarkMode}
+          />
+        )}
 
-      {pinnedProject && (
-        <ProjectTooltip
-          project={pinnedProject}
-          x={pinnedPosition.x}
-          y={pinnedPosition.y}
-          isPinned={true}
-          isDarkMode={isDarkMode}
-          onUnpin={handleUnpinProject}
-        />
-      )}
+        {pinnedProject && (
+          <ProjectTooltip
+            project={pinnedProject}
+            x={pinnedPosition.x}
+            y={pinnedPosition.y}
+            isPinned={true}
+            isDarkMode={isDarkMode}
+            onUnpin={handleUnpinProject}
+          />
+        )}
 
-      {hoverInfo.show && hoverInfo.project && !pinnedProject && (
-        <ProjectTooltip
-          project={hoverInfo.project}
-          x={hoverInfo.x}
-          y={hoverInfo.y}
-          isDarkMode={isDarkMode}
-          onPin={handlePinProject}
-          onMouseEnter={handleProjectTooltipMouseEnter}
-          onMouseLeave={handleProjectTooltipMouseLeave}
-        />
-      )}
+        {hoverInfo.show && hoverInfo.project && !pinnedProject && (
+          <ProjectTooltip
+            project={hoverInfo.project}
+            x={hoverInfo.x}
+            y={hoverInfo.y}
+            isDarkMode={isDarkMode}
+            onPin={handlePinProject}
+            onMouseEnter={handleProjectTooltipMouseEnter}
+            onMouseLeave={handleProjectTooltipMouseLeave}
+          />
+        )}
 
-      {/* Sun tooltip when hovering over a focus area sun - only show if no project tooltip is visible */}
-      {hoveredSun && !pinnedProject && !hoverInfo.show && (
-        <SunTooltip
-          sun={hoveredSun}
-          isDarkMode={isDarkMode}
-          onClick={(sunId): void => zoomToSun(sunId)}
-          onMouseEnter={(): void => {
-            // Clear any pending hide timeout when mouse enters tooltip
-            if (sunHideTimeoutRef.current) {
-              clearTimeout(sunHideTimeoutRef.current);
-              sunHideTimeoutRef.current = null;
-            }
-          }}
-          onMouseLeave={(): void => {
-            // Start hide timeout when mouse leaves tooltip
-            sunHideTimeoutRef.current = setTimeout((): void => {
-              hoveredSunIdRef.current = null;
-              setHoveredSunId(null);
-              setHoveredSun(null);
-            }, 200);
-          }}
-        />
-      )}
+        {/* Sun tooltip when hovering over a focus area sun - only show if no project tooltip is visible */}
+        {hoveredSun && !pinnedProject && !hoverInfo.show && (
+          <SunTooltip
+            sun={hoveredSun}
+            isDarkMode={isDarkMode}
+            onClick={(sunId): void => zoomToSun(sunId)}
+            onMouseEnter={(): void => {
+              // Clear any pending hide timeout when mouse enters tooltip
+              if (sunHideTimeoutRef.current) {
+                clearTimeout(sunHideTimeoutRef.current);
+                sunHideTimeoutRef.current = null;
+              }
+            }}
+            onMouseLeave={(): void => {
+              // Start hide timeout when mouse leaves tooltip
+              sunHideTimeoutRef.current = setTimeout((): void => {
+                hoveredSunIdRef.current = null;
+                setHoveredSunId(null);
+                setHoveredSun(null);
+              }, 200);
+            }}
+          />
+        )}
 
-      {/* Vignette overlay when focused on a sun */}
-      {focusedSunId && (
-        <div className={`${styles.cameraVignette} ${!isDarkMode ? styles.cameraVignetteLight : ""}`} />
-      )}
+        {/* Vignette overlay when focused on a sun */}
+        {focusedSunId && (
+          <div
+            className={`${styles.cameraVignette} ${!isDarkMode ? styles.cameraVignetteLight : ""}`}
+          />
+        )}
 
-      {/* Focus area indicator when zoomed into a sun */}
-      {focusedSunId && ((): React.ReactElement | null => {
-        const sunState = getSunStates().find(s => s.id === focusedSunId);
-        return sunState ? (
-          <div className={`${styles.focusAreaIndicator} ${!isDarkMode ? styles.focusAreaIndicatorLight : ""}`}>
-            <div className={styles.focusAreaLabel}>
-              <span className={styles.focusAreaIcon}>🔍</span>
-              <span className={styles.focusAreaName}>{sunState.name}</span>
-            </div>
-          </div>
-        ) : null;
-      })()}
+        {/* Focus area indicator when zoomed into a sun */}
+        {focusedSunId &&
+          ((): React.ReactElement | null => {
+            const sunState = getSunStates().find((s) => s.id === focusedSunId);
+            return sunState ? (
+              <div
+                className={`${styles.focusAreaIndicator} ${!isDarkMode ? styles.focusAreaIndicatorLight : ""}`}
+              >
+                <div className={styles.focusAreaLabel}>
+                  <span className={styles.focusAreaIcon}>🔍</span>
+                  <span className={styles.focusAreaName}>{sunState.name}</span>
+                </div>
+              </div>
+            ) : null;
+          })()}
 
-      {/* Zoom out button when focused on a sun */}
-      {focusedSunId && (
-        <button
-          className={`${styles.zoomOutButton} ${!isDarkMode ? styles.zoomOutButtonLight : ""}`}
-          onClick={(): void => zoomToSun(focusedSunId)}
-          style={{
-            // Center button in visible content area, accounting for sidebar width
-            left: `calc(50% + ${sidebarWidth / 2}px)`
-          }}
-        >
-          <span className={styles.zoomOutIcon}>←</span>
-          Zoom Out
-        </button>
-      )}
+        {/* Zoom out button when focused on a sun */}
+        {focusedSunId && (
+          <button
+            className={`${styles.zoomOutButton} ${!isDarkMode ? styles.zoomOutButtonLight : ""}`}
+            onClick={(): void => zoomToSun(focusedSunId)}
+            style={{
+              // Center button in visible content area, accounting for sidebar width
+              left: `calc(50% + ${sidebarWidth / 2}px)`,
+            }}
+          >
+            <span className={styles.zoomOutIcon}>←</span>
+            Zoom Out
+          </button>
+        )}
 
-      {/* Add score overlay if in game mode */}
-      {gameMode && (
-        <ScoreOverlay
-          remainingClicks={gameState.remainingClicks}
-          currentScore={gameState.score}
-          highScores={gameState.highScores}
-        />
-      )}
-    </>
-  );
-});
+        {/* Add score overlay if in game mode */}
+        {gameMode && (
+          <ScoreOverlay
+            remainingClicks={gameState.remainingClicks}
+            currentScore={gameState.score}
+            highScores={gameState.highScores}
+          />
+        )}
+      </>
+    );
+  },
+);
 
 export default InteractiveStarfield;

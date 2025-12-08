@@ -2,20 +2,19 @@
 
 import { ThemeValidationError } from "@/theme/validation";
 
-
 /**
  * Theme error codes indicating the type of error that occurred.
  */
 export type ThemeErrorCode =
-  | "INVALID_SCHEME"           // Invalid color scheme
-  | "INVALID_MODE"             // Invalid mode
-  | "STORAGE_ERROR"            // Storage-related error
-  | "INITIALIZATION_ERROR"     // Initialization error
-  | "SYSTEM_DETECTION_ERROR"   // System preference detection error
-  | "TRANSITION_ERROR"         // Transition-related error
-  | "INVALID_CONFIG"           // Invalid configuration
-  | "EVENT_ERROR"              // Event handling error
-  | "CONTEXT_ERROR";           // Context-related error
+  | "INVALID_SCHEME" // Invalid color scheme
+  | "INVALID_MODE" // Invalid mode
+  | "STORAGE_ERROR" // Storage-related error
+  | "INITIALIZATION_ERROR" // Initialization error
+  | "SYSTEM_DETECTION_ERROR" // System preference detection error
+  | "TRANSITION_ERROR" // Transition-related error
+  | "INVALID_CONFIG" // Invalid configuration
+  | "EVENT_ERROR" // Event handling error
+  | "CONTEXT_ERROR"; // Context-related error
 
 /**
  * Levels indicating the severity of an error.

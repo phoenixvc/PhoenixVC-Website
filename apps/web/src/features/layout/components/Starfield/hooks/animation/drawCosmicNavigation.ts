@@ -13,7 +13,7 @@ export function drawCosmicNavigation(
   camera: Camera,
   time: number,
   hoveredObjectId: string | null,
-  isDarkMode: boolean
+  isDarkMode: boolean,
 ): void {
   // Only render if we have valid dimensions
   if (!width || !height) return;
@@ -32,12 +32,14 @@ export function drawCosmicNavigation(
     time,
     hoveredObjectId,
     1.0, // starSizeFactor
-    isDarkMode
+    isDarkMode,
   );
 
   // Restore the context state
   ctx.restore();
 
   // Log that we've rendered (for debugging)
-  logger.debug(`Rendered cosmic navigation at time ${time}, level: ${navigationState.currentLevel}`);
+  logger.debug(
+    `Rendered cosmic navigation at time ${time}, level: ${navigationState.currentLevel}`,
+  );
 }

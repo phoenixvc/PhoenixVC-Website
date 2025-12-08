@@ -14,26 +14,59 @@ import { logger } from "@/utils/logger";
 interface InvestmentFocusProps {}
 
 // Extended details for each focus area
-const focusAreaDetails: Record<string, { longDescription: string; highlights: string[] }> = {
+const focusAreaDetails: Record<
+  string,
+  { longDescription: string; highlights: string[] }
+> = {
   "Fintech & Blockchain": {
-    longDescription: "We invest in cutting-edge financial technology and decentralized solutions that are reshaping how we interact with money and digital systems. Our focus includes blockchain protocols, decentralized finance (DeFi), digital payments, neobanking, and Web3 infrastructure.",
-    highlights: ["DeFi Protocols", "Digital Payments", "Smart Contracts", "Neobanking", "Web3 Infrastructure"]
+    longDescription:
+      "We invest in cutting-edge financial technology and decentralized solutions that are reshaping how we interact with money and digital systems. Our focus includes blockchain protocols, decentralized finance (DeFi), digital payments, neobanking, and Web3 infrastructure.",
+    highlights: [
+      "DeFi Protocols",
+      "Digital Payments",
+      "Smart Contracts",
+      "Neobanking",
+      "Web3 Infrastructure",
+    ],
   },
   "AI & Machine Learning": {
-    longDescription: "We back breakthrough innovations in artificial intelligence and machine learning that have the potential to transform industries. Our focus includes generative AI, natural language processing, computer vision, and enterprise AI solutions.",
-    highlights: ["Generative AI", "NLP & LLMs", "Computer Vision", "AI Infrastructure", "MLOps"]
+    longDescription:
+      "We back breakthrough innovations in artificial intelligence and machine learning that have the potential to transform industries. Our focus includes generative AI, natural language processing, computer vision, and enterprise AI solutions.",
+    highlights: [
+      "Generative AI",
+      "NLP & LLMs",
+      "Computer Vision",
+      "AI Infrastructure",
+      "MLOps",
+    ],
   },
   "Defense & Security": {
-    longDescription: "We back advanced security solutions that protect people, infrastructure, and digital assets. Our investments span counter-drone technology, digital access management, cybersecurity, and physical security solutions.",
-    highlights: ["Counter-Drone Systems", "Access Control", "Cybersecurity", "IoT Security", "Threat Detection"]
+    longDescription:
+      "We back advanced security solutions that protect people, infrastructure, and digital assets. Our investments span counter-drone technology, digital access management, cybersecurity, and physical security solutions.",
+    highlights: [
+      "Counter-Drone Systems",
+      "Access Control",
+      "Cybersecurity",
+      "IoT Security",
+      "Threat Detection",
+    ],
   },
   "Mobility & Transportation": {
-    longDescription: "We invest in innovative transportation technology that makes mobility safer, more efficient, and more accessible. Our focus includes ride-sharing, urban mobility, logistics optimization, and smart transportation infrastructure.",
-    highlights: ["Ride-Sharing", "Urban Mobility", "Route Optimization", "Safety Technology", "Smart Transportation"]
-  }
+    longDescription:
+      "We invest in innovative transportation technology that makes mobility safer, more efficient, and more accessible. Our focus includes ride-sharing, urban mobility, logistics optimization, and smart transportation infrastructure.",
+    highlights: [
+      "Ride-Sharing",
+      "Urban Mobility",
+      "Route Optimization",
+      "Safety Technology",
+      "Smart Transportation",
+    ],
+  },
 };
 
-export const InvestmentFocus: FC<InvestmentFocusProps> = (): React.ReactElement => {
+export const InvestmentFocus: FC<
+  InvestmentFocusProps
+> = (): React.ReactElement => {
   const { themeMode } = useTheme();
   const isDarkMode = themeMode === "dark";
   const [selectedArea, setSelectedArea] = useState<FocusArea | null>(null);
@@ -56,9 +89,10 @@ export const InvestmentFocus: FC<InvestmentFocusProps> = (): React.ReactElement 
       }
 
       if (event.key === "Tab" && modalRef.current) {
-        const focusableElements = modalRef.current.querySelectorAll<HTMLElement>(
-          "button, [href], input, select, textarea, [tabindex]:not([tabindex=\"-1\"])"
-        );
+        const focusableElements =
+          modalRef.current.querySelectorAll<HTMLElement>(
+            "button, [href], input, select, textarea, [tabindex]:not([tabindex=\"-1\"])",
+          );
         const firstElement = focusableElements[0];
         const lastElement = focusableElements[focusableElements.length - 1];
 
@@ -165,23 +199,30 @@ export const InvestmentFocus: FC<InvestmentFocusProps> = (): React.ReactElement 
               <div className={styles.modalIcon}>{selectedArea.icon}</div>
               <h3 className={styles.modalTitle}>{selectedArea.title}</h3>
               <p className={styles.modalDescription}>
-                {focusAreaDetails[selectedArea.title]?.longDescription || selectedArea.description}
+                {focusAreaDetails[selectedArea.title]?.longDescription ||
+                  selectedArea.description}
               </p>
 
               {focusAreaDetails[selectedArea.title]?.highlights && (
                 <div className={styles.highlightsSection}>
                   <h4 className={styles.highlightsTitle}>Key Focus Areas</h4>
                   <div className={styles.highlightsTags}>
-                    {focusAreaDetails[selectedArea.title].highlights.map((highlight, idx) => (
-                      <span key={idx} className={styles.highlightTag}>
-                        {highlight}
-                      </span>
-                    ))}
+                    {focusAreaDetails[selectedArea.title].highlights.map(
+                      (highlight, idx) => (
+                        <span key={idx} className={styles.highlightTag}>
+                          {highlight}
+                        </span>
+                      ),
+                    )}
                   </div>
                 </div>
               )}
 
-              <a href="/#contact" className={styles.modalCta} onClick={handleCloseModal}>
+              <a
+                href="/#contact"
+                className={styles.modalCta}
+                onClick={handleCloseModal}
+              >
                 Discuss Opportunities
               </a>
             </motion.div>

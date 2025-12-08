@@ -14,9 +14,11 @@ function getUniqueOffset(planet: Planet): number {
   }
 
   const offset = planet.project?.id
-    ? (typeof planet.project.id === "string"
-        ? planet.project.id.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0)
-        : Number(planet.project.id))
+    ? typeof planet.project.id === "string"
+      ? planet.project.id
+          .split("")
+          .reduce((sum, char) => sum + char.charCodeAt(0), 0)
+      : Number(planet.project.id)
     : Math.random() * 1000;
 
   planet.cachedUniqueOffset = offset;
@@ -34,27 +36,36 @@ export function drawStarGlow(
   ctx: CanvasRenderingContext2D,
   planet: Planet,
   starSize: number,
-  softRgb: {r: number, g: number, b: number}
+  softRgb: { r: number; g: number; b: number },
 ): void {
   // Use cached unique offset (avoids string reduce per frame)
   const uniqueOffset = getUniqueOffset(planet);
 
   // Apply subtle pulsing effect using the unique offset
-  const pulseTime = getFrameTime() * 0.0003 + (uniqueOffset * 0.05);
+  const pulseTime = getFrameTime() * 0.0003 + uniqueOffset * 0.05;
   const pulseFactor = 1 + fastSin(pulseTime) * 0.1; // 10% size variation
 
   // Pre-compute rgba prefix string (avoids template creation in gradient stops)
   const softRgbaPrefix = `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, `;
 
   // Enhanced glow effect - softer glow with independent pulsing
-  const glowMultiplier = planet.glowIntensity ||
-    (planet.pathType === "star" ? 2.5 * pulseFactor :
-     planet.pathType === "planet" ? 1.6 * pulseFactor :
-     planet.pathType === "comet" ? 2.0 * pulseFactor : 1.6 * pulseFactor);
+  const glowMultiplier =
+    planet.glowIntensity ||
+    (planet.pathType === "star"
+      ? 2.5 * pulseFactor
+      : planet.pathType === "planet"
+        ? 1.6 * pulseFactor
+        : planet.pathType === "comet"
+          ? 2.0 * pulseFactor
+          : 1.6 * pulseFactor);
 
   const glowGradient = ctx.createRadialGradient(
-    planet.x, planet.y, 0,
-    planet.x, planet.y, starSize * 2.0 * glowMultiplier
+    planet.x,
+    planet.y,
+    0,
+    planet.x,
+    planet.y,
+    starSize * 2.0 * glowMultiplier,
   );
 
   // Use rgba format for star glow to avoid color parsing issues - softer glow
@@ -69,8 +80,12 @@ export function drawStarGlow(
   ctx.fill();
 
   const gradient = ctx.createRadialGradient(
-    planet.x, planet.y, 0,
-    planet.x, planet.y, starSize * pulseFactor // Apply pulse to core size too
+    planet.x,
+    planet.y,
+    0,
+    planet.x,
+    planet.y,
+    starSize * pulseFactor, // Apply pulse to core size too
   );
 
   // Enhanced core appearance based on path type - with softer colors
@@ -114,7 +129,7 @@ export function drawHoverEffects(
   ctx: CanvasRenderingContext2D,
   planet: Planet,
   starSize: number,
-  softRgb: {r: number, g: number, b: number}
+  softRgb: { r: number; g: number; b: number },
 ): void {
   if (planet.isHovered || planet.isSelected) {
     // Add a pulsing ring around the star when hovered or selected
@@ -134,7 +149,7 @@ export function drawHoverEffects(
     const uniqueOffset = getUniqueOffset(planet);
 
     // Use the unique offset to create independent pulse timing
-    const pulseTime = getFrameTime() * 0.0005 + (uniqueOffset * 0.1);
+    const pulseTime = getFrameTime() * 0.0005 + uniqueOffset * 0.1;
     const pulseOpacity = 0.4 + fastSin(pulseTime * 1.5) * 0.2;
     const pulseSize = starSize * (1.3 + fastSin(pulseTime * 1) * 0.2);
 
@@ -155,7 +170,13 @@ export function drawHoverEffects(
       // Draw pulsing circle with smoother animation
       const clickPulse = 0.85 + fastSin(pulseTime * 2.5) * 0.15;
       ctx.beginPath();
-      ctx.arc(clickIndicatorX, clickIndicatorY, clickIndicatorSize * clickPulse, 0, TWO_PI);
+      ctx.arc(
+        clickIndicatorX,
+        clickIndicatorY,
+        clickIndicatorSize * clickPulse,
+        0,
+        TWO_PI,
+      );
       ctx.fillStyle = `rgba(255, 255, 255, ${0.6 + fastSin(pulseTime * 2) * 0.2})`;
       ctx.fill();
 
@@ -163,7 +184,10 @@ export function drawHoverEffects(
       ctx.beginPath();
       ctx.moveTo(clickIndicatorX - clickIndicatorSize * 0.3, clickIndicatorY);
       ctx.lineTo(clickIndicatorX, clickIndicatorY + clickIndicatorSize * 0.3);
-      ctx.lineTo(clickIndicatorX + clickIndicatorSize * 0.3, clickIndicatorY - clickIndicatorSize * 0.3);
+      ctx.lineTo(
+        clickIndicatorX + clickIndicatorSize * 0.3,
+        clickIndicatorY - clickIndicatorSize * 0.3,
+      );
       ctx.lineWidth = 2;
       ctx.strokeStyle = "rgba(0, 0, 0, 0.8)";
       ctx.stroke();
@@ -183,7 +207,10 @@ export function drawHoverEffects(
 
         skills.forEach((skill, i) => {
           // Use unique timing for skill icon rotation too
-          const angle = (i / skillCount) * TWO_PI + getFrameTime() * 0.0005 + (uniqueOffset * 0.01);
+          const angle =
+            (i / skillCount) * TWO_PI +
+            getFrameTime() * 0.0005 +
+            uniqueOffset * 0.01;
           const iconX = planet.x + fastCos(angle) * orbitRadius;
           const iconY = planet.y + fastSin(angle) * orbitRadius;
 
@@ -220,7 +247,7 @@ export function drawStarFlares(
   ctx: CanvasRenderingContext2D,
   planet: Planet,
   starSize: number,
-  softRgb: {r: number, g: number, b: number}
+  softRgb: { r: number; g: number; b: number },
 ): void {
   // Create occasional "star flares" that randomly appear on stars
   if (planet.pathType === "star" && Math.random() < 0.002) {
@@ -238,13 +265,21 @@ export function drawStarFlares(
       ctx.lineTo(flareEndX, flareEndY);
 
       const flareGradient = ctx.createLinearGradient(
-        planet.x, planet.y,
-        flareEndX, flareEndY
+        planet.x,
+        planet.y,
+        flareEndX,
+        flareEndY,
       );
 
       flareGradient.addColorStop(0, "rgba(255, 255, 255, 0.7)");
-      flareGradient.addColorStop(0.3, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.5)`);
-      flareGradient.addColorStop(1, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0)`);
+      flareGradient.addColorStop(
+        0.3,
+        `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.5)`,
+      );
+      flareGradient.addColorStop(
+        1,
+        `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0)`,
+      );
 
       ctx.strokeStyle = flareGradient;
       ctx.lineWidth = 1.5 + Math.random() * 1.5;
@@ -261,22 +296,38 @@ export function drawNebulaEffects(
   ctx: CanvasRenderingContext2D,
   planet: Planet,
   starSize: number,
-  softRgb: {r: number, g: number, b: number}
+  softRgb: { r: number; g: number; b: number },
 ): void {
   // Add subtle background nebula effects behind important stars
-  if (((planet.project?.mass ?? 0) > 200 || planet.isSelected) && !planet.useSimpleRendering) {
+  if (
+    ((planet.project?.mass ?? 0) > 200 || planet.isSelected) &&
+    !planet.useSimpleRendering
+  ) {
     ctx.save();
     const nebulaSize = starSize * 7;
     const nebulaOpacity = 0.12;
 
     const nebulaGradient = ctx.createRadialGradient(
-      planet.x, planet.y, 0,
-      planet.x, planet.y, nebulaSize
+      planet.x,
+      planet.y,
+      0,
+      planet.x,
+      planet.y,
+      nebulaSize,
     );
 
-    nebulaGradient.addColorStop(0, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, ${nebulaOpacity})`);
-    nebulaGradient.addColorStop(0.5, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, ${nebulaOpacity/2})`);
-    nebulaGradient.addColorStop(1, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0)`);
+    nebulaGradient.addColorStop(
+      0,
+      `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, ${nebulaOpacity})`,
+    );
+    nebulaGradient.addColorStop(
+      0.5,
+      `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, ${nebulaOpacity / 2})`,
+    );
+    nebulaGradient.addColorStop(
+      1,
+      `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0)`,
+    );
 
     ctx.beginPath();
     ctx.arc(planet.x, planet.y, nebulaSize, 0, TWO_PI);
@@ -295,14 +346,14 @@ export function drawConnections(
   ctx: CanvasRenderingContext2D,
   planet: Planet,
   allStars: Planet[],
-  softRgb: {r: number, g: number, b: number}
+  softRgb: { r: number; g: number; b: number },
 ): void {
   const relatedStars = findRelatedPlanets(planet, allStars);
 
   if (relatedStars.length > 0) {
     ctx.save();
 
-    relatedStars.forEach(relatedStar => {
+    relatedStars.forEach((relatedStar) => {
       // Draw connection line with animated dash pattern
       const dashOffset = getFrameTime() * 0.001;
 
@@ -312,12 +363,20 @@ export function drawConnections(
 
       // Create gradient for connection line
       const connectionGradient = ctx.createLinearGradient(
-        planet.x, planet.y,
-        relatedStar.x, relatedStar.y
+        planet.x,
+        planet.y,
+        relatedStar.x,
+        relatedStar.y,
       );
 
-      connectionGradient.addColorStop(0, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.3)`);
-      connectionGradient.addColorStop(1, `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.1)`);
+      connectionGradient.addColorStop(
+        0,
+        `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.3)`,
+      );
+      connectionGradient.addColorStop(
+        1,
+        `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, 0.1)`,
+      );
 
       ctx.strokeStyle = connectionGradient;
       ctx.lineWidth = 0.8;
@@ -342,15 +401,19 @@ export function drawConnections(
 /**
  * Helper function to find related stars based on project relationships
  */
-export function findRelatedPlanets(planet: Planet, allStars: Planet[]): Planet[] {
+export function findRelatedPlanets(
+  planet: Planet,
+  allStars: Planet[],
+): Planet[] {
   if (!planet || !planet.project || !planet.project.relatedIds || !allStars) {
     return [];
   }
 
-  return allStars.filter(star =>
-    star !== planet &&
-    planet.project.relatedIds &&
-    planet.project.relatedIds.includes(star.project.id)
+  return allStars.filter(
+    (star) =>
+      star !== planet &&
+      planet.project.relatedIds &&
+      planet.project.relatedIds.includes(star.project.id),
   );
 }
 

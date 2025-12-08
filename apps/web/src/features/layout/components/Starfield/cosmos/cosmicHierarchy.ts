@@ -10,7 +10,7 @@ export const GALAXIES: CosmicObject[] = [
     position: { x: 0.3, y: 0.4 },
     size: 0.15,
     level: "galaxy",
-    color: "#3498db" // Blue-green for Focus Areas
+    color: "#3498db", // Blue-green for Focus Areas
   },
   {
     id: "portfolio-galaxy",
@@ -19,7 +19,7 @@ export const GALAXIES: CosmicObject[] = [
     position: { x: 0.7, y: 0.3 },
     size: 0.14,
     level: "galaxy",
-    color: "#f39c12" // Golden/amber for Portfolio
+    color: "#f39c12", // Golden/amber for Portfolio
   },
   {
     id: "information-galaxy",
@@ -28,8 +28,8 @@ export const GALAXIES: CosmicObject[] = [
     position: { x: 0.5, y: 0.7 },
     size: 0.13,
     level: "galaxy",
-    color: "#9b59b6" // Purple-pink for Information
-  }
+    color: "#9b59b6", // Purple-pink for Information
+  },
 ];
 
 // Suns representing subcategories
@@ -43,7 +43,7 @@ export const SUNS: CosmicObject[] = [
     size: 0.065,
     level: "sun",
     parentId: "focus-areas-galaxy",
-    color: "#f39c12" // Golden - for fintech/blockchain
+    color: "#f39c12", // Golden - for fintech/blockchain
   },
   {
     id: "ai-ml-sun",
@@ -53,7 +53,7 @@ export const SUNS: CosmicObject[] = [
     size: 0.06,
     level: "sun",
     parentId: "focus-areas-galaxy",
-    color: "#3498db" // Blue - for AI/ML
+    color: "#3498db", // Blue - for AI/ML
   },
   {
     id: "defense-security-sun",
@@ -63,7 +63,7 @@ export const SUNS: CosmicObject[] = [
     size: 0.058,
     level: "sun",
     parentId: "focus-areas-galaxy",
-    color: "#e74c3c" // Red - for defense/security
+    color: "#e74c3c", // Red - for defense/security
   },
   {
     id: "mobility-transportation-sun",
@@ -73,7 +73,7 @@ export const SUNS: CosmicObject[] = [
     size: 0.055,
     level: "sun",
     parentId: "focus-areas-galaxy",
-    color: "#2ecc71" // Green - for mobility
+    color: "#2ecc71", // Green - for mobility
   },
 
   // Portfolio Galaxy - Focus Area Suns with Portfolio Companies as Planets
@@ -85,7 +85,7 @@ export const SUNS: CosmicObject[] = [
     size: 0.065,
     level: "sun",
     parentId: "portfolio-galaxy",
-    color: "#3498db" // Blue - AI/ML
+    color: "#3498db", // Blue - AI/ML
   },
   {
     id: "portfolio-fintech-blockchain-sun",
@@ -95,7 +95,7 @@ export const SUNS: CosmicObject[] = [
     size: 0.06,
     level: "sun",
     parentId: "portfolio-galaxy",
-    color: "#f39c12" // Golden - fintech/blockchain
+    color: "#f39c12", // Golden - fintech/blockchain
   },
   {
     id: "portfolio-defense-security-sun",
@@ -105,17 +105,17 @@ export const SUNS: CosmicObject[] = [
     size: 0.058,
     level: "sun",
     parentId: "portfolio-galaxy",
-    color: "#e74c3c" // Red - defense/security
+    color: "#e74c3c", // Red - defense/security
   },
   {
     id: "portfolio-mobility-sun",
     name: "Mobility & Transportation",
     description: "Mobility and transportation portfolio companies",
-    position: { x: 0.72, y: 0.40 },
+    position: { x: 0.72, y: 0.4 },
     size: 0.058,
     level: "sun",
     parentId: "portfolio-galaxy",
-    color: "#2ecc71" // Green - mobility
+    color: "#2ecc71", // Green - mobility
   },
 
   // Information Galaxy - Suns
@@ -127,7 +127,7 @@ export const SUNS: CosmicObject[] = [
     size: 0.054,
     level: "sun",
     parentId: "information-galaxy",
-    color: "#9b59b6"
+    color: "#9b59b6",
   },
   {
     id: "company-information-sun",
@@ -137,7 +137,7 @@ export const SUNS: CosmicObject[] = [
     size: 0.058,
     level: "sun",
     parentId: "information-galaxy",
-    color: "#8e44ad"
+    color: "#8e44ad",
   },
   {
     id: "resources-sun",
@@ -147,7 +147,7 @@ export const SUNS: CosmicObject[] = [
     size: 0.048,
     level: "sun",
     parentId: "information-galaxy",
-    color: "#9b59b6"
+    color: "#9b59b6",
   },
   {
     id: "community-sun",
@@ -157,7 +157,7 @@ export const SUNS: CosmicObject[] = [
     size: 0.054,
     level: "sun",
     parentId: "information-galaxy",
-    color: "#8e44ad"
+    color: "#8e44ad",
   },
   {
     id: "careers-sun",
@@ -167,8 +167,8 @@ export const SUNS: CosmicObject[] = [
     size: 0.048,
     level: "sun",
     parentId: "information-galaxy",
-    color: "#8e44ad"
-  }
+    color: "#8e44ad",
+  },
 ];
 
 // Planets representing individual content pages
@@ -182,7 +182,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.022,
     level: "planet",
     parentId: "fintech-blockchain-sun",
-    color: "#f39c12"
+    color: "#f39c12",
   },
   {
     id: "payment-solutions",
@@ -192,7 +192,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.02,
     level: "planet",
     parentId: "fintech-blockchain-sun",
-    color: "#e67e22"
+    color: "#e67e22",
   },
   {
     id: "defi-solutions",
@@ -202,7 +202,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.022,
     level: "planet",
     parentId: "fintech-blockchain-sun",
-    color: "#f39c12"
+    color: "#f39c12",
   },
   {
     id: "smart-contracts",
@@ -212,7 +212,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.02,
     level: "planet",
     parentId: "fintech-blockchain-sun",
-    color: "#e67e22"
+    color: "#e67e22",
   },
   {
     id: "web3-infrastructure",
@@ -222,7 +222,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.019,
     level: "planet",
     parentId: "fintech-blockchain-sun",
-    color: "#f39c12"
+    color: "#f39c12",
   },
 
   // AI & ML Sun - Planets (Focus Area concepts)
@@ -234,7 +234,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.021,
     level: "planet",
     parentId: "ai-ml-sun",
-    color: "#3498db"
+    color: "#3498db",
   },
   {
     id: "machine-learning",
@@ -244,7 +244,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.022,
     level: "planet",
     parentId: "ai-ml-sun",
-    color: "#2980b9"
+    color: "#2980b9",
   },
   {
     id: "neural-networks",
@@ -254,7 +254,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.02,
     level: "planet",
     parentId: "ai-ml-sun",
-    color: "#3498db"
+    color: "#3498db",
   },
   {
     id: "computer-vision",
@@ -264,7 +264,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.021,
     level: "planet",
     parentId: "ai-ml-sun",
-    color: "#2980b9"
+    color: "#2980b9",
   },
   {
     id: "nlp",
@@ -274,7 +274,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.02,
     level: "planet",
     parentId: "ai-ml-sun",
-    color: "#3498db"
+    color: "#3498db",
   },
 
   // Defense & Security Sun - Planets (Focus Area concepts)
@@ -286,7 +286,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.021,
     level: "planet",
     parentId: "defense-security-sun",
-    color: "#e74c3c"
+    color: "#e74c3c",
   },
   {
     id: "access-control",
@@ -296,7 +296,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.022,
     level: "planet",
     parentId: "defense-security-sun",
-    color: "#c0392b"
+    color: "#c0392b",
   },
   {
     id: "cybersecurity",
@@ -306,7 +306,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.02,
     level: "planet",
     parentId: "defense-security-sun",
-    color: "#e74c3c"
+    color: "#e74c3c",
   },
   {
     id: "threat-detection",
@@ -316,7 +316,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.021,
     level: "planet",
     parentId: "defense-security-sun",
-    color: "#c0392b"
+    color: "#c0392b",
   },
 
   // Mobility & Transportation Sun - Planets (Focus Area concepts)
@@ -328,7 +328,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.02,
     level: "planet",
     parentId: "mobility-transportation-sun",
-    color: "#2ecc71"
+    color: "#2ecc71",
   },
   {
     id: "urban-mobility",
@@ -338,7 +338,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.021,
     level: "planet",
     parentId: "mobility-transportation-sun",
-    color: "#27ae60"
+    color: "#27ae60",
   },
   {
     id: "route-optimization",
@@ -348,7 +348,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.022,
     level: "planet",
     parentId: "mobility-transportation-sun",
-    color: "#2ecc71"
+    color: "#2ecc71",
   },
   {
     id: "smart-transportation",
@@ -358,7 +358,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.02,
     level: "planet",
     parentId: "mobility-transportation-sun",
-    color: "#27ae60"
+    color: "#27ae60",
   },
 
   // Portfolio Galaxy - AI & ML Sun - Portfolio Companies as Planets
@@ -370,7 +370,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.024,
     level: "planet",
     parentId: "portfolio-ai-ml-sun",
-    color: "#9c27b0" // Purple - Alpha status
+    color: "#9c27b0", // Purple - Alpha status
   },
   {
     id: "cognitive-mesh-planet",
@@ -380,7 +380,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.02,
     level: "planet",
     parentId: "portfolio-ai-ml-sun",
-    color: "#795548" // Brown - Pre-alpha
+    color: "#795548", // Brown - Pre-alpha
   },
 
   // Portfolio Galaxy - Fintech & Blockchain Sun - Portfolio Companies as Planets
@@ -392,7 +392,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.02,
     level: "planet",
     parentId: "portfolio-fintech-blockchain-sun",
-    color: "#795548" // Brown - Pre-alpha
+    color: "#795548", // Brown - Pre-alpha
   },
 
   // Portfolio Galaxy - Defense & Security Sun - Portfolio Companies as Planets
@@ -404,7 +404,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.022,
     level: "planet",
     parentId: "portfolio-defense-security-sun",
-    color: "#795548" // Brown - Pre-alpha
+    color: "#795548", // Brown - Pre-alpha
   },
   {
     id: "airkey-planet",
@@ -414,7 +414,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.02,
     level: "planet",
     parentId: "portfolio-defense-security-sun",
-    color: "#e67e22" // Orange - Early stage
+    color: "#e67e22", // Orange - Early stage
   },
 
   // Portfolio Galaxy - Mobility & Transportation Sun - Portfolio Companies as Planets
@@ -422,11 +422,11 @@ export const PLANETS: CosmicObject[] = [
     id: "hop-planet",
     name: "Hop",
     description: "Innovative transportation technology",
-    position: { x: 0.70, y: 0.38 },
+    position: { x: 0.7, y: 0.38 },
     size: 0.02,
     level: "planet",
     parentId: "portfolio-mobility-sun",
-    color: "#e67e22" // Orange - Early stage
+    color: "#e67e22", // Orange - Early stage
   },
   {
     id: "chaufher-planet",
@@ -436,7 +436,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.022,
     level: "planet",
     parentId: "portfolio-mobility-sun",
-    color: "#e74c3c" // Red - Growth stage
+    color: "#e74c3c", // Red - Growth stage
   },
 
   // Blog Categories Sun - Planets
@@ -448,7 +448,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.02,
     level: "planet",
     parentId: "blog-categories-sun",
-    color: "#9b59b6"
+    color: "#9b59b6",
   },
   {
     id: "technology-trends",
@@ -458,7 +458,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.021,
     level: "planet",
     parentId: "blog-categories-sun",
-    color: "#8e44ad"
+    color: "#8e44ad",
   },
   {
     id: "investment-strategy",
@@ -468,7 +468,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.022,
     level: "planet",
     parentId: "blog-categories-sun",
-    color: "#9b59b6"
+    color: "#9b59b6",
   },
   {
     id: "founder-stories",
@@ -478,7 +478,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.02,
     level: "planet",
     parentId: "blog-categories-sun",
-    color: "#8e44ad"
+    color: "#8e44ad",
   },
   {
     id: "industry-analysis",
@@ -488,7 +488,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.019,
     level: "planet",
     parentId: "blog-categories-sun",
-    color: "#9b59b6"
+    color: "#9b59b6",
   },
 
   // Company Information Sun - Planets
@@ -500,7 +500,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.022,
     level: "planet",
     parentId: "company-information-sun",
-    color: "#8e44ad"
+    color: "#8e44ad",
   },
   {
     id: "vision-mission",
@@ -510,7 +510,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.021,
     level: "planet",
     parentId: "company-information-sun",
-    color: "#9b59b6"
+    color: "#9b59b6",
   },
   {
     id: "contact",
@@ -520,7 +520,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.02,
     level: "planet",
     parentId: "company-information-sun",
-    color: "#8e44ad"
+    color: "#8e44ad",
   },
   {
     id: "team",
@@ -530,7 +530,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.021,
     level: "planet",
     parentId: "company-information-sun",
-    color: "#9b59b6"
+    color: "#9b59b6",
   },
   {
     id: "history",
@@ -540,7 +540,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.019,
     level: "planet",
     parentId: "company-information-sun",
-    color: "#8e44ad"
+    color: "#8e44ad",
   },
 
   // Resources Sun - Planets
@@ -552,7 +552,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.02,
     level: "planet",
     parentId: "resources-sun",
-    color: "#9b59b6"
+    color: "#9b59b6",
   },
   {
     id: "market-research",
@@ -562,7 +562,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.021,
     level: "planet",
     parentId: "resources-sun",
-    color: "#8e44ad"
+    color: "#8e44ad",
   },
   {
     id: "startup-toolkit",
@@ -572,7 +572,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.022,
     level: "planet",
     parentId: "resources-sun",
-    color: "#9b59b6"
+    color: "#9b59b6",
   },
   {
     id: "investor-education",
@@ -582,7 +582,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.019,
     level: "planet",
     parentId: "resources-sun",
-    color: "#8e44ad"
+    color: "#8e44ad",
   },
 
   // Community Sun - Planets
@@ -594,7 +594,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.021,
     level: "planet",
     parentId: "community-sun",
-    color: "#8e44ad"
+    color: "#8e44ad",
   },
   {
     id: "newsletter",
@@ -604,7 +604,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.02,
     level: "planet",
     parentId: "community-sun",
-    color: "#9b59b6"
+    color: "#9b59b6",
   },
   {
     id: "partnerships",
@@ -614,7 +614,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.022,
     level: "planet",
     parentId: "community-sun",
-    color: "#8e44ad"
+    color: "#8e44ad",
   },
   {
     id: "community-forum",
@@ -624,7 +624,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.019,
     level: "planet",
     parentId: "community-sun",
-    color: "#9b59b6"
+    color: "#9b59b6",
   },
 
   // Careers Sun - Planets (New)
@@ -632,11 +632,11 @@ export const PLANETS: CosmicObject[] = [
     id: "open-positions",
     name: "Open Positions",
     description: "Current job openings",
-    position: { x: 0.40, y: 0.70 },
+    position: { x: 0.4, y: 0.7 },
     size: 0.02,
     level: "planet",
     parentId: "careers-sun",
-    color: "#8e44ad"
+    color: "#8e44ad",
   },
   {
     id: "internships",
@@ -646,7 +646,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.019,
     level: "planet",
     parentId: "careers-sun",
-    color: "#9b59b6"
+    color: "#9b59b6",
   },
   {
     id: "company-culture",
@@ -656,7 +656,7 @@ export const PLANETS: CosmicObject[] = [
     size: 0.021,
     level: "planet",
     parentId: "careers-sun",
-    color: "#8e44ad"
+    color: "#8e44ad",
   },
   {
     id: "benefits",
@@ -666,8 +666,8 @@ export const PLANETS: CosmicObject[] = [
     size: 0.018,
     level: "planet",
     parentId: "careers-sun",
-    color: "#9b59b6"
-  }
+    color: "#9b59b6",
+  },
 ];
 
 // Special cosmic objects including team members and the black hole
@@ -681,7 +681,7 @@ export const SPECIAL_COSMIC_OBJECTS: CosmicObject[] = [
     size: 0.06,
     level: "special",
     color: "#f1c40f",
-    type: "binary" // Binary star system for team
+    type: "binary", // Binary star system for team
   },
 
   // Team members - only EM (founder) and JS (CTO)
@@ -694,7 +694,7 @@ export const SPECIAL_COSMIC_OBJECTS: CosmicObject[] = [
     level: "special",
     parentId: "team-sun-system",
     color: "#f1c40f",
-    type: "star"
+    type: "star",
   },
   {
     id: "js-cto",
@@ -705,7 +705,7 @@ export const SPECIAL_COSMIC_OBJECTS: CosmicObject[] = [
     level: "special",
     parentId: "team-sun-system",
     color: "#e67e22",
-    type: "star"
+    type: "star",
   },
 
   // Black hole at the center of the universe
@@ -717,8 +717,8 @@ export const SPECIAL_COSMIC_OBJECTS: CosmicObject[] = [
     size: 0.04,
     level: "special",
     color: "#000000",
-    type: "black-hole"
-  }
+    type: "black-hole",
+  },
 ];
 
 // Helper functions
@@ -727,23 +727,23 @@ export function getAllCosmicObjects(): CosmicObject[] {
 }
 
 export function getObjectsByLevel(level: string): CosmicObject[] {
-  return getAllCosmicObjects().filter(obj => obj.level === level);
+  return getAllCosmicObjects().filter((obj) => obj.level === level);
 }
 
 export function getObjectById(id: string): CosmicObject | undefined {
-  return getAllCosmicObjects().find(obj => obj.id === id);
+  return getAllCosmicObjects().find((obj) => obj.id === id);
 }
 
 export function getChildrenOf(parentId: string): CosmicObject[] {
-  return getAllCosmicObjects().filter(obj => obj.parentId === parentId);
+  return getAllCosmicObjects().filter((obj) => obj.parentId === parentId);
 }
 
 export function getSunsForGalaxy(galaxyId: string): CosmicObject[] {
-  return SUNS.filter(sun => sun.parentId === galaxyId);
+  return SUNS.filter((sun) => sun.parentId === galaxyId);
 }
 
 export function getParentGalaxy(sunId: string): CosmicObject | undefined {
-  const sun = SUNS.find(sun => sun.id === sunId);
+  const sun = SUNS.find((sun) => sun.id === sunId);
   if (!sun) return undefined;
-  return GALAXIES.find(galaxy => galaxy.id === sun.parentId);
+  return GALAXIES.find((galaxy) => galaxy.id === sun.parentId);
 }

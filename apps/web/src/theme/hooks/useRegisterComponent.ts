@@ -5,12 +5,12 @@ import { ComponentVariantType } from "../types/mappings/component-variants";
 
 export function useRegisterComponent(
   componentName: string,
-  variants: Record<string, ComponentVariantType>
+  variants: Record<string, ComponentVariantType>,
 ): void {
   useEffect((): (() => void) => {
     // Get the theme core instance
     const themeCore = ThemeCore.getInstance();
-    
+
     // Get the registry
     const registry = themeCore.getComponentRegistry();
 
@@ -21,7 +21,7 @@ export function useRegisterComponent(
       // Merge with existing variants
       registry[componentName] = {
         ...registry[componentName],
-        ...variants
+        ...variants,
       };
     }
 

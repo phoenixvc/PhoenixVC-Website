@@ -1,4 +1,8 @@
-import { ColorDefinition, ColorShades, ShadeLevel } from "@/theme/types/index.ts";
+import {
+  ColorDefinition,
+  ColorShades,
+  ShadeLevel,
+} from "@/theme/types/index.ts";
 import ColorUtils from "@/theme/utils/color-utils.ts";
 
 // Helper function to create a color definition
@@ -10,12 +14,14 @@ export const createColor = (hex: string): ColorDefinition => {
 export const semanticColors = {
   success: "#10B981", // Green
   warning: "#F59E0B", // Amber
-  error: "#EF4444",   // Red
-  info: "#3B82F6",    // Blue
+  error: "#EF4444", // Red
+  info: "#3B82F6", // Blue
 };
 
 // Helper function to create a color palette with 10 shades
-export const createColorPalette = (baseHex: string): Record<ShadeLevel, ColorDefinition> => {
+export const createColorPalette = (
+  baseHex: string,
+): Record<ShadeLevel, ColorDefinition> => {
   const palette = ColorUtils.createPerceptualPalette(baseHex, 10);
 
   return {
@@ -35,7 +41,7 @@ export const createColorPalette = (baseHex: string): Record<ShadeLevel, ColorDef
 // Helper function to create a complete ColorShades object
 export const createColorShades = (
   baseHex: string,
-  contrastColors: string[] = Array(10).fill("#FFFFFF")
+  contrastColors: string[] = Array(10).fill("#FFFFFF"),
 ): ColorShades => {
   return {
     ...createColorPalette(baseHex),
@@ -49,4 +55,8 @@ export { bluePalette, getBlueShade, createBlueVariant } from "./blue.ts";
 export { grayPalette, getGrayShade, createGrayVariant } from "./gray.ts";
 export { redPalette, getRedShade, createRedVariant } from "./red.ts";
 export { greenPalette, getGreenShade, createGreenVariant } from "./green.ts";
-export { purplePalette, getPurpleShade, createPurpleVariant } from "./purple.ts";
+export {
+  purplePalette,
+  getPurpleShade,
+  createPurpleVariant,
+} from "./purple.ts";

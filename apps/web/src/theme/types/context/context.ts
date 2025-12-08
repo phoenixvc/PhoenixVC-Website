@@ -1,6 +1,12 @@
 // theme/types/context/context.ts
 import { ReactNode, createContext } from "react";
-import { ThemeChangeEvent, ThemeConfig, ThemeErrorFallback, ThemeErrorHandler, ThemeInitOptions } from "../core/config";
+import {
+  ThemeChangeEvent,
+  ThemeConfig,
+  ThemeErrorFallback,
+  ThemeErrorHandler,
+  ThemeInitOptions,
+} from "../core/config";
 import { ThemeName, ThemeMode, ThemeAcquisitionConfig } from "../core/base";
 import { CssVariableConfig, ThemeClassSuffix } from "../core";
 import { ExtendedThemeState, ThemeContextState } from "./state";
@@ -30,7 +36,9 @@ export interface ThemeProviderExtraConfig {
  * Theme provider configuration options.
  * Combines core configuration with context-specific options.
  */
-export interface ThemeProviderConfig extends Partial<ThemeConfig>, ThemeProviderExtraConfig { }
+export interface ThemeProviderConfig
+  extends Partial<ThemeConfig>,
+    ThemeProviderExtraConfig {}
 
 /**
  * Theme provider props interface.
@@ -85,7 +93,7 @@ export interface ThemeContextType {
   toggleMode: () => void;
   setUseSystemMode: (useSystem: boolean) => void;
   getCssVariable: (name: string, config?: Partial<CssVariableConfig>) => string;
-  getAllThemeClasses: () => Record<ThemeName, Record<string,string>>;
+  getAllThemeClasses: () => Record<ThemeName, Record<string, string>>;
   isThemeClass: (className: string) => boolean;
 
   // Theme loading status
@@ -93,7 +101,10 @@ export interface ThemeContextType {
 
   // Theme cache utilities
   isThemeCached: (scheme: ThemeName) => boolean;
-  preloadTheme: (scheme: ThemeName, config?: Partial<ThemeAcquisitionConfig>) => Promise<void>;
+  preloadTheme: (
+    scheme: ThemeName,
+    config?: Partial<ThemeAcquisitionConfig>,
+  ) => Promise<void>;
   clearThemeCache: () => void;
   getCacheStatus: () => { size: number; schemes: ThemeName[] };
 
@@ -102,28 +113,53 @@ export interface ThemeContextType {
   isThemeSupported?: (scheme: ThemeName) => boolean;
   getThemeState?: () => ExtendedThemeState;
   resetTheme?: () => Promise<void>;
-  subscribeToThemeChanges?: (callback: (state: ExtendedThemeState) => void) => () => void;
+  subscribeToThemeChanges?: (
+    callback: (state: ExtendedThemeState) => void,
+  ) => () => void;
   toggleUseSystem?: () => void; // Added from ThemeContext
 
   // Add typography support
   typography?: {
     getScale: (element: string) => TypographyScale | undefined;
-    getComponentTypography: (component: string, variant?: string, mode?: string) => TypographyScale | undefined;
+    getComponentTypography: (
+      component: string,
+      variant?: string,
+      mode?: string,
+    ) => TypographyScale | undefined;
   };
 
   // Add component style support
-  getComponentStyle?: (component: string, variant?: string, state?: string, mode?: string) => React.CSSProperties;
-  getThemeRegistry?: (component: string, variant?: string, state?: string, mode?: string) => ThemeRegistry;
-  getComponentRegistry?: (component: string, variant?: string, state?: string, mode?: string) => ComponentThemeRegistry;
+  getComponentStyle?: (
+    component: string,
+    variant?: string,
+    state?: string,
+    mode?: string,
+  ) => React.CSSProperties;
+  getThemeRegistry?: (
+    component: string,
+    variant?: string,
+    state?: string,
+    mode?: string,
+  ) => ThemeRegistry;
+  getComponentRegistry?: (
+    component: string,
+    variant?: string,
+    state?: string,
+    mode?: string,
+  ) => ComponentThemeRegistry;
 }
 
 /**
  * Theme context value interface.
  * Combines the core actions and selectors with additional action methods.
  */
-export interface ThemeContextValue extends ThemeContextType, ThemeContextActions {
+export interface ThemeContextValue
+  extends ThemeContextType,
+    ThemeContextActions {
   state: ThemeContextState;
 }
 
 // Create the context with the comprehensive type
-export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+export const ThemeContext = createContext<ThemeContextType | undefined>(
+  undefined,
+);

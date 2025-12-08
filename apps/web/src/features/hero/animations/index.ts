@@ -11,9 +11,9 @@ export const heroAnimations: HeroAnimations = {
       transition: {
         duration: ANIMATION_CONFIG.duration.container,
         ease: ANIMATION_CONFIG.ease,
-        staggerChildren: ANIMATION_CONFIG.stagger
-      }
-    }
+        staggerChildren: ANIMATION_CONFIG.stagger,
+      },
+    },
   },
 
   item: {
@@ -23,8 +23,8 @@ export const heroAnimations: HeroAnimations = {
       y: 0,
       transition: {
         duration: ANIMATION_CONFIG.duration.item,
-        ease: ANIMATION_CONFIG.ease
-      }
-    }
-  }
+        ease: ANIMATION_CONFIG.ease,
+      },
+    },
+  },
 };

@@ -12,7 +12,7 @@ import {
   ValidationError,
   ValidationResult,
   ThemeError,
-  TransformedColorObject
+  TransformedColorObject,
 } from "../types";
 
 import { BaseColorValidation } from "../validation/base-color-validation";
@@ -39,13 +39,13 @@ export const ValidationUtils = {
   createInvalidResult(
     path: string,
     value: unknown,
-    error: ValidationError
+    error: ValidationError,
   ): ValidationResult {
     return {
       isValid: false,
       path,
       value,
-      errors: [error]
+      errors: [error],
     };
   },
 
@@ -55,16 +55,13 @@ export const ValidationUtils = {
    * @param value The value being validated
    * @returns A validation result with isValid=true
    */
-  createValidResult(
-    path: string,
-    value: unknown
-  ): ValidationResult {
+  createValidResult(path: string, value: unknown): ValidationResult {
     return {
       isValid: true,
       path,
-      value
+      value,
     };
-  }
+  },
 };
 
 /**
@@ -96,11 +93,13 @@ export class ThemeValidationManager {
    * @param config The theme configuration to validate
    * @throws ThemeValidationError if validation fails
    */
-  validateThemeConfig(config: ThemeInitOptions & {
-    disableTransitions?: boolean;
-    disableStorage?: boolean;
-    storageKey?: string;
-  }): void {
+  validateThemeConfig(
+    config: ThemeInitOptions & {
+      disableTransitions?: boolean;
+      disableStorage?: boolean;
+      storageKey?: string;
+    },
+  ): void {
     try {
       const result = ThemeConfigValidation.validateThemeConfig(config);
       if (!result.isValid && result.errors && result.errors.length > 0) {
@@ -113,8 +112,8 @@ export class ThemeValidationManager {
         "config",
         {
           originalError: error,
-          message: error instanceof Error ? error.message : String(error)
-        }
+          message: error instanceof Error ? error.message : String(error),
+        },
       );
     }
   }
@@ -127,15 +126,27 @@ export class ThemeValidationManager {
   validateProcessedTheme(theme: ThemeColors): void {
     try {
       // Validate the schemes
-      const schemesResult = ThemeProcessedValidation.validateProcessedTheme(theme.schemes);
-      if (!schemesResult.isValid && schemesResult.errors && schemesResult.errors.length > 0) {
+      const schemesResult = ThemeProcessedValidation.validateProcessedTheme(
+        theme.schemes,
+      );
+      if (
+        !schemesResult.isValid &&
+        schemesResult.errors &&
+        schemesResult.errors.length > 0
+      ) {
         throw new Error(schemesResult.errors[0].message);
       }
 
       // Validate semantic colors if present
       if (theme.semantic) {
-        const semanticResult = SemanticColorValidation.validateSemanticColors(theme.semantic);
-        if (!semanticResult.isValid && semanticResult.errors && semanticResult.errors.length > 0) {
+        const semanticResult = SemanticColorValidation.validateSemanticColors(
+          theme.semantic,
+        );
+        if (
+          !semanticResult.isValid &&
+          semanticResult.errors &&
+          semanticResult.errors.length > 0
+        ) {
           throw new Error(semanticResult.errors[0].message);
         }
       }
@@ -144,7 +155,7 @@ export class ThemeValidationManager {
         "Processed theme validation failed",
         ThemeError.INVALID_TYPE,
         "theme",
-        { originalError: error }
+        { originalError: error },
       );
     }
   }
@@ -165,7 +176,7 @@ export class ThemeValidationManager {
         "Initial theme validation failed",
         ThemeError.INVALID_SCHEME,
         "theme",
-        { originalError: error }
+        { originalError: error },
       );
     }
   }
@@ -186,7 +197,7 @@ export class ThemeValidationManager {
         "Base colors validation failed",
         ThemeError.COLOR_INVALID_TYPE,
         "baseColors",
-        { originalError: error }
+        { originalError: error },
       );
     }
   }
@@ -207,7 +218,7 @@ export class ThemeValidationManager {
         "Color shades validation failed",
         ThemeError.MISSING_OR_INVALID_SHADE,
         path,
-        { originalError: error }
+        { originalError: error },
       );
     }
   }
@@ -220,7 +231,7 @@ export class ThemeValidationManager {
    */
   validateModeColors(
     colors: Record<string, ColorDefinition>,
-    mode: "light" | "dark"
+    mode: "light" | "dark",
   ): void {
     try {
       // Pass colors as the first parameter, mode as the second
@@ -233,7 +244,7 @@ export class ThemeValidationManager {
         `${mode || "theme"} mode colors validation failed`,
         ThemeError.INVALID_MODE,
         mode || "unknown",
-        { originalError: error }
+        { originalError: error },
       );
     }
   }
@@ -245,7 +256,8 @@ export class ThemeValidationManager {
    */
   validateSemanticColors(semanticColors: SemanticColors): void {
     try {
-      const result = SemanticColorValidation.validateSemanticColors(semanticColors);
+      const result =
+        SemanticColorValidation.validateSemanticColors(semanticColors);
       if (!result.isValid && result.errors && result.errors.length > 0) {
         throw new Error(result.errors[0].message);
       }
@@ -254,7 +266,7 @@ export class ThemeValidationManager {
         "Semantic colors validation failed",
         ThemeError.MISSING_SEMANTIC_COLORS,
         "semantic",
-        { originalError: error }
+        { originalError: error },
       );
     }
   }
@@ -278,23 +290,29 @@ export class ThemeValidationManager {
       const baseColors = scheme.base;
 
       // Check primary
-      if (!baseColors.primary ||
-          typeof baseColors.primary !== "object" ||
-          !this.hasRequiredShades(baseColors.primary as TransformedColorObject)) {
+      if (
+        !baseColors.primary ||
+        typeof baseColors.primary !== "object" ||
+        !this.hasRequiredShades(baseColors.primary as TransformedColorObject)
+      ) {
         return false;
       }
 
       // Check secondary
-      if (!baseColors.secondary ||
-          typeof baseColors.secondary !== "object" ||
-          !this.hasRequiredShades(baseColors.secondary as TransformedColorObject)) {
+      if (
+        !baseColors.secondary ||
+        typeof baseColors.secondary !== "object" ||
+        !this.hasRequiredShades(baseColors.secondary as TransformedColorObject)
+      ) {
         return false;
       }
 
       // Check accent if it exists
-      if (baseColors.accent &&
-          (typeof baseColors.accent !== "object" ||
-          !this.hasRequiredShades(baseColors.accent as TransformedColorObject))) {
+      if (
+        baseColors.accent &&
+        (typeof baseColors.accent !== "object" ||
+          !this.hasRequiredShades(baseColors.accent as TransformedColorObject))
+      ) {
         return false;
       }
 
@@ -305,7 +323,10 @@ export class ThemeValidationManager {
 
       return true;
     } catch (error) {
-      console.error("[ThemeValidationManager] Error checking if theme is fully transformed:", error);
+      console.error(
+        "[ThemeValidationManager] Error checking if theme is fully transformed:",
+        error,
+      );
       return false;
     }
   }
@@ -317,11 +338,13 @@ export class ThemeValidationManager {
    */
   private hasRequiredShades(colorObj: TransformedColorObject): boolean {
     // Check for key shade levels
-    return colorObj.base !== undefined &&
-           colorObj.shades !== undefined &&
-           Array.isArray(colorObj.shades) &&
-           colorObj.contrast !== undefined &&
-           Array.isArray(colorObj.contrast);
+    return (
+      colorObj.base !== undefined &&
+      colorObj.shades !== undefined &&
+      Array.isArray(colorObj.shades) &&
+      colorObj.contrast !== undefined &&
+      Array.isArray(colorObj.contrast)
+    );
   }
 
   /**
@@ -330,10 +353,12 @@ export class ThemeValidationManager {
    * @returns Boolean indicating if the object is a ThemeColors
    */
   isThemeColorsType(theme: unknown): theme is ThemeColors {
-    return !!theme &&
-           typeof theme === "object" &&
-           "schemes" in (theme as Record<string, unknown>) &&
-           typeof (theme as ThemeColors).schemes === "object";
+    return (
+      !!theme &&
+      typeof theme === "object" &&
+      "schemes" in (theme as Record<string, unknown>) &&
+      typeof (theme as ThemeColors).schemes === "object"
+    );
   }
 
   /**
@@ -342,10 +367,12 @@ export class ThemeValidationManager {
    * @returns Boolean indicating if the object is a ThemeSchemeInitial
    */
   isThemeSchemeInitialType(theme: unknown): theme is ThemeSchemeInitial {
-    return !!theme &&
-           typeof theme === "object" &&
-           "base" in (theme as Record<string, unknown>) &&
-           typeof (theme as ThemeSchemeInitial).base === "object";
+    return (
+      !!theme &&
+      typeof theme === "object" &&
+      "base" in (theme as Record<string, unknown>) &&
+      typeof (theme as ThemeSchemeInitial).base === "object"
+    );
   }
 
   /**
@@ -376,7 +403,7 @@ export class ThemeValidationManager {
   createInvalidResult(
     path: string,
     value: unknown,
-    error: ValidationError
+    error: ValidationError,
   ): ValidationResult {
     return ValidationUtils.createInvalidResult(path, value, error);
   }
@@ -387,10 +414,7 @@ export class ThemeValidationManager {
    * @param value The value being validated
    * @returns A validation result with isValid=true
    */
-  createValidResult(
-    path: string,
-    value: unknown
-  ): ValidationResult {
+  createValidResult(path: string, value: unknown): ValidationResult {
     return ValidationUtils.createValidResult(path, value);
   }
 }

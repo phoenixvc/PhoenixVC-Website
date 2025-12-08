@@ -1,4 +1,9 @@
-import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
+import {
+  app,
+  HttpRequest,
+  HttpResponseInit,
+  InvocationContext,
+} from "@azure/functions";
 import { EmailClient } from "@azure/communication-email";
 import * as nodemailer from "nodemailer";
 
@@ -23,7 +28,10 @@ interface RawContactData {
 // Default recipient email
 const DEFAULT_RECIPIENT_EMAIL = "eben@phoenixvc.tech";
 
-async function httpTrigger(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+async function httpTrigger(
+  request: HttpRequest,
+  context: InvocationContext,
+): Promise<HttpResponseInit> {
   context.log("HTTP trigger function processed a request.");
 
   // Parse the request body
@@ -36,7 +44,7 @@ async function httpTrigger(request: HttpRequest, context: InvocationContext): Pr
   if (!formData) {
     return {
       status: 400,
-      jsonBody: { message: "Invalid form data format" }
+      jsonBody: { message: "Invalid form data format" },
     };
   }
 
@@ -44,7 +52,7 @@ async function httpTrigger(request: HttpRequest, context: InvocationContext): Pr
   if (!formData.name || !formData.email || !formData.message) {
     return {
       status: 400,
-      jsonBody: { message: "Please provide name, email, and message" }
+      jsonBody: { message: "Please provide name, email, and message" },
     };
   }
 
@@ -65,17 +73,19 @@ async function httpTrigger(request: HttpRequest, context: InvocationContext): Pr
 
     return {
       status: 200,
-      jsonBody: { message: "Email sent successfully" }
+      jsonBody: { message: "Email sent successfully" },
     };
   } catch (error) {
-    context.log(`Error sending email: ${error instanceof Error ? error.message : "Unknown error"}`);
+    context.log(
+      `Error sending email: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
 
     return {
       status: 500,
       jsonBody: {
         message: "Failed to send email",
-        error: error instanceof Error ? error.message : "Unknown error"
-      }
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
     };
   }
 }
@@ -85,12 +95,13 @@ async function sendWithACS(
   formData: ContactFormData,
   recipientEmail: string,
   connectionString: string,
-  context: InvocationContext
+  context: InvocationContext,
 ): Promise<void> {
   context.log("Sending email via Azure Communication Services...");
 
   const emailClient = new EmailClient(connectionString);
-  const senderAddress = process.env.ACS_SENDER_ADDRESS || "DoNotReply@phoenixvc.tech";
+  const senderAddress =
+    process.env.ACS_SENDER_ADDRESS || "DoNotReply@phoenixvc.tech";
 
   const emailMessage = {
     senderAddress: senderAddress,
@@ -123,12 +134,12 @@ ${formData.message}
             <p style="margin: 0;">This email was sent from the Phoenix VC website contact form.</p>
           </div>
         </div>
-      `
+      `,
     },
     recipients: {
-      to: [{ address: recipientEmail }]
+      to: [{ address: recipientEmail }],
     },
-    replyTo: [{ address: formData.email }]
+    replyTo: [{ address: formData.email }],
   };
 
   const poller = await emailClient.beginSend(emailMessage);
@@ -145,7 +156,7 @@ ${formData.message}
 async function sendWithNodemailer(
   formData: ContactFormData,
   recipientEmail: string,
-  context: InvocationContext
+  context: InvocationContext,
 ): Promise<void> {
   context.log("Sending email via nodemailer...");
 
@@ -153,8 +164,8 @@ async function sendWithNodemailer(
     service: process.env.EMAIL_SERVICE || "gmail",
     auth: {
       user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
-    }
+      pass: process.env.EMAIL_PASS,
+    },
   });
 
   const mailOptions = {
@@ -178,7 +189,7 @@ ${formData.message}
       <p><strong>Subject:</strong> ${formData.subject || "Not provided"}</p>
       <p><strong>Message:</strong></p>
       <p>${formData.message.replace(/\n/g, "<br>")}</p>
-    `
+    `,
   };
 
   await transporter.sendMail(mailOptions);
@@ -206,7 +217,8 @@ function validateContactFormData(data: unknown): ContactFormData | null {
     email: contactData.email,
     message: contactData.message,
     subject: typeof contactData.subject === "string" ? contactData.subject : "",
-    company: typeof contactData.company === "string" ? contactData.company : undefined
+    company:
+      typeof contactData.company === "string" ? contactData.company : undefined,
   };
 }
 
@@ -214,5 +226,5 @@ function validateContactFormData(data: unknown): ContactFormData | null {
 app.http("contactForm", {
   methods: ["POST"],
   authLevel: "anonymous",
-  handler: httpTrigger
+  handler: httpTrigger,
 });

@@ -3,7 +3,11 @@ import { ThemeValidationError } from "./theme-validation-error";
 import { createValidationResult } from "./utils/create-validation-result"; // Utility for consistent result handling
 
 export class StorageValidation {
-  static VALID_STORAGE_TYPES = ["localStorage", "sessionStorage", "memory"] as const;
+  static VALID_STORAGE_TYPES = [
+    "localStorage",
+    "sessionStorage",
+    "memory",
+  ] as const;
 
   static validateStorage(storage: Partial<ThemeStorage>): ValidationResult {
     const errors: ThemeValidationError[] = [];
@@ -15,8 +19,8 @@ export class StorageValidation {
           `Invalid storage type: ${storage.type}`,
           "INVALID_STORAGE_TYPE", // Example error code
           "storage.type",
-          { validTypes: this.VALID_STORAGE_TYPES }
-        )
+          { validTypes: this.VALID_STORAGE_TYPES },
+        ),
       );
     }
 
@@ -26,8 +30,8 @@ export class StorageValidation {
         new ThemeValidationError(
           "Storage prefix must be a string",
           "INVALID_STORAGE_PREFIX", // Example error code
-          "storage.prefix"
-        )
+          "storage.prefix",
+        ),
       );
     }
 
@@ -37,19 +41,22 @@ export class StorageValidation {
         new ThemeValidationError(
           "Storage version must be a string",
           "INVALID_STORAGE_VERSION", // Example error code
-          "storage.version"
-        )
+          "storage.version",
+        ),
       );
     }
 
     // Validate expiration
-    if (storage.expiration !== undefined && typeof storage.expiration !== "number") {
+    if (
+      storage.expiration !== undefined &&
+      typeof storage.expiration !== "number"
+    ) {
       errors.push(
         new ThemeValidationError(
           "Storage expiration must be a number",
           "INVALID_STORAGE_EXPIRATION", // Example error code
-          "storage.expiration"
-        )
+          "storage.expiration",
+        ),
       );
     }
 
@@ -59,19 +66,22 @@ export class StorageValidation {
         new ThemeValidationError(
           "Storage keys must be an object",
           "INVALID_STORAGE_KEYS", // Example error code
-          "storage.keys"
-        )
+          "storage.keys",
+        ),
       );
     }
 
     // Validate defaults
-    if (storage.defaults !== undefined && typeof storage.defaults !== "object") {
+    if (
+      storage.defaults !== undefined &&
+      typeof storage.defaults !== "object"
+    ) {
       errors.push(
         new ThemeValidationError(
           "Storage defaults must be an object",
           "INVALID_STORAGE_DEFAULTS", // Example error code
-          "storage.defaults"
-        )
+          "storage.defaults",
+        ),
       );
     }
 

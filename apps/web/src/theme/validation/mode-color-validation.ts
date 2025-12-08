@@ -15,7 +15,7 @@ export class ModeColorValidation {
    */
   static validateModeColors(
     modeColors: Record<string, ColorDefinition> | null | undefined,
-    mode: ThemeMode
+    mode: ThemeMode,
   ): ValidationResult {
     const errors: ValidationResult["errors"] = [];
 

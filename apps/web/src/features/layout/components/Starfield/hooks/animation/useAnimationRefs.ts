@@ -6,7 +6,9 @@ import { AnimationRefs } from "./types";
 export const useAnimationRefs = (props: AnimationLoopProps): AnimationRefs => {
   const animationRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
-  const collisionEffectsRef = useRef<CollisionEffect[]>(props.collisionEffects || []);
+  const collisionEffectsRef = useRef<CollisionEffect[]>(
+    props.collisionEffects || [],
+  );
   const pendingCollisionEffectsRef = useRef<CollisionEffect[]>([]);
   const fpsValues = useRef<number[]>([]);
   const isAnimatingRef = useRef<boolean>(false);
@@ -42,6 +44,6 @@ export const useAnimationRefs = (props: AnimationLoopProps): AnimationRefs => {
     animationErrorCountRef,
     mousePositionRef,
     hoverInfoRef,
-    gameStateRef
+    gameStateRef,
   };
 };
