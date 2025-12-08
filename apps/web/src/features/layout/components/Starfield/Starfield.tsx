@@ -30,7 +30,6 @@ import { useAnimationLoop } from "./hooks/useAnimationLoop";
 import { useMouseInteraction } from "./hooks/useMouseInteraction";
 import { useParticleEffects } from "./hooks/useParticleEffects";
 import { useDebugControls } from "./hooks/useDebugControls";
-import { useOffscreenCanvas } from "./hooks/useOffscreenCanvas";
 import DebugControlsOverlay from "./DebugControlsOverlay";
 import { useStarInitialization } from "./hooks/useStarInitialization";
 import {
@@ -59,6 +58,8 @@ export type StarfieldRef = {
     _value: DebugSettings[K],
   ) => void;
 };
+
+type PerformanceTier = "low" | "medium" | "high";
 
 // Convert to forwardRef
 const InteractiveStarfield = forwardRef<
@@ -121,6 +122,11 @@ const InteractiveStarfield = forwardRef<
       restartAnimation: () => {},
     });
 
+    // Performance Tier State - Start Low
+    const [performanceTier, setPerformanceTier] = useState<PerformanceTier>("low");
+    const stableFpsCountRef = useRef(0);
+    const lowFpsCountRef = useRef(0);
+
     // Track if starfield initialization is complete (hide initial positioning animation)
     const [isStarfieldReady, setIsStarfieldReady] = useState(false);
     const initializationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
@@ -136,6 +142,31 @@ const InteractiveStarfield = forwardRef<
       (fps: number, currentTimestamp: number): void => {
         setCurrentFps(fps);
         setTimestamp(currentTimestamp);
+
+        // Adaptive Performance Logic
+        if (fps > 55) {
+          stableFpsCountRef.current++;
+          lowFpsCountRef.current = 0;
+          if (stableFpsCountRef.current > 60) { // Stable for ~1s
+             setPerformanceTier(prev => {
+                if (prev === "low") return "medium";
+                if (prev === "medium") return "high";
+                return prev;
+             });
+             stableFpsCountRef.current = 0;
+          }
+        } else if (fps < 30) {
+          lowFpsCountRef.current++;
+          stableFpsCountRef.current = 0;
+          if (lowFpsCountRef.current > 30) { // Laggy for ~0.5s
+             setPerformanceTier(prev => {
+                if (prev === "high") return "medium";
+                if (prev === "medium") return "low";
+                return prev;
+             });
+             lowFpsCountRef.current = 0;
+          }
+        }
       },
       [],
     );
@@ -276,7 +307,7 @@ const InteractiveStarfield = forwardRef<
     } = useStarInitialization({
       canvasRef,
       dimensionsRef,
-      starDensity,
+      starDensity: performanceTier === "low" ? starDensity * 0.5 : starDensity, // Reduce density on low tier
       sidebarWidth,
       centerOffsetX,
       centerOffsetY,
@@ -289,16 +320,6 @@ const InteractiveStarfield = forwardRef<
       employeeStarSize,
       debugSettings,
       cancelAnimation: () => cancelAnimationRef.current(),
-    });
-
-    // Offscreen canvas for future static content (NOT used for stars since they move every frame)
-    // Currently disabled - stars move too frequently for offscreen canvas to benefit.
-    // Could be used for: static backgrounds, nebula overlays, or UI layers
-    const offscreenCanvas = useOffscreenCanvas({
-      width: dimensionsRef.current.width || window.innerWidth,
-      height: dimensionsRef.current.height || window.innerHeight,
-      layers: [], // No layers currently - stars move every frame, defeating offscreen purpose
-      enabled: false, // Disabled until we have truly static content
     });
 
     const mousePositionRef = useRef<MousePosition>({
@@ -489,11 +510,6 @@ const InteractiveStarfield = forwardRef<
         // Update refs directly
         dimensionsRef.current = { width, height };
 
-        // Resize offscreen canvas layers to match
-        if (offscreenCanvas.isEnabled) {
-          offscreenCanvas.resize(width, height);
-        }
-
         // Update container bounds if in hero mode
         if (heroMode && containerRef?.current) {
           const rect = containerRef.current.getBoundingClientRect();
@@ -552,7 +568,6 @@ const InteractiveStarfield = forwardRef<
       gameState,
       handleMouseEvents,
       initializeElements,
-      offscreenCanvas,
     ]);
 
     useEffect(() => {
@@ -627,167 +642,8 @@ const InteractiveStarfield = forwardRef<
       }
     }, [initialMousePosition, setMousePosition]);
 
-    // Mouse tracking effect with proper cleanup
-    useEffect(() => {
-      // Throttle state for mousemove handler (16ms = 60fps target)
-      let lastMouseMoveTime = 0;
-      const MOUSE_MOVE_THROTTLE_MS = 16;
-
-      // Define all handlers as named functions for proper cleanup
-      const handleMouseMove = (e: MouseEvent): void => {
-        // Throttle mouse move processing to reduce CPU overhead
-        const now = performance.now();
-        if (now - lastMouseMoveTime < MOUSE_MOVE_THROTTLE_MS) {
-          // Still update ref position for smooth animation (but skip expensive processing)
-          mousePositionRef.current.x = e.clientX;
-          mousePositionRef.current.y = e.clientY;
-          return;
-        }
-        lastMouseMoveTime = now;
-
-        const newPosition = {
-          x: e.clientX,
-          y: e.clientY,
-          lastX: mousePositionRef.current.x,
-          lastY: mousePositionRef.current.y,
-          speedX: e.clientX - mousePositionRef.current.x,
-          speedY: e.clientY - mousePositionRef.current.y,
-          isClicked: mousePositionRef.current.isClicked,
-          clickTime: mousePositionRef.current.clickTime,
-          isOnScreen: true,
-        };
-
-        // Update both the state and the ref directly
-        setMousePosition(newPosition);
-        mousePositionRef.current = newPosition;
-
-        // Check for sun hover - but only if mouse is directly over the canvas (not over content on top)
-        if (canvasRef.current) {
-          const rect = canvasRef.current.getBoundingClientRect();
-          const canvasX = e.clientX - rect.left;
-          const canvasY = e.clientY - rect.top;
-
-          // Check if the actual element under the cursor is within the starfield area
-          // This allows sun tooltips to show when hovering over the canvas or its background elements
-          // but not when hovering over content cards or other UI elements above the starfield
-          const elementUnderCursor = document.elementFromPoint(
-            e.clientX,
-            e.clientY,
-          );
-
-          // Expanded check: allow interaction when hovering over:
-          // 1. The canvas itself
-          // 2. Elements with data-starfield attribute
-          // 3. Elements with data-starfield-passthrough attribute (transparent overlays like hero section)
-          const isCanvas = elementUnderCursor === canvasRef.current;
-          const isWithinStarfieldData =
-            elementUnderCursor?.closest("[data-starfield]") !== null;
-          const isWithinStarfieldPassthrough =
-            elementUnderCursor?.closest("[data-starfield-passthrough]") !==
-            null;
-          const isWithinStarfield =
-            isCanvas || isWithinStarfieldData || isWithinStarfieldPassthrough;
-
-          // Also check if we're within canvas bounds
-          const isWithinBounds =
-            canvasX >= 0 &&
-            canvasX <= rect.width &&
-            canvasY >= 0 &&
-            canvasY <= rect.height;
-          const isOverCanvas = isWithinStarfield && isWithinBounds;
-
-          const sunHoverResult = isOverCanvas
-            ? checkSunHover(canvasX, canvasY, rect.width, rect.height)
-            : null;
-
-          if (sunHoverResult) {
-            // Clear any pending hide timeout since we're hovering over a sun
-            if (sunHideTimeoutRef.current) {
-              clearTimeout(sunHideTimeoutRef.current);
-              sunHideTimeoutRef.current = null;
-            }
-            // Only update state if the hovered sun changed
-            // Use the sun's fixed position (converted to viewport coordinates) instead of following the mouse
-            // This keeps the tooltip stable so users can click on it
-            if (hoveredSunIdRef.current !== sunHoverResult.sun.id) {
-              hoveredSunIdRef.current = sunHoverResult.sun.id;
-              setHoveredSunId(sunHoverResult.sun.id);
-              // Convert canvas-relative sun position to viewport coordinates
-              const sunScreenX = sunHoverResult.x + rect.left;
-              const sunScreenY = sunHoverResult.y + rect.top;
-              setHoveredSun({
-                id: sunHoverResult.sun.id,
-                name: sunHoverResult.sun.name,
-                description: sunHoverResult.sun.description,
-                color: sunHoverResult.sun.color || "#ffffff",
-                x: sunScreenX,
-                y: sunScreenY,
-              });
-            }
-            // Don't update position when hovering over the same sun - keep tooltip stable
-            // Change cursor to pointer
-            if (canvasRef.current) {
-              canvasRef.current.style.cursor = "pointer";
-            }
-          } else {
-            // Only clear state if we were previously hovering (avoid unnecessary updates)
-            // Add a delay to allow user to move mouse to the tooltip
-            if (hoveredSunIdRef.current !== null) {
-              // Clear any existing hide timeout
-              if (sunHideTimeoutRef.current) {
-                clearTimeout(sunHideTimeoutRef.current);
-              }
-              // Set a new hide timeout with 300ms delay
-              sunHideTimeoutRef.current = setTimeout(() => {
-                hoveredSunIdRef.current = null;
-                setHoveredSunId(null);
-                setHoveredSun(null);
-                // Reset cursor
-                if (canvasRef.current) {
-                  canvasRef.current.style.cursor = "default";
-                }
-              }, 300);
-            }
-          }
-        }
-      };
-
-      const handleMouseDown = (): void => {
-        mousePositionRef.current = {
-          ...mousePositionRef.current,
-          isClicked: true,
-          clickTime: Date.now(),
-        };
-        setMousePosition({
-          ...mousePositionRef.current,
-          isClicked: true,
-          clickTime: Date.now(),
-        });
-      };
-
-      const handleMouseUp = (): void => {
-        mousePositionRef.current = {
-          ...mousePositionRef.current,
-          isClicked: false,
-        };
-        setMousePosition({
-          ...mousePositionRef.current,
-          isClicked: false,
-        });
-      };
-
-      // Add all event listeners
-      window.addEventListener("mousemove", handleMouseMove);
-      window.addEventListener("mousedown", handleMouseDown);
-      window.addEventListener("mouseup", handleMouseUp);
-
-      // Cleanup - remove all listeners with correct references
-      return (): void => {
-        window.removeEventListener("mousemove", handleMouseMove);
-        window.removeEventListener("mousedown", handleMouseDown);
-        window.removeEventListener("mouseup", handleMouseUp);
-      };
-    }, [setMousePosition]);
+    // REDUNDANT MOUSE LISTENERS REMOVED HERE
+    // Relies on useMouseInteraction (lines 515)
 
     // Refs for frequently-changing values to avoid useMemo recalculation every frame
     // These are updated via useEffect and accessed in animation loop via refs
@@ -821,7 +677,7 @@ const InteractiveStarfield = forwardRef<
         stars: starsRef.current,
         blackHoles: blackHolesRef.current,
         mousePosition: mousePositionRef.current, // Read from ref, not state
-        enableFlowEffect,
+        enableFlowEffect: performanceTier !== "low" && enableFlowEffect, // Disable heavy flow in low tier
         enableBlackHole,
         enableMouseInteraction,
         enablePlanets: enableEmployeeStars,
@@ -835,7 +691,7 @@ const InteractiveStarfield = forwardRef<
         hoverInfo: hoverInfoRef.current, // Read from ref
         setHoverInfo,
         colorScheme,
-        lineConnectionDistance: debugSettings.lineConnectionDistance,
+        lineConnectionDistance: performanceTier === "low" ? 0 : debugSettings.lineConnectionDistance, // Disable connections in low tier
         lineOpacity: debugSettings.lineOpacity,
         mouseEffectRadius: debugSettings.mouseEffectRadius,
         mouseEffectColor,
@@ -868,7 +724,6 @@ const InteractiveStarfield = forwardRef<
         isMouseOverProjectTooltipRef,
         cameraRef: cameraStateRef,
         sidebarWidth,
-        offscreenCanvas, // Offscreen canvas for performance optimization
       }),
       // eslint-disable-next-line react-hooks/exhaustive-deps
       [
@@ -896,9 +751,7 @@ const InteractiveStarfield = forwardRef<
         hoveredSunId,
         focusedSunId,
         sidebarWidth,
-        // NOTE: mousePosition, hoverInfo, gameState, clickBursts, collisionEffects
-        // are INTENTIONALLY excluded - they are accessed via refs to prevent
-        // useMemo recalculation 60x/sec during animation
+        performanceTier, // Add performance tier as dep
       ],
     );
 
@@ -953,11 +806,8 @@ const InteractiveStarfield = forwardRef<
         if (window.starfieldAPI) {
           delete window.starfieldAPI;
         }
-
-        // Clean up offscreen canvas layers
-        offscreenCanvas.cleanup();
       };
-    }, [offscreenCanvas]);
+    }, []);
 
     // Delay showing starfield until initialization is complete
     // This prevents users from seeing the initial movement to designated positions

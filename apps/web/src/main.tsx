@@ -3,19 +3,13 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import { ThemeProvider } from "@/theme";
 import "./theme/theme.css";
-import { logger, initWebVitals, performanceMonitor, featureFlags } from "@/utils";
+import { logger } from "@/utils/logger";
+import { initWebVitals } from "@/utils/performance";
 
-logger.debug("Application starting");
+logger.debug("Index file is running");
 
 // Initialize Core Web Vitals monitoring
 initWebVitals();
-
-// Initialize performance monitoring in development
-if (import.meta.env.DEV) {
-  performanceMonitor.setEnabled(true);
-  logger.info("Performance monitoring enabled");
-  logger.info(`Feature flags: ${featureFlags.getSummary()}`);
-}
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider
@@ -34,7 +28,7 @@ createRoot(document.getElementById("root")!).render(
       }}
       className="theme-wrapper"
       onThemeChange={(theme) => {
-        logger.debug("Theme changed", theme);
+        logger.debug("Theme changed:", theme);
       }}
     >
       <App />

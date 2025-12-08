@@ -42,30 +42,18 @@ export const useMouseInteraction = (
       if (now - lastMoveTimeRef.current < 16) return; // ~60fps
       lastMoveTimeRef.current = now;
 
-      const newPosition = {
+      setMousePosition((prev) => ({
+        ...prev,
         x: clientX,
         y: clientY,
-        lastX: mousePosition.x,
-        lastY: mousePosition.y,
-        speedX: clientX - mousePosition.x,
-        speedY: clientY - mousePosition.y,
-        isClicked: mousePosition.isClicked,
-        clickTime: mousePosition.clickTime,
+        lastX: prev.x,
+        lastY: prev.y,
+        speedX: clientX - prev.x,
+        speedY: clientY - prev.y,
         isOnScreen: true,
-      };
-
-      // Update state
-      setMousePosition(newPosition);
-
-      // Debug log to verify the mouse position is being updated
-      logger.debug("Mouse/touch position updated:", {
-        clientX,
-        clientY,
-        isOnScreen: true,
-        isClicked: mousePosition.isClicked,
-      });
+      }));
     },
-    [mousePosition],
+    [],
   );
 
   // Throttled mouse move handler
@@ -155,6 +143,7 @@ export const useMouseInteraction = (
     setMousePosition((prev) => ({
       ...prev,
       isOnScreen: false,
+      isClicked: false, // Ensure click is released when leaving screen
     }));
     logger.debug("Mouse left screen");
   }, []);
@@ -169,8 +158,8 @@ export const useMouseInteraction = (
       window.addEventListener("mouseleave", handleMouseLeave);
 
       // Touch events
-      window.addEventListener("touchmove", handleTouchMove);
-      window.addEventListener("touchstart", handleTouchStart);
+      window.addEventListener("touchmove", handleTouchMove, { passive: true });
+      window.addEventListener("touchstart", handleTouchStart, { passive: true });
       window.addEventListener("touchend", handleTouchEnd);
 
       logger.debug("Mouse and touch event listeners set up");

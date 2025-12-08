@@ -5,7 +5,6 @@ import {
   Star,
   UseDebugControlsProps,
 } from "../types";
-import { TWO_PI } from "../math";
 
 const STORAGE_KEY = "starfieldDebugSettings";
 
@@ -97,41 +96,18 @@ export const useDebugControls = ({
   /* -------------- debug HUD drawing -------------- */
   const drawDebugInfo = useCallback(
     (
-      ctx: CanvasRenderingContext2D,
-      width: number,
-      height: number,
-      mousePosition: MousePosition,
-      stars: Star[],
-      mouseEffectRadius: number,
-      timestamp?: number,
+      _ctx: CanvasRenderingContext2D,
+      _width: number,
+      _height: number,
+      _mousePosition: MousePosition,
+      _stars: Star[],
+      _mouseEffectRadius: number,
+      _timestamp?: number,
     ): void => {
-      if (!debugSettings.isDebugMode) return;
-
-      ctx.save();
-      ctx.fillStyle = "rgba(255,255,255,0.8)";
-      ctx.font = "12px monospace";
-
-      const lines = [
-        `Stars: ${stars.length}`,
-        `FPS: ${timestamp ? (1000 / timestamp).toFixed(1) : "—"}`,
-        `Mouse: ${Math.round(mousePosition.x)},${Math.round(mousePosition.y)}`,
-        `Effect Radius: ${mouseEffectRadius}`,
-        `Repulse R/F: ${debugSettings.repulsionRadius}/${debugSettings.repulsionForce}`,
-        `AnimSpeed: ${debugSettings.animationSpeed.toFixed(2)}x`,
-        `MaxVel: ${debugSettings.maxVelocity.toFixed(2)}`,
-      ];
-
-      lines.forEach((txt, i) => ctx.fillText(txt, 10, 20 + i * 18));
-
-      if (mousePosition.isOnScreen) {
-        ctx.strokeStyle = "rgba(255,255,255,0.3)";
-        ctx.beginPath();
-        ctx.arc(mousePosition.x, mousePosition.y, mouseEffectRadius, 0, TWO_PI);
-        ctx.stroke();
-      }
-      ctx.restore();
+      // Disabled canvas drawing to avoid overlap with DOM overlay
+      // if (!debugSettings.isDebugMode) return;
     },
-    [debugSettings],
+    [],
   );
 
   return { debugSettings, updateDebugSetting, drawDebugInfo };

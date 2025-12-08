@@ -1,8 +1,6 @@
 // performanceProfiler.ts - Rendering performance measurement
 // Provides timing data to identify bottlenecks in the animation loop
 
-import { logger as rootLogger, type ILogger } from "../../../../utils/ILogger";
-
 interface _TimingEntry {
   name: string;
   duration: number;
@@ -16,7 +14,6 @@ interface ProfilerState {
   frameCount: number;
   lastReportTime: number;
   reportInterval: number; // ms between reports
-  logger: ILogger;
 }
 
 const state: ProfilerState = {
@@ -26,7 +23,6 @@ const state: ProfilerState = {
   frameCount: 0,
   lastReportTime: 0,
   reportInterval: 5000, // Report every 5 seconds
-  logger: rootLogger.createChild("Profiler"),
 };
 
 // Rolling window size for averaging
@@ -41,9 +37,9 @@ export function setProfilerEnabled(enabled: boolean): void {
     state.timings.clear();
     state.frameCount = 0;
     state.lastReportTime = performance.now();
-    state.logger.info("Enabled - collecting rendering metrics");
+    console.log("[Profiler] Enabled - collecting rendering metrics");
   } else {
-    state.logger.info("Disabled");
+    console.log("[Profiler] Disabled");
   }
 }
 
@@ -137,7 +133,7 @@ export function outputReport(): void {
   const entries = Object.entries(metrics);
 
   if (entries.length === 0) {
-    state.logger.info("No timing data collected");
+    console.log("[Profiler] No timing data collected");
     return;
   }
 
@@ -148,33 +144,34 @@ export function outputReport(): void {
   const totalEntry = entries.find(([name]) => name === "frame");
   const totalAvg = totalEntry ? totalEntry[1].avg : 0;
 
-  state.logger.group("Rendering Performance Report");
-  state.logger.info(`Frames: ${state.frameCount} | Sample size: ${SAMPLE_SIZE}`);
-  state.logger.info("─".repeat(60));
-  state.logger.info(
+  console.log("\n[Profiler] Rendering Performance Report");
+  console.log("═".repeat(60));
+  console.log(`Frames: ${state.frameCount} | Sample size: ${SAMPLE_SIZE}`);
+  console.log("─".repeat(60));
+  console.log(
     `${"Section".padEnd(25)} ${"Avg (ms)".padStart(10)} ${"Min".padStart(8)} ${"Max".padStart(8)} ${"%".padStart(6)}`,
   );
-  state.logger.info("─".repeat(60));
+  console.log("─".repeat(60));
 
   entries.forEach(([name, data]) => {
     const pct = totalAvg > 0 ? ((data.avg / totalAvg) * 100).toFixed(1) : "-";
-    state.logger.info(
+    console.log(
       `${name.padEnd(25)} ${data.avg.toFixed(3).padStart(10)} ${data.min.toFixed(3).padStart(8)} ${data.max.toFixed(3).padStart(8)} ${String(pct).padStart(6)}`,
     );
   });
 
-  state.logger.info("─".repeat(60));
+  console.log("─".repeat(60));
 
   // Performance assessment
   if (totalAvg > 16.67) {
-    state.logger.warn("Frame time exceeds 16.67ms (60fps budget)");
+    console.log("⚠️  Frame time exceeds 16.67ms (60fps budget)");
   } else if (totalAvg > 8) {
-    state.logger.info("Frame time okay but limited headroom");
+    console.log("⚡ Frame time okay but limited headroom");
   } else {
-    state.logger.info("Frame time well within budget");
+    console.log("✅ Frame time well within budget");
   }
 
-  state.logger.groupEnd();
+  console.log("═".repeat(60) + "\n");
 }
 
 /**

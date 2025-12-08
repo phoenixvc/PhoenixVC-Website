@@ -21,7 +21,6 @@ import { SUNS } from "./cosmos/cosmicHierarchy";
 import { TWO_PI, fastSin, fastCos } from "./math";
 import { SIZE_CONFIG, CAMERA_CONFIG } from "./physicsConfig";
 import { logger } from "@/utils/logger";
-import { featureFlags } from "@/utils";
 
 // Image cache to avoid creating new Image objects every frame
 const imageCache = new Map<string, HTMLImageElement>();
@@ -151,8 +150,8 @@ export const drawPlanet = (
   // Draw nebula effects for important stars
   drawNebulaEffects(ctx, planet, starSize, softRgb);
 
-  // Draw comet trail if applicable and enabled
-  if (planet.pathType === "comet" && featureFlags.isEnabled("trailEffects")) {
+  // Draw comet trail if applicable
+  if (planet.pathType === "comet") {
     drawStarTrail(ctx, planet, starSize, softRgb, planetSize, scaleFactor);
   }
 
@@ -186,15 +185,13 @@ export const drawPlanet = (
     ctx.stroke();
   }
 
-  // Draw satellites if enabled
-  if (planet.satellites && planet.satellites.length > 0 && featureFlags.isEnabled("planetSatellites")) {
+  // Draw satellites
+  if (planet.satellites && planet.satellites.length > 0) {
     drawSatellites(ctx, planet, scaleFactor, softRgb, deltaTime);
   }
 
-  // Draw hover/selection effects if enabled
-  if (featureFlags.isEnabled("hoverEffects")) {
-    drawHoverEffects(ctx, planet, starSize, softRgb);
-  }
+  // Draw hover/selection effects
+  drawHoverEffects(ctx, planet, starSize, softRgb);
 
   // Draw project identifier (initials or avatar)
   drawProjectIdentifier(ctx, planet, starSize, displayStyle);

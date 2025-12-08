@@ -7,7 +7,6 @@ import { Planet } from "./types";
 import { getFrameTime } from "./frameCache";
 import { SUNS } from "./cosmos/cosmicHierarchy";
 import { TWO_PI, fastSin, fastCos } from "./math";
-import { featureFlags } from "@/utils";
 
 /**
  * Get the sun color for a planet based on its focus area
@@ -54,9 +53,8 @@ export function drawSatellites(
   const sunRgbaPrefix = `rgba(${sunRgb.r}, ${sunRgb.g}, ${sunRgb.b}, `;
   const secRgbaPrefix = `rgba(${secondaryRgb.r}, ${secondaryRgb.g}, ${secondaryRgb.b}, `;
 
-  // Draw orbit paths for satellites with sun-aligned gradient colors (if enabled)
+  // Draw orbit paths for satellites with sun-aligned gradient colors
   if (
-    featureFlags.isEnabled("planetOrbits") &&
     planet.satellites &&
     planet.satellites.length > 0 &&
     !planet.useSimpleRendering

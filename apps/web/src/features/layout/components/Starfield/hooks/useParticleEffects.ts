@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Burst, CollisionEffect } from "../types";
 import { TWO_PI, fastSin, fastCos } from "../math";
-import { featureFlags } from "@/utils";
 
 export const useParticleEffects = (): {
   clickBursts: Burst[];
@@ -39,14 +38,9 @@ export const useParticleEffects = (): {
         particles: [],
       };
 
-      // Create particles with device-aware count, scaled by feature flag value
-      // particleEffects.value: 100 = normal, 50 = half, 200 = double
-      const particleMultiplier = (featureFlags.getValue("particleEffects") ?? 100) / 100;
-      const baseCount = isMobile ? 10 : 15;
-      const variance = isMobile ? 5 : 10;
-      const scaledBase = Math.floor(baseCount * particleMultiplier);
-      const scaledVariance = Math.floor(variance * particleMultiplier);
-      const particleCount = Math.floor(Math.random() * Math.max(1, scaledVariance)) + Math.max(1, scaledBase);
+      // Create particles with device-aware count
+      const particleCount =
+        Math.floor(Math.random() * (isMobile ? 5 : 10)) + (isMobile ? 10 : 15);
 
       for (let i = 0; i < particleCount; i++) {
         const angle = Math.random() * TWO_PI;

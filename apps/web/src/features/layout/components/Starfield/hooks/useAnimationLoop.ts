@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { CollisionEffect, GameState } from "../types";
 import { animate } from "./animation/animate";
 import { AnimationProps, AnimationRefs } from "./animation/types";
-import { logger, performanceMonitor } from "@/utils";
+import { logger } from "@/utils/logger";
 
 export const useAnimationLoop = (
   props: AnimationProps,
