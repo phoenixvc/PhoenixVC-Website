@@ -13,8 +13,21 @@
       position: fixed;
       top: 0;
       left: 0;
-      pointer-events: none;
+      pointer-events: auto;
       z-index: 1;
+    }
+
+    /* Ensure interactive content is above canvas and receives events */
+    .showcase-grid {
+      position: relative;
+      z-index: 10;
+    }
+
+    .btn-interactive,
+    .grid-item,
+    button {
+      position: relative;
+      pointer-events: auto;
     }
 
     /* Grid System */
@@ -161,8 +174,8 @@
     World.add(engine.world, walls);
     
     // Setup mouse interaction for dragging physics objects
-    // Use document.body instead of canvas to allow interaction without blocking page elements
-    const mouse = Mouse.create(document.body);
+    // Use render.canvas to properly track mouse on the physics canvas
+    const mouse = Mouse.create(render.canvas);
     const mouseConstraint = MouseConstraint.create(engine, {
       mouse: mouse,
       constraint: {
@@ -175,6 +188,11 @@
     
     World.add(engine.world, mouseConstraint);
     render.mouse = mouse;
+    
+    // Prevent the mouse constraint from interfering with page elements
+    // by keeping the canvas element set up correctly
+    mouse.element.removeEventListener('mousewheel', mouse.mousewheel);
+    mouse.element.removeEventListener('DOMMouseScroll', mouse.mousewheel);
     
     // Add some interactive physics objects for testing
     // Position objects relative to window size for responsive design
