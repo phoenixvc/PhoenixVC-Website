@@ -2,7 +2,7 @@
 // Unified logging interface for the application
 // All logging should go through this interface to ensure consistency
 
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+export type LogLevel = "debug" | "info" | "warn" | "error";
 
 export interface ILogger {
   debug(message: string, ...args: unknown[]): void;
@@ -45,8 +45,8 @@ class Logger implements ILogger {
     const envLogLevel = (import.meta.env as Record<string, string>).VITE_LOG_LEVEL as LogLevel | undefined;
     this.config = {
       enabled: import.meta.env.DEV,
-      level: envLogLevel || 'info',
-      prefix: '',
+      level: envLogLevel || "info",
+      prefix: "",
       showTimestamp: true,
       showLevel: true,
       ...config,
@@ -62,7 +62,7 @@ class Logger implements ILogger {
     const parts: string[] = [];
 
     if (this.config.showTimestamp) {
-      const timestamp = new Date().toISOString().split('T')[1].slice(0, -1);
+      const timestamp = new Date().toISOString().split("T")[1].slice(0, -1);
       parts.push(`[${timestamp}]`);
     }
 
@@ -75,34 +75,34 @@ class Logger implements ILogger {
     }
 
     parts.push(message);
-    return parts.join(' ');
+    return parts.join(" ");
   }
 
   debug(message: string, ...args: unknown[]): void {
-    if (this.shouldLog('debug')) {
-      // eslint-disable-next-line no-console
-      console.log(this.formatMessage('debug', message), ...args);
+    if (this.shouldLog("debug")) {
+       
+      console.log(this.formatMessage("debug", message), ...args);
     }
   }
 
   info(message: string, ...args: unknown[]): void {
-    if (this.shouldLog('info')) {
-      // eslint-disable-next-line no-console
-      console.info(this.formatMessage('info', message), ...args);
+    if (this.shouldLog("info")) {
+       
+      console.info(this.formatMessage("info", message), ...args);
     }
   }
 
   warn(message: string, ...args: unknown[]): void {
-    if (this.shouldLog('warn')) {
-      // eslint-disable-next-line no-console
-      console.warn(this.formatMessage('warn', message), ...args);
+    if (this.shouldLog("warn")) {
+       
+      console.warn(this.formatMessage("warn", message), ...args);
     }
   }
 
   error(message: string, ...args: unknown[]): void {
-    if (this.shouldLog('error')) {
-      // eslint-disable-next-line no-console
-      console.error(this.formatMessage('error', message), ...args);
+    if (this.shouldLog("error")) {
+       
+      console.error(this.formatMessage("error", message), ...args);
     }
   }
 
@@ -112,21 +112,21 @@ class Logger implements ILogger {
 
   group(label: string): void {
     if (this.config.enabled) {
-      // eslint-disable-next-line no-console
+       
       console.group(this.config.prefix ? `[${this.config.prefix}] ${label}` : label);
     }
   }
 
   groupEnd(): void {
     if (this.config.enabled) {
-      // eslint-disable-next-line no-console
+       
       console.groupEnd();
     }
   }
 
   table(data: unknown): void {
     if (this.config.enabled) {
-      // eslint-disable-next-line no-console
+       
       console.table(data);
     }
   }

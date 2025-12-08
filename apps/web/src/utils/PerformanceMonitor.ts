@@ -2,7 +2,7 @@
 // Comprehensive performance monitoring for canvas animations and rendering
 // Used to decide whether features should be enabled/disabled based on device capability
 
-import { logger as rootLogger, type ILogger } from './ILogger';
+import { logger as rootLogger, type ILogger } from "./ILogger";
 
 // Performance thresholds
 export interface PerformanceThresholds {
@@ -15,7 +15,7 @@ export interface PerformanceThresholds {
 }
 
 // Performance rating based on current metrics
-export type PerformanceRating = 'excellent' | 'good' | 'acceptable' | 'poor' | 'critical';
+export type PerformanceRating = "excellent" | "good" | "acceptable" | "poor" | "critical";
 
 // Metrics snapshot
 export interface PerformanceMetrics {
@@ -50,7 +50,7 @@ export interface SectionMetrics {
 // Performance recommendation
 export interface PerformanceRecommendation {
   feature: string;
-  action: 'enable' | 'disable' | 'reduce';
+  action: "enable" | "disable" | "reduce";
   reason: string;
   priority: number;  // 1-10, higher = more important
 }
@@ -102,7 +102,7 @@ class PerformanceMonitorImpl {
   private autoAdjustEnabled = true;
 
   constructor() {
-    this.logger = rootLogger.createChild('PerfMon');
+    this.logger = rootLogger.createChild("PerfMon");
     this.thresholds = { ...DEFAULT_THRESHOLDS };
   }
 
@@ -113,9 +113,9 @@ class PerformanceMonitorImpl {
     this.enabled = enabled;
     if (enabled) {
       this.reset();
-      this.logger.info('Performance monitoring enabled');
+      this.logger.info("Performance monitoring enabled");
     } else {
-      this.logger.info('Performance monitoring disabled');
+      this.logger.info("Performance monitoring disabled");
     }
   }
 
@@ -128,7 +128,7 @@ class PerformanceMonitorImpl {
    */
   setThresholds(thresholds: Partial<PerformanceThresholds>): void {
     this.thresholds = { ...this.thresholds, ...thresholds };
-    this.logger.debug('Thresholds updated', this.thresholds);
+    this.logger.debug("Thresholds updated", this.thresholds);
   }
 
   getThresholds(): PerformanceThresholds {
@@ -215,7 +215,7 @@ class PerformanceMonitorImpl {
       if (this.sectionTimings.size >= MAX_SECTIONS) {
         // Find and remove the section with the oldest/fewest samples
         let minSamples = Infinity;
-        let oldestSection = '';
+        let oldestSection = "";
         this.sectionTimings.forEach((s, n) => {
           if (s.length < minSamples) {
             minSamples = s.length;
@@ -310,7 +310,7 @@ class PerformanceMonitorImpl {
         jankCount: 0,
         droppedFrames: 0,
         sampleCount: 0,
-        rating: 'excellent',
+        rating: "excellent",
         timestamp: Date.now(),
       };
     }
@@ -341,7 +341,7 @@ class PerformanceMonitorImpl {
     };
 
     // Add memory info if available
-    if ('memory' in performance) {
+    if ("memory" in performance) {
       const memInfo = (performance as Performance & {
         memory?: {
           usedJSHeapSize: number;
@@ -400,18 +400,18 @@ class PerformanceMonitorImpl {
     const jankRate = sampleCount > 0 ? jankCount / sampleCount : 0;
 
     if (avgFps >= this.thresholds.targetFps * 0.95 && jankRate < 0.01) {
-      return 'excellent';
+      return "excellent";
     }
     if (avgFps >= this.thresholds.targetFps * 0.85 && jankRate < 0.05) {
-      return 'good';
+      return "good";
     }
     if (avgFps >= this.thresholds.minAcceptableFps && jankRate < 0.15) {
-      return 'acceptable';
+      return "acceptable";
     }
     if (avgFps >= this.thresholds.criticalFps) {
-      return 'poor';
+      return "poor";
     }
-    return 'critical';
+    return "critical";
   }
 
   /**
@@ -423,39 +423,39 @@ class PerformanceMonitorImpl {
     const recommendations: PerformanceRecommendation[] = [];
 
     // Critical performance - aggressive recommendations
-    if (metrics.rating === 'critical') {
+    if (metrics.rating === "critical") {
       recommendations.push({
-        feature: 'starConnections',
-        action: 'disable',
-        reason: 'Critical FPS - disable expensive line drawing',
+        feature: "starConnections",
+        action: "disable",
+        reason: "Critical FPS - disable expensive line drawing",
         priority: 10,
       });
       recommendations.push({
-        feature: 'particleEffects',
-        action: 'disable',
-        reason: 'Critical FPS - disable particle effects',
+        feature: "particleEffects",
+        action: "disable",
+        reason: "Critical FPS - disable particle effects",
         priority: 9,
       });
       recommendations.push({
-        feature: 'starCount',
-        action: 'reduce',
-        reason: 'Critical FPS - reduce star count by 50%',
+        feature: "starCount",
+        action: "reduce",
+        reason: "Critical FPS - reduce star count by 50%",
         priority: 8,
       });
     }
 
     // Poor performance - moderate recommendations
-    if (metrics.rating === 'poor' || metrics.rating === 'critical') {
+    if (metrics.rating === "poor" || metrics.rating === "critical") {
       recommendations.push({
-        feature: 'sunEffects',
-        action: 'reduce',
-        reason: 'Low FPS - simplify sun rendering',
+        feature: "sunEffects",
+        action: "reduce",
+        reason: "Low FPS - simplify sun rendering",
         priority: 7,
       });
       recommendations.push({
-        feature: 'glowEffects',
-        action: 'disable',
-        reason: 'Low FPS - disable glow effects',
+        feature: "glowEffects",
+        action: "disable",
+        reason: "Low FPS - disable glow effects",
         priority: 6,
       });
     }
@@ -465,7 +465,7 @@ class PerformanceMonitorImpl {
       if (section.percentOfFrame > 40) {
         recommendations.push({
           feature: section.name,
-          action: 'reduce',
+          action: "reduce",
           reason: `${section.name} using ${section.percentOfFrame.toFixed(1)}% of frame budget`,
           priority: 5,
         });
@@ -504,7 +504,7 @@ class PerformanceMonitorImpl {
     // Currently returns false because all starfield content moves every frame.
     // If static backgrounds or UI layers are added, this could be reconsidered.
     // The check for OffscreenCanvas support is kept for when this is revisited.
-    if (typeof OffscreenCanvas === 'undefined') return false;
+    if (typeof OffscreenCanvas === "undefined") return false;
 
     // TODO: Return true when static content layers are identified
     return false;
@@ -517,7 +517,7 @@ class PerformanceMonitorImpl {
     const metrics = this.getMetrics();
     const sections = this.getSectionMetrics();
 
-    this.logger.group('Performance Report');
+    this.logger.group("Performance Report");
     this.logger.info(`Rating: ${metrics.rating.toUpperCase()}`);
     this.logger.info(`Average FPS: ${metrics.averageFps.toFixed(1)} (min: ${metrics.minFps.toFixed(1)}, max: ${metrics.maxFps.toFixed(1)})`);
     this.logger.info(`Average Frame Time: ${metrics.averageFrameTime.toFixed(2)}ms (max: ${metrics.maxFrameTime.toFixed(2)}ms)`);
@@ -525,7 +525,7 @@ class PerformanceMonitorImpl {
     this.logger.info(`Dropped Frames: ${metrics.droppedFrames}`);
 
     if (sections.length > 0) {
-      this.logger.group('Section Breakdown');
+      this.logger.group("Section Breakdown");
       sections.forEach(section => {
         this.logger.info(
           `${section.name}: ${section.avgTime.toFixed(2)}ms avg (${section.percentOfFrame.toFixed(1)}% of frame)`
@@ -542,7 +542,7 @@ class PerformanceMonitorImpl {
 
     const recommendations = this.getRecommendations();
     if (recommendations.length > 0) {
-      this.logger.group('Recommendations');
+      this.logger.group("Recommendations");
       recommendations.forEach(rec => {
         this.logger.info(`[${rec.priority}] ${rec.action.toUpperCase()} ${rec.feature}: ${rec.reason}`);
       });
@@ -556,7 +556,7 @@ class PerformanceMonitorImpl {
       try {
         callback(metrics);
       } catch (error) {
-        this.logger.error('Error in metrics callback', error);
+        this.logger.error("Error in metrics callback", error);
       }
     });
 
@@ -566,7 +566,7 @@ class PerformanceMonitorImpl {
         try {
           callback(recommendations);
         } catch (error) {
-          this.logger.error('Error in recommendations callback', error);
+          this.logger.error("Error in recommendations callback", error);
         }
       });
     }

@@ -2,7 +2,7 @@
 // Central export point for utility modules
 
 // Logger - export from ILogger as the primary logger
-export { logger, Logger, type ILogger, type LogLevel, type LoggerConfig } from './ILogger';
+export { logger, Logger, type ILogger, type LogLevel, type LoggerConfig } from "./ILogger";
 
 // Performance Monitoring
 export {
@@ -12,7 +12,7 @@ export {
   type PerformanceThresholds,
   type SectionMetrics,
   type PerformanceRecommendation,
-} from './PerformanceMonitor';
+} from "./PerformanceMonitor";
 
 // Feature Flags
 export {
@@ -21,7 +21,7 @@ export {
   type FeatureCategory,
   type FeatureFlagsState,
   type FrameSnapshot,
-} from './FeatureFlags';
+} from "./FeatureFlags";
 
 // Web Vitals
-export { initWebVitals, type WebVitalsConfig, type WebVitalsMetric } from './performance';
+export { initWebVitals, type WebVitalsConfig, type WebVitalsMetric } from "./performance";
