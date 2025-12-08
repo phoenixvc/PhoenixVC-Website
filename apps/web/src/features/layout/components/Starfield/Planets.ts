@@ -257,11 +257,11 @@ export const checkPlanetHover = (
   const hoverRadius = ORBIT_CONFIG.hover.radiusMultiplier * planetSize;
 
   // Helper function to calculate distance between mouse and planet
+  // Uses multiplication instead of Math.pow for better performance
   const getDistanceToPlanet = (planet: Planet): number => {
-    return Math.sqrt(
-      Math.pow(mouseX - planet.x, 2) +
-      Math.pow(mouseY - planet.y, 2)
-    );
+    const dx = mouseX - planet.x;
+    const dy = mouseY - planet.y;
+    return Math.sqrt(dx * dx + dy * dy);
   };
 
   // First, check if there's a currently hovered planet and if cursor is still within its radius
@@ -520,7 +520,8 @@ export function applyClickRepulsionToPlanets(
     if (dist < PLANET_PHYSICS.clickRepulsionRadius && dist > 1) {
       // Calculate force based on distance (closer = stronger)
       const normalizedDist = dist / PLANET_PHYSICS.clickRepulsionRadius;
-      const forceFactor = Math.pow(1 - normalizedDist, 2); // Quadratic falloff
+      const invDist = 1 - normalizedDist;
+      const forceFactor = invDist * invDist; // Quadratic falloff (faster than Math.pow)
       const force = PLANET_PHYSICS.clickRepulsionForce * forceFactor;
       
       // Normalize direction (away from click)

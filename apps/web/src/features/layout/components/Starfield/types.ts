@@ -105,6 +105,8 @@ export interface Planet {
     y: number;
   };
   orbitParentId?: string;
+  /** Cached sun color for fast rendering (avoids repeated lookup) */
+  cachedSunColor?: string;
 }
 
 export interface HoverInfo {
@@ -188,6 +190,8 @@ export interface BlackHoleParticle {
   speed: number;
   color: string;
   alpha?: number;
+  /** Pre-parsed RGB values for fast color manipulation */
+  rgb?: { r: number; g: number; b: number };
 }
 
 // Visual effects types
@@ -207,6 +211,8 @@ export interface BurstParticle {
   vy: number;
   size: number;
   color: string;
+  /** Pre-computed base color without alpha for fast rendering (e.g., "rgba(255, 100, 200, ") */
+  colorBase?: string;
   time: number;
 }
 
@@ -237,6 +243,8 @@ export interface CollisionEffect {
   x: number;
   y: number;
   color: string;
+  /** Pre-computed base color without alpha for fast rendering (e.g., "rgba(255, 100, 200, ") */
+  colorBase?: string;
   time: number;
   score: number;
   particles: CollisionParticle[];

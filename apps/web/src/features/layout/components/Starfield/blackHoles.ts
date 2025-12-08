@@ -6,6 +6,15 @@ import { getFrameTime } from "./frameCache";
 import { BLACK_HOLE_RENDERING_CONFIG as BH } from "./renderingConfig";
 import { TWO_PI } from "./math";
 
+// Helper to parse RGB values from rgba string (called once per particle, not per frame)
+function parseRgbFromRgba(rgbaString: string): { r: number; g: number; b: number } {
+  const match = rgbaString.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+  if (match) {
+    return { r: parseInt(match[1], 10), g: parseInt(match[2], 10), b: parseInt(match[3], 10) };
+  }
+  return { r: 200, g: 100, b: 200 }; // Fallback purple
+}
+
 // Initialize black holes based on configuration
 export const initBlackHoles = (
   width: number,
@@ -106,6 +115,9 @@ export const drawBlackHole = (
       const sizeRange = BH.particles.sizeMax - BH.particles.sizeMin;
       const particleSize = Math.random() * sizeRange + BH.particles.sizeMin;
 
+      // Pre-parse RGB values for fast color manipulation in render loop
+      const rgb = parseRgbFromRgba(particleColor);
+
       const newParticle: BlackHoleParticle = {
         x: x + Math.cos(angle) * distance,
         y: y + Math.sin(angle) * distance,
@@ -114,7 +126,8 @@ export const drawBlackHole = (
         distance,
         speed,
         color: particleColor,
-        alpha: BH.particles.alphaBase + Math.random() * BH.particles.alphaRandom
+        alpha: BH.particles.alphaBase + Math.random() * BH.particles.alphaRandom,
+        rgb
       };
 
       particles.push(newParticle);
@@ -168,18 +181,13 @@ export const drawBlackHole = (
     // Use alpha if available, otherwise default to 0.6
     const alpha = particle.alpha !== undefined ? particle.alpha : 0.6;
 
-    // Extract base color without alpha
-    let baseColor = particle.color;
-    if (baseColor.startsWith("rgba(")) {
-      baseColor = baseColor.replace(/,\s*[\d.]+\)$/, ")").replace("rgba", "rgb");
+    // Use pre-parsed RGB values for fast color construction (avoids regex per frame)
+    if (particle.rgb) {
+      ctx.fillStyle = `rgba(${particle.rgb.r}, ${particle.rgb.g}, ${particle.rgb.b}, ${alpha})`;
+    } else {
+      // Fallback for particles without pre-parsed RGB
+      ctx.fillStyle = `rgba(200, 100, 200, ${alpha})`;
     }
-
-    // Apply alpha
-    const fillColor = baseColor.startsWith("rgb")
-      ? baseColor.replace("rgb", "rgba").replace(")", `, ${alpha})`)
-      : `rgba(255, 255, 255, ${alpha})`;
-
-    ctx.fillStyle = fillColor;
     ctx.fill();
 
     // Increment index to process next particle

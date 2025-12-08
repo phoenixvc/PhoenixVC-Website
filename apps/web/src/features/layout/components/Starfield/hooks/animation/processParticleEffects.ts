@@ -3,6 +3,11 @@ import { BurstParticle, ClickBurst, CollisionEffect, CollisionParticle, GameStat
 import { AnimationProps, AnimationRefs } from "./types";
 import { TWO_PI } from "../../math";
 
+// Helper to extract base color (called once per particle creation, not per frame)
+function getBaseColor(color: string): string {
+  return color.replace(/[\d.]+\)$/, "");
+}
+
 export function processParticleEffects(
     ctx: CanvasRenderingContext2D,
     timestamp: number,
@@ -17,16 +22,33 @@ export function processParticleEffects(
     const normalizedDelta = Math.min(deltaTime / 160, 0.2);
 
     // Update and draw click bursts - only on every other frame
+    // Uses swap-and-pop pattern for O(1) removal instead of filter's O(n) allocation
     if (!shouldSkipHeavyOperations && props.clickBurstsRef && props.clickBurstsRef.current) {
-      const updatedBursts = props.clickBurstsRef.current.filter((burst: ClickBurst) => {
+      const bursts = props.clickBurstsRef.current;
+      let burstIdx = 0;
+
+      while (burstIdx < bursts.length) {
+        const burst = bursts[burstIdx];
         const timeSinceBurst = timestamp - burst.time;
 
-        // Remove bursts older than 1.5 seconds
-        if (timeSinceBurst > 1500) return false;
+        // Remove bursts older than 1.5 seconds using swap-and-pop
+        if (timeSinceBurst > 1500) {
+          const lastIdx = bursts.length - 1;
+          if (burstIdx !== lastIdx) {
+            bursts[burstIdx] = bursts[lastIdx];
+          }
+          bursts.pop();
+          continue; // Don't increment - need to process swapped element
+        }
 
-        // Update and draw each particle - limit particles for performance
-        const particlesToDraw = burst.particles.slice(0, 20);
-        particlesToDraw.forEach((particle: BurstParticle) => {
+        // Calculate opacity once per burst
+        const opacity = 1 - (timeSinceBurst / 1500);
+
+        // Update and draw particles - direct iteration with limit (avoids slice allocation)
+        const maxParticles = Math.min(burst.particles.length, 20);
+        for (let j = 0; j < maxParticles; j++) {
+          const particle = burst.particles[j];
+
           // Update position - slow down by 10x
           particle.x += particle.vx * (normalizedDelta * 0.05);
           particle.y += particle.vy * (normalizedDelta * 0.05);
@@ -38,41 +60,58 @@ export function processParticleEffects(
           particle.vx *= 0.998;
           particle.vy *= 0.998;
 
-          // Calculate opacity based on time
-          const opacity = 1 - (timeSinceBurst / 1500);
-
           // Draw particle
           ctx.beginPath();
           ctx.arc(particle.x, particle.y, particle.size, 0, TWO_PI);
 
-          // Extract base color and apply fading
-          const baseColor = particle.color.replace(/[\d.]+\)$/, "");
-          ctx.fillStyle = `${baseColor}${opacity})`;
+          // Use cached base color if available, otherwise compute and cache it
+          if (!particle.colorBase) {
+            particle.colorBase = getBaseColor(particle.color);
+          }
+          ctx.fillStyle = `${particle.colorBase}${opacity})`;
           ctx.fill();
-        });
+        }
 
-        return true;
-      });
-
-      props.clickBurstsRef.current = updatedBursts;
+        burstIdx++;
+      }
 
       // Only update state periodically to reduce re-renders
       if (props.frameCountRef && props.frameCountRef.current % 60 === 0) {
-        props.setClickBursts(updatedBursts);
+        props.setClickBursts([...bursts]); // Create new array for React state
       }
     }
 
     // Update and draw collision effects - only on every other frame
+    // Uses swap-and-pop pattern for O(1) removal
     if (!shouldSkipHeavyOperations) {
-      const updatedCollisionEffects = refs.collisionEffectsRef.current.filter((effect: CollisionEffect) => {
-        const timeSinceEffect = Date.now() - effect.time;
+      const effects = refs.collisionEffectsRef.current;
+      const now = Date.now();
+      let effectIdx = 0;
 
-        // Remove effects older than 1 second
-        if (timeSinceEffect > 1000) return false;
+      while (effectIdx < effects.length) {
+        const effect = effects[effectIdx];
+        const timeSinceEffect = now - effect.time;
 
-        // Update and draw each particle - limit particles for performance
-        const particlesToDraw = effect.particles.slice(0, 15);
-        particlesToDraw.forEach((particle: CollisionParticle) => {
+        // Remove effects older than 1 second using swap-and-pop
+        if (timeSinceEffect > 1000) {
+          const lastIdx = effects.length - 1;
+          if (effectIdx !== lastIdx) {
+            effects[effectIdx] = effects[lastIdx];
+          }
+          effects.pop();
+          continue;
+        }
+
+        // Cache base color if not already cached
+        if (!effect.colorBase) {
+          effect.colorBase = getBaseColor(effect.color);
+        }
+
+        // Update and draw particles - direct iteration with limit
+        const maxParticles = Math.min(effect.particles.length, 15);
+        for (let j = 0; j < maxParticles; j++) {
+          const particle = effect.particles[j];
+
           // Update position - slow down by 10x
           particle.x += particle.vx * (normalizedDelta * 0.05);
           particle.y += particle.vy * (normalizedDelta * 0.05);
@@ -84,15 +123,12 @@ export function processParticleEffects(
           // Fade out
           particle.alpha = 1 - (timeSinceEffect / 1000);
 
-          // Draw particle
+          // Draw particle using cached base color
           ctx.beginPath();
           ctx.arc(particle.x, particle.y, particle.size, 0, TWO_PI);
-
-          // Use the effect color with fading alpha
-          const baseColor = effect.color.replace(/[\d.]+\)$/, "");
-          ctx.fillStyle = `${baseColor}${particle.alpha})`;
+          ctx.fillStyle = `${effect.colorBase}${particle.alpha})`;
           ctx.fill();
-        });
+        }
 
         // Add a glow effect at the center that fades out
         if (timeSinceEffect < 300) {
@@ -105,8 +141,9 @@ export function processParticleEffects(
             effect.x, effect.y, glowRadius
           );
 
-          gradient.addColorStop(0, `${effect.color.replace(/[\d.]+\)$/, "")}${glowAlpha})`);
-          gradient.addColorStop(1, `${effect.color.replace(/[\d.]+\)$/, "")}0)`);
+          // Use cached base color
+          gradient.addColorStop(0, `${effect.colorBase}${glowAlpha})`);
+          gradient.addColorStop(1, `${effect.colorBase}0)`);
 
           ctx.beginPath();
           ctx.arc(effect.x, effect.y, glowRadius, 0, TWO_PI);
@@ -124,14 +161,12 @@ export function processParticleEffects(
           ctx.fillText(`+${effect.score}`, effect.x, effect.y - 20 - (timeSinceEffect / 100));
         }
 
-        return true;
-      });
-
-      refs.collisionEffectsRef.current = updatedCollisionEffects;
+        effectIdx++;
+      }
 
       // Only update collision effects state periodically
       if (props.frameCountRef && props.frameCountRef.current % 60 === 0) {
-        props.setCollisionEffects(updatedCollisionEffects);
+        props.setCollisionEffects([...effects]);
       }
     }
 

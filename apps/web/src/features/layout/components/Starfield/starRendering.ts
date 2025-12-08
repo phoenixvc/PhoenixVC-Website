@@ -63,21 +63,30 @@ export function preloadProjectImages(projects: Array<{ image?: string }>): void 
 }
 
 // Get the color a planet should use based on its focus area (matching its sun)
-// Dynamically looks up sun color from cosmicHierarchy to avoid duplication
+// Uses caching to avoid expensive SUNS.find() lookup every frame
 function getSunAlignedColor(planet: Planet): string {
+  // Return cached color if available (avoids O(n) lookup per frame)
+  if (planet.cachedSunColor) {
+    return planet.cachedSunColor;
+  }
+
   const focusArea = planet.project?.focusArea;
+  let color = planet.project?.color || "#ffffff";
+
   if (focusArea) {
-    // Find the matching focus area sun in the hierarchy
+    // Find the matching focus area sun in the hierarchy (one-time lookup)
     const matchingSun = SUNS.find(sun =>
       sun.parentId === "focus-areas-galaxy" &&
       sun.id.includes(focusArea.replace(/-/g, "-"))
     );
     if (matchingSun?.color) {
-      return matchingSun.color;
+      color = matchingSun.color;
     }
   }
-  // Fallback to project color or default
-  return planet.project?.color || "#ffffff";
+
+  // Cache the result on the planet object
+  planet.cachedSunColor = color;
+  return color;
 }
 
 // Draw a portfolio comet/planet with its satellites
