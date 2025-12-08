@@ -429,6 +429,8 @@ const CACHED_WHITE_PREFIX = "rgba(255, 255, 255, ";
 export const drawStars = (
   ctx: CanvasRenderingContext2D,
   stars: Star[],
+  enableGlow = true,
+  enableTwinkle = true,
 ): void => {
   const now = getFrameTime();
   const glowDuration = EFFECT_TIMING.pushGlowDuration;
@@ -514,39 +516,45 @@ export const drawStars = (
 
       // Full rendering for larger stars
       const uniqueSeed = star.uniqueSeed ?? 0;
-      const twinkleSpeed1 = star.twinkleSpeed1 ?? 0.0003;
-      const twinkleSpeed2 = star.twinkleSpeed2 ?? 0.0002;
 
-      // Very subtle twinkle with minimal variation to reduce flickering
-      const twinkle1 = fastSin(now * twinkleSpeed1 + uniqueSeed * 0.05);
-      const twinkle2 = fastSin(now * twinkleSpeed2 * 1.3 + uniqueSeed * 0.08);
-      const twinkleFactor = 0.92 + (twinkle1 * 0.04 + twinkle2 * 0.04);
+      // Calculate twinkle factor (skip calculation if disabled for performance)
+      let twinkleFactor = 1.0;
+      if (enableTwinkle) {
+        const twinkleSpeed1 = star.twinkleSpeed1 ?? 0.0003;
+        const twinkleSpeed2 = star.twinkleSpeed2 ?? 0.0002;
+        // Very subtle twinkle with minimal variation to reduce flickering
+        const twinkle1 = fastSin(now * twinkleSpeed1 + uniqueSeed * 0.05);
+        const twinkle2 = fastSin(now * twinkleSpeed2 * 1.3 + uniqueSeed * 0.08);
+        twinkleFactor = 0.92 + (twinkle1 * 0.04 + twinkle2 * 0.04);
+      }
 
       // Minimal size variation for crisp, stable stars
-      const twinkleSize = star.size * (0.98 + twinkleFactor * 0.04);
+      const twinkleSize = star.size * (enableTwinkle ? (0.98 + twinkleFactor * 0.04) : 1.0);
 
-      // Simplified glow gradient - 2 stops instead of 3
-      const glowRadius = twinkleSize * 1.0;
-      const glowOpacity = twinkleFactor * 0.12;
-      const glowColor = parsed
-        ? colorWithAlpha(parsed, glowOpacity)
-        : star.color;
+      // Draw glow if enabled (expensive - creates gradient)
+      if (enableGlow) {
+        const glowRadius = twinkleSize * 1.0;
+        const glowOpacity = twinkleFactor * 0.12;
+        const glowColor = parsed
+          ? colorWithAlpha(parsed, glowOpacity)
+          : star.color;
 
-      const glowGradient = ctx.createRadialGradient(
-        star.x,
-        star.y,
-        0,
-        star.x,
-        star.y,
-        glowRadius,
-      );
-      glowGradient.addColorStop(0, glowColor);
-      glowGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+        const glowGradient = ctx.createRadialGradient(
+          star.x,
+          star.y,
+          0,
+          star.x,
+          star.y,
+          glowRadius,
+        );
+        glowGradient.addColorStop(0, glowColor);
+        glowGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
 
-      ctx.beginPath();
-      ctx.arc(star.x, star.y, glowRadius, 0, TWO_PI);
-      ctx.fillStyle = glowGradient;
-      ctx.fill();
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, glowRadius, 0, TWO_PI);
+        ctx.fillStyle = glowGradient;
+        ctx.fill();
+      }
 
       // Draw solid star core for crisp appearance (no gradient)
       const alpha = 0.85 + twinkleFactor * 0.15;
@@ -557,8 +565,9 @@ export const drawStars = (
       ctx.fillStyle = coreColor;
       ctx.fill();
 
-      // Very subtle white center for only the largest/brightest stars
+      // Very subtle white center for only the largest/brightest stars (skip if glow disabled)
       if (
+        enableGlow &&
         twinkleFactor > STAR_CENTER_HIGHLIGHT_THRESHOLD &&
         star.size > STAR_CENTER_HIGHLIGHT_ENHANCED_MIN_SIZE
       ) {
