@@ -1,12 +1,6 @@
 // performanceProfiler.ts - Rendering performance measurement
 // Provides timing data to identify bottlenecks in the animation loop
 
-interface TimingEntry {
-  name: string;
-  duration: number;
-  timestamp: number;
-}
-
 interface ProfilerState {
   enabled: boolean;
   timings: Map<string, number[]>;
@@ -37,9 +31,9 @@ export function setProfilerEnabled(enabled: boolean): void {
     state.timings.clear();
     state.frameCount = 0;
     state.lastReportTime = performance.now();
-    console.log('[Profiler] Enabled - collecting rendering metrics');
+    console.log("[Profiler] Enabled - collecting rendering metrics");
   } else {
-    console.log('[Profiler] Disabled');
+    console.log("[Profiler] Disabled");
   }
 }
 
@@ -127,7 +121,7 @@ export function outputReport(): void {
   const entries = Object.entries(metrics);
 
   if (entries.length === 0) {
-    console.log('[Profiler] No timing data collected');
+    console.log("[Profiler] No timing data collected");
     return;
   }
 
@@ -135,35 +129,35 @@ export function outputReport(): void {
   entries.sort((a, b) => b[1].avg - a[1].avg);
 
   // Calculate total frame time
-  const totalEntry = entries.find(([name]) => name === 'frame');
+  const totalEntry = entries.find(([name]) => name === "frame");
   const totalAvg = totalEntry ? totalEntry[1].avg : 0;
 
-  console.log('\n[Profiler] Rendering Performance Report');
-  console.log('═'.repeat(60));
+  console.log("\n[Profiler] Rendering Performance Report");
+  console.log("═".repeat(60));
   console.log(`Frames: ${state.frameCount} | Sample size: ${SAMPLE_SIZE}`);
-  console.log('─'.repeat(60));
-  console.log(`${'Section'.padEnd(25)} ${'Avg (ms)'.padStart(10)} ${'Min'.padStart(8)} ${'Max'.padStart(8)} ${'%'.padStart(6)}`);
-  console.log('─'.repeat(60));
+  console.log("─".repeat(60));
+  console.log(`${"Section".padEnd(25)} ${"Avg (ms)".padStart(10)} ${"Min".padStart(8)} ${"Max".padStart(8)} ${"%".padStart(6)}`);
+  console.log("─".repeat(60));
 
   entries.forEach(([name, data]) => {
-    const pct = totalAvg > 0 ? ((data.avg / totalAvg) * 100).toFixed(1) : '-';
+    const pct = totalAvg > 0 ? ((data.avg / totalAvg) * 100).toFixed(1) : "-";
     console.log(
       `${name.padEnd(25)} ${data.avg.toFixed(3).padStart(10)} ${data.min.toFixed(3).padStart(8)} ${data.max.toFixed(3).padStart(8)} ${String(pct).padStart(6)}`
     );
   });
 
-  console.log('─'.repeat(60));
+  console.log("─".repeat(60));
 
   // Performance assessment
   if (totalAvg > 16.67) {
-    console.log('⚠️  Frame time exceeds 16.67ms (60fps budget)');
+    console.log("⚠️  Frame time exceeds 16.67ms (60fps budget)");
   } else if (totalAvg > 8) {
-    console.log('⚡ Frame time okay but limited headroom');
+    console.log("⚡ Frame time okay but limited headroom");
   } else {
-    console.log('✅ Frame time well within budget');
+    console.log("✅ Frame time well within budget");
   }
 
-  console.log('═'.repeat(60) + '\n');
+  console.log("═".repeat(60) + "\n");
 }
 
 /**

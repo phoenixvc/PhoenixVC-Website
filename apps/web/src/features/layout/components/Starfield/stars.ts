@@ -446,7 +446,6 @@ export const drawStars = (
         star.x, star.y, 0,
         star.x, star.y, glowRadius
       );
-      const glowColor = parsed ? colorWithAlpha(parsed, 0.6) : baseColor;
       gradient.addColorStop(0, brighterColorStr);
       gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
 

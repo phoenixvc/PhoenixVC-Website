@@ -39,8 +39,7 @@ import {
 import {
   startTiming,
   endTiming,
-  endFrame,
-  isProfilerEnabled
+  endFrame
 } from "../../performanceProfiler";
 
 // Cached default mouse position to avoid allocation every frame
@@ -126,7 +125,7 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Start frame-level profiling
-    startTiming('frame');
+    startTiming("frame");
 
     // Get current stars from ref - use direct reference to avoid copying array every frame
     // This significantly reduces GC pressure at 60fps
@@ -179,7 +178,7 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
 
     // Draw background stars with reduced opacity when focused on a sun
     // This makes the focused area more prominent
-    startTiming('drawStars');
+    startTiming("drawStars");
     if (props.focusedSunId) {
       ctx.save();
       ctx.globalAlpha = STAR_RENDERING_CONFIG.focusedBackgroundAlpha;
@@ -189,7 +188,7 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       // Always draw stars first - this ensures they always appear
       drawStars(ctx, currentStars);
     }
-    endTiming('drawStars');
+    endTiming("drawStars");
     
     // Draw star birthplace indicators at the edges where stars respawn
     // Hide these when focused on a sun for cleaner view
@@ -202,9 +201,9 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
 
     // Draw suns (focus area orbital centers) - always visible
     // Pass hovered sun id, focused sun id for interactive effects, deltaTime for physics, and planets for size calculation
-    startTiming('drawSuns');
+    startTiming("drawSuns");
     drawSuns(ctx, canvas.width, canvas.height, timestamp, props.isDarkMode, props.hoveredSunId, deltaTime, props.focusedSunId, currentPlanets);
-    endTiming('drawSuns');
+    endTiming("drawSuns");
 
     // Get current values from refs - use direct reference to avoid GC pressure
     const currentBlackHoles: BlackHole[] = props.blackHolesRef?.current ?? [];
@@ -325,7 +324,7 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
 
     // Draw connections between stars (network effect) - only if not skipping heavy operations
     if (!shouldSkipHeavyOperations) {
-      startTiming('drawConnections');
+      startTiming("drawConnections");
       drawConnections(
         ctx,
         currentStars,
@@ -333,11 +332,11 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
         props.lineOpacity,
         props.colorScheme
       );
-      endTiming('drawConnections');
+      endTiming("drawConnections");
     }
 
     // Update star positions with proper null handling for centerPosition
-    startTiming('updateStarPositions');
+    startTiming("updateStarPositions");
     updateStarPositions(
       currentStars,
       canvas.width,
@@ -355,7 +354,7 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       props.maxVelocity,
       props.animationSpeed
     );
-    endTiming('updateStarPositions');
+    endTiming("updateStarPositions");
 
     // Note: handleBoundaries removed - updateStarPositions already handles wrapping
     // Adding it here caused double-wrapping and potential oscillation at edges
@@ -388,7 +387,7 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       planetsToRender = currentPlanets;
     }
     
-    startTiming('updatePlanets');
+    startTiming("updatePlanets");
     updatePlanets(
       ctx,
       planetsToRender,
@@ -397,7 +396,7 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       props.employeeDisplayStyle,
       currentCamera // Pass the camera (may be undefined if cosmic navigation is disabled)
     );
-    endTiming('updatePlanets');
+    endTiming("updatePlanets");
 
     // Draw mouse effects
     drawMouseEffects(ctx, currentMousePosition, props, deltaTime);
@@ -510,7 +509,7 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
     }
 
     // End frame-level profiling
-    endTiming('frame');
+    endTiming("frame");
     endFrame();
 
     // Update star positions in the ref - consolidate this to one place
