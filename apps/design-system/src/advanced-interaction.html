@@ -25,7 +25,7 @@
 
     .btn-interactive,
     .grid-item,
-    button {
+    .showcase-grid button {
       position: relative;
       pointer-events: auto;
     }
@@ -189,10 +189,11 @@
     World.add(engine.world, mouseConstraint);
     render.mouse = mouse;
     
-    // Prevent the mouse constraint from interfering with page elements
-    // by keeping the canvas element set up correctly
-    mouse.element.removeEventListener('mousewheel', mouse.mousewheel);
-    mouse.element.removeEventListener('DOMMouseScroll', mouse.mousewheel);
+    // Prevent the mouse constraint from interfering with page scrolling
+    if (mouse.mousewheel) {
+      mouse.element.removeEventListener('mousewheel', mouse.mousewheel);
+      mouse.element.removeEventListener('DOMMouseScroll', mouse.mousewheel);
+    }
     
     // Add some interactive physics objects for testing
     // Position objects relative to window size for responsive design
