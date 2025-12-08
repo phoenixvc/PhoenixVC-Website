@@ -459,7 +459,7 @@
   }
 
   :root:not(.dark) * {
-    scrollbar-color: rgba(100, 116, 139, 0.4) hsl(210 20% 95%);
+    scrollbar-color: rgba(100, 116, 139, 0.4) hsl(210 20% 95%) !important;
   }
 
   /* Enhanced scrollbar styling for dark mode */

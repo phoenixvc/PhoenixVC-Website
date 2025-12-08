@@ -191,7 +191,8 @@
   border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.returnToStarsButton:hover {
+/* Dark mode hover styling */
+.darkInner .returnToStarsButton:hover {
   background-color: rgba(0, 0, 0, 0.5);
   transform: translateY(-2px);
 }
@@ -199,6 +200,7 @@
 /* Light mode hover styling */
 .lightInner .returnToStarsButton:hover {
   background-color: rgba(255, 255, 255, 0.6);
+  transform: translateY(-2px);
 }
 
 .scrollIndicator {
@@ -318,7 +320,8 @@
   border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.minimizeButton:hover {
+/* Dark mode hover styling */
+.darkInner .minimizeButton:hover {
   background-color: rgba(0, 0, 0, 0.4);
   transform: scale(1.05);
 }
@@ -326,6 +329,7 @@
 /* Light mode hover styling */
 .lightInner .minimizeButton:hover {
   background-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.05);
 }
 
 .minimized {
