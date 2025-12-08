@@ -208,6 +208,8 @@ export const animate = (
 
     // Draw background stars with reduced opacity when focused on a sun
     // This makes the focused area more prominent
+    // NOTE: Offscreen canvas is NOT used for stars because they move every frame.
+    // Offscreen canvas only benefits static or slowly-changing content.
     startTiming("drawStars");
     performanceMonitor.startSection("stars");
 
@@ -215,40 +217,14 @@ export const animate = (
     const enableGlow = featureFlags.isEnabled("glowEffects");
     const enableTwinkle = featureFlags.isEnabled("twinkleEffects");
 
-    // Check if offscreen canvas is available and enabled
-    const offscreen = props.offscreenCanvas;
-    const useOffscreenForStars = offscreen?.isEnabled && offscreen?.isSupported && featureFlags.isEnabled("offscreenCanvas");
-
-    if (useOffscreenForStars && offscreen) {
-      // Use offscreen canvas for stars - better performance for static-ish content
-      const starsLayer = offscreen.getLayer("stars");
-
-      if (starsLayer && offscreen.shouldRedraw("stars")) {
-        // Clear and redraw stars to offscreen canvas
-        starsLayer.ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawStars(starsLayer.ctx as CanvasRenderingContext2D, currentStars, enableGlow, enableTwinkle);
-      }
-
-      // Composite stars layer to main canvas
-      if (props.focusedSunId) {
-        ctx.save();
-        ctx.globalAlpha = STAR_RENDERING_CONFIG.focusedBackgroundAlpha;
-        offscreen.compositeToMain(ctx, "stars");
-        ctx.restore();
-      } else {
-        offscreen.compositeToMain(ctx, "stars");
-      }
+    if (props.focusedSunId) {
+      ctx.save();
+      ctx.globalAlpha = STAR_RENDERING_CONFIG.focusedBackgroundAlpha;
+      drawStars(ctx, currentStars, enableGlow, enableTwinkle);
+      ctx.restore();
     } else {
-      // Direct rendering (fallback)
-      if (props.focusedSunId) {
-        ctx.save();
-        ctx.globalAlpha = STAR_RENDERING_CONFIG.focusedBackgroundAlpha;
-        drawStars(ctx, currentStars, enableGlow, enableTwinkle);
-        ctx.restore();
-      } else {
-        // Always draw stars first - this ensures they always appear
-        drawStars(ctx, currentStars, enableGlow, enableTwinkle);
-      }
+      // Always draw stars first - this ensures they always appear
+      drawStars(ctx, currentStars, enableGlow, enableTwinkle);
     }
 
     performanceMonitor.endSection("stars");
@@ -469,20 +445,18 @@ export const animate = (
     );
     endTiming("updateStarPositions");
 
-    // Mark stars layer as dirty since positions changed
-    // This ensures the offscreen canvas redraws on the next frame
-    if (offscreen?.isEnabled) {
-      offscreen.markDirty("stars");
-    }
-
     // Note: handleBoundaries removed - updateStarPositions already handles wrapping
     // Adding it here caused double-wrapping and potential oscillation at edges
 
     // Draw black holes if enabled (hide when focused on a sun for cleaner view)
-    if (props.enableBlackHole && !props.focusedSunId) {
+    // Check both the prop and the feature flag
+    const shouldDrawBlackHoles = props.enableBlackHole && !props.focusedSunId && featureFlags.isEnabled("blackHoleEffects");
+    if (shouldDrawBlackHoles) {
+      performanceMonitor.startSection("blackHoles");
       currentBlackHoles.forEach((blackHole: BlackHole) => {
         drawBlackHole(ctx, blackHole, deltaTime, props.particleSpeed * 0.01);
       });
+      performanceMonitor.endSection("blackHoles");
     }
 
     // Draw portfolio comets/planets
@@ -512,6 +486,7 @@ export const animate = (
     }
 
     startTiming("updatePlanets");
+    performanceMonitor.startSection("planets");
     updatePlanets(
       ctx,
       planetsToRender,
@@ -520,10 +495,13 @@ export const animate = (
       props.employeeDisplayStyle,
       currentCamera, // Pass the camera (may be undefined if cosmic navigation is disabled)
     );
+    performanceMonitor.endSection("planets");
     endTiming("updatePlanets");
 
     // Draw mouse effects
+    performanceMonitor.startSection("mouseEffects");
     drawMouseEffects(ctx, currentMousePosition, props, deltaTime);
+    performanceMonitor.endSection("mouseEffects");
 
     // Draw cosmic navigation if enabled
     if (props.enableCosmicNavigation && props.navigationState && props.camera) {

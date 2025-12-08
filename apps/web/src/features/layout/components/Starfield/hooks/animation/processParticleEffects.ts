@@ -10,6 +10,7 @@ import {
 } from "../../types";
 import { AnimationProps, AnimationRefs } from "./types";
 import { TWO_PI } from "../../math";
+import { featureFlags } from "@/utils";
 
 // Helper to extract base color (called once per particle creation, not per frame)
 function getBaseColor(color: string): string {
@@ -29,9 +30,14 @@ export function processParticleEffects(
 ): void {
   const normalizedDelta = Math.min(deltaTime / 160, 0.2);
 
-  // Update and draw click bursts - only on every other frame
+  // Check feature flags for particle effects
+  const explosionEffectsEnabled = featureFlags.isEnabled("explosionEffects");
+  const rippleEffectsEnabled = featureFlags.isEnabled("rippleEffects");
+
+  // Update and draw click bursts (explosion effects) - only on every other frame
   // Uses swap-and-pop pattern for O(1) removal instead of filter's O(n) allocation
   if (
+    explosionEffectsEnabled &&
     !shouldSkipHeavyOperations &&
     props.clickBurstsRef &&
     props.clickBurstsRef.current

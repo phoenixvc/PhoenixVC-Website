@@ -29,6 +29,9 @@ const SECTION_TO_FLAG: Record<string, keyof FeatureFlagsState> = {
   connections: 'starConnections',
   suns: 'sunEffects',
   particles: 'particleEffects',
+  blackHoles: 'blackHoleEffects',
+  planets: 'planetSatellites',
+  mouseEffects: 'hoverEffects',
 };
 
 // Colors for performance impact visualization

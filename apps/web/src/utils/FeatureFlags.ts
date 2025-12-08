@@ -235,10 +235,10 @@ const DEFAULT_FLAGS: FeatureFlagsState = {
   offscreenCanvas: {
     name: 'offscreenCanvas',
     category: 'performance',
-    description: 'Use OffscreenCanvas for multi-layer rendering (reduces draw calls)',
-    enabled: false,  // Start disabled, enable after performance baseline
+    description: '[Disabled] For static content only - NOT suitable for moving stars',
+    enabled: false,  // Disabled - stars move every frame, defeating offscreen purpose
     defaultEnabled: false,
-    impactsPerformance: true,
+    impactsPerformance: false,  // Currently has no effect
   },
   batchRendering: {
     name: 'batchRendering',
@@ -292,12 +292,25 @@ const DEFAULT_FLAGS: FeatureFlagsState = {
   },
 };
 
+// Hysteresis configuration to prevent flicker from rapid auto-adjustments
+const HYSTERESIS_CONFIG = {
+  cooldownMs: 3000,           // Minimum time between auto-adjustments for same flag
+  enableThresholdFps: 50,     // Must exceed this FPS to re-enable a disabled feature
+  disableThresholdFps: 35,    // Must drop below this FPS to disable a feature
+  consecutiveFrames: 5,       // Number of consecutive checks before acting
+};
+
 class FeatureFlagsManager {
   private logger: ILogger;
   private flags: FeatureFlagsState;
   private changeCallbacks: Set<FeatureFlagChangeCallback> = new Set();
   private autoAdjustEnabled = true;
   private performanceSubscribed = false;
+
+  // Hysteresis state to prevent flicker
+  private lastAdjustTime: Map<string, number> = new Map();
+  private disabledByAutoAdjust: Set<string> = new Set();
+  private consecutiveRecommendations: Map<string, number> = new Map();
 
   constructor() {
     this.logger = rootLogger.createChild('FeatureFlags');
@@ -360,28 +373,69 @@ class FeatureFlagsManager {
   }
 
   /**
-   * Apply performance recommendations
+   * Apply performance recommendations with hysteresis to prevent flicker
    */
   private applyRecommendations(recommendations: PerformanceRecommendation[]): void {
+    const now = Date.now();
+
     recommendations.forEach(rec => {
       const flagName = rec.feature as keyof FeatureFlagsState;
       const flag = this.flags[flagName];
 
       if (!flag || !flag.impactsPerformance) return;
 
+      // Check cooldown - don't adjust the same flag too frequently
+      const lastAdjust = this.lastAdjustTime.get(flagName) ?? 0;
+      if (now - lastAdjust < HYSTERESIS_CONFIG.cooldownMs) {
+        return; // Still in cooldown
+      }
+
+      // Track consecutive recommendations for this flag
+      const currentCount = this.consecutiveRecommendations.get(flagName) ?? 0;
+
       if (rec.action === 'disable' && flag.enabled) {
+        // Require consecutive recommendations before disabling
+        if (currentCount < HYSTERESIS_CONFIG.consecutiveFrames) {
+          this.consecutiveRecommendations.set(flagName, currentCount + 1);
+          return; // Not enough consecutive recommendations yet
+        }
+
         this.logger.info(`Auto-disabling ${flagName}: ${rec.reason}`);
         this.setEnabled(flagName, false);
+        this.disabledByAutoAdjust.add(flagName);
+        this.lastAdjustTime.set(flagName, now);
+        this.consecutiveRecommendations.set(flagName, 0);
+
       } else if (rec.action === 'enable' && !flag.enabled) {
+        // Only re-enable if it was disabled by auto-adjust (not manually)
+        if (!this.disabledByAutoAdjust.has(flagName)) {
+          return;
+        }
+
+        // Require consecutive recommendations before re-enabling
+        if (currentCount < HYSTERESIS_CONFIG.consecutiveFrames) {
+          this.consecutiveRecommendations.set(flagName, currentCount + 1);
+          return;
+        }
+
         this.logger.info(`Auto-enabling ${flagName}: ${rec.reason}`);
         this.setEnabled(flagName, true);
+        this.disabledByAutoAdjust.delete(flagName);
+        this.lastAdjustTime.set(flagName, now);
+        this.consecutiveRecommendations.set(flagName, 0);
+
       } else if (rec.action === 'reduce' && flag.value !== undefined) {
+        // For value reductions, apply immediately but with cooldown
         const newValue = flag.value * 0.75;
         const minValue = flag.minValue ?? 0;
         if (newValue >= minValue) {
           this.logger.info(`Auto-reducing ${flagName} to ${newValue.toFixed(0)}: ${rec.reason}`);
           this.setValue(flagName, newValue);
+          this.lastAdjustTime.set(flagName, now);
         }
+      } else {
+        // Clear consecutive count if recommendation changes
+        this.consecutiveRecommendations.set(flagName, 0);
       }
     });
   }

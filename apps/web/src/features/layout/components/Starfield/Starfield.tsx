@@ -291,13 +291,14 @@ const InteractiveStarfield = forwardRef<
       cancelAnimation: () => cancelAnimationRef.current(),
     });
 
-    // Use offscreen canvas for performance optimization
-    // Layers: stars (pre-rendered), effects (dynamic)
+    // Offscreen canvas for future static content (NOT used for stars since they move every frame)
+    // Currently disabled - stars move too frequently for offscreen canvas to benefit.
+    // Could be used for: static backgrounds, nebula overlays, or UI layers
     const offscreenCanvas = useOffscreenCanvas({
       width: dimensionsRef.current.width || window.innerWidth,
       height: dimensionsRef.current.height || window.innerHeight,
-      layers: ["stars", "effects"],
-      enabled: true, // Controlled by feature flag internally
+      layers: [], // No layers currently - stars move every frame, defeating offscreen purpose
+      enabled: false, // Disabled until we have truly static content
     });
 
     const mousePositionRef = useRef<MousePosition>({
