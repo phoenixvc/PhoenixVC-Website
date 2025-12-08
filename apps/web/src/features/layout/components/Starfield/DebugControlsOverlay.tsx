@@ -1,11 +1,9 @@
 // components/Layout/Starfield/DebugControlsOverlay.tsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styles from "./debugControls.module.css";
 
 // Import the DebugSettings type from your types file
 import { DebugSettings, MousePosition, Star } from "./types"; // Adjust the import path as needed
-import PerformanceDebugPanel from "./PerformanceDebugPanel";
-import { performanceMonitor } from "@/utils";
 
 interface DebugControlsProps {
   debugSettings: DebugSettings;
@@ -36,31 +34,33 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
   sidebarWidth,
   stars = [],
   mousePosition = { x: 0, y: 0, isOnScreen: false, isClicked: false },
-  fps: _fps = 0,
+  fps = 0,
   timestamp: _timestamp,
   setMousePosition,
   isDarkMode = true,
   onEmployeeOrbitSpeedChange,
 }) => {
-  // Performance panel visibility
-  const [showPerformancePanel, setShowPerformancePanel] = useState(false);
-
-  // Use centralized performance monitor for FPS (consolidates duplicate tracking)
+  // FPS tracking
+  const fpsValues = useRef<number[]>([]);
   const [averageFps, setAverageFps] = useState<number>(0);
 
-  // Update FPS from performanceMonitor (single source of truth)
+  // Update FPS values
   useEffect(() => {
-    if (!debugSettings.isDebugMode) return;
+    if (fps > 0) {
+      fpsValues.current.push(fps);
+      if (fpsValues.current.length > 60) {
+        fpsValues.current.shift();
+      }
 
-    const updateFps = (): void => {
-      const metrics = performanceMonitor.getMetrics();
-      setAverageFps(metrics.averageFps);
-    };
-
-    updateFps();
-    const interval = setInterval(updateFps, 500);
-    return (): void => clearInterval(interval);
-  }, [debugSettings.isDebugMode]);
+      // Calculate average FPS
+      const avgFps =
+        fpsValues.current.length > 0
+          ? fpsValues.current.reduce((sum, val) => sum + val, 0) /
+            fpsValues.current.length
+          : 0;
+      setAverageFps(avgFps);
+    }
+  }, [fps]);
 
   // Early return if debug mode is disabled
   if (!debugSettings.isDebugMode) {
@@ -444,18 +444,6 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              setShowPerformancePanel(!showPerformancePanel);
-            }}
-            className={styles.actionButton}
-            style={{
-              background: showPerformancePanel ? "#4CAF50" : undefined,
-            }}
-          >
-            {showPerformancePanel ? "Hide" : "Show"} Performance
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
               handleCloseDebug();
             }}
             className={styles.closeButton}
@@ -474,14 +462,6 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
           </button>
         </div>
       </div>
-
-      {/* Performance Debug Panel */}
-      <PerformanceDebugPanel
-        isVisible={showPerformancePanel}
-        onClose={() => setShowPerformancePanel(false)}
-        sidebarWidth={sidebarWidth}
-        isDarkMode={isDarkMode}
-      />
     </div>
   );
 };

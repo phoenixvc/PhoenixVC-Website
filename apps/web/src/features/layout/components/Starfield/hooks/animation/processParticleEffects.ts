@@ -10,7 +10,6 @@ import {
 } from "../../types";
 import { AnimationProps, AnimationRefs } from "./types";
 import { TWO_PI } from "../../math";
-import { featureFlags } from "@/utils";
 
 // Helper to extract base color (called once per particle creation, not per frame)
 function getBaseColor(color: string): string {
@@ -30,17 +29,9 @@ export function processParticleEffects(
 ): void {
   const normalizedDelta = Math.min(deltaTime / 160, 0.2);
 
-  // Check feature flags for particle effects
-  const explosionEffectsEnabled = featureFlags.isEnabled("explosionEffects");
-  const rippleEffectsEnabled = featureFlags.isEnabled("rippleEffects");
-
-  // Get particle count multiplier from feature flag (100 = normal, 50 = half, 200 = double)
-  const particleMultiplier = (featureFlags.getValue("particleEffects") ?? 100) / 100;
-
-  // Update and draw click bursts (explosion effects) - only on every other frame
+  // Update and draw click bursts - only on every other frame
   // Uses swap-and-pop pattern for O(1) removal instead of filter's O(n) allocation
   if (
-    explosionEffectsEnabled &&
     !shouldSkipHeavyOperations &&
     props.clickBurstsRef &&
     props.clickBurstsRef.current
@@ -66,8 +57,7 @@ export function processParticleEffects(
       const opacity = 1 - timeSinceBurst / 1500;
 
       // Update and draw particles - direct iteration with limit (avoids slice allocation)
-      // Scale max particles by feature flag value for performance control
-      const maxParticles = Math.min(burst.particles.length, Math.floor(20 * particleMultiplier));
+      const maxParticles = Math.min(burst.particles.length, 20);
       for (let j = 0; j < maxParticles; j++) {
         const particle = burst.particles[j];
 
@@ -130,8 +120,7 @@ export function processParticleEffects(
       }
 
       // Update and draw particles - direct iteration with limit
-      // Scale max particles by feature flag value for performance control
-      const maxParticles = Math.min(effect.particles.length, Math.floor(15 * particleMultiplier));
+      const maxParticles = Math.min(effect.particles.length, 15);
       for (let j = 0; j < maxParticles; j++) {
         const particle = effect.particles[j];
 
