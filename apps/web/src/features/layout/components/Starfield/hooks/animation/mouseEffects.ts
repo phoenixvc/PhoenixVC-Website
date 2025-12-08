@@ -15,9 +15,14 @@ export function drawMouseEffects(
   props: AnimationProps,
   _deltaTime: number,
 ): void {
-  // Default to canvas center if mouse position is undefined.
-  const mouseX = currentMousePosition.x || ctx.canvas.width / 2;
-  const mouseY = currentMousePosition.y || ctx.canvas.height / 2;
+  // Don't draw mouse effects if mouse is not on screen
+  if (!currentMousePosition.isOnScreen) {
+    return;
+  }
+
+  // Use actual mouse position (no fallback to center)
+  const mouseX = currentMousePosition.x;
+  const mouseY = currentMousePosition.y;
 
   // Base color for the glow: less opaque in light mode.
   const baseColor = props.isDarkMode
