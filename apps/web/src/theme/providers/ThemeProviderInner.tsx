@@ -643,8 +643,14 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
     ): React.CSSProperties => {
       return themeCore.getComponentStyle(component, variant, state);
     },
-    [themeCore],
-  );
+    getComponentTypography: (component: string, variant?: string, _mode?: string): TypographyScale | undefined => {
+      return themeCore.getComponentTypography(component, variant || "default");
+    }
+  }), [themeCore]);
+
+  const getComponentStyle = useCallback((component: string, variant?: string, state?: string, _mode?: string): React.CSSProperties => {
+    return themeCore.getComponentStyle(component, variant, state);
+  }, [themeCore]);
 
   const resetTheme = useCallback(async (): Promise<void> => {
     try {
@@ -683,6 +689,52 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
       logger.error("Failed to reset theme:", err);
     }
   }, [state.themeName, state.mode, onThemeChange, themes, themeCore]);
+
+  const contextValue = useMemo((): ThemeContextType => ({
+    // Required properties
+    themeName: state.themeName,
+    themeMode: state.mode,
+    systemMode,
+    useSystemMode: state.useSystem,
+    getThemeClassNames,
+    getSpecificClass: (suffix): string => getSpecificClass(state.themeName, suffix),
+    replaceThemeClasses: (currentClasses, newScheme): string => replaceThemeClasses(currentClasses, newScheme, state.mode),
+    setThemeClasses,
+    setMode,
+    toggleMode,
+    setUseSystemMode,
+    getCssVariable: (name: string, _config?: Partial<CssVariableConfig>): string => getCssVariable(name),
+    getAllThemeClasses,
+    isThemeClass,
+
+    // Theme loading status
+    isThemeLoading,
+
+    // Theme cache utilities
+    isThemeCached,
+    preloadTheme: preloadThemeHandler,
+    clearThemeCache,
+    getCacheStatus,
+
+    // Optional methods
+    getComputedThemeStyles,
+    isThemeSupported,
+    getThemeState,
+    resetTheme,
+    subscribeToThemeChanges: (callback): (() => void) => {
+      const observer = new MutationObserver(() => {
+        callback(getThemeState());
+      });
+      observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "data-mode"] });
+      return (): void => observer.disconnect();
+    },
+    toggleUseSystem,
+
+    // Typography support
+    typography,
+
+    // Component style support
+    getComponentStyle,
 
   const contextValue = useMemo(
     (): ThemeContextType => ({
