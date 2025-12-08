@@ -424,14 +424,20 @@ export const updatePlanets = (
   // Get dynamic sun positions from the sun system
   const sunStates = getSunStates();
 
+  // Create Map for O(1) sun state lookup (optimization: avoids O(n) find per planet)
+  const sunStateMap = new Map<string, typeof sunStates[0]>();
+  for (let i = 0; i < sunStates.length; i++) {
+    sunStateMap.set(sunStates[i].id, sunStates[i]);
+  }
+
   // Track which suns we've already drawn to avoid duplicates
   const drawnSuns = new Set<string>();
 
   planets.forEach(planet => {
     /* ---------- Recalc orbit centre using dynamic sun positions ---------- */
     if (planet.orbitParentId) {
-      // First, try to get dynamic sun position from sun system
-      const sunState = sunStates.find(s => s.id === planet.orbitParentId);
+      // Use Map for O(1) lookup instead of O(n) find
+      const sunState = sunStateMap.get(planet.orbitParentId);
       
       if (sunState) {
         // Use dynamic sun position from the sun system with smoothing

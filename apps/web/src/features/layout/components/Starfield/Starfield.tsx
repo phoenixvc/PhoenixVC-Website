@@ -533,8 +533,22 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
 
   // Mouse tracking effect with proper cleanup
   useEffect(() => {
+    // Throttle state for mousemove handler (16ms = 60fps target)
+    let lastMouseMoveTime = 0;
+    const MOUSE_MOVE_THROTTLE_MS = 16;
+
     // Define all handlers as named functions for proper cleanup
     const handleMouseMove = (e: MouseEvent): void => {
+      // Throttle mouse move processing to reduce CPU overhead
+      const now = performance.now();
+      if (now - lastMouseMoveTime < MOUSE_MOVE_THROTTLE_MS) {
+        // Still update ref position for smooth animation (but skip expensive processing)
+        mousePositionRef.current.x = e.clientX;
+        mousePositionRef.current.y = e.clientY;
+        return;
+      }
+      lastMouseMoveTime = now;
+
       const newPosition = {
         x: e.clientX,
         y: e.clientY,
@@ -667,39 +681,54 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     };
   }, [setMousePosition]);
 
+  // Refs for frequently-changing values to avoid useMemo recalculation every frame
+  // These are updated via useEffect and accessed in animation loop via refs
+  const hoverInfoRef = useRef(hoverInfo);
+  const gameStateRef = useRef(gameState);
+  const clickBurstsRefLocal = useRef(clickBursts);
+  const collisionEffectsRef = useRef(collisionEffects);
+
+  // Keep refs in sync with state (but don't trigger useMemo recalculation)
+  useEffect(() => { hoverInfoRef.current = hoverInfo; }, [hoverInfo]);
+  useEffect(() => { gameStateRef.current = gameState; }, [gameState]);
+  useEffect(() => { clickBurstsRefLocal.current = clickBursts; }, [clickBursts]);
+  useEffect(() => { collisionEffectsRef.current = collisionEffects; }, [collisionEffects]);
+
   // Memoize animation loop parameters to prevent unnecessary re-renders
-  // Some deps intentionally excluded (internalCamera) for performance - uses ref instead
+  // PERFORMANCE: Only include STATIC dependencies that rarely change
+  // Dynamic values (mousePosition, hoverInfo, gameState, etc.) are accessed via refs
+  // to prevent useMemo recalculation 60x/sec
   const animationParams = useMemo(() => ({
     canvasRef,
     dimensions: dimensionsRef.current,
     stars: starsRef.current,
     blackHoles: blackHolesRef.current,
-    mousePosition,
+    mousePosition: mousePositionRef.current, // Read from ref, not state
     enableFlowEffect,
     enableBlackHole,
     enableMouseInteraction,
-    enablePlanets: enableEmployeeStars, // Map to correct name expected by animation
+    enablePlanets: enableEmployeeStars,
     flowStrength: debugSettings.flowStrength,
     gravitationalPull: debugSettings.gravitationalPull,
     particleSpeed: debugSettings.particleSpeed,
-    planetSize: employeeStarSize, // Map to correct name expected by animation
+    planetSize: employeeStarSize,
     employeeDisplayStyle,
     heroMode,
     centerPosition: centerPositionRef.current,
-    hoverInfo,
+    hoverInfo: hoverInfoRef.current, // Read from ref
     setHoverInfo,
     colorScheme,
     lineConnectionDistance: debugSettings.lineConnectionDistance,
     lineOpacity: debugSettings.lineOpacity,
     mouseEffectRadius: debugSettings.mouseEffectRadius,
     mouseEffectColor,
-    clickBursts,
+    clickBursts: clickBurstsRefLocal.current, // Read from ref
     setClickBursts,
     clickBurstsRef,
     gameMode,
-    gameState,
+    gameState: gameStateRef.current, // Read from ref
     setGameState,
-    collisionEffects,
+    collisionEffects: collisionEffectsRef.current, // Read from ref
     setCollisionEffects,
     createCollisionEffect,
     isDarkMode,
@@ -711,29 +740,26 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     starSize: starSize,
     starsRef,
     blackHolesRef,
-    planetsRef: employeeStarsRef, // Map to correct name expected by animation
+    planetsRef: employeeStarsRef,
     ensureStarsExist,
-    updateFpsData, // Add the FPS update callback
-    fpsValuesRef, // Add the FPS values ref
-    hoveredSunId, // Pass the hovered sun id to the animation
-    focusedSunId, // Pass the focused sun id for camera zoom
-    camera: internalCamera, // Pass the internal camera for zoom functionality
-    setCamera: setInternalCamera, // Pass camera setter
-    isMouseOverProjectTooltipRef, // Track if mouse is over project tooltip
-    cameraRef: cameraStateRef, // Pass camera ref for synchronous access during animation
-    sidebarWidth // Pass sidebar width for centering calculations
+    updateFpsData,
+    fpsValuesRef,
+    hoveredSunId,
+    focusedSunId,
+    camera: internalCamera,
+    setCamera: setInternalCamera,
+    isMouseOverProjectTooltipRef,
+    cameraRef: cameraStateRef,
+    sidebarWidth
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [
-    mousePosition,
+    // STATIC dependencies only - these rarely change
     enableFlowEffect,
     enableBlackHole,
     enableMouseInteraction,
     enableEmployeeStars,
     heroMode,
-    hoverInfo,
     gameMode,
-    gameState,
-    customDrawDebugInfo,
     debugSettings.isDebugMode,
     debugSettings.maxVelocity,
     debugSettings.animationSpeed,
@@ -746,17 +772,14 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
     employeeStarSize,
     employeeDisplayStyle,
     mouseEffectColor,
-    clickBursts,
-    collisionEffects,
-    starsRef,
-    blackHolesRef,
-    employeeStarsRef,
-    ensureStarsExist,
-    updateFpsData,
+    isDarkMode,
+    starSize,
     hoveredSunId,
     focusedSunId,
-    // Note: internalCamera removed - we use cameraRef for synchronous access
-    // This prevents useMemo recalculation 60x/sec during camera animation
+    sidebarWidth
+    // NOTE: mousePosition, hoverInfo, gameState, clickBursts, collisionEffects
+    // are INTENTIONALLY excluded - they are accessed via refs to prevent
+    // useMemo recalculation 60x/sec during animation
   ]);
 
   // Use the animation loop with memoized parameters - ONLY CALL THIS ONCE

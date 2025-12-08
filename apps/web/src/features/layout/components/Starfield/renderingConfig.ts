@@ -158,7 +158,8 @@ export const STAR_RENDERING_CONFIG = {
  */
 export const ANIMATION_TIMING_CONFIG = {
   // Throttling intervals (in frames)
-  elementFromPointCheckInterval: 5,
+  // elementFromPoint is an expensive DOM operation, check every 10 frames (~166ms at 60fps)
+  elementFromPointCheckInterval: 10,
   fpsCalculationInterval: 10,
 
   // Camera animation

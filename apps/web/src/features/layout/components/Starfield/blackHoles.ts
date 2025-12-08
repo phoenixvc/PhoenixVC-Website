@@ -122,12 +122,15 @@ export const drawBlackHole = (
   }
 
   // Limit the maximum number of particles
+  // Use length assignment instead of splice for better performance
   if (particles.length > BH.particles.maxCount) {
-    particles.splice(0, particles.length - BH.particles.maxCount);
+    particles.length = BH.particles.maxCount;
   }
 
-  // Update and draw particles
-  for (let i = particles.length - 1; i >= 0; i--) {
+  // Update and draw particles using forward iteration with swap-and-pop
+  // This is O(n) instead of O(n²) because we avoid array shifting
+  let i = 0;
+  while (i < particles.length) {
     const particle = particles[i];
 
     // Update angle for orbital motion
@@ -146,8 +149,15 @@ export const drawBlackHole = (
     }
 
     // Remove particles that are too close to center or have faded out
+    // Use swap-and-pop: O(1) removal instead of splice's O(n) shifting
     if ((particle.alpha && particle.alpha <= 0) || particle.distance < radius * BH.particles.removalThreshold) {
-      particles.splice(i, 1);
+      // Swap with last element and pop (O(1) removal)
+      const lastIndex = particles.length - 1;
+      if (i !== lastIndex) {
+        particles[i] = particles[lastIndex];
+      }
+      particles.pop();
+      // Don't increment i - we need to process the swapped element
       continue;
     }
 
@@ -171,6 +181,9 @@ export const drawBlackHole = (
 
     ctx.fillStyle = fillColor;
     ctx.fill();
+
+    // Increment index to process next particle
+    i++;
   }
 
   // Draw rotating accretion disk rings

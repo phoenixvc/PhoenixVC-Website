@@ -43,6 +43,11 @@ let cachedDefaultMousePosition: MousePosition | null = null;
 let lastElementCheckFrame = 0;
 let cachedIsOverContentCard = false;
 
+// Cached filtered planets for focused sun mode (avoids array allocation every frame)
+let cachedFilteredPlanets: Planet[] = [];
+let cachedFocusedSunId: string | null = null;
+let cachedPlanetsLength = 0;
+
 export const animate = (timestamp: number, props: AnimationProps, refs: AnimationRefs): void => {
   try {
     // Update frame cache at the start of each frame
@@ -346,9 +351,24 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
 
     // Draw portfolio comets/planets
     // Filter planets if a sun is focused (show only planets orbiting that sun)
-    const planetsToRender = props.focusedSunId 
-      ? currentPlanets.filter(planet => planet.orbitParentId === props.focusedSunId)
-      : currentPlanets;
+    // Use cached filtered array to avoid allocation every frame
+    let planetsToRender: Planet[];
+    if (props.focusedSunId) {
+      // Only recalculate if focusedSunId changed or planets array changed
+      if (cachedFocusedSunId !== props.focusedSunId || cachedPlanetsLength !== currentPlanets.length) {
+        cachedFilteredPlanets = currentPlanets.filter(planet => planet.orbitParentId === props.focusedSunId);
+        cachedFocusedSunId = props.focusedSunId;
+        cachedPlanetsLength = currentPlanets.length;
+      }
+      planetsToRender = cachedFilteredPlanets;
+    } else {
+      // Clear cache when not focused
+      if (cachedFocusedSunId !== null) {
+        cachedFocusedSunId = null;
+        cachedFilteredPlanets = [];
+      }
+      planetsToRender = currentPlanets;
+    }
     
     updatePlanets(
       ctx,
@@ -431,15 +451,16 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
         }
 
         // Draw velocity vectors for stars (sample of stars to improve performance)
-        const sampleStars = currentStars.filter((_, i) => i % 20 === 0); // Only show 5% of stars
-        sampleStars.forEach(star => {
+        // Use direct iteration with step instead of filter to avoid array allocation
+        ctx.strokeStyle = "red";
+        ctx.lineWidth = 1;
+        for (let si = 0; si < currentStars.length; si += 20) {
+          const star = currentStars[si];
           ctx.beginPath();
           ctx.moveTo(star.x, star.y);
           ctx.lineTo(star.x + star.vx * 10, star.y + star.vy * 10);
-          ctx.strokeStyle = "red";
-          ctx.lineWidth = 1;
           ctx.stroke();
-        });
+        }
 
         // Draw mouse effect radius with a more visible outline
         if (currentMousePosition.isOnScreen) {

@@ -115,6 +115,14 @@ export interface HoverInfo {
   isPinned?: boolean;
 }
 
+/** Cached parsed RGBA color values for performance */
+export interface ParsedColor {
+  r: number;
+  g: number;
+  b: number;
+  a: number;
+}
+
 // Star-related types
 export interface Star {
   x: number;
@@ -137,6 +145,15 @@ export interface Star {
   consumedAt?: number;
   /** Whether star is currently hidden (consumed and waiting to respawn) */
   isConsumed?: boolean;
+  // Performance cache fields (pre-calculated during init)
+  /** Pre-calculated twinkle speed 1 for this star */
+  twinkleSpeed1?: number;
+  /** Pre-calculated twinkle speed 2 for this star */
+  twinkleSpeed2?: number;
+  /** Pre-calculated unique seed for animation timing */
+  uniqueSeed?: number;
+  /** Cached parsed color for fast color manipulation */
+  parsedColor?: ParsedColor;
 }
 
 // Black hole types

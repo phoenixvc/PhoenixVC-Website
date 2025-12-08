@@ -1,5 +1,5 @@
 // components/Layout/Starfield/stars.ts
-import { Star, BlackHole, MousePosition } from "./types";
+import { Star, BlackHole, MousePosition, ParsedColor } from "./types";
 import { getColorPalette } from "./constants";
 import { distance, parseRgbaColor, brightenColor, colorWithAlpha } from "./utils";
 import {
@@ -110,6 +110,15 @@ export const initStars = (
     // Random color from palette
     const color = colors[Math.floor(Math.random() * colors.length)];
 
+    // Pre-calculate twinkle parameters (moved from drawStars for performance)
+    // Use non-integer multipliers to break up repeating patterns
+    const uniqueSeed = (x * 73.13 + y * 157.79 + i * 31.41) % 1000;
+    const twinkleSpeed1 = 0.0003 + (uniqueSeed % 100) / 150000;
+    const twinkleSpeed2 = 0.0002 + (uniqueSeed % 50) / 120000;
+
+    // Pre-parse color for fast color manipulation during rendering
+    const parsedColor = parseRgbaColor(color) as ParsedColor | undefined;
+
     // Add star with ZERO velocity and force - COMPLETELY FROZEN
     stars.push({
       x,
@@ -128,7 +137,12 @@ export const initStars = (
       targetVy: 0,
       // Add force tracking
       fx: 0,
-      fy: 0
+      fy: 0,
+      // Pre-calculated animation values (performance optimization)
+      uniqueSeed,
+      twinkleSpeed1,
+      twinkleSpeed2,
+      parsedColor
     });
   }
 
@@ -424,12 +438,10 @@ export const drawStars = (
       ctx.fill();
     } else {
       // Crisp star rendering with very subtle twinkling effect
-      // Create unique twinkle timing for each star based on position
-      // Use non-integer multipliers to break up repeating patterns and avoid visual line artifacts
-      const uniqueSeed = (star.x * 73.13 + star.y * 157.79 + i * 31.41) % 1000;
-      // Very slow twinkle speeds for minimal flickering
-      const twinkleSpeed1 = 0.0003 + (uniqueSeed % 100) / 150000;
-      const twinkleSpeed2 = 0.0002 + (uniqueSeed % 50) / 120000;
+      // Use pre-calculated twinkle values from star init (performance optimization)
+      const uniqueSeed = star.uniqueSeed ?? 0;
+      const twinkleSpeed1 = star.twinkleSpeed1 ?? 0.0003;
+      const twinkleSpeed2 = star.twinkleSpeed2 ?? 0.0002;
 
       // Very subtle twinkle with minimal variation to reduce flickering
       const twinkle1 = fastSin(now * twinkleSpeed1 + uniqueSeed * 0.05);
@@ -440,8 +452,8 @@ export const drawStars = (
       // Minimal size variation for crisp, stable stars
       const twinkleSize = star.size * (0.98 + twinkleFactor * 0.04);
 
-      // Parse color once for this star (cached)
-      const parsed = parseRgbaColor(star.color);
+      // Use pre-parsed color from star init (performance optimization)
+      const parsed = star.parsedColor ?? null;
 
       // Very subtle soft glow - further reduced radius for much crisper, smaller stars
       const glowRadius = twinkleSize * 1.0;
