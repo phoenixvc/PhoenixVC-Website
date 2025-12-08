@@ -203,7 +203,7 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
         <div className={styles.debugInfoSection}>
           <h4>DEBUG INFO</h4>
           <div className={styles.debugInfoGrid}>
-            <div>FPS: {Math.round(averageFps)}</div>
+            <div>FPS: {averageFps > 0 ? Math.round(averageFps) : "—"}</div>
             <div>Stars: {stars.filter(s => !s.isConsumed).length}</div>
             <div>
               Mouse: {Math.round(mousePosition.x)},{" "}
