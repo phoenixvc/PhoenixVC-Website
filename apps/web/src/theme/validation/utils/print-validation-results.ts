@@ -1,11 +1,16 @@
 import { ValidationResult } from "@/theme/types";
 
-export const printValidationResults = (results: ValidationResult | ValidationResult[], context?: string): void => {
+export const printValidationResults = (
+  results: ValidationResult | ValidationResult[],
+  context?: string,
+): void => {
   const resultArray = Array.isArray(results) ? results : [results];
 
-  console.group(context ? `Validation Results: ${context}` : "Validation Results");
+  console.group(
+    context ? `Validation Results: ${context}` : "Validation Results",
+  );
 
-  resultArray.forEach(result => {
+  resultArray.forEach((result) => {
     const icon = result.isValid ? "✅" : "❌";
     const status = result.isValid ? "Valid" : "Invalid";
 
@@ -50,13 +55,13 @@ export const printValidationResults = (results: ValidationResult | ValidationRes
       invalid: acc.invalid + (curr.isValid ? 0 : 1),
       totalErrors: acc.totalErrors + (curr.errors?.length || 0),
     }),
-    { total: 0, valid: 0, invalid: 0, totalErrors: 0 }
+    { total: 0, valid: 0, invalid: 0, totalErrors: 0 },
   );
 
   console.log("Summary:", {
     "Total Validations": summary.total,
-    "Valid": summary.valid,
-    "Invalid": summary.invalid,
+    Valid: summary.valid,
+    Invalid: summary.invalid,
     "Total Errors": summary.totalErrors,
   });
 

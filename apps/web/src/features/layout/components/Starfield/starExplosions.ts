@@ -3,9 +3,13 @@
 
 import { Star } from "./types";
 import { distance } from "./utils";
-import { GLOBAL_PHYSICS, EXPLOSION_PHYSICS, STAR_PHYSICS } from "./physicsConfig";
+import {
+  GLOBAL_PHYSICS,
+  EXPLOSION_PHYSICS,
+  STAR_PHYSICS,
+} from "./physicsConfig";
 import { getFrameTime } from "./frameCache";
-import { TWO_PI } from "./math";
+import { TWO_PI, fastSin, fastCos } from "./math";
 
 // ==========================================
 // Explosion Constants
@@ -27,7 +31,7 @@ export function createExplosion(
   y: number,
   radius: number,
   color: string,
-  duration: number
+  duration: number,
 ): void {
   // Apply global speed multiplier to duration to slow down the explosion animation
   const adjustedDuration = duration / GLOBAL_SPEED_MULTIPLIER;
@@ -43,7 +47,12 @@ export function createExplosion(
 
     // Draw explosion
     const gradient = ctx.createRadialGradient(x, y, 0, x, y, currentRadius);
-    gradient.addColorStop(0, `${color}${Math.floor(alpha * 255).toString(16).padStart(2, "0")}`);
+    gradient.addColorStop(
+      0,
+      `${color}${Math.floor(alpha * 255)
+        .toString(16)
+        .padStart(2, "0")}`,
+    );
     gradient.addColorStop(1, `${color}00`); // Fully transparent at edge
 
     ctx.beginPath();
@@ -69,12 +78,12 @@ export function applyExplosionForce(
   x: number,
   y: number,
   radius: number,
-  force: number
+  force: number,
 ): void {
   // Use extremely low force with global speed multiplier
   const adjustedForce = force * EXPLOSION_PHYSICS.forceMultiplier;
 
-  stars.forEach(star => {
+  stars.forEach((star) => {
     const dist = distance(star.x, star.y, x, y);
 
     // Only affect stars within explosion radius
@@ -86,11 +95,12 @@ export function applyExplosionForce(
       const angle = Math.atan2(star.y - y, star.x - x);
 
       // Apply force with velocity clamping
-      star.vx += Math.cos(angle) * explosionForce;
-      star.vy += Math.sin(angle) * explosionForce;
+      star.vx += fastCos(angle) * explosionForce;
+      star.vy += fastSin(angle) * explosionForce;
 
       const currentVelocity = Math.sqrt(star.vx * star.vx + star.vy * star.vy);
-      const maxExplosionVelocity = EXPLOSION_PHYSICS.maxVelocity * GLOBAL_SPEED_MULTIPLIER;
+      const maxExplosionVelocity =
+        EXPLOSION_PHYSICS.maxVelocity * GLOBAL_SPEED_MULTIPLIER;
 
       if (currentVelocity > maxExplosionVelocity) {
         star.vx = (star.vx / currentVelocity) * maxExplosionVelocity;
@@ -113,14 +123,14 @@ export function applyClickForce(
   clickX: number,
   clickY: number,
   radius: number = 400,
-  force: number = 40
+  force: number = 40,
 ): number {
   // Much stronger force multiplier for visible repulsion effect that stacks
   const adjustedForce = force * 8;
 
   let affectedCount = 0;
 
-  stars.forEach(star => {
+  stars.forEach((star) => {
     const dx = star.x - clickX;
     const dy = star.y - clickY;
     const dist = Math.sqrt(dx * dx + dy * dy);
@@ -168,13 +178,17 @@ export function createClickExplosion(
   y: number,
   radius: number = 200,
   color: string = "rgba(255, 255, 255, 0.8)",
-  duration: number = 800
+  duration: number = 800,
 ): void {
   // Don't apply global speed multiplier to make effect more visible
   const adjustedDuration = duration;
 
   // Parse color for use in gradients (extract base color without alpha)
-  const baseColor = color.replace(/rgba?\(([^)]+)\).*/, "$1").split(",").slice(0, 3).join(",");
+  const baseColor = color
+    .replace(/rgba?\(([^)]+)\).*/, "$1")
+    .split(",")
+    .slice(0, 3)
+    .join(",");
 
   const startTime = performance.now();
   const animate = (): void => {
@@ -197,7 +211,14 @@ export function createClickExplosion(
     ctx.stroke();
 
     // Draw inner glow
-    const gradient = ctx.createRadialGradient(x, y, 0, x, y, currentRadius * 0.8);
+    const gradient = ctx.createRadialGradient(
+      x,
+      y,
+      0,
+      x,
+      y,
+      currentRadius * 0.8,
+    );
     gradient.addColorStop(0, `rgba(${baseColor}, ${opacity * 0.7})`);
     gradient.addColorStop(1, EXPLOSION_GLOW_FADE_COLOR);
 
@@ -225,16 +246,13 @@ export function createClickExplosion(
 /**
  * Reset stars to their original positions with smooth animation
  */
-export function resetStars(
-  stars: Star[],
-  duration: number = 1000
-): void {
+export function resetStars(stars: Star[], duration: number = 1000): void {
   // Apply global speed multiplier to duration to slow down the reset animation
   const adjustedDuration = duration / GLOBAL_SPEED_MULTIPLIER;
 
   const startTime = performance.now();
 
-  stars.forEach(star => {
+  stars.forEach((star) => {
     // Store current position and calculate target position
     const startX = star.x;
     const startY = star.y;
@@ -279,7 +297,7 @@ export function updateStarActivity(stars: Star[]): void {
   for (let i = 0; i < stars.length; i++) {
     const star = stars[i];
     // If star was pushed more than deactivationTime ago, deactivate it
-    if (star.isActive && (now - star.lastPushed > deactivationTime)) {
+    if (star.isActive && now - star.lastPushed > deactivationTime) {
       star.isActive = false;
     }
   }

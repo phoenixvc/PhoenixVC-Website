@@ -3,7 +3,11 @@
 /**
  * Storage provider types
  */
-export type StorageProviderType = "localStorage" | "sessionStorage" | "memory" | "custom";
+export type StorageProviderType =
+  | "localStorage"
+  | "sessionStorage"
+  | "memory"
+  | "custom";
 
 /**
  * Custom storage provider interface

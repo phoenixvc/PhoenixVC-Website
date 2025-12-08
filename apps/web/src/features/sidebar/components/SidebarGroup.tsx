@@ -11,11 +11,11 @@ const SidebarGroup: React.FC<SidebarGroupProps> = ({
   mode: _mode = "light",
   variant: _variant = "default",
   collapsed = false,
-  isDarkMode: _isDarkMode = true
+  isDarkMode: _isDarkMode = true,
 }): React.ReactElement => {
   const groupTitleClass = cn(
     styles.groupTitle,
-    collapsed ? styles.groupTitleCollapsed : ""
+    collapsed ? styles.groupTitleCollapsed : "",
   );
 
   return (

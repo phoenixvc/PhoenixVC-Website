@@ -1,4 +1,9 @@
-import { ColorAdjustments, ColorDefinition, ColorShades, ShadeLevel } from "@/theme/types";
+import {
+  ColorAdjustments,
+  ColorDefinition,
+  ColorShades,
+  ShadeLevel,
+} from "@/theme/types";
 import ColorUtils from "@/theme/utils/color-utils";
 
 // Base sky blue color
@@ -26,7 +31,18 @@ const generateSkyPalette = (): Record<ShadeLevel, ColorDefinition> => {
 export const skyPalette: ColorShades = {
   ...generateSkyPalette(),
   base: BASE_SKY,
-  contrast: ["#000000", "#000000", "#000000", "#000000", "#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF"],
+  contrast: [
+    "#000000",
+    "#000000",
+    "#000000",
+    "#000000",
+    "#000000",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+  ],
 };
 
 // Export a function to get a specific sky shade
@@ -35,7 +51,9 @@ export const getSkyShade = (shade: ShadeLevel): ColorDefinition => {
 };
 
 // Export a function to create a sky blue with custom adjustments
-export const createSkyVariant = (adjustments: ColorAdjustments): ColorDefinition => {
+export const createSkyVariant = (
+  adjustments: ColorAdjustments,
+): ColorDefinition => {
   const baseColor = ColorUtils.createColorDefinition(BASE_SKY);
   return ColorUtils.adjustColor(baseColor, adjustments);
 };

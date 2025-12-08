@@ -4,7 +4,9 @@ import { animate } from "./animation/animate";
 import { AnimationProps, AnimationRefs } from "./animation/types";
 import { logger } from "@/utils/logger";
 
-export const useAnimationLoop = (props: AnimationProps): {
+export const useAnimationLoop = (
+  props: AnimationProps,
+): {
   cancelAnimation: () => void;
   restartAnimation: () => void;
   currentFps: number;
@@ -20,30 +22,36 @@ export const useAnimationLoop = (props: AnimationProps): {
   const lastTimeRef = useRef<number | null>(null); // Explicitly typed as number | null
   const lastFrameTimeRef = useRef<number>(Date.now());
   const frameSkipRef = useRef<number>(0);
-  const mousePositionRef = useRef(props.mousePosition || {
-    x: 0,
-    y: 0,
-    lastX: 0,
-    lastY: 0,
-    speedX: 0,
-    speedY: 0,
-    isClicked: false,
-    clickTime: 0,
-    isOnScreen: true
-  });
-  const hoverInfoRef = useRef(props.hoverInfo || { project: null, x: 0, y: 0, show: false });
+  const mousePositionRef = useRef(
+    props.mousePosition || {
+      x: 0,
+      y: 0,
+      lastX: 0,
+      lastY: 0,
+      speedX: 0,
+      speedY: 0,
+      isClicked: false,
+      clickTime: 0,
+      isOnScreen: true,
+    },
+  );
+  const hoverInfoRef = useRef(
+    props.hoverInfo || { project: null, x: 0, y: 0, show: false },
+  );
 
   // Initialize gameStateRef with a proper GameState object
-  const gameStateRef = useRef<GameState>((props.gameState as GameState) || {
-    remainingClicks: 3,
-    score: 0,
-    lastClickTime: 0,
-    highScores: [],
-    lastScoreUpdate: 0,
-    ipAddress: null,
-    collisions: [],
-    clickAddInterval: 10000
-  });
+  const gameStateRef = useRef<GameState>(
+    (props.gameState as GameState) || {
+      remainingClicks: 3,
+      score: 0,
+      lastClickTime: 0,
+      highScores: [],
+      lastScoreUpdate: 0,
+      ipAddress: null,
+      collisions: [],
+      clickAddInterval: 10000,
+    },
+  );
 
   const animationErrorCountRef = useRef<number>(0);
   const fpsValuesRef = useRef<number[]>([]);
@@ -83,14 +91,17 @@ export const useAnimationLoop = (props: AnimationProps): {
   }, [props.mousePosition, props.hoverInfo, props.gameState]);
 
   // Update FPS data callback - uses props.updateFpsData directly which is stable
-  const updateFpsData = useCallback((fps: number, currentTimestamp: number): void => {
-    setCurrentFps(fps);
-    setTimestamp(currentTimestamp);
-    if (props.updateFpsData) {
-      props.updateFpsData(fps, currentTimestamp);
-    }
+  const updateFpsData = useCallback(
+    (fps: number, currentTimestamp: number): void => {
+      setCurrentFps(fps);
+      setTimestamp(currentTimestamp);
+      if (props.updateFpsData) {
+        props.updateFpsData(fps, currentTimestamp);
+      }
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.updateFpsData]);
+    [props.updateFpsData],
+  );
 
   // Create animation refs object with proper types
   const refs: AnimationRefs = {
@@ -110,7 +121,7 @@ export const useAnimationLoop = (props: AnimationProps): {
     pendingCollisionEffectsRef,
     lastDebugModeRef,
     animationStartTimeRef,
-    animationWatchdogRef
+    animationWatchdogRef,
   };
 
   // Restart animation function
@@ -119,19 +130,22 @@ export const useAnimationLoop = (props: AnimationProps): {
     isRestartingRef.current = true;
 
     // Cancel current animation frame
-      if (animationRef.current) {
-        window.cancelAnimationFrame(animationRef.current);
-      }
+    if (animationRef.current) {
+      window.cancelAnimationFrame(animationRef.current);
+    }
 
     // Reset animation state
     lastTimeRef.current = null;
     frameSkipRef.current = 0;
 
     // Ensure we have stars
-    if (props.ensureStarsExist && (!props.starsRef?.current || props.starsRef.current.length === 0)) {
+    if (
+      props.ensureStarsExist &&
+      (!props.starsRef?.current || props.starsRef.current.length === 0)
+    ) {
       logger.debug("No stars found during restart, ensuring stars exist");
       props.ensureStarsExist();
-      }
+    }
 
     // Start animation with a small delay to ensure everything is ready
     setTimeout(() => {
@@ -140,7 +154,11 @@ export const useAnimationLoop = (props: AnimationProps): {
         isAnimatingRef.current = true;
         // Start animation
         animationRef.current = window.requestAnimationFrame((timestamp) => {
-          animate(timestamp, { ...latestPropsRef.current, updateFpsData }, refs);
+          animate(
+            timestamp,
+            { ...latestPropsRef.current, updateFpsData },
+            refs,
+          );
         });
       }
     }, 100);
@@ -175,8 +193,13 @@ export const useAnimationLoop = (props: AnimationProps): {
     }
 
     // Ensure we have stars before starting animation
-    if (props.ensureStarsExist && (!props.starsRef?.current || props.starsRef?.current.length === 0)) {
-      logger.debug("No stars found, ensuring stars exist before starting animation");
+    if (
+      props.ensureStarsExist &&
+      (!props.starsRef?.current || props.starsRef?.current.length === 0)
+    ) {
+      logger.debug(
+        "No stars found, ensuring stars exist before starting animation",
+      );
       props.ensureStarsExist();
     }
 
@@ -201,7 +224,7 @@ export const useAnimationLoop = (props: AnimationProps): {
         window.clearInterval(animationWatchdogRef.current);
         animationWatchdogRef.current = null;
       }
-};
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     // Only include stable dependencies that won't change every render
@@ -220,7 +243,7 @@ export const useAnimationLoop = (props: AnimationProps): {
     props.ensureStarsExist,
     props.starsRef,
     startAnimationWithProps,
-    props.debugSettings
+    props.debugSettings,
   ]);
 
   return {
@@ -238,6 +261,6 @@ export const useAnimationLoop = (props: AnimationProps): {
     restartAnimation,
     // Export FPS data for use in the component
     currentFps,
-    timestamp
+    timestamp,
   };
 };

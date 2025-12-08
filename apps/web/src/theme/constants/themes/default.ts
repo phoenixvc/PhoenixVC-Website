@@ -1,23 +1,22 @@
-
 import {
   fontFamilies,
   fontSizes,
   fontWeights,
   lineHeights,
-  letterSpacings
+  letterSpacings,
 } from "../tokens/typography";
 import { spacing } from "../tokens/spacing";
 import { breakpoints } from "../tokens/breakpoints";
 import { shadows } from "../tokens/shadows";
-import {
-  borderWidths,
-  borderStyles
-} from "../tokens/borders";
-import {
-  animations
-} from "../tokens/animations";
+import { borderWidths, borderStyles } from "../tokens/borders";
+import { animations } from "../tokens/animations";
 import { Theme } from "@/theme";
-import { radii, transitionDurations, transitionEasings, zIndices } from "../tokens";
+import {
+  radii,
+  transitionDurations,
+  transitionEasings,
+  zIndices,
+} from "../tokens";
 
 /**
  * Default theme values that will be merged with theme-specific color values

@@ -6,7 +6,7 @@ export interface ColorDefinition {
   rgb: string;
   hsl: string;
   alpha?: number;
-  cssVariable?: string;  // Added to track CSS variables
+  cssVariable?: string; // Added to track CSS variables
   isPlaceholder?: boolean; // Added to track problematic conversions
 }
 
@@ -22,7 +22,6 @@ export interface RGBColor {
   b: number;
 }
 
-
 export interface ColorAdjustments {
   hue?: number;
   saturation?: number;
@@ -36,7 +35,17 @@ export type ColorSet = ColorDefinition;
  * Color Shade Structures
  */
 // Base type for shade levels only
-export type ShadeLevel = 50 | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900;
+export type ShadeLevel =
+  | 50
+  | 100
+  | 200
+  | 300
+  | 400
+  | 500
+  | 600
+  | 700
+  | 800
+  | 900;
 export type ShadeMap = Record<ShadeLevel, ColorDefinition>;
 
 // Complete color shades with required properties
@@ -67,7 +76,6 @@ export interface InitialBaseColors {
   // Optional additional colors with index signature for extensibility
   [key: string]: ColorDefinition | string | undefined;
 }
-
 
 /**
  * Base Color Structures - Processed (after shade generation)
@@ -121,7 +129,9 @@ export interface OptionalSemanticColors {
   hint?: ColorDefinition;
 }
 
-export interface SemanticColors extends RequiredSemanticColors, OptionalSemanticColors {}
+export interface SemanticColors
+  extends RequiredSemanticColors,
+    OptionalSemanticColors {}
 
 /**
  * Enhanced Theme Scheme Initial
@@ -245,19 +255,15 @@ export type RequiredSemanticColorKeys = keyof RequiredSemanticColors;
 export const REQUIRED_INITIAL_COLORS: ReadonlyArray<InitialBaseColorKeys> = [
   "primary",
   "secondary",
-  "accent"
+  "accent",
 ] as const;
 
 export const REQUIRED_MODE_COLORS: ReadonlyArray<RequiredModeColorKeys> = [
   "background",
   "text",
   "muted",
-  "border"
+  "border",
 ] as const;
 
-export const REQUIRED_SEMANTIC_COLORS: ReadonlyArray<RequiredSemanticColorKeys> = [
-  "success",
-  "warning",
-  "error",
-  "info"
-] as const;
+export const REQUIRED_SEMANTIC_COLORS: ReadonlyArray<RequiredSemanticColorKeys> =
+  ["success", "warning", "error", "info"] as const;

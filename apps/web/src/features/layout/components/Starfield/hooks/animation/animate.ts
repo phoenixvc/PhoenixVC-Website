@@ -2,7 +2,12 @@
 // Core animation loop - orchestrates all rendering operations
 import { SetStateAction } from "react";
 import { drawBlackHole } from "../../blackHoles";
-import { drawConnections, drawStars, updateStarActivity, updateStarPositions } from "../../stars";
+import {
+  drawConnections,
+  drawStars,
+  updateStarActivity,
+  updateStarPositions,
+} from "../../stars";
 import { drawStarBirthplaces } from "../../renderer";
 import { logger } from "@/utils/logger";
 import { updateFrameCache, getFrameTime } from "../../frameCache";
@@ -12,7 +17,7 @@ import {
   HoverInfo,
   MousePosition,
   Planet,
-  Star
+  Star,
 } from "../../types";
 import { processParticleEffects } from "./processParticleEffects";
 import { AnimationProps, AnimationRefs } from "./types";
@@ -25,7 +30,10 @@ import { checkPlanetHover, updatePlanets } from "../../Planets";
 import { drawCosmicNavigation } from "./drawCosmicNavigation";
 // Import centralized utilities
 import { TWO_PI } from "../../math";
-import { STAR_RENDERING_CONFIG, ANIMATION_TIMING_CONFIG } from "../../renderingConfig";
+import {
+  STAR_RENDERING_CONFIG,
+  ANIMATION_TIMING_CONFIG,
+} from "../../renderingConfig";
 // Import modular rendering functions
 import { drawMouseEffects } from "./mouseEffects";
 import {
@@ -33,8 +41,15 @@ import {
   resetAnimationModuleState,
   getFocusAreaSuns,
   checkSunHover,
-  getCurrentSunPositions
+  getCurrentSunPositions,
 } from "./sunRendering";
+// Import performance profiler
+import {
+  startTiming,
+  endTiming,
+  endFrame,
+  isProfilerEnabled as _isProfilerEnabled,
+} from "../../performanceProfiler";
 
 // Cached default mouse position to avoid allocation every frame
 let cachedDefaultMousePosition: MousePosition | null = null;
@@ -43,20 +58,34 @@ let cachedDefaultMousePosition: MousePosition | null = null;
 let lastElementCheckFrame = 0;
 let cachedIsOverContentCard = false;
 
-export const animate = (timestamp: number, props: AnimationProps, refs: AnimationRefs): void => {
+// Cached filtered planets for focused sun mode (avoids array allocation every frame)
+let cachedFilteredPlanets: Planet[] = [];
+let cachedFocusedSunId: string | null = null;
+let cachedPlanetsLength = 0;
+
+export const animate = (
+  timestamp: number,
+  props: AnimationProps,
+  refs: AnimationRefs,
+): void => {
   try {
     // Update frame cache at the start of each frame
     updateFrameCache();
 
     if (props.debugSettings?.verboseLogs) {
-      logger.debug("frame:", timestamp, "stars:", props.starsRef?.current.length ?? 0);
+      logger.debug(
+        "frame:",
+        timestamp,
+        "stars:",
+        props.starsRef?.current.length ?? 0,
+      );
     }
 
     // If we"re in the middle of a restart, skip this frame
     if (refs.isRestartingRef.current) {
       logger.debug("Skipping animation frame during restart");
       refs.animationRef.current = window.requestAnimationFrame(
-        (nextTimestamp) => animate(nextTimestamp, props, refs)
+        (nextTimestamp) => animate(nextTimestamp, props, refs),
       );
       return;
     }
@@ -69,7 +98,7 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       logger.error("Animation frame error: starsRef is undefined");
       if (refs.isAnimatingRef.current) {
         refs.animationRef.current = window.requestAnimationFrame(
-          (nextTimestamp) => animate(nextTimestamp, props, refs)
+          (nextTimestamp) => animate(nextTimestamp, props, refs),
         );
       }
       return;
@@ -96,7 +125,9 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
     // If deltaTime is extremely large (tab was inactive or browser paused),
     // cap it to prevent physics explosions
     if (deltaTime > 200) {
-      logger.debug(`Large delta time detected: ${deltaTime}ms, capping to 16ms`);
+      logger.debug(
+        `Large delta time detected: ${deltaTime}ms, capping to 16ms`,
+      );
       deltaTime = 16;
     }
 
@@ -112,6 +143,9 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
 
     // Clear canvas with full dimensions
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Start frame-level profiling
+    startTiming("frame");
 
     // Get current stars from ref - use direct reference to avoid copying array every frame
     // This significantly reduces GC pressure at 60fps
@@ -130,7 +164,7 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       // Continue animation loop but don"t try to draw anything
       if (refs.isAnimatingRef.current || refs.isRestartingRef.current) {
         refs.animationRef.current = window.requestAnimationFrame(
-          (nextTimestamp) => animate(nextTimestamp, props, refs)
+          (nextTimestamp) => animate(nextTimestamp, props, refs),
         );
       }
       return;
@@ -147,17 +181,22 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       const cameraCenterX = cameraValues.cx * canvas.width;
       const cameraCenterY = cameraValues.cy * canvas.height;
 
-      // Apply transformation to center the camera target in the viewport
-      // 1. Translate to center of viewport
+      // Calculate the viewport center
+      const viewportCenterX = canvas.width / 2;
+      const viewportCenterY = canvas.height / 2;
+
+      // Apply transformation to center the camera target in the visible viewport
+      // 1. Translate to center of visible content area (accounting for sidebar)
       // 2. Scale around origin (zoom)
       // 3. Translate so camera target becomes the origin
-      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.translate(viewportCenterX, viewportCenterY);
       ctx.scale(cameraValues.zoom, cameraValues.zoom);
       ctx.translate(-cameraCenterX, -cameraCenterY);
     }
 
     // Draw background stars with reduced opacity when focused on a sun
     // This makes the focused area more prominent
+    startTiming("drawStars");
     if (props.focusedSunId) {
       ctx.save();
       ctx.globalAlpha = STAR_RENDERING_CONFIG.focusedBackgroundAlpha;
@@ -167,7 +206,8 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       // Always draw stars first - this ensures they always appear
       drawStars(ctx, currentStars);
     }
-    
+    endTiming("drawStars");
+
     // Draw star birthplace indicators at the edges where stars respawn
     // Hide these when focused on a sun for cleaner view
     if (!props.focusedSunId) {
@@ -179,7 +219,19 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
 
     // Draw suns (focus area orbital centers) - always visible
     // Pass hovered sun id, focused sun id for interactive effects, deltaTime for physics, and planets for size calculation
-    drawSuns(ctx, canvas.width, canvas.height, timestamp, props.isDarkMode, props.hoveredSunId, deltaTime, props.focusedSunId, currentPlanets);
+    startTiming("drawSuns");
+    drawSuns(
+      ctx,
+      canvas.width,
+      canvas.height,
+      timestamp,
+      props.isDarkMode,
+      props.hoveredSunId,
+      deltaTime,
+      props.focusedSunId,
+      currentPlanets,
+    );
+    endTiming("drawSuns");
 
     // Get current values from refs - use direct reference to avoid GC pressure
     const currentBlackHoles: BlackHole[] = props.blackHolesRef?.current ?? [];
@@ -196,24 +248,28 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
         speedY: 0,
         isClicked: false,
         clickTime: 0,
-        isOnScreen: true
+        isOnScreen: true,
       };
     }
-    const currentMousePosition: MousePosition = refs.mousePositionRef.current ?? cachedDefaultMousePosition;
+    const currentMousePosition: MousePosition =
+      refs.mousePositionRef.current ?? cachedDefaultMousePosition;
 
     // Use refs directly - these are read-only in animation loop
     const currentHoverInfo: HoverInfo = refs.hoverInfoRef.current;
     const currentGameState: GameState = refs.gameStateRef.current;
 
     // Get cosmic navigation state and camera - use cameraRef for synchronous access
-    const currentCamera: Camera | undefined = props.cameraRef?.current as Camera | undefined;
-    const currentNavigationState: CosmicNavigationState | undefined = props.navigationState;
+    const currentCamera: Camera | undefined = props.cameraRef?.current as
+      | Camera
+      | undefined;
+    const currentNavigationState: CosmicNavigationState | undefined =
+      props.navigationState;
     const currentHoveredObjectId: string | null = props.hoveredObjectId || null;
 
     // NEW: Apply camera lerp if camera is available
     if (
       props.enableCosmicNavigation &&
-      currentCamera?.target &&              // ← must have a target to lerp to
+      currentCamera?.target && // ← must have a target to lerp to
       props.setCamera
     ) {
       const updatedCamera = lerpCamera(currentCamera, 0.08);
@@ -227,28 +283,40 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
     const currentFrameCount = props.frameCountRef?.current ?? 0;
     let isOverContentCard = cachedIsOverContentCard;
 
-    if (currentFrameCount - lastElementCheckFrame >= ANIMATION_TIMING_CONFIG.elementFromPointCheckInterval) {
+    if (
+      currentFrameCount - lastElementCheckFrame >=
+      ANIMATION_TIMING_CONFIG.elementFromPointCheckInterval
+    ) {
       lastElementCheckFrame = currentFrameCount;
       isOverContentCard = false;
 
       if (typeof document !== "undefined" && currentMousePosition.isOnScreen) {
         const elementAtMouse = document.elementFromPoint(
           currentMousePosition.x,
-          currentMousePosition.y
+          currentMousePosition.y,
         );
         if (elementAtMouse) {
           // Check if the element is the canvas or inside the starfield container
           const isCanvas = elementAtMouse.tagName === "CANVAS";
-          const isInsideStarfield = elementAtMouse.closest("[data-starfield]") !== null;
+          const isInsideStarfield =
+            elementAtMouse.closest("[data-starfield]") !== null;
           // Check if the element is inside the hero section (which should allow tooltips)
-          const isInsideHeroSection = elementAtMouse.closest("section[aria-label=\"hero section\"]") !== null;
+          const isInsideHeroSection =
+            elementAtMouse.closest("section[aria-label=\"hero section\"]") !==
+            null;
           // Check if hovering over header/navigation (should allow tooltips since they're transparent)
           const isInsideHeader = elementAtMouse.closest("header") !== null;
           // Check if hovering over sidebar (should allow tooltips)
-          const isInsideSidebar = elementAtMouse.closest("aside, [role=\"complementary\"]") !== null;
+          const isInsideSidebar =
+            elementAtMouse.closest("aside, [role=\"complementary\"]") !== null;
 
           // Only consider it as "over content card" if it's NOT any of the allowed elements
-          isOverContentCard = !isCanvas && !isInsideStarfield && !isInsideHeroSection && !isInsideHeader && !isInsideSidebar;
+          isOverContentCard =
+            !isCanvas &&
+            !isInsideStarfield &&
+            !isInsideHeroSection &&
+            !isInsideHeader &&
+            !isInsideSidebar;
         }
       }
       cachedIsOverContentCard = isOverContentCard;
@@ -256,7 +324,9 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
 
     if (props.enablePlanets && props.enableMouseInteraction) {
       // Create a wrapper function that matches the expected type
-      const updateHoverInfoIfChanged = (newInfo: SetStateAction<HoverInfo>): void => {
+      const updateHoverInfoIfChanged = (
+        newInfo: SetStateAction<HoverInfo>,
+      ): void => {
         // If newInfo is a function, we can"t directly compare it
         if (typeof newInfo === "function") {
           props.setHoverInfo(newInfo);
@@ -271,7 +341,8 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
         // Only update state if it changed significantly
         if (
           newInfo.show !== currentHoverInfo.show ||
-          (newInfo.project && currentHoverInfo.project &&
+          (newInfo.project &&
+            currentHoverInfo.project &&
             newInfo.project.id !== currentHoverInfo.project.id) ||
           (!newInfo.project && currentHoverInfo.project) ||
           (newInfo.project && !currentHoverInfo.project)
@@ -283,7 +354,10 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       // If over a content card, hide any active tooltip; otherwise check for planet hover
       if (isOverContentCard) {
         // Clear hover info if currently showing (but not if mouse is over tooltip)
-        if (currentHoverInfo.show && !props.isMouseOverProjectTooltipRef?.current) {
+        if (
+          currentHoverInfo.show &&
+          !props.isMouseOverProjectTooltipRef?.current
+        ) {
           props.setHoverInfo({ project: null, x: 0, y: 0, show: false });
         }
       } else {
@@ -293,23 +367,26 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
           currentPlanets,
           props.planetSize,
           currentHoverInfo,
-          updateHoverInfoIfChanged
+          updateHoverInfoIfChanged,
         );
       }
     }
 
     // Draw connections between stars (network effect) - only if not skipping heavy operations
     if (!shouldSkipHeavyOperations) {
+      startTiming("drawConnections");
       drawConnections(
         ctx,
         currentStars,
         props.lineConnectionDistance,
         props.lineOpacity,
-        props.colorScheme
+        props.colorScheme,
       );
+      endTiming("drawConnections");
     }
 
     // Update star positions with proper null handling for centerPosition
+    startTiming("updateStarPositions");
     updateStarPositions(
       currentStars,
       canvas.width,
@@ -325,8 +402,9 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       props.centerPosition || { x: canvas.width / 2, y: canvas.height / 2 }, // Provide default if undefined
       props.mouseEffectRadius,
       props.maxVelocity,
-      props.animationSpeed
+      props.animationSpeed,
     );
+    endTiming("updateStarPositions");
 
     // Note: handleBoundaries removed - updateStarPositions already handles wrapping
     // Adding it here caused double-wrapping and potential oscillation at edges
@@ -340,18 +418,40 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
 
     // Draw portfolio comets/planets
     // Filter planets if a sun is focused (show only planets orbiting that sun)
-    const planetsToRender = props.focusedSunId 
-      ? currentPlanets.filter(planet => planet.orbitParentId === props.focusedSunId)
-      : currentPlanets;
-    
+    // Use cached filtered array to avoid allocation every frame
+    let planetsToRender: Planet[];
+    if (props.focusedSunId) {
+      // Only recalculate if focusedSunId changed or planets array changed
+      if (
+        cachedFocusedSunId !== props.focusedSunId ||
+        cachedPlanetsLength !== currentPlanets.length
+      ) {
+        cachedFilteredPlanets = currentPlanets.filter(
+          (planet) => planet.orbitParentId === props.focusedSunId,
+        );
+        cachedFocusedSunId = props.focusedSunId;
+        cachedPlanetsLength = currentPlanets.length;
+      }
+      planetsToRender = cachedFilteredPlanets;
+    } else {
+      // Clear cache when not focused
+      if (cachedFocusedSunId !== null) {
+        cachedFocusedSunId = null;
+        cachedFilteredPlanets = [];
+      }
+      planetsToRender = currentPlanets;
+    }
+
+    startTiming("updatePlanets");
     updatePlanets(
       ctx,
       planetsToRender,
       deltaTime,
       props.planetSize,
       props.employeeDisplayStyle,
-      currentCamera // Pass the camera (may be undefined if cosmic navigation is disabled)
+      currentCamera, // Pass the camera (may be undefined if cosmic navigation is disabled)
     );
+    endTiming("updatePlanets");
 
     // Draw mouse effects
     drawMouseEffects(ctx, currentMousePosition, props, deltaTime);
@@ -366,14 +466,14 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
         props.camera,
         timestamp,
         props.hoveredObjectId || null,
-        props.isDarkMode
+        props.isDarkMode,
       );
     }
 
     // NEW: Draw cosmic objects if navigation is enabled
     if (
       props.enableCosmicNavigation &&
-      currentCamera?.target &&              // ← must have a target to lerp to
+      currentCamera?.target && // ← must have a target to lerp to
       currentNavigationState
     ) {
       // Draw cosmic objects at 30fps for performance
@@ -387,7 +487,7 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
           timestamp * (props.animationSpeed || 1),
           currentHoveredObjectId,
           props.starSize || 1,
-          props.isDarkMode || true
+          props.isDarkMode || true,
         );
 
         // Debug logging removed for performance
@@ -395,65 +495,91 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
     }
 
     // Process particles and effects
-    processParticleEffects(ctx, timestamp, deltaTime, props, refs, currentStars, currentPlanets, currentGameState, shouldSkipHeavyOperations);
+    processParticleEffects(
+      ctx,
+      timestamp,
+      deltaTime,
+      props,
+      refs,
+      currentStars,
+      currentPlanets,
+      currentGameState,
+      shouldSkipHeavyOperations,
+    );
 
     // Draw debug information if debug mode is enabled
     if (props.debugMode && !shouldSkipHeavyOperations) {
-        // Calculate FPS for debug info - throttle to every 10 frames
-        const frameCount = props.frameCountRef?.current ?? 0;
-        if (frameCount % 10 === 0) {
-          const fps = deltaTime > 0 ? 1000 / deltaTime : 0;
+      // Calculate FPS for debug info - throttle to every 10 frames
+      const frameCount = props.frameCountRef?.current ?? 0;
+      if (frameCount % 10 === 0) {
+        const fps = deltaTime > 0 ? 1000 / deltaTime : 0;
 
-          // Make sure fpsValues exists
-          if (!refs.fpsValues || !refs.fpsValues.current) {
-            refs.fpsValues = { current: [] };
-          }
-
-          refs.fpsValues.current.push(fps);
-          if (refs.fpsValues.current.length > 60) {
-            refs.fpsValues.current.shift();
-          }
-
-          // Calculate average FPS over the last 60 frames
-          const avgFps = refs.fpsValues.current.reduce((sum, val) => sum + val, 0) /
-            refs.fpsValues.current.length;
-
-          // Call the update function if provided
-          if (props.updateFpsData) {
-            props.updateFpsData(avgFps, timestamp);
-          }
+        // Make sure fpsValues exists
+        if (!refs.fpsValues || !refs.fpsValues.current) {
+          refs.fpsValues = { current: [] };
         }
 
-        // Draw velocity vectors for stars (sample of stars to improve performance)
-        const sampleStars = currentStars.filter((_, i) => i % 20 === 0); // Only show 5% of stars
-        sampleStars.forEach(star => {
-          ctx.beginPath();
-          ctx.moveTo(star.x, star.y);
-          ctx.lineTo(star.x + star.vx * 10, star.y + star.vy * 10);
-          ctx.strokeStyle = "red";
-          ctx.lineWidth = 1;
-          ctx.stroke();
-        });
-
-        // Draw mouse effect radius with a more visible outline
-        if (currentMousePosition.isOnScreen) {
-          ctx.beginPath();
-          ctx.arc(currentMousePosition.x, currentMousePosition.y, props.mouseEffectRadius, 0, TWO_PI);
-          ctx.strokeStyle = "rgba(255, 0, 0, 0.5)";
-          ctx.lineWidth = 1;
-          ctx.stroke();
+        refs.fpsValues.current.push(fps);
+        if (refs.fpsValues.current.length > 60) {
+          refs.fpsValues.current.shift();
         }
 
-        // NEW: Draw camera info if cosmic navigation is enabled
-        if (props.enableCosmicNavigation && currentCamera) {
-          ctx.font = "12px Arial";
-          ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-          ctx.fillText(`Camera: x=${currentCamera.cx.toFixed(2)}, y=${currentCamera.cy.toFixed(2)}, zoom=${currentCamera.zoom.toFixed(2)}`, 10, canvas.height - 60);
-          ctx.fillText(`Navigation: ${currentNavigationState?.currentLevel || "universe"}`, 10, canvas.height - 40);
+        // Calculate average FPS over the last 60 frames
+        const avgFps =
+          refs.fpsValues.current.reduce((sum, val) => sum + val, 0) /
+          refs.fpsValues.current.length;
+
+        // Call the update function if provided
+        if (props.updateFpsData) {
+          props.updateFpsData(avgFps, timestamp);
         }
       }
 
-      updateStarActivity(currentStars);
+      // Draw velocity vectors for stars (sample of stars to improve performance)
+      // Use direct iteration with step instead of filter to avoid array allocation
+      ctx.strokeStyle = "red";
+      ctx.lineWidth = 1;
+      for (let si = 0; si < currentStars.length; si += 20) {
+        const star = currentStars[si];
+        ctx.beginPath();
+        ctx.moveTo(star.x, star.y);
+        ctx.lineTo(star.x + star.vx * 10, star.y + star.vy * 10);
+        ctx.stroke();
+      }
+
+      // Draw mouse effect radius with a more visible outline
+      if (currentMousePosition.isOnScreen) {
+        ctx.beginPath();
+        ctx.arc(
+          currentMousePosition.x,
+          currentMousePosition.y,
+          props.mouseEffectRadius,
+          0,
+          TWO_PI,
+        );
+        ctx.strokeStyle = "rgba(255, 0, 0, 0.5)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      // NEW: Draw camera info if cosmic navigation is enabled
+      if (props.enableCosmicNavigation && currentCamera) {
+        ctx.font = "12px Arial";
+        ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+        ctx.fillText(
+          `Camera: x=${currentCamera.cx.toFixed(2)}, y=${currentCamera.cy.toFixed(2)}, zoom=${currentCamera.zoom.toFixed(2)}`,
+          10,
+          canvas.height - 60,
+        );
+        ctx.fillText(
+          `Navigation: ${currentNavigationState?.currentLevel || "universe"}`,
+          10,
+          canvas.height - 40,
+        );
+      }
+    }
+
+    updateStarActivity(currentStars);
 
     // Restore canvas context if camera transformation was applied
     // Must match the save condition: cameraValues && cameraValues.zoom !== 1
@@ -462,12 +588,23 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       ctx.restore();
     }
 
+    // End frame-level profiling
+    endTiming("frame");
+    endFrame();
+
     // Update star positions in the ref - consolidate this to one place
-    if (props.starsRef && props.starsRef.current && props.starsRef.current.length > 0) {
+    if (
+      props.starsRef &&
+      props.starsRef.current &&
+      props.starsRef.current.length > 0
+    ) {
       try {
         // Only update positions, don"t replace the entire array
         // Use a safer approach with bounds checking
-        const minLength = Math.min(currentStars.length, props.starsRef.current.length);
+        const minLength = Math.min(
+          currentStars.length,
+          props.starsRef.current.length,
+        );
         for (let i = 0; i < minLength; i++) {
           props.starsRef.current[i].x = currentStars[i].x;
           props.starsRef.current[i].y = currentStars[i].y;
@@ -482,10 +619,12 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
     // Continue the animation loop if still animating or restarting
     if (refs.isAnimatingRef.current || refs.isRestartingRef.current) {
       refs.animationRef.current = window.requestAnimationFrame(
-        (nextTimestamp) => animate(nextTimestamp, props, refs)
+        (nextTimestamp) => animate(nextTimestamp, props, refs),
       );
     } else {
-      logger.debug("Animation stopped because isAnimatingRef.current is false and not restarting");
+      logger.debug(
+        "Animation stopped because isAnimatingRef.current is false and not restarting",
+      );
     }
   } catch (error) {
     logger.error("Error in animation loop:", error);
@@ -496,7 +635,7 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       isRestarting: refs.isRestartingRef.current,
       starsCount: props.starsRef?.current?.length || 0,
       canvasExists: !!props.canvasRef.current,
-      timestamp
+      timestamp,
     });
 
     // Try to recover by continuing the animation
@@ -504,7 +643,7 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
       logger.debug("Attempting to recover from animation error");
       setTimeout(() => {
         refs.animationRef.current = window.requestAnimationFrame(
-          (nextTimestamp) => animate(nextTimestamp, props, refs)
+          (nextTimestamp) => animate(nextTimestamp, props, refs),
         );
       }, 100);
     }
@@ -512,4 +651,9 @@ export const animate = (timestamp: number, props: AnimationProps, refs: Animatio
 };
 
 // Re-export functions from sunRendering for backward compatibility
-export { resetAnimationModuleState, getFocusAreaSuns, checkSunHover, getCurrentSunPositions };
+export {
+  resetAnimationModuleState,
+  getFocusAreaSuns,
+  checkSunHover,
+  getCurrentSunPositions,
+};

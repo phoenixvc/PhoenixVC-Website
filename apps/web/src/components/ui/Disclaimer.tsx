@@ -17,11 +17,11 @@ export const Disclaimer: FC<DisclaimerProps> = ({
   title,
   message,
   onDismiss,
-  icon
+  icon,
 }): React.JSX.Element => {
   const getIcon = (): ReactNode => {
     if (icon) return icon;
-    
+
     switch (type) {
       case "warning":
         return "⚠️";
@@ -48,7 +48,7 @@ export const Disclaimer: FC<DisclaimerProps> = ({
           <div className={styles.message}>{message}</div>
         </div>
         {onDismiss && (
-          <button 
+          <button
             className={styles.dismissButton}
             onClick={onDismiss}
             aria-label="Dismiss"

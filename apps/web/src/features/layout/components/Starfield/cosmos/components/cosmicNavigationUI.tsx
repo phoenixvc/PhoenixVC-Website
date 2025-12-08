@@ -10,15 +10,24 @@ interface CosmicNavigationUIProps {
   className?: string;
 }
 
-const CosmicNavigationUI: React.FC<CosmicNavigationUIProps> = ({ state, setState, className }) => {
-  const { currentLevel, currentGalaxyId, currentStarSystemId, currentPlanetId } = state;
+const CosmicNavigationUI: React.FC<CosmicNavigationUIProps> = ({
+  state,
+  setState,
+  className,
+}) => {
+  const {
+    currentLevel,
+    currentGalaxyId,
+    currentStarSystemId,
+    currentPlanetId,
+  } = state;
 
   const handleBack = (): void => {
     switch (currentLevel) {
       case "galaxy":
         setState({
           currentLevel: "universe",
-          isTransitioning: true
+          isTransitioning: true,
         });
         break;
       case "starSystem":
@@ -27,7 +36,7 @@ const CosmicNavigationUI: React.FC<CosmicNavigationUIProps> = ({ state, setState
           currentGalaxyId,
           currentStarSystemId: undefined,
           currentPlanetId: undefined,
-          isTransitioning: true
+          isTransitioning: true,
         });
         break;
       case "planet":
@@ -36,7 +45,7 @@ const CosmicNavigationUI: React.FC<CosmicNavigationUIProps> = ({ state, setState
           currentGalaxyId,
           currentStarSystemId,
           currentPlanetId: undefined,
-          isTransitioning: true
+          isTransitioning: true,
         });
         break;
       default:

@@ -1,15 +1,7 @@
-import {
-  GALAXIES,
-  getChildrenOf,
-  getObjectById
-} from "./cosmicHierarchy";
+import { GALAXIES, getChildrenOf, getObjectById } from "./cosmicHierarchy";
 import { drawGalaxySpiral } from "./renderHelpers"; // NEW ⭐
-import {
-  Camera,
-  CosmicNavigationState,
-  CosmicObject
-} from "./types";
-import { TWO_PI } from "../math";
+import { Camera, CosmicNavigationState, CosmicObject } from "./types";
+import { TWO_PI, fastSin } from "../math";
 
 /* ────────────────────────────────────────────────────────────
    Utility: visibility check (unchanged)
@@ -18,7 +10,7 @@ const _isObjectVisible = (
   obj: CosmicObject,
   camera: Camera,
   width: number,
-  height: number
+  height: number,
 ): boolean => {
   const screenX =
     (obj.position.x - camera.cx) * width * camera.zoom + width / 2;
@@ -47,7 +39,7 @@ export function renderCosmicHierarchy(
   time: number,
   hoveredId: string | null,
   starSizeFactor = 1,
-  isDarkMode = true
+  isDarkMode = true,
 ): void {
   const { currentLevel, currentGalaxyId, currentSunId } = navigationState;
 
@@ -68,7 +60,7 @@ export function renderCosmicHierarchy(
     case "galaxy": {
       if (currentGalaxyId) {
         const galaxy = getObjectById(currentGalaxyId);
-        const suns   = getChildrenOf(currentGalaxyId);
+        const suns = getChildrenOf(currentGalaxyId);
         if (galaxy) objectsToDraw = [galaxy, ...suns];
       }
       break;
@@ -76,7 +68,7 @@ export function renderCosmicHierarchy(
 
     case "sun": {
       if (currentSunId) {
-        const sun     = getObjectById(currentSunId);
+        const sun = getObjectById(currentSunId);
         const planets = getChildrenOf(currentSunId);
         if (sun) objectsToDraw = [sun, ...planets];
       }
@@ -84,7 +76,7 @@ export function renderCosmicHierarchy(
     }
 
     default:
-      /* nothing */
+    /* nothing */
   }
 
   /* ─────────── draw phase ─────────── */
@@ -92,8 +84,8 @@ export function renderCosmicHierarchy(
     /* tiny objects not worth the fill cost */
     if (obj.size * 50 * camera.zoom < 0.5) continue;
 
-    const x    = obj.position.x * width;
-    const y    = obj.position.y * height;
+    const x = obj.position.x * width;
+    const y = obj.position.y * height;
     const size = obj.size * 50 * starSizeFactor;
     const base = obj.color || (isDarkMode ? "#ffffff" : "#000000");
     const onHover = obj.id === hoveredId;
@@ -103,11 +95,11 @@ export function renderCosmicHierarchy(
     const glow = ctx.createRadialGradient(x, y, 0, x, y, size * 2);
     glow.addColorStop(0, `${base}80`);
     glow.addColorStop(1, `${base}00`);
-    ctx.fillStyle   = glow;
+    ctx.fillStyle = glow;
     ctx.globalAlpha = (onHover ? 1 : 0.7) * 0.5;
     ctx.arc(x, y, size * 2, 0, TWO_PI);
     ctx.fill();
-    ctx.globalAlpha = onHover ? 1 : 0.7;   // reset
+    ctx.globalAlpha = onHover ? 1 : 0.7; // reset
 
     /* body */
     switch (obj.level) {
@@ -125,10 +117,10 @@ export function renderCosmicHierarchy(
 
     /* hover pulse */
     if (onHover) {
-      const pulse = size * (1 + 0.2 * Math.sin(time * 0.003));
+      const pulse = size * (1 + 0.2 * fastSin(time * 0.003));
       ctx.beginPath();
       ctx.strokeStyle = base;
-      ctx.lineWidth   = 2;
+      ctx.lineWidth = 2;
       ctx.globalAlpha = 0.8;
       ctx.arc(x, y, pulse, 0, TWO_PI);
       ctx.stroke();
@@ -148,7 +140,7 @@ export function renderSunLevel(
   canvasHeight: number,
   sunId: string,
   time: number,
-  hoveredObjectId: string | null
+  hoveredObjectId: string | null,
 ): void {
   const sun = getObjectById(sunId);
   if (!sun) return;
@@ -162,8 +154,8 @@ export function renderSunLevel(
       canvasHeight,
       1,
       hoveredObjectId === planet.id,
-      time
-    )
+      time,
+    ),
   );
 }
 
@@ -174,10 +166,10 @@ export function drawSun(
   canvasHeight: number,
   scale: number,
   isActive: boolean,
-  _time: number
+  _time: number,
 ): void {
-  const x    = sun.position.x * canvasWidth;
-  const y    = sun.position.y * canvasHeight;
+  const x = sun.position.x * canvasWidth;
+  const y = sun.position.y * canvasHeight;
   const size = sun.size * 50 * scale;
 
   /* glow */
@@ -186,14 +178,14 @@ export function drawSun(
   g.addColorStop(0, `${sun.color}A0`);
   g.addColorStop(0.7, `${sun.color}50`);
   g.addColorStop(1, `${sun.color}00`);
-  ctx.fillStyle   = g;
+  ctx.fillStyle = g;
   ctx.globalAlpha = isActive ? 0.8 : 0.6;
   ctx.arc(x, y, size * 3, 0, TWO_PI);
   ctx.fill();
 
   /* body */
   ctx.beginPath();
-  ctx.fillStyle   = sun.color || "#ffdb58";
+  ctx.fillStyle = sun.color || "#ffdb58";
   ctx.globalAlpha = isActive ? 1 : 0.8;
   ctx.arc(x, y, size, 0, TWO_PI);
   ctx.fill();
@@ -206,14 +198,14 @@ export function drawPlanet(
   canvasHeight: number,
   scale: number,
   isActive: boolean,
-  _time: number
+  _time: number,
 ): void {
-  const x    = planet.position.x * canvasWidth;
-  const y    = planet.position.y * canvasHeight;
+  const x = planet.position.x * canvasWidth;
+  const y = planet.position.y * canvasHeight;
   const size = planet.size * 50 * scale;
 
   ctx.beginPath();
-  ctx.fillStyle   = planet.color || "#3498db";
+  ctx.fillStyle = planet.color || "#3498db";
   ctx.globalAlpha = isActive ? 1 : 0.8;
   ctx.arc(x, y, size, 0, TWO_PI);
   ctx.fill();
@@ -221,7 +213,7 @@ export function drawPlanet(
   if (isActive) {
     ctx.beginPath();
     ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth   = 2;
+    ctx.lineWidth = 2;
     ctx.globalAlpha = 0.6;
     ctx.arc(x, y, size * 1.2, 0, TWO_PI);
     ctx.stroke();

@@ -2,7 +2,15 @@
 import { FC, memo } from "react";
 import { motion } from "framer-motion";
 import { useTheme } from "@/theme";
-import { ExternalLink, Github, Cpu, Network, BookOpen, Shield, FileText } from "lucide-react";
+import {
+  ExternalLink,
+  Github,
+  Cpu,
+  Network,
+  BookOpen,
+  Shield,
+  FileText,
+} from "lucide-react";
 import styles from "./GenAIProjects.module.css";
 
 const animations = {
@@ -55,8 +63,10 @@ interface Project {
 const projects: Project[] = [
   {
     name: "Mystira",
-    description: "Interactive storytelling adventures for children and families",
-    longDescription: "Mystira brings the wonder of storytelling to life for children, parents, and group leaders alike. It transforms shared playtime into immersive, interactive adventures filled with imagination, cooperation, and creativity. Each Mystira story is grounded in child development research, fostering emotional growth, problem-solving skills, and meaningful connections.",
+    description:
+      "Interactive storytelling adventures for children and families",
+    longDescription:
+      "Mystira brings the wonder of storytelling to life for children, parents, and group leaders alike. It transforms shared playtime into immersive, interactive adventures filled with imagination, cooperation, and creativity. Each Mystira story is grounded in child development research, fostering emotional growth, problem-solving skills, and meaningful connections.",
     icon: <BookOpen size={32} />,
     website: "https://mystira.app",
     status: "live",
@@ -65,7 +75,8 @@ const projects: Project[] = [
   {
     name: "Phoenix Rooivalk",
     description: "AI-powered counter-drone defense platform",
-    longDescription: "Phoenix Rooivalk is a sophisticated counter-drone platform that leverages advanced AI and machine learning for real-time drone detection, classification, and neutralization. Named after the South African Rooivalk attack helicopter, it provides comprehensive airspace protection with automated threat assessment and response capabilities.",
+    longDescription:
+      "Phoenix Rooivalk is a sophisticated counter-drone platform that leverages advanced AI and machine learning for real-time drone detection, classification, and neutralization. Named after the South African Rooivalk attack helicopter, it provides comprehensive airspace protection with automated threat assessment and response capabilities.",
     icon: <Shield size={32} />,
     website: "https://phoenixrooivalk.com/",
     docs: "https://docs.phoenixrooivalk.com/",
@@ -76,18 +87,30 @@ const projects: Project[] = [
   {
     name: "Cognitive Mesh",
     description: "Enterprise-grade AI transformation framework",
-    longDescription: "Cognitive Mesh is an enterprise-grade AI transformation framework designed to orchestrate multi-agent cognitive systems with institutional-grade security and compliance controls. It features a five-layer hexagonal architecture enabling organizations to build, deploy, and manage advanced AI capabilities with comprehensive governance, NIST AI Risk Management Framework compliance, and Zero-Trust security architecture.",
+    longDescription:
+      "Cognitive Mesh is an enterprise-grade AI transformation framework designed to orchestrate multi-agent cognitive systems with institutional-grade security and compliance controls. It features a five-layer hexagonal architecture enabling organizations to build, deploy, and manage advanced AI capabilities with comprehensive governance, NIST AI Risk Management Framework compliance, and Zero-Trust security architecture.",
     icon: <Network size={32} />,
     github: "https://github.com/justaghost/cognitive-mesh",
     status: "development",
-    tags: ["Multi-Agent", "Enterprise", "Security", "Governance", "Azure", ".NET"],
+    tags: [
+      "Multi-Agent",
+      "Enterprise",
+      "Security",
+      "Governance",
+      "Azure",
+      ".NET",
+    ],
   },
 ];
 
 const statusColors = {
   live: { bg: "rgba(76, 175, 80, 0.2)", text: "#4caf50", label: "Live" },
   beta: { bg: "rgba(255, 152, 0, 0.2)", text: "#ff9800", label: "Beta" },
-  development: { bg: "rgba(33, 150, 243, 0.2)", text: "#2196f3", label: "In Development" },
+  development: {
+    bg: "rgba(33, 150, 243, 0.2)",
+    text: "#2196f3",
+    label: "In Development",
+  },
 };
 
 const GenAIProjects: FC = memo(() => {
@@ -95,7 +118,9 @@ const GenAIProjects: FC = memo(() => {
   const isDarkMode = themeMode === "dark";
 
   return (
-    <section className={`${styles.section} ${isDarkMode ? styles.darkMode : styles.lightMode}`}>
+    <section
+      className={`${styles.section} ${isDarkMode ? styles.darkMode : styles.lightMode}`}
+    >
       <div className={styles.container}>
         <motion.div
           className={styles.content}
@@ -111,13 +136,16 @@ const GenAIProjects: FC = memo(() => {
             <h1 className={styles.title}>GenAI Projects</h1>
             <div className={styles.divider} />
             <p className={styles.subtitle}>
-              Pioneering the future of artificial intelligence through innovative projects
-              and cutting-edge research initiatives.
+              Pioneering the future of artificial intelligence through
+              innovative projects and cutting-edge research initiatives.
             </p>
           </motion.div>
 
           {/* Projects Grid */}
-          <motion.div className={styles.projectsGrid} variants={animations.item}>
+          <motion.div
+            className={styles.projectsGrid}
+            variants={animations.item}
+          >
             {projects.map((project, index) => (
               <motion.div
                 key={index}
@@ -126,9 +154,7 @@ const GenAIProjects: FC = memo(() => {
                 whileHover={{ y: -8, transition: { duration: 0.2 } }}
               >
                 <div className={styles.cardHeader}>
-                  <div className={styles.projectIcon}>
-                    {project.icon}
-                  </div>
+                  <div className={styles.projectIcon}>{project.icon}</div>
                   <div
                     className={styles.statusBadge}
                     style={{
@@ -141,8 +167,12 @@ const GenAIProjects: FC = memo(() => {
                 </div>
 
                 <h2 className={styles.projectName}>{project.name}</h2>
-                <p className={styles.projectDescription}>{project.description}</p>
-                <p className={styles.projectLongDescription}>{project.longDescription}</p>
+                <p className={styles.projectDescription}>
+                  {project.description}
+                </p>
+                <p className={styles.projectLongDescription}>
+                  {project.longDescription}
+                </p>
 
                 <div className={styles.tags}>
                   {project.tags.map((tag, tagIndex) => (
@@ -195,8 +225,8 @@ const GenAIProjects: FC = memo(() => {
           <motion.div className={styles.ctaSection} variants={animations.item}>
             <h3 className={styles.ctaTitle}>Interested in Collaboration?</h3>
             <p className={styles.ctaText}>
-              We're always looking for innovative partners and contributors to help shape
-              the future of AI technology.
+              We're always looking for innovative partners and contributors to
+              help shape the future of AI technology.
             </p>
             <motion.a
               href="/#contact"

@@ -1,5 +1,15 @@
 import { ColorMapping, TypographyScale } from "../mappings";
-import { ColorDefinition, ThemeName, ThemeMode, ThemeState, ThemeColors, Theme, ThemeAcquisitionConfig, StorageOptions, TransitionOptions } from "../types";
+import {
+  ColorDefinition,
+  ThemeName,
+  ThemeMode,
+  ThemeState,
+  ThemeColors,
+  Theme,
+  ThemeAcquisitionConfig,
+  StorageOptions,
+  TransitionOptions,
+} from "../types";
 import { ComponentRegistryManager } from "../registry/component-registry-manager";
 import { ComponentManager } from "../managers/component-manager";
 import type { ThemeStateManager } from "../managers/theme-state-manager";
@@ -50,7 +60,7 @@ export class ThemeCore {
       this.componentRegistryManager,
       colorMapping,
       this.typographyManager,
-      this.cssVariableManager
+      this.cssVariableManager,
     );
 
     // Create transformation manager with configuration
@@ -58,7 +68,7 @@ export class ThemeCore {
       defaultMode: "dark",
       shadeCount: 9,
       shadeIntensity: 0.1,
-      contrastThreshold: 0.5
+      contrastThreshold: 0.5,
     });
 
     // Set up registry for the transformation manager
@@ -97,10 +107,10 @@ export class ThemeCore {
 
   initializeRegistries({
     themeRegistry,
-    componentRegistry
+    componentRegistry,
   }: {
-    themeRegistry: ThemeRegistry,
-    componentRegistry: ComponentThemeRegistry
+    themeRegistry: ThemeRegistry;
+    componentRegistry: ComponentThemeRegistry;
   }): void {
     this.themeRegistry = themeRegistry;
     this.componentRegistry = componentRegistry;
@@ -127,13 +137,15 @@ export class ThemeCore {
         void this.setMode(mode);
       }
     } else if (themeRegistry && themeRegistry.defaults) {
-      console.warn("[ThemeCore] Cannot set default theme/mode because state manager is not connected yet");
+      console.warn(
+        "[ThemeCore] Cannot set default theme/mode because state manager is not connected yet",
+      );
     }
 
     // Log initialization
     console.log("[ThemeCore] Initialized with registries:", {
       themes: themeRegistry ? Object.keys(themeRegistry.themes || {}) : [],
-      components: componentRegistry ? Object.keys(componentRegistry || {}) : []
+      components: componentRegistry ? Object.keys(componentRegistry || {}) : [],
     });
   }
 
@@ -163,11 +175,13 @@ export class ThemeCore {
   // Fix the setMode method to return a Promise and handle missing stateManager
   setMode(mode: ThemeMode): Promise<void> {
     if (!this.stateManager) {
-      console.warn("[ThemeCore] Cannot set mode because state manager is not connected yet");
+      console.warn(
+        "[ThemeCore] Cannot set mode because state manager is not connected yet",
+      );
       return Promise.reject(new Error("State manager not connected yet"));
     }
 
-    return this.stateManager.setMode(mode).catch(error => {
+    return this.stateManager.setMode(mode).catch((error) => {
       console.error("[ThemeCore] Error setting mode:", error);
       throw error;
     });
@@ -183,7 +197,9 @@ export class ThemeCore {
     return this.themeRegistry;
   }
 
-  private applyVariablesToDOM(variables: Record<string, string | ColorDefinition>): void {
+  private applyVariablesToDOM(
+    variables: Record<string, string | ColorDefinition>,
+  ): void {
     if (typeof window === "undefined") return;
 
     const root = document.documentElement;
@@ -197,44 +213,47 @@ export class ThemeCore {
   // Public API with safe state manager access
   generateThemeVariables(
     mode: ThemeMode,
-    colorScheme?: ThemeName
+    colorScheme?: ThemeName,
   ): Record<string, string | ColorDefinition> {
     return this.styleManager.generateThemeVariables(
       mode,
-      colorScheme || (this.stateManager ? this.stateManager.getState().themeName : "classic")
+      colorScheme ||
+        (this.stateManager
+          ? this.stateManager.getState().themeName
+          : "classic"),
     );
   }
 
   getComponentStyle(
     component: string,
     variant: string = "default",
-    state: string = "default"
+    state: string = "default",
   ): React.CSSProperties {
     const mode = this.stateManager ? this.stateManager.getState().mode : "dark";
-    return this.styleManager.getComponentStyle(
-      component,
-      variant,
-      state,
-      mode
-    );
+    return this.styleManager.getComponentStyle(component, variant, state, mode);
   }
 
-  getComponentTypography(component: string, variant: string = "default"): TypographyScale {
+  getComponentTypography(
+    component: string,
+    variant: string = "default",
+  ): TypographyScale {
     const mode = this.stateManager ? this.stateManager.getState().mode : "dark";
     const typography = this.typographyManager.getComponentTypography(
       component,
       variant,
-      mode
+      mode,
     );
 
     // Return with default values if typography is undefined
-    return typography || {
-      fontSize: "1rem",
-      lineHeight: 1.5,
-      letterSpacing: "normal",
-      fontWeight: 400
-      // Optional properties are not required
-    };
+    return (
+      typography || {
+        fontSize: "1rem",
+        lineHeight: 1.5,
+        letterSpacing: "normal",
+        fontWeight: 400,
+        // Optional properties are not required
+      }
+    );
   }
 
   getTypographyForElement(element: string): TypographyScale {
@@ -242,38 +261,47 @@ export class ThemeCore {
     const typography = this.typographyManager.getComponentTypography(
       element,
       "default",
-      mode
+      mode,
     );
 
     // Return with default values if typography is undefined
-    return typography || {
-      fontSize: "1rem",
-      lineHeight: 1.5,
-      letterSpacing: "normal",
-      fontWeight: 400
-    };
+    return (
+      typography || {
+        fontSize: "1rem",
+        lineHeight: 1.5,
+        letterSpacing: "normal",
+        fontWeight: 400,
+      }
+    );
   }
 
   // Expose state manager methods with Promise handling and safety checks
   setColorScheme(themeName: ThemeName): Promise<void> {
     if (!this.stateManager) {
-      console.warn("[ThemeCore] Cannot set color scheme because state manager is not connected yet");
+      console.warn(
+        "[ThemeCore] Cannot set color scheme because state manager is not connected yet",
+      );
       return Promise.reject(new Error("State manager not connected yet"));
     }
 
-    return this.stateManager.setThemeClasses(themeName).catch(error => {
-      console.error(`[ThemeCore] Error setting theme classes for "${themeName}":`, error);
+    return this.stateManager.setThemeClasses(themeName).catch((error) => {
+      console.error(
+        `[ThemeCore] Error setting theme classes for "${themeName}":`,
+        error,
+      );
       throw error;
     });
   }
 
   setUseSystem(useSystem: boolean): Promise<void> {
     if (!this.stateManager) {
-      console.warn("[ThemeCore] Cannot set system mode usage because state manager is not connected yet");
+      console.warn(
+        "[ThemeCore] Cannot set system mode usage because state manager is not connected yet",
+      );
       return Promise.reject(new Error("State manager not connected yet"));
     }
 
-    return this.stateManager.setUseSystem(useSystem).catch(error => {
+    return this.stateManager.setUseSystem(useSystem).catch((error) => {
       console.error("[ThemeCore] Error setting system mode:", error);
       throw error;
     });
@@ -288,7 +316,9 @@ export class ThemeCore {
 
   subscribe(listener: () => void): () => void {
     if (!this.stateManager) {
-      console.warn("[ThemeCore] Cannot subscribe because state manager is not connected yet");
+      console.warn(
+        "[ThemeCore] Cannot subscribe because state manager is not connected yet",
+      );
       // Return a no-op unsubscribe function
       return () => {};
     }
@@ -298,7 +328,9 @@ export class ThemeCore {
   // ComponentRegistryManager methods
   getComponentRegistry(): ComponentThemeRegistry {
     // Return the new componentRegistry if available, otherwise fall back to the old one
-    return this.componentRegistry || this.componentRegistryManager.getRegistry();
+    return (
+      this.componentRegistry || this.componentRegistryManager.getRegistry()
+    );
   }
 
   // ComponentRegistryManager methods
@@ -311,12 +343,19 @@ export class ThemeCore {
    */
   getTheme(themeName: ThemeName): Theme | undefined {
     // First try to reconstruct a full Theme from ThemeColors
-    if (this.themeRegistry && this.themeRegistry.themes && this.themeRegistry.themes[themeName]) {
+    if (
+      this.themeRegistry &&
+      this.themeRegistry.themes &&
+      this.themeRegistry.themes[themeName]
+    ) {
       // Get the ThemeColors from the registry
       const themeColors = this.themeRegistry.themes[themeName];
 
       // Check if we can get a full Theme from the style manager
-      const fullTheme = this.styleManager.getFullThemeFromColors(themeName, themeColors);
+      const fullTheme = this.styleManager.getFullThemeFromColors(
+        themeName,
+        themeColors,
+      );
       if (fullTheme) {
         return fullTheme;
       }
@@ -326,11 +365,16 @@ export class ThemeCore {
     return undefined;
   }
 
-  getComponentVariant(component: string, variant: string = "default"): ComponentVariantType | undefined {
+  getComponentVariant(
+    component: string,
+    variant: string = "default",
+  ): ComponentVariantType | undefined {
     // Try to get from the new registry first
-    if (this.componentRegistry &&
-        this.componentRegistry[component] &&
-        this.componentRegistry[component][variant]) {
+    if (
+      this.componentRegistry &&
+      this.componentRegistry[component] &&
+      this.componentRegistry[component][variant]
+    ) {
       return this.componentRegistry[component][variant];
     }
 
@@ -341,7 +385,11 @@ export class ThemeCore {
   // ThemeStateManager methods with safety checks
   isThemeCached(scheme: ThemeName): boolean {
     // Check if we have the theme colors in the registry
-    if (this.themeRegistry && this.themeRegistry.themes && this.themeRegistry.themes[scheme]) {
+    if (
+      this.themeRegistry &&
+      this.themeRegistry.themes &&
+      this.themeRegistry.themes[scheme]
+    ) {
       return true;
     }
 
@@ -349,9 +397,14 @@ export class ThemeCore {
     return this.stateManager ? this.stateManager.isThemeCached(scheme) : false;
   }
 
-  preloadTheme(scheme: ThemeName, _config?: Partial<ThemeAcquisitionConfig>): Promise<void> {
+  preloadTheme(
+    scheme: ThemeName,
+    _config?: Partial<ThemeAcquisitionConfig>,
+  ): Promise<void> {
     if (!this.stateManager) {
-      console.warn("[ThemeCore] Cannot preload theme because state manager is not connected yet");
+      console.warn(
+        "[ThemeCore] Cannot preload theme because state manager is not connected yet",
+      );
       return Promise.reject(new Error("State manager not connected yet"));
     }
 
@@ -371,21 +424,24 @@ export class ThemeCore {
 
   getCacheStatus(): { size: number; schemes: ThemeName[] } {
     // Get schemes from registry
-    const registrySchemes = this.themeRegistry && this.themeRegistry.themes
-      ? Object.keys(this.themeRegistry.themes) as ThemeName[]
-      : [];
+    const registrySchemes =
+      this.themeRegistry && this.themeRegistry.themes
+        ? (Object.keys(this.themeRegistry.themes) as ThemeName[])
+        : [];
 
     // Get schemes from state manager if available
     const stateManagerSchemes = this.stateManager
-      ? (this.stateManager.getCacheStatus().schemes || []) as ThemeName[]
+      ? ((this.stateManager.getCacheStatus().schemes || []) as ThemeName[])
       : [];
 
     // Combine and deduplicate schemes
-    const allSchemes = [...new Set([...registrySchemes, ...stateManagerSchemes])];
+    const allSchemes = [
+      ...new Set([...registrySchemes, ...stateManagerSchemes]),
+    ];
 
     return {
       size: allSchemes.length,
-      schemes: allSchemes
+      schemes: allSchemes,
     };
   }
 
@@ -397,7 +453,9 @@ export class ThemeCore {
 
   getAllComponentVariants(): ComponentThemeRegistry {
     // Return the new registry if available, otherwise fall back to the old one
-    return this.componentRegistry || this.componentManager.getAllComponentVariants();
+    return (
+      this.componentRegistry || this.componentManager.getAllComponentVariants()
+    );
   }
 
   // TypographyManager methods
@@ -405,16 +463,26 @@ export class ThemeCore {
     const typography = this.typographyManager.getComponentTypography(element);
 
     // Return with default values if typography is undefined
-    return typography || {
-      fontSize: "1rem",
-      lineHeight: 1.5,
-      letterSpacing: "normal",
-      fontWeight: 400
-    };
+    return (
+      typography || {
+        fontSize: "1rem",
+        lineHeight: 1.5,
+        letterSpacing: "normal",
+        fontWeight: 400,
+      }
+    );
   }
 
-  setComponentTypography(component: string, variant: string, typography: TypographyScale): void {
-    this.typographyManager.setComponentTypography(component, variant, typography);
+  setComponentTypography(
+    component: string,
+    variant: string,
+    typography: TypographyScale,
+  ): void {
+    this.typographyManager.setComponentTypography(
+      component,
+      variant,
+      typography,
+    );
   }
 
   /**
@@ -422,19 +490,30 @@ export class ThemeCore {
    */
   setStorageOptions(options: StorageOptions): Promise<void> {
     if (!this.stateManager) {
-      console.warn("[ThemeCore] Cannot set storage options because state manager is not connected yet");
+      console.warn(
+        "[ThemeCore] Cannot set storage options because state manager is not connected yet",
+      );
       return Promise.reject(new Error("State manager not connected yet"));
     }
 
     // Pass the options to the state manager if it supports them
     if (typeof this.stateManager.setStorageOptions === "function") {
       try {
-        return this.stateManager.setStorageOptions(options).then(() => {
-          console.log("[ThemeCore] Storage options configured:", options.provider || "default");
-        }).catch(error => {
-          console.error("[ThemeCore] Error configuring storage options:", error);
-          throw error;
-        });
+        return this.stateManager
+          .setStorageOptions(options)
+          .then(() => {
+            console.log(
+              "[ThemeCore] Storage options configured:",
+              options.provider || "default",
+            );
+          })
+          .catch((error) => {
+            console.error(
+              "[ThemeCore] Error configuring storage options:",
+              error,
+            );
+            throw error;
+          });
       } catch (error) {
         console.error("[ThemeCore] Error configuring storage options:", error);
         return Promise.reject(error);
@@ -456,10 +535,16 @@ export class ThemeCore {
     if (options.enabled !== false && typeof window !== "undefined") {
       try {
         this.applyTransitionStyles(options);
-        console.log("[ThemeCore] Transition options configured:", options.duration || "default");
+        console.log(
+          "[ThemeCore] Transition options configured:",
+          options.duration || "default",
+        );
         return Promise.resolve();
       } catch (error) {
-        console.error("[ThemeCore] Error configuring transition options:", error);
+        console.error(
+          "[ThemeCore] Error configuring transition options:",
+          error,
+        );
         return Promise.reject(error);
       }
     }
@@ -476,11 +561,13 @@ export class ThemeCore {
     duration: 200,
     easing: "ease",
     properties: ["color", "background-color", "border-color", "box-shadow"],
-    enabled: true
+    enabled: true,
   };
 
   // Add these helper methods for transition handling
-  private applyTransitionStyles(options: TransitionOptions = this._transitionOptions): void {
+  private applyTransitionStyles(
+    options: TransitionOptions = this._transitionOptions,
+  ): void {
     if (typeof window === "undefined") return;
 
     const root = document.documentElement;
@@ -490,7 +577,7 @@ export class ThemeCore {
       "color",
       "background-color",
       "border-color",
-      "box-shadow"
+      "box-shadow",
     ];
 
     // Apply transition CSS variable
@@ -499,7 +586,10 @@ export class ThemeCore {
 
     // Apply the transition to the root element
     const transitionValue = properties
-      .map(prop => `${prop} var(--theme-transition-duration) var(--theme-transition-easing)`)
+      .map(
+        (prop) =>
+          `${prop} var(--theme-transition-duration) var(--theme-transition-easing)`,
+      )
       .join(", ");
 
     root.style.setProperty("transition", transitionValue);
@@ -528,9 +618,7 @@ export class ThemeCore {
       const state = this.stateManager.getState();
 
       // Generate and apply CSS variables based on current state
-      const variables = this.styleManager.generateThemeVariables(
-        state.mode
-      );
+      const variables = this.styleManager.generateThemeVariables(state.mode);
 
       // Apply variables to CSS custom properties
       this.applyVariablesToDOM(variables);

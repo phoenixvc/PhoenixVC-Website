@@ -5,5 +5,3 @@ export * from "./components/scrollToExploreButton";
 export * from "./cosmicHierarchy.ts";
 export * from "./renderCosmicHierarchy";
 export * from "./types.ts";
-
-

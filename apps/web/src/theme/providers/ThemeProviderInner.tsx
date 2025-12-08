@@ -12,10 +12,7 @@ import {
   ThemeAcquisitionConfig,
 } from "@/theme/types";
 import { ThemeConfigValidation } from "../validation";
-import {
-  generateSchemeSemantics,
-  generateThemeVariables,
-} from ".";
+import { generateSchemeSemantics, generateThemeVariables } from ".";
 import { ExtendedThemeState } from "../types/context/state";
 import { TypographyScale } from "../mappings";
 import { ThemeCore } from "../core/theme-core";
@@ -25,7 +22,7 @@ import {
   getSpecificClass,
   isThemeClass,
   replaceThemeClasses,
-  getAllThemeClasses
+  getAllThemeClasses,
 } from "./ThemeProviderUtils";
 import { registerDefaultComponents } from "../utils/register-default-components";
 import { ThemeAcquisitionManager } from "../managers/theme-acquisition-manager";
@@ -47,8 +44,8 @@ const defaultState: ThemeState = {
   version: "1.0.0",
   previous: {
     themeName: "classic",
-    mode: "light"
-  }
+    mode: "light",
+  },
 };
 
 const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
@@ -57,122 +54,151 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
   className,
   onThemeChange,
   componentRegistry = {},
-  themeRegistry = {}
+  themeRegistry = {},
 }) => {
   // Get singleton instances once
   const themeCore = useMemo(() => ThemeCore.getInstance(), []);
-  
-  const [state, setState] = useState<ThemeState>({ ...defaultState, ...config });
+
+  const [state, setState] = useState<ThemeState>({
+    ...defaultState,
+    ...config,
+  });
   const [error, setError] = useState<Error | null>(null);
   const [loadingTheme, setLoadingTheme] = useState<boolean>(false);
   const [themeManagerReady, setThemeManagerReady] = useState<boolean>(false);
 
   // Initialize registries
-  const [themes, setThemes] = useState(() => createThemeRegistry(themeRegistry));
-  const [components, _setComponents] = useState(() => createComponentRegistry(componentRegistry));
+  const [themes, setThemes] = useState(() =>
+    createThemeRegistry(themeRegistry),
+  );
+  const [components, _setComponents] = useState(() =>
+    createComponentRegistry(componentRegistry),
+  );
 
   // Get systemMode from context instead of using useSystemMode hook
-  const { systemMode, useSystemMode, setUseSystemMode: setUseSystemModeContext } = useSystemModeContext();
+  const {
+    systemMode,
+    useSystemMode,
+    setUseSystemMode: setUseSystemModeContext,
+  } = useSystemModeContext();
   const { applyCssVariables, getCssVariable } = useCssVariables();
 
   // Define callbacks before useEffect hooks to avoid TDZ errors
-  const setMode = useCallback((mode: ThemeMode): void => {
-    // Don't update if the mode hasn't changed
-    if (mode === state.mode) {
-      return;
-    }
+  const setMode = useCallback(
+    (mode: ThemeMode): void => {
+      // Don't update if the mode hasn't changed
+      if (mode === state.mode) {
+        return;
+      }
 
-    // If theme manager is not ready, update state directly as fallback
-    if (!themeManagerReady) {
-      logger.warn("[ThemeProvider] Theme manager not ready, updating mode directly in state");
-      setState(prev => ({
-        ...prev,
-        mode,
-        previous: {
-          themeName: prev.themeName,
-          mode: prev.mode
-        },
-        timestamp: Date.now()
-      }));
-      return;
-    }
-
-    themeCore.setMode(mode)
-      .then(() => {
-        setState(prev => {
-          // Prevent unnecessary updates if the mode hasn't changed
-          if (prev.mode === mode) {
-            return prev;
-          }
-
-          return {
-            ...prev,
-            mode,
-            previous: {
-              themeName: prev.themeName,
-              mode: prev.mode
-            },
-            timestamp: Date.now()
-          };
-        });
-
-        if (onThemeChange) {
-          onThemeChange({
-            currentThemeName: state.themeName,
-            currentMode: mode,
-            previousThemeName: state.themeName,
-            previousMode: state.mode,
-            source: "user"
-          });
-        }
-      })
-      .catch(err => {
-        logger.error(`Failed to set mode "${mode}":`, err);
-        // Fall back to direct state update on error
-        setState(prev => ({
+      // If theme manager is not ready, update state directly as fallback
+      if (!themeManagerReady) {
+        logger.warn(
+          "[ThemeProvider] Theme manager not ready, updating mode directly in state",
+        );
+        setState((prev) => ({
           ...prev,
           mode,
           previous: {
             themeName: prev.themeName,
-            mode: prev.mode
+            mode: prev.mode,
           },
-          timestamp: Date.now()
+          timestamp: Date.now(),
         }));
-      });
-  }, [state.themeName, state.mode, onThemeChange, themeManagerReady, themeCore]);
+        return;
+      }
 
-  const setUseSystemMode = useCallback((useSystem: boolean): void => {
-    // Update both local state and context
-    setUseSystemModeContext(useSystem);
+      themeCore
+        .setMode(mode)
+        .then(() => {
+          setState((prev) => {
+            // Prevent unnecessary updates if the mode hasn't changed
+            if (prev.mode === mode) {
+              return prev;
+            }
 
-    // Use themeCore to set system mode usage
-    themeCore.setUseSystem(useSystem)
-      .then(() => {
-        setState(prev => ({
-          ...prev,
-          useSystem,
-          timestamp: Date.now()
-        }));
+            return {
+              ...prev,
+              mode,
+              previous: {
+                themeName: prev.themeName,
+                mode: prev.mode,
+              },
+              timestamp: Date.now(),
+            };
+          });
 
-        if (useSystem && systemMode !== state.mode) {
           if (onThemeChange) {
             onThemeChange({
               currentThemeName: state.themeName,
-              currentMode: systemMode,
+              currentMode: mode,
               previousThemeName: state.themeName,
               previousMode: state.mode,
-              source: "system"
+              source: "user",
             });
           }
+        })
+        .catch((err) => {
+          logger.error(`Failed to set mode "${mode}":`, err);
+          // Fall back to direct state update on error
+          setState((prev) => ({
+            ...prev,
+            mode,
+            previous: {
+              themeName: prev.themeName,
+              mode: prev.mode,
+            },
+            timestamp: Date.now(),
+          }));
+        });
+    },
+    [state.themeName, state.mode, onThemeChange, themeManagerReady, themeCore],
+  );
 
-          // If using system mode, update the theme mode to match system
-          setMode(systemMode);
-        }
-      })
-      .catch(err => {
-        logger.error(`Failed to set use system mode "${useSystem}":`, err);
-      });
-  }, [setUseSystemModeContext, systemMode, state.themeName, state.mode, onThemeChange, setMode, themeCore]);
+  const setUseSystemMode = useCallback(
+    (useSystem: boolean): void => {
+      // Update both local state and context
+      setUseSystemModeContext(useSystem);
+
+      // Use themeCore to set system mode usage
+      themeCore
+        .setUseSystem(useSystem)
+        .then(() => {
+          setState((prev) => ({
+            ...prev,
+            useSystem,
+            timestamp: Date.now(),
+          }));
+
+          if (useSystem && systemMode !== state.mode) {
+            if (onThemeChange) {
+              onThemeChange({
+                currentThemeName: state.themeName,
+                currentMode: systemMode,
+                previousThemeName: state.themeName,
+                previousMode: state.mode,
+                source: "system",
+              });
+            }
+
+            // If using system mode, update the theme mode to match system
+            setMode(systemMode);
+          }
+        })
+        .catch((err) => {
+          logger.error(`Failed to set use system mode "${useSystem}":`, err);
+        });
+    },
+    [
+      setUseSystemModeContext,
+      systemMode,
+      state.themeName,
+      state.mode,
+      onThemeChange,
+      setMode,
+      themeCore,
+    ],
+  );
 
   // Initialize ThemeStateManager first
   useEffect(() => {
@@ -185,10 +211,19 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
 
       // Mark as ready
       setThemeManagerReady(true);
-      logger.debug("[ThemeProvider] Successfully connected state manager to theme core");
+      logger.debug(
+        "[ThemeProvider] Successfully connected state manager to theme core",
+      );
     } catch (error) {
-      logger.error("[ThemeProvider] Failed to initialize state manager:", error);
-      setError(error instanceof Error ? error : new Error("Failed to initialize state manager"));
+      logger.error(
+        "[ThemeProvider] Failed to initialize state manager:",
+        error,
+      );
+      setError(
+        error instanceof Error
+          ? error
+          : new Error("Failed to initialize state manager"),
+      );
     }
   }, [themeCore]);
 
@@ -202,11 +237,13 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
         // Use the new method if available
         themeCore.initializeRegistries({
           themeRegistry: themes,
-          componentRegistry: components
+          componentRegistry: components,
         });
       } else {
         // Fall back to the old initialize method if needed
-        logger.warn("[ThemeProvider] Using legacy initialization method. Please update ThemeCore.");
+        logger.warn(
+          "[ThemeProvider] Using legacy initialization method. Please update ThemeCore.",
+        );
 
         // Register themes from the registry with the component registry manager
         if (themes && themes.themes) {
@@ -221,10 +258,16 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
       // Register default components if needed
       registerDefaultComponents();
 
-      logger.debug("[ThemeProvider] Successfully initialized theme system with registries");
+      logger.debug(
+        "[ThemeProvider] Successfully initialized theme system with registries",
+      );
     } catch (error) {
       logger.error("[ThemeProvider] Failed to initialize theme system:", error);
-      setError(error instanceof Error ? error : new Error("Failed to initialize theme system"));
+      setError(
+        error instanceof Error
+          ? error
+          : new Error("Failed to initialize theme system"),
+      );
     }
   }, [themes, components, themeManagerReady, themeCore]);
 
@@ -239,13 +282,19 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
         const stateManager = ThemeStateManager.getInstance();
         const storedState = stateManager.getState();
 
-        logger.debug("[ThemeProvider] Loading stored theme settings:", storedState);
+        logger.debug(
+          "[ThemeProvider] Loading stored theme settings:",
+          storedState,
+        );
 
         // Update React state with stored values if they differ
-        setState(prev => {
+        setState((prev) => {
           const updates: Partial<ThemeState> = {};
 
-          if (storedState.themeName && storedState.themeName !== prev.themeName) {
+          if (
+            storedState.themeName &&
+            storedState.themeName !== prev.themeName
+          ) {
             updates.themeName = storedState.themeName;
           }
 
@@ -253,7 +302,10 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
             updates.mode = storedState.mode;
           }
 
-          if (storedState.useSystem !== undefined && storedState.useSystem !== prev.useSystem) {
+          if (
+            storedState.useSystem !== undefined &&
+            storedState.useSystem !== prev.useSystem
+          ) {
             updates.useSystem = storedState.useSystem;
           }
 
@@ -266,7 +318,10 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
           return prev;
         });
       } catch (error) {
-        logger.error("[ThemeProvider] Failed to load stored theme settings:", error);
+        logger.error(
+          "[ThemeProvider] Failed to load stored theme settings:",
+          error,
+        );
       }
     }, 50); // Small delay for async initialization to complete
 
@@ -313,7 +368,10 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
           logger.debug("[ThemeProvider] Using theme from registry");
         } else {
           // Fall back to acquisition manager if not in registry
-          const theme = await ThemeAcquisitionManager.getInstance().acquireTheme(state.themeName);
+          const theme =
+            await ThemeAcquisitionManager.getInstance().acquireTheme(
+              state.themeName,
+            );
           logger.debug("[ThemeProvider] Loaded theme from acquisition manager");
 
           if (theme.status === "success" && theme.data) {
@@ -332,11 +390,15 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
 
           setState((prev) => ({ ...prev, initialized: true }));
         } else {
-          throw new Error(`Theme "${state.themeName}" not found in registry or acquisition failed`);
+          throw new Error(
+            `Theme "${state.themeName}" not found in registry or acquisition failed`,
+          );
         }
       } catch (err) {
         logger.error("[ThemeProvider] Theme initialization failed:", err);
-        setError(err instanceof Error ? err : new Error("Theme initialization failed"));
+        setError(
+          err instanceof Error ? err : new Error("Theme initialization failed"),
+        );
       } finally {
         setLoadingTheme(false);
       }
@@ -345,15 +407,26 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
     if (!state.initialized && !error) {
       void initializeTheme();
     }
-  }, [state.themeName, state.mode, state.initialized, error, applyCssVariables, themes, themeManagerReady]);
+  }, [
+    state.themeName,
+    state.mode,
+    state.initialized,
+    error,
+    applyCssVariables,
+    themes,
+    themeManagerReady,
+  ]);
 
-  const isThemeCached = useCallback((scheme: ThemeName): boolean => {
-    // Check both registry and cache service
-    if (themes && themes.themes && themes.themes[scheme]) {
-      return true;
-    }
-    return ThemeCacheService.getInstance().has(scheme);
-  }, [themes]);
+  const isThemeCached = useCallback(
+    (scheme: ThemeName): boolean => {
+      // Check both registry and cache service
+      if (themes && themes.themes && themes.themes[scheme]) {
+        return true;
+      }
+      return ThemeCacheService.getInstance().has(scheme);
+    },
+    [themes],
+  );
 
   // Ensure getThemeState returns the correct type
   const getThemeState = useCallback((): ExtendedThemeState => {
@@ -362,77 +435,94 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
       systemMode,
       previous: state.previous || {
         themeName: state.themeName,
-        mode: state.mode
-      }
+        mode: state.mode,
+      },
     };
   }, [state, systemMode]);
 
   // Modified setThemeClasses function with manager ready check
-  const setThemeClasses = useCallback((themeName: ThemeName): void => {
-    if (themeName === state.themeName) {
-      return;
-    }
+  const setThemeClasses = useCallback(
+    (themeName: ThemeName): void => {
+      if (themeName === state.themeName) {
+        return;
+      }
 
-    if (!themeManagerReady) {
-      logger.warn("[ThemeProvider] Cannot set theme classes because theme manager is not ready yet");
-      // Update state directly as a fallback
-      setState(prev => ({
-        ...prev,
-        themeName: themeName,
-        previous: {
-          themeName: prev.themeName,
-          mode: prev.mode
-        },
-        timestamp: Date.now()
-      }));
-      return;
-    }
+      if (!themeManagerReady) {
+        logger.warn(
+          "[ThemeProvider] Cannot set theme classes because theme manager is not ready yet",
+        );
+        // Update state directly as a fallback
+        setState((prev) => ({
+          ...prev,
+          themeName: themeName,
+          previous: {
+            themeName: prev.themeName,
+            mode: prev.mode,
+          },
+          timestamp: Date.now(),
+        }));
+        return;
+      }
 
-    if (!isThemeCached(themeName)) {
-      setLoadingTheme(true);
-    }
+      if (!isThemeCached(themeName)) {
+        setLoadingTheme(true);
+      }
 
-    themeCore.setColorScheme(themeName)
-      .then(() => {
-        setState(prev => {
-          if (prev.themeName === themeName) {
-            return prev;
-          }
+      themeCore
+        .setColorScheme(themeName)
+        .then(() => {
+          setState((prev) => {
+            if (prev.themeName === themeName) {
+              return prev;
+            }
 
-          return {
-            ...prev,
-            themeName: themeName,
-            previous: {
-              themeName: prev.themeName,
-              mode: prev.mode
-            },
-            timestamp: Date.now(),
-            // Don"t force re-initialization if not necessary
-            initialized: isThemeCached(themeName)
-          };
-        });
-
-        if (onThemeChange) {
-          onThemeChange({
-            currentThemeName: themeName,
-            currentMode: state.mode,
-            previousThemeName: state.themeName,
-            previousMode: state.mode,
-            source: "user"
+            return {
+              ...prev,
+              themeName: themeName,
+              previous: {
+                themeName: prev.themeName,
+                mode: prev.mode,
+              },
+              timestamp: Date.now(),
+              // Don"t force re-initialization if not necessary
+              initialized: isThemeCached(themeName),
+            };
           });
-        }
-      })
-      .catch(err => {
-        logger.error(`Failed to load theme "${themeName}":`, err);
-        setError(err instanceof Error ? err : new Error(`Failed to load theme "${themeName}"`));
-      })
-      .finally(() => {
-        // Only clear loading state if we set it earlier
-        if (!isThemeCached(themeName)) {
-          setLoadingTheme(false);
-        }
-      });
-  }, [state.themeName, state.mode, onThemeChange, isThemeCached, themeManagerReady, themeCore]);
+
+          if (onThemeChange) {
+            onThemeChange({
+              currentThemeName: themeName,
+              currentMode: state.mode,
+              previousThemeName: state.themeName,
+              previousMode: state.mode,
+              source: "user",
+            });
+          }
+        })
+        .catch((err) => {
+          logger.error(`Failed to load theme "${themeName}":`, err);
+          setError(
+            err instanceof Error
+              ? err
+              : new Error(`Failed to load theme "${themeName}"`),
+          );
+        })
+        .finally(() => {
+          // Only clear loading state if we set it earlier
+          if (!isThemeCached(themeName)) {
+            setLoadingTheme(false);
+          }
+        });
+    },
+    [
+      state.themeName,
+      state.mode,
+      onThemeChange,
+      isThemeCached,
+      themeManagerReady,
+      themeCore,
+    ],
+  );
 
   const toggleMode = useCallback((): void => {
     const newMode = state.mode === "light" ? "dark" : "light";
@@ -448,16 +538,19 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
     return getComputedStyle(document.documentElement);
   }, []);
 
-  const isThemeSupported = useCallback((themeName: ThemeName): boolean => {
-    // Check registry first
-    if (themes && themes.themes && themes.themes[themeName]) {
-      return true;
-    }
+  const isThemeSupported = useCallback(
+    (themeName: ThemeName): boolean => {
+      // Check registry first
+      if (themes && themes.themes && themes.themes[themeName]) {
+        return true;
+      }
 
-    // Then check component registry
-    const registry = themeCore.getComponentRegistry();
-    return Object.keys(registry).includes(themeName);
-  }, [themes, themeCore]);
+      // Then check component registry
+      const registry = themeCore.getComponentRegistry();
+      return Object.keys(registry).includes(themeName);
+    },
+    [themes, themeCore],
+  );
 
   // Theme loading status
   const isThemeLoading = useCallback((): boolean => {
@@ -465,26 +558,35 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
   }, [loadingTheme]);
 
   // Theme cache utilities
-  const preloadThemeHandler = useCallback(async (themeName: ThemeName, config?: Partial<ThemeAcquisitionConfig>): Promise<void> => {
-    try {
-      // Check if theme is in registry first
-      if (themes && themes.themes && themes.themes[themeName]) {
-        // Theme is already available in registry
-        return;
-      }
+  const preloadThemeHandler = useCallback(
+    async (
+      themeName: ThemeName,
+      config?: Partial<ThemeAcquisitionConfig>,
+    ): Promise<void> => {
+      try {
+        // Check if theme is in registry first
+        if (themes && themes.themes && themes.themes[themeName]) {
+          // Theme is already available in registry
+          return;
+        }
 
-      // Use ThemeCore"s preloadTheme if available
-      if (typeof themeCore.preloadTheme === "function") {
-        await themeCore.preloadTheme(themeName, config);
-      } else {
-        // Fall back to acquisition manager
-        await ThemeAcquisitionManager.getInstance().acquireTheme(themeName);
+        // Use ThemeCore"s preloadTheme if available
+        if (typeof themeCore.preloadTheme === "function") {
+          await themeCore.preloadTheme(themeName, config);
+        } else {
+          // Fall back to acquisition manager
+          await ThemeAcquisitionManager.getInstance().acquireTheme(themeName);
+        }
+      } catch (err) {
+        logger.error(
+          `[ThemeProvider] Failed to preload theme "${themeName}":`,
+          err,
+        );
+        throw err;
       }
-    } catch (err) {
-      logger.error(`[ThemeProvider] Failed to preload theme "${themeName}":`, err);
-      throw err;
-    }
-  }, [themes, themeCore]);
+    },
+    [themes, themeCore],
+  );
 
   const clearThemeCache = useCallback((): void => {
     themeCore.clearThemeCache();
@@ -493,9 +595,15 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
     setThemes(createThemeRegistry(themeRegistry));
   }, [themeRegistry, themeCore]);
 
-  const getCacheStatus = useCallback((): { size: number; schemes: ThemeName[] } => {
+  const getCacheStatus = useCallback((): {
+    size: number;
+    schemes: ThemeName[];
+  } => {
     // Get schemes from both registry and ThemeCore
-    const themesCached = themes && themes.themes ? Object.keys(themes.themes) as ThemeName[] : [];
+    const themesCached =
+      themes && themes.themes
+        ? (Object.keys(themes.themes) as ThemeName[])
+        : [];
     const coreStatus = themeCore.getCacheStatus();
 
     // Combine and deduplicate
@@ -503,13 +611,37 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
 
     return {
       size: allSchemes.length,
-      schemes: allSchemes
+      schemes: allSchemes,
     };
   }, [themes, themeCore]);
 
-  const typography = useMemo(() => ({
-    getScale: (element: string): TypographyScale | undefined => {
-      return themeCore.getTypographyScale(element);
+  const typography = useMemo(
+    () => ({
+      getScale: (element: string): TypographyScale | undefined => {
+        return themeCore.getTypographyScale(element);
+      },
+      getComponentTypography: (
+        component: string,
+        variant?: string,
+        _mode?: string,
+      ): TypographyScale | undefined => {
+        return themeCore.getComponentTypography(
+          component,
+          variant || "default",
+        );
+      },
+    }),
+    [themeCore],
+  );
+
+  const getComponentStyle = useCallback(
+    (
+      component: string,
+      variant?: string,
+      state?: string,
+      _mode?: string,
+    ): React.CSSProperties => {
+      return themeCore.getComponentStyle(component, variant, state);
     },
     getComponentTypography: (component: string, variant?: string, _mode?: string): TypographyScale | undefined => {
       return themeCore.getComponentTypography(component, variant || "default");
@@ -523,8 +655,12 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
   const resetTheme = useCallback(async (): Promise<void> => {
     try {
       // Get default theme from registry if available
-      const defaultThemeName = themes && themes.defaults ? themes.defaults.themeName : defaultState.themeName;
-      const defaultMode = themes && themes.defaults ? themes.defaults.mode : defaultState.mode;
+      const defaultThemeName =
+        themes && themes.defaults
+          ? themes.defaults.themeName
+          : defaultState.themeName;
+      const defaultMode =
+        themes && themes.defaults ? themes.defaults.mode : defaultState.mode;
 
       await themeCore.setColorScheme(defaultThemeName);
       await themeCore.setMode(defaultMode);
@@ -536,8 +672,8 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
         timestamp: Date.now(),
         previous: {
           themeName: state.themeName,
-          mode: state.mode
-        }
+          mode: state.mode,
+        },
       });
 
       if (onThemeChange) {
@@ -546,7 +682,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
           currentMode: defaultMode,
           previousThemeName: state.themeName,
           previousMode: state.mode,
-          source: "default"
+          source: "default",
         });
       }
     } catch (err) {
@@ -600,32 +736,89 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
     // Component style support
     getComponentStyle,
 
-    // Add registry access
-    getThemeRegistry: () => themes,
-    getComponentRegistry: () => components,
-  }), [
-    state,
-    systemMode,
-    getCssVariable,
-    setThemeClasses,
-    setMode,
-    toggleMode,
-    setUseSystemMode,
-    isThemeLoading,
-    isThemeCached,
-    preloadThemeHandler,
-    clearThemeCache,
-    getCacheStatus,
-    getComputedThemeStyles,
-    isThemeSupported,
-    getThemeState,
-    resetTheme,
-    toggleUseSystem,
-    typography,
-    getComponentStyle,
-    themes,
-    components
-  ]);
+  const contextValue = useMemo(
+    (): ThemeContextType => ({
+      // Required properties
+      themeName: state.themeName,
+      themeMode: state.mode,
+      systemMode,
+      useSystemMode: state.useSystem,
+      getThemeClassNames,
+      getSpecificClass: (suffix): string =>
+        getSpecificClass(state.themeName, suffix),
+      replaceThemeClasses: (currentClasses, newScheme): string =>
+        replaceThemeClasses(currentClasses, newScheme, state.mode),
+      setThemeClasses,
+      setMode,
+      toggleMode,
+      setUseSystemMode,
+      getCssVariable: (
+        name: string,
+        _config?: Partial<CssVariableConfig>,
+      ): string => getCssVariable(name),
+      getAllThemeClasses,
+      isThemeClass,
+
+      // Theme loading status
+      isThemeLoading,
+
+      // Theme cache utilities
+      isThemeCached,
+      preloadTheme: preloadThemeHandler,
+      clearThemeCache,
+      getCacheStatus,
+
+      // Optional methods
+      getComputedThemeStyles,
+      isThemeSupported,
+      getThemeState,
+      resetTheme,
+      subscribeToThemeChanges: (callback): (() => void) => {
+        const observer = new MutationObserver(() => {
+          callback(getThemeState());
+        });
+        observer.observe(document.documentElement, {
+          attributes: true,
+          attributeFilter: ["data-theme", "data-mode"],
+        });
+        return (): void => observer.disconnect();
+      },
+      toggleUseSystem,
+
+      // Typography support
+      typography,
+
+      // Component style support
+      getComponentStyle,
+
+      // Add registry access
+      getThemeRegistry: () => themes,
+      getComponentRegistry: () => components,
+    }),
+    [
+      state,
+      systemMode,
+      getCssVariable,
+      setThemeClasses,
+      setMode,
+      toggleMode,
+      setUseSystemMode,
+      isThemeLoading,
+      isThemeCached,
+      preloadThemeHandler,
+      clearThemeCache,
+      getCacheStatus,
+      getComputedThemeStyles,
+      isThemeSupported,
+      getThemeState,
+      resetTheme,
+      toggleUseSystem,
+      typography,
+      getComponentStyle,
+      themes,
+      components,
+    ],
+  );
 
   return (
     <ThemeContext.Provider value={contextValue}>
@@ -641,7 +834,19 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
         data-manager-ready={themeManagerReady ? "true" : "false"}
       >
         {(loadingTheme || !themeManagerReady) && (
-          <div className="theme-loading-indicator" style={{ position: "fixed", top: 0, left: 0, right: 0, height: "3px", background: "linear-gradient(to right, transparent, var(--color-primary-500), transparent)", zIndex: 9999 }} />
+          <div
+            className="theme-loading-indicator"
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              height: "3px",
+              background:
+                "linear-gradient(to right, transparent, var(--color-primary-500), transparent)",
+              zIndex: 9999,
+            }}
+          />
         )}
         {children}
       </div>

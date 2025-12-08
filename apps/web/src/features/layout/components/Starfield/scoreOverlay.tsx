@@ -6,13 +6,13 @@ import { ChevronDown, Target, Heart, Crosshair } from "lucide-react";
 interface ScoreOverlayProps {
   remainingClicks: number;
   currentScore: number;
-  highScores: Array<{score: number, date: string}>;
+  highScores: Array<{ score: number; date: string }>;
 }
 
 const ScoreOverlay: React.FC<ScoreOverlayProps> = ({
   remainingClicks,
   currentScore,
-  highScores
+  highScores,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -28,14 +28,16 @@ const ScoreOverlay: React.FC<ScoreOverlayProps> = ({
           fill={i < remainingClicks ? "#ff4757" : "transparent"}
           color={i < remainingClicks ? "#ff4757" : "rgba(255,255,255,0.3)"}
           className={styles.lifeHeart}
-        />
+        />,
       );
     }
     return hearts;
   };
 
   return (
-    <div className={`${styles.scoreOverlay} ${isExpanded ? styles.expanded : ""}`}>
+    <div
+      className={`${styles.scoreOverlay} ${isExpanded ? styles.expanded : ""}`}
+    >
       {isExpanded ? (
         <>
           <div className={styles.scoreHeader}>
@@ -56,9 +58,7 @@ const ScoreOverlay: React.FC<ScoreOverlayProps> = ({
             </div>
             <div className={styles.scoreItem}>
               <span className={styles.scoreLabel}>Lives</span>
-              <div className={styles.livesDisplay}>
-                {renderLives()}
-              </div>
+              <div className={styles.livesDisplay}>{renderLives()}</div>
             </div>
           </div>
 
@@ -73,7 +73,8 @@ const ScoreOverlay: React.FC<ScoreOverlayProps> = ({
               <ul>
                 {highScores.slice(0, 3).map((score, index) => (
                   <li key={index}>
-                    {index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉"} {score.score} pts
+                    {index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉"}{" "}
+                    {score.score} pts
                   </li>
                 ))}
               </ul>
@@ -94,9 +95,7 @@ const ScoreOverlay: React.FC<ScoreOverlayProps> = ({
               <Target size={14} />
               <span>{currentScore}</span>
             </div>
-            <div className={styles.compactLives}>
-              {renderLives()}
-            </div>
+            <div className={styles.compactLives}>{renderLives()}</div>
           </div>
         </div>
       )}

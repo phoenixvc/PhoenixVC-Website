@@ -1,4 +1,9 @@
-import { ColorAdjustments, ColorDefinition, ColorShades, ShadeLevel } from "@/theme/types";
+import {
+  ColorAdjustments,
+  ColorDefinition,
+  ColorShades,
+  ShadeLevel,
+} from "@/theme/types";
 import ColorUtils from "@/theme/utils/color-utils";
 
 // Base yellow color
@@ -26,7 +31,18 @@ const generateYellowPalette = (): Record<ShadeLevel, ColorDefinition> => {
 export const yellowPalette: ColorShades = {
   ...generateYellowPalette(),
   base: BASE_YELLOW,
-  contrast: ["#000000", "#000000", "#000000", "#000000", "#000000", "#000000", "#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF"],
+  contrast: [
+    "#000000",
+    "#000000",
+    "#000000",
+    "#000000",
+    "#000000",
+    "#000000",
+    "#000000",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+  ],
 };
 
 // Export a function to get a specific yellow shade
@@ -35,7 +51,9 @@ export const getYellowShade = (shade: ShadeLevel): ColorDefinition => {
 };
 
 // Export a function to create a yellow with custom adjustments
-export const createYellowVariant = (adjustments: ColorAdjustments): ColorDefinition => {
+export const createYellowVariant = (
+  adjustments: ColorAdjustments,
+): ColorDefinition => {
   const baseColor = ColorUtils.createColorDefinition(BASE_YELLOW);
   return ColorUtils.adjustColor(baseColor, adjustments);
 };

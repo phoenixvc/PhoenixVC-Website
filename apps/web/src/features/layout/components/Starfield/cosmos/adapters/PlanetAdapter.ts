@@ -10,12 +10,12 @@ import { TWO_PI } from "../../math";
  * This specifically focuses on the team members in the binary star system
  */
 export const adaptProjectsToCosmicObjects = (
-  projects: PortfolioProject[]
+  projects: PortfolioProject[],
 ): CosmicObject[] => {
   // Filter out projects that should be represented as stars
   // We're looking for projects with initials EM and JS
-  const foundProjects = projects.filter(proj =>
-    proj.initials === "EM" || proj.initials === "JS"
+  const foundProjects = projects.filter(
+    (proj) => proj.initials === "EM" || proj.initials === "JS",
   );
 
   if (foundProjects.length === 0) {
@@ -24,7 +24,7 @@ export const adaptProjectsToCosmicObjects = (
 
   // Find the team binary system in our cosmic objects
   const teamBinarySystem = SPECIAL_COSMIC_OBJECTS.find(
-    obj => obj.id === "team-sun-system"
+    (obj) => obj.id === "team-sun-system",
   );
 
   if (!teamBinarySystem) {
@@ -33,16 +33,20 @@ export const adaptProjectsToCosmicObjects = (
   }
 
   // Find the existing star objects for EM and JS
-  const emStar = SPECIAL_COSMIC_OBJECTS.find(obj => obj.id === "em-founder");
-  const jsStar = SPECIAL_COSMIC_OBJECTS.find(obj => obj.id === "js-cto");
+  const emStar = SPECIAL_COSMIC_OBJECTS.find((obj) => obj.id === "em-founder");
+  const jsStar = SPECIAL_COSMIC_OBJECTS.find((obj) => obj.id === "js-cto");
 
   // Create updated cosmic objects based on project data
   const updatedCosmicObjects: CosmicObject[] = [];
 
-  foundProjects.forEach(project => {
+  foundProjects.forEach((project) => {
     // Determine which star to update based on project initials
-    const existingStar = project.initials === "EM" ? emStar :
-                         project.initials === "JS" ? jsStar : null;
+    const existingStar =
+      project.initials === "EM"
+        ? emStar
+        : project.initials === "JS"
+          ? jsStar
+          : null;
 
     if (!existingStar) return;
 
@@ -53,7 +57,7 @@ export const adaptProjectsToCosmicObjects = (
       description: project.title || existingStar.description,
       // Preserve the original position, size, and other cosmic properties
       // but add project data for rendering and interaction
-      projectData: project
+      projectData: project,
     };
 
     updatedCosmicObjects.push(updatedStar);
@@ -70,7 +74,7 @@ export const renderProjectCosmicObject = (
   ctx: CanvasRenderingContext2D,
   cosmicObject: CosmicObject,
   time: number,
-  isHovered: boolean
+  isHovered: boolean,
 ): void => {
   // Only process cosmic objects that have project data
   if (!cosmicObject.projectData) return;
@@ -88,8 +92,12 @@ export const renderProjectCosmicObject = (
   // Draw glow
   const glowRadius = cosmicObject.size * (isHovered ? 1.5 : 1.2);
   const gradient = ctx.createRadialGradient(
-    screenX, screenY, 0,
-    screenX, screenY, glowRadius * 100
+    screenX,
+    screenY,
+    0,
+    screenX,
+    screenY,
+    glowRadius * 100,
   );
 
   // Use project color if available, otherwise use cosmic object color
@@ -125,14 +133,16 @@ export const renderProjectCosmicObject = (
  * Integrates the project planets with the cosmic navigation system
  */
 export const integrateProjectsWithCosmicNavigation = (
-  projects: PortfolioProject[]
+  projects: PortfolioProject[],
 ): void => {
   // Update the cosmic objects with project data
   const updatedStars = adaptProjectsToCosmicObjects(projects);
 
   // Replace the existing star objects in the SPECIAL_COSMIC_OBJECTS array
-  updatedStars.forEach(updatedStar => {
-    const index = SPECIAL_COSMIC_OBJECTS.findIndex(obj => obj.id === updatedStar.id);
+  updatedStars.forEach((updatedStar) => {
+    const index = SPECIAL_COSMIC_OBJECTS.findIndex(
+      (obj) => obj.id === updatedStar.id,
+    );
     if (index !== -1) {
       SPECIAL_COSMIC_OBJECTS[index] = updatedStar;
     }
@@ -142,4 +152,5 @@ export const integrateProjectsWithCosmicNavigation = (
 // Legacy aliases for backward compatibility
 export const adaptEmployeesToCosmicObjects = adaptProjectsToCosmicObjects;
 export const renderEmployeeCosmicObject = renderProjectCosmicObject;
-export const integrateEmployeesWithCosmicNavigation = integrateProjectsWithCosmicNavigation;
+export const integrateEmployeesWithCosmicNavigation =
+  integrateProjectsWithCosmicNavigation;

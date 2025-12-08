@@ -1,4 +1,9 @@
-import { ColorAdjustments, ColorDefinition, ColorShades, ShadeLevel } from "@/theme/types";
+import {
+  ColorAdjustments,
+  ColorDefinition,
+  ColorShades,
+  ShadeLevel,
+} from "@/theme/types";
 import ColorUtils from "@/theme/utils/color-utils";
 
 // Base teal color
@@ -26,7 +31,18 @@ const generateTealPalette = (): Record<ShadeLevel, ColorDefinition> => {
 export const tealPalette: ColorShades = {
   ...generateTealPalette(),
   base: BASE_TEAL,
-  contrast: ["#000000", "#000000", "#000000", "#000000", "#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF"],
+  contrast: [
+    "#000000",
+    "#000000",
+    "#000000",
+    "#000000",
+    "#000000",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+  ],
 };
 
 // Export a function to get a specific teal shade
@@ -35,7 +51,9 @@ export const getTealShade = (shade: ShadeLevel): ColorDefinition => {
 };
 
 // Export a function to create a teal with custom adjustments
-export const createTealVariant = (adjustments: ColorAdjustments): ColorDefinition => {
+export const createTealVariant = (
+  adjustments: ColorAdjustments,
+): ColorDefinition => {
   const baseColor = ColorUtils.createColorDefinition(BASE_TEAL);
   return ColorUtils.adjustColor(baseColor, adjustments);
 };

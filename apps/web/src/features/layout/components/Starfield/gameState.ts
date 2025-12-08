@@ -13,7 +13,7 @@ export const initGameState = (): GameState => {
     lastScoreUpdate: Date.now(),
     ipAddress: null,
     collisions: [],
-    clickAddInterval: 300000 // 5 minutes in milliseconds
+    clickAddInterval: 300000, // 5 minutes in milliseconds
   };
 };
 
@@ -23,7 +23,12 @@ export const checkCollisions = (
   planets: Planet[],
   gameState: GameState,
   setGameState: (_state: GameState) => void,
-  createCollisionEffect?: (x: number, y: number, color: string, score: number) => void
+  createCollisionEffect?: (
+    x: number,
+    y: number,
+    color: string,
+    score: number,
+  ) => void,
 ): void => {
   if (!stars.length || !planets.length) return;
 
@@ -35,14 +40,16 @@ export const checkCollisions = (
   stars.forEach((star, starIndex) => {
     if (!star.isActive) return; // Skip inactive stars
 
-    planets.forEach(planet => {
+    planets.forEach((planet) => {
       const dist = Math.sqrt(
-        Math.pow(star.x - planet.x, 2) +
-        Math.pow(star.y - planet.y, 2)
+        Math.pow(star.x - planet.x, 2) + Math.pow(star.y - planet.y, 2),
       );
 
       // Collision detection radius - adjust based on star and employee sizes
-      const collisionRadius = 15 + (star.size * 2) + (planet.project.mass ? planet.project.mass / 20 : 2);
+      const collisionRadius =
+        15 +
+        star.size * 2 +
+        (planet.project.mass ? planet.project.mass / 20 : 2);
 
       // Calculate star speed for effect intensity
       const speed = Math.sqrt(star.vx * star.vx + star.vy * star.vy);
@@ -60,16 +67,20 @@ export const checkCollisions = (
           y: planet.y,
           time: Date.now(),
           score: scoreValue,
-          employeeName: planet.project.name
+          employeeName: planet.project.name,
         });
 
         // Create a visual effect at collision point if the function is provided
-        if (createCollisionEffect && speed > 0.5 && !collidedStars.includes(starIndex)) {
+        if (
+          createCollisionEffect &&
+          speed > 0.5 &&
+          !collidedStars.includes(starIndex)
+        ) {
           createCollisionEffect(
             star.x,
             star.y,
             planet.project.color || "#8a2be2",
-            scoreValue
+            scoreValue,
           );
           collidedStars.push(starIndex);
         }
@@ -97,19 +108,19 @@ export const checkCollisions = (
   if (scoreAdded || newCollisions.length !== gameState.collisions.length) {
     const currentTime = Date.now();
     const updatedCollisions = newCollisions.filter(
-      collision => currentTime - collision.time < 2000 // Remove after 2 seconds
+      (collision) => currentTime - collision.time < 2000, // Remove after 2 seconds
     );
 
     // Calculate total score from all active collisions
     const scoreToAdd = newCollisions
-      .filter(c => !gameState.collisions.includes(c))
+      .filter((c) => !gameState.collisions.includes(c))
       .reduce((total, collision) => total + collision.score, 0);
 
     setGameState({
       ...gameState,
       score: gameState.score + scoreToAdd,
       collisions: updatedCollisions,
-      lastScoreUpdate: scoreToAdd > 0 ? Date.now() : gameState.lastScoreUpdate
+      lastScoreUpdate: scoreToAdd > 0 ? Date.now() : gameState.lastScoreUpdate,
     });
   }
 };
@@ -117,13 +128,13 @@ export const checkCollisions = (
 // Add a click to the game
 export const addClick = (
   gameState: GameState,
-  setGameState: (state: GameState) => void
+  setGameState: (state: GameState) => void,
 ): void => {
   if (gameState.remainingClicks < 20) {
     setGameState({
       ...gameState,
       remainingClicks: gameState.remainingClicks + 1,
-      lastClickTime: Date.now()
+      lastClickTime: Date.now(),
     });
   }
 };
@@ -131,7 +142,7 @@ export const addClick = (
 // Check if it's time to add a new click (every 5 minutes)
 export const checkAddClick = (
   gameState: GameState,
-  setGameState: (state: GameState) => void
+  setGameState: (state: GameState) => void,
 ): void => {
   const now = Date.now();
 
@@ -139,7 +150,7 @@ export const checkAddClick = (
     setGameState({
       ...gameState,
       remainingClicks: Math.min(gameState.remainingClicks + 1, 10),
-      lastClickTime: now
+      lastClickTime: now,
     });
   }
 };
@@ -149,7 +160,7 @@ export const drawGameUI = (
   ctx: CanvasRenderingContext2D,
   gameState: GameState,
   width: number,
-  height: number
+  height: number,
 ): void => {
   // Draw remaining clicks indicator at bottom center
   ctx.save();
@@ -193,7 +204,9 @@ export const fetchIpAddress = async (): Promise<string> => {
 };
 
 // Get high scores for an IP address
-export const getHighScoresForIP = (ip: string): Array<{score: number, date: string}> => {
+export const getHighScoresForIP = (
+  ip: string,
+): Array<{ score: number; date: string }> => {
   try {
     const scoresString = localStorage.getItem(`highScores_${ip}`);
     if (scoresString) {
@@ -216,7 +229,7 @@ export const saveScore = (gameState: GameState): void => {
     // Add new score
     highScores.push({
       score: gameState.score,
-      date: new Date().toLocaleDateString()
+      date: new Date().toLocaleDateString(),
     });
 
     // Sort by score (descending)
@@ -226,7 +239,10 @@ export const saveScore = (gameState: GameState): void => {
     const topScores = highScores.slice(0, 10);
 
     // Save back to localStorage
-    localStorage.setItem(`highScores_${gameState.ipAddress}`, JSON.stringify(topScores));
+    localStorage.setItem(
+      `highScores_${gameState.ipAddress}`,
+      JSON.stringify(topScores),
+    );
   } catch (error) {
     logger.error("Error saving score:", error);
   }

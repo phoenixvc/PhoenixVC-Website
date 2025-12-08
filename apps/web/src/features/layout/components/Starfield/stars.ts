@@ -1,7 +1,12 @@
 // components/Layout/Starfield/stars.ts
-import { Star, BlackHole, MousePosition } from "./types";
+import { Star, BlackHole, MousePosition, ParsedColor } from "./types";
 import { getColorPalette } from "./constants";
-import { distance, parseRgbaColor, brightenColor, colorWithAlpha } from "./utils";
+import {
+  distance,
+  parseRgbaColor,
+  brightenColor,
+  colorWithAlpha,
+} from "./utils";
 import {
   GLOBAL_PHYSICS,
   STAR_PHYSICS,
@@ -10,7 +15,7 @@ import {
   SIZE_CONFIG,
 } from "./physicsConfig";
 import { getFrameTime } from "./frameCache";
-import { TWO_PI } from "./math";
+import { TWO_PI, fastSin, fastCos } from "./math";
 import { getSunStates } from "./sunSystem";
 
 // Re-export explosion functions from dedicated module for backward compatibility
@@ -20,7 +25,7 @@ export {
   applyClickForce,
   createClickExplosion,
   resetStars,
-  updateStarActivity
+  updateStarActivity,
 } from "./starExplosions";
 
 // ==========================================
@@ -37,7 +42,8 @@ const STAR_CENTER_OPACITY_MULTIPLIER = 5;
 const STAR_CENTER_HIGHLIGHT_MIN_SIZE = 1.2;
 
 /** Enhanced minimum size threshold for star center highlight (1.5x larger stars only) */
-const STAR_CENTER_HIGHLIGHT_ENHANCED_MIN_SIZE = STAR_CENTER_HIGHLIGHT_MIN_SIZE * 1.5;
+const STAR_CENTER_HIGHLIGHT_ENHANCED_MIN_SIZE =
+  STAR_CENTER_HIGHLIGHT_MIN_SIZE * 1.5;
 
 /** Reduction factor for center opacity in enhanced mode */
 const CENTER_OPACITY_REDUCTION_FACTOR = 0.5;
@@ -57,7 +63,6 @@ const SUN_FORCE_DAMPING = 0.3;
 
 /** Velocity multiplier for gravitational force application */
 const GRAVITATIONAL_VELOCITY_MULTIPLIER = 2;
-
 
 // ==========================================
 // Utility Functions
@@ -89,26 +94,36 @@ export const initStars = (
   centerOffsetX: number,
   centerOffsetY: number,
   starSize: number,
-  colorScheme: string
+  colorScheme: string,
 ): Star[] => {
   const stars: Star[] = [];
   const colors = getColorPalette(colorScheme);
 
-  // Calculate effective width (accounting for sidebar)
-  const effectiveWidth = width - sidebarWidth;
-
   for (let i = 0; i < count; i++) {
-    // Position stars within the effective width (after sidebar)
-    const x = sidebarWidth + Math.random() * effectiveWidth;
+    // Position stars across full canvas width
+    const x = Math.random() * width;
     const y = Math.random() * height;
 
     // Random size with weighted distribution (more small stars, crisper appearance)
     // Use SIZE_CONFIG for consolidated size parameters
-    const sizeMultiplier = (Math.pow(Math.random(), SIZE_CONFIG.sizeVariationExponent) * SIZE_CONFIG.sizeRangeMax + SIZE_CONFIG.sizeRangeMin) * SIZE_CONFIG.backgroundStarMultiplier;
+    const sizeMultiplier =
+      (Math.pow(Math.random(), SIZE_CONFIG.sizeVariationExponent) *
+        SIZE_CONFIG.sizeRangeMax +
+        SIZE_CONFIG.sizeRangeMin) *
+      SIZE_CONFIG.backgroundStarMultiplier;
     const size = sizeMultiplier * starSize;
 
     // Random color from palette
     const color = colors[Math.floor(Math.random() * colors.length)];
+
+    // Pre-calculate twinkle parameters (moved from drawStars for performance)
+    // Use non-integer multipliers to break up repeating patterns
+    const uniqueSeed = (x * 73.13 + y * 157.79 + i * 31.41) % 1000;
+    const twinkleSpeed1 = 0.0003 + (uniqueSeed % 100) / 150000;
+    const twinkleSpeed2 = 0.0002 + (uniqueSeed % 50) / 120000;
+
+    // Pre-parse color for fast color manipulation during rendering
+    const parsedColor = parseRgbaColor(color) as ParsedColor | undefined;
 
     // Add star with ZERO velocity and force - COMPLETELY FROZEN
     stars.push({
@@ -121,14 +136,19 @@ export const initStars = (
       originalX: x,
       originalY: y,
       mass: size * 2,
-      speed: 0,  // Zero speed
+      speed: 0, // Zero speed
       isActive: false,
       lastPushed: 0,
       targetVx: 0,
       targetVy: 0,
       // Add force tracking
       fx: 0,
-      fy: 0
+      fy: 0,
+      // Pre-calculated animation values (performance optimization)
+      uniqueSeed,
+      twinkleSpeed1,
+      twinkleSpeed2,
+      parsedColor,
     });
   }
 
@@ -150,7 +170,7 @@ export function updateStarPositions(
   centerPosition: { x: number; y: number },
   mouseEffectRadius: number,
   maxVelocity: number = 0.5,
-  animationSpeed: number = 1.0
+  animationSpeed: number = 1.0,
 ): void {
   // Safety check for deltaTime
   if (!deltaTime || isNaN(deltaTime) || deltaTime > 100) {
@@ -178,15 +198,25 @@ export function updateStarPositions(
 
     // Add natural autonomous drift - stars slowly move on their own
     // Each star has a unique drift direction based on its index
-    const driftAngle = (i * 137.508) % 360 * (Math.PI / 180); // Golden angle for variety
+    const driftAngle = ((i * 137.508) % 360) * (Math.PI / 180); // Golden angle for variety
     const driftSpeed = 0.02 + (i % 10) * 0.003; // Vary drift speed slightly
-    star.vx += Math.cos(driftAngle) * driftSpeed * normalizedDelta * timeScale;
-    star.vy += Math.sin(driftAngle) * driftSpeed * normalizedDelta * timeScale;
+    star.vx += fastCos(driftAngle) * driftSpeed * normalizedDelta * timeScale;
+    star.vy += fastSin(driftAngle) * driftSpeed * normalizedDelta * timeScale;
 
     // Apply flow effect if enabled (reduced intensity to minimize flicker)
     if (enableFlowEffect) {
-      star.vx += (Math.random() - 0.5) * flowStrength * normalizedDelta * timeScale * 0.3;
-      star.vy += (Math.random() - 0.5) * flowStrength * normalizedDelta * timeScale * 0.3;
+      star.vx +=
+        (Math.random() - 0.5) *
+        flowStrength *
+        normalizedDelta *
+        timeScale *
+        0.3;
+      star.vy +=
+        (Math.random() - 0.5) *
+        flowStrength *
+        normalizedDelta *
+        timeScale *
+        0.3;
     }
 
     // Apply sun gravitational pull - creates natural movement toward suns
@@ -202,15 +232,28 @@ export function updateStarPositions(
         const dist = Math.sqrt(distSq);
 
         // Suns have a large influence range based on their size
-        const sunInfluenceRange = canvasMaxDimension * sun.size * SUN_INFLUENCE_MULTIPLIER;
+        const sunInfluenceRange =
+          canvasMaxDimension * sun.size * SUN_INFLUENCE_MULTIPLIER;
         if (dist < sunInfluenceRange) {
           // Gentle gravitational pull with smooth falloff
-          const falloff = 1 - (dist / sunInfluenceRange);
+          const falloff = 1 - dist / sunInfluenceRange;
           // Sun mass approximated from size (larger suns = more gravity)
           const sunMass = sun.size * SUN_MASS_MULTIPLIER;
-          const force = gravitationalPull * sunMass * falloff * SUN_FORCE_DAMPING / distSq;
-          star.vx += dx / dist * force * normalizedDelta * timeScale * GRAVITATIONAL_VELOCITY_MULTIPLIER;
-          star.vy += dy / dist * force * normalizedDelta * timeScale * GRAVITATIONAL_VELOCITY_MULTIPLIER;
+          const force =
+            (gravitationalPull * sunMass * falloff * SUN_FORCE_DAMPING) /
+            distSq;
+          star.vx +=
+            (dx / dist) *
+            force *
+            normalizedDelta *
+            timeScale *
+            GRAVITATIONAL_VELOCITY_MULTIPLIER;
+          star.vy +=
+            (dy / dist) *
+            force *
+            normalizedDelta *
+            timeScale *
+            GRAVITATIONAL_VELOCITY_MULTIPLIER;
         }
       }
     }
@@ -228,10 +271,11 @@ export function updateStarPositions(
         const influenceRange = blackHole.radius * 15;
         if (dist < influenceRange) {
           // Stronger force with falloff based on distance
-          const falloff = 1 - (dist / influenceRange); // Linear falloff
-          const force = gravitationalPull * blackHole.mass * falloff * 0.5 / distSq;
-          star.vx += dx / dist * force * normalizedDelta * timeScale * 3; // 3x multiplier
-          star.vy += dy / dist * force * normalizedDelta * timeScale * 3;
+          const falloff = 1 - dist / influenceRange; // Linear falloff
+          const force =
+            (gravitationalPull * blackHole.mass * falloff * 0.5) / distSq;
+          star.vx += (dx / dist) * force * normalizedDelta * timeScale * 3; // 3x multiplier
+          star.vy += (dy / dist) * force * normalizedDelta * timeScale * 3;
         }
       }
     }
@@ -245,28 +289,35 @@ export function updateStarPositions(
 
       if (dist < mouseEffectRadius) {
         // Increased repulsion force for more dramatic hover effect
-        const repelForce = 0.35 * (mouseEffectRadius - dist) / mouseEffectRadius;
-        star.vx -= dx / dist * repelForce * normalizedDelta * timeScale;
-        star.vy -= dy / dist * repelForce * normalizedDelta * timeScale;
+        const repelForce =
+          (0.35 * (mouseEffectRadius - dist)) / mouseEffectRadius;
+        star.vx -= (dx / dist) * repelForce * normalizedDelta * timeScale;
+        star.vy -= (dy / dist) * repelForce * normalizedDelta * timeScale;
       }
     }
 
     // Apply velocity limits with smoother clamping
     const speed = Math.sqrt(star.vx * star.vx + star.vy * star.vy);
     // Use a MUCH higher maxVelocity for recently pushed stars
-    const effectiveMaxVelocity = star.isActive ? maxVelocity * ACTIVE_STAR_VELOCITY_MULTIPLIER : maxVelocity;
+    const effectiveMaxVelocity = star.isActive
+      ? maxVelocity * ACTIVE_STAR_VELOCITY_MULTIPLIER
+      : maxVelocity;
     if (speed > effectiveMaxVelocity) {
       star.vx = (star.vx / speed) * effectiveMaxVelocity;
       star.vy = (star.vy / speed) * effectiveMaxVelocity;
     }
 
     // Apply less damping for active stars so they travel further
-    const dampingFactor = star.isActive ? DAMPING_FACTOR_ACTIVE : DAMPING_FACTOR_INACTIVE;
+    const dampingFactor = star.isActive
+      ? DAMPING_FACTOR_ACTIVE
+      : DAMPING_FACTOR_INACTIVE;
     star.vx *= dampingFactor;
     star.vy *= dampingFactor;
 
     // Update position - use higher multiplier for active stars
-    const movementMultiplier = star.isActive ? ACTIVE_STAR_MOVEMENT_MULTIPLIER : GLOBAL_SPEED_MULTIPLIER;
+    const movementMultiplier = star.isActive
+      ? ACTIVE_STAR_MOVEMENT_MULTIPLIER
+      : GLOBAL_SPEED_MULTIPLIER;
     star.x += star.vx * normalizedDelta * animationSpeed * movementMultiplier;
     star.y += star.vy * normalizedDelta * animationSpeed * movementMultiplier;
 
@@ -294,7 +345,7 @@ export function integrateForces(
   stars: Star[],
   dt: number,
   maxVelocity: number = STAR_PHYSICS.maxVelocity,
-  useActiveStarPhysics: boolean = true
+  useActiveStarPhysics: boolean = true,
 ): void {
   // Apply global speed multiplier to dt
   const adjustedDt = dt * GLOBAL_SPEED_MULTIPLIER;
@@ -303,9 +354,12 @@ export function integrateForces(
     const star = stars[i];
 
     // Use different damping based on star activity
-    const damping = useActiveStarPhysics && star.isActive
-      ? DAMPING_FACTOR_ACTIVE
-      : (useActiveStarPhysics ? DAMPING_FACTOR_INACTIVE : STAR_PHYSICS.dampingIntegration);
+    const damping =
+      useActiveStarPhysics && star.isActive
+        ? DAMPING_FACTOR_ACTIVE
+        : useActiveStarPhysics
+          ? DAMPING_FACTOR_INACTIVE
+          : STAR_PHYSICS.dampingIntegration;
 
     star.vx *= damping;
     star.vy *= damping;
@@ -316,9 +370,10 @@ export function integrateForces(
 
     // Apply velocity limits
     const speed = Math.sqrt(star.vx * star.vx + star.vy * star.vy);
-    const effectiveMaxVelocity = useActiveStarPhysics && star.isActive
-      ? maxVelocity * ACTIVE_STAR_VELOCITY_MULTIPLIER
-      : maxVelocity;
+    const effectiveMaxVelocity =
+      useActiveStarPhysics && star.isActive
+        ? maxVelocity * ACTIVE_STAR_VELOCITY_MULTIPLIER
+        : maxVelocity;
 
     if (speed > effectiveMaxVelocity * GLOBAL_SPEED_MULTIPLIER) {
       const scale = (effectiveMaxVelocity * GLOBAL_SPEED_MULTIPLIER) / speed;
@@ -327,9 +382,10 @@ export function integrateForces(
     }
 
     // Update position with movement multiplier for active stars
-    const movementMultiplier = useActiveStarPhysics && star.isActive
-      ? ACTIVE_STAR_MOVEMENT_MULTIPLIER
-      : GLOBAL_SPEED_MULTIPLIER;
+    const movementMultiplier =
+      useActiveStarPhysics && star.isActive
+        ? ACTIVE_STAR_MOVEMENT_MULTIPLIER
+        : GLOBAL_SPEED_MULTIPLIER;
 
     star.x += star.vx * adjustedDt * movementMultiplier;
     star.y += star.vy * adjustedDt * movementMultiplier;
@@ -353,7 +409,7 @@ export function handleBoundaries(
   stars: Star[],
   width: number,
   height: number,
-  buffer: number = STAR_PHYSICS.boundaryBuffer
+  buffer: number = STAR_PHYSICS.boundaryBuffer,
 ): void {
   for (let i = 0; i < stars.length; i++) {
     const star = stars[i];
@@ -364,51 +420,78 @@ export function handleBoundaries(
   }
 }
 
+// Size threshold for simplified rendering (skip gradient glow for tiny stars)
+const SIMPLE_STAR_SIZE_THRESHOLD = 1.2;
+
+// Cached white color for center highlights (avoid string allocation in loop)
+const CACHED_WHITE_PREFIX = "rgba(255, 255, 255, ";
+
 export const drawStars = (
   ctx: CanvasRenderingContext2D,
-  stars: Star[]
+  stars: Star[],
 ): void => {
   const now = getFrameTime();
   const glowDuration = EFFECT_TIMING.pushGlowDuration;
 
-  // Enable anti-aliasing for smoother star rendering
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "high";
+  // BATCHING OPTIMIZATION: Separate stars into groups for more efficient rendering
+  // Small stars: simple solid fill (no gradient)
+  // Large stars: full gradient rendering
+  // Recently pushed: special glow effect
 
+  // First pass: Draw all small stars with batched solid fills
+  // This minimizes gradient creation overhead for the majority of stars
   for (let i = 0; i < stars.length; i++) {
     const star = stars[i];
-    
+    if (star.isConsumed) continue;
+
+    const timeSincePush = now - star.lastPushed;
+    const recentlyPushed = star.isActive && timeSincePush < glowDuration;
+
+    // Skip non-simple stars in first pass
+    if (recentlyPushed || star.size >= SIMPLE_STAR_SIZE_THRESHOLD) continue;
+
+    // Simple solid fill for small stars - no gradient, no glow
+    const parsed = star.parsedColor ?? null;
+    const alpha = 0.85 + (i % 10) * 0.015;
+    const coreColor = parsed ? colorWithAlpha(parsed, alpha) : star.color;
+    ctx.beginPath();
+    ctx.arc(star.x, star.y, star.size * 0.7, 0, TWO_PI);
+    ctx.fillStyle = coreColor;
+    ctx.fill();
+  }
+
+  // Second pass: Draw larger stars and recently pushed stars (need gradients)
+  for (let i = 0; i < stars.length; i++) {
+    const star = stars[i];
+
     // Skip consumed stars (they're hidden while waiting to respawn)
     if (star.isConsumed) continue;
-    
+
     // Check if star was recently pushed (within glow duration)
     const timeSincePush = now - star.lastPushed;
-    const recentlyPushed = star.isActive && (timeSincePush < glowDuration);
+    const recentlyPushed = star.isActive && timeSincePush < glowDuration;
 
     if (recentlyPushed) {
       // Calculate how recent the push was (1.0 = just now, 0.0 = glowDuration ago)
       const recency = 1 - timeSincePush / glowDuration;
 
-      // Smooth glow effect for pushed stars
+      // Use pre-cached parsed color from star initialization (avoids per-frame parsing)
+      const baseColor = star.color;
+      const parsed = star.parsedColor ?? null;
+      const brighterColorStr = parsed ? brightenColor(parsed, 100) : baseColor;
+
+      // Simplified glow for pushed stars - 2 stops instead of 4
       const glowRadius = star.size * (3 + recency * 5);
       const gradient = ctx.createRadialGradient(
-        star.x, star.y, 0,
-        star.x, star.y, glowRadius
+        star.x,
+        star.y,
+        0,
+        star.x,
+        star.y,
+        glowRadius,
       );
-
-      // Get base color and create brighter version for center (using cached parsing)
-      const baseColor = star.color;
-      const parsed = parseRgbaColor(baseColor);
-
-      // Use optimized color functions to avoid string manipulation in hot path
-      const brighterColorStr = parsed ? brightenColor(parsed, 100) : baseColor;
-      const midOpacityColor = parsed ? colorWithAlpha(parsed, 0.7) : baseColor;
-      const lowOpacityColor = parsed ? colorWithAlpha(parsed, 0.2) : baseColor;
-
-      // Create smooth glow gradient with more color stops for better blending
+      const _glowColor = parsed ? colorWithAlpha(parsed, 0.6) : baseColor;
       gradient.addColorStop(0, brighterColorStr);
-      gradient.addColorStop(0.3, midOpacityColor);
-      gradient.addColorStop(0.6, lowOpacityColor);
       gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
 
       // Draw glow
@@ -423,44 +506,41 @@ export const drawStars = (
       ctx.fillStyle = brighterColorStr;
       ctx.fill();
     } else {
-      // Crisp star rendering with very subtle twinkling effect
-      // Create unique twinkle timing for each star based on position
-      // Use non-integer multipliers to break up repeating patterns and avoid visual line artifacts
-      const uniqueSeed = (star.x * 73.13 + star.y * 157.79 + i * 31.41) % 1000;
-      // Very slow twinkle speeds for minimal flickering
-      const twinkleSpeed1 = 0.0003 + (uniqueSeed % 100) / 150000;
-      const twinkleSpeed2 = 0.0002 + (uniqueSeed % 50) / 120000;
+      // Skip small stars in second pass (already drawn in first pass)
+      if (star.size < SIMPLE_STAR_SIZE_THRESHOLD) continue;
+
+      // Use pre-parsed color from star init (performance optimization)
+      const parsed = star.parsedColor ?? null;
+
+      // Full rendering for larger stars
+      const uniqueSeed = star.uniqueSeed ?? 0;
+      const twinkleSpeed1 = star.twinkleSpeed1 ?? 0.0003;
+      const twinkleSpeed2 = star.twinkleSpeed2 ?? 0.0002;
 
       // Very subtle twinkle with minimal variation to reduce flickering
-      const twinkle1 = Math.sin(now * twinkleSpeed1 + uniqueSeed * 0.05);
-      const twinkle2 = Math.sin(now * twinkleSpeed2 * 1.3 + uniqueSeed * 0.08);
-      // Very narrow twinkle range for stable appearance (0.92 to 1.0)
+      const twinkle1 = fastSin(now * twinkleSpeed1 + uniqueSeed * 0.05);
+      const twinkle2 = fastSin(now * twinkleSpeed2 * 1.3 + uniqueSeed * 0.08);
       const twinkleFactor = 0.92 + (twinkle1 * 0.04 + twinkle2 * 0.04);
 
       // Minimal size variation for crisp, stable stars
       const twinkleSize = star.size * (0.98 + twinkleFactor * 0.04);
 
-      // Parse color once for this star (cached)
-      const parsed = parseRgbaColor(star.color);
-
-      // Very subtle soft glow - further reduced radius for much crisper, smaller stars
+      // Simplified glow gradient - 2 stops instead of 3
       const glowRadius = twinkleSize * 1.0;
-      const glowGradient = ctx.createRadialGradient(
-        star.x, star.y, 0,
-        star.x, star.y, glowRadius
-      );
-
-      // Reduced glow opacity for crisper appearance
       const glowOpacity = twinkleFactor * 0.12;
       const glowColor = parsed
         ? colorWithAlpha(parsed, glowOpacity)
         : star.color;
-      const glowColorMid = parsed
-        ? colorWithAlpha(parsed, glowOpacity * 0.4)
-        : star.color;
 
+      const glowGradient = ctx.createRadialGradient(
+        star.x,
+        star.y,
+        0,
+        star.x,
+        star.y,
+        glowRadius,
+      );
       glowGradient.addColorStop(0, glowColor);
-      glowGradient.addColorStop(0.5, glowColorMid);
       glowGradient.addColorStop(1, "rgba(255, 255, 255, 0)");
 
       ctx.beginPath();
@@ -469,11 +549,8 @@ export const drawStars = (
       ctx.fill();
 
       // Draw solid star core for crisp appearance (no gradient)
-      // Stable alpha for core (minimal flickering)
-      const alpha = 0.85 + twinkleFactor * 0.15; // Range: 0.85 to 1.0
-      const coreColor = parsed
-        ? colorWithAlpha(parsed, alpha)
-        : star.color;
+      const alpha = 0.85 + twinkleFactor * 0.15;
+      const coreColor = parsed ? colorWithAlpha(parsed, alpha) : star.color;
 
       ctx.beginPath();
       ctx.arc(star.x, star.y, twinkleSize * 0.7, 0, TWO_PI);
@@ -481,12 +558,17 @@ export const drawStars = (
       ctx.fill();
 
       // Very subtle white center for only the largest/brightest stars
-      if (twinkleFactor > STAR_CENTER_HIGHLIGHT_THRESHOLD && star.size > STAR_CENTER_HIGHLIGHT_ENHANCED_MIN_SIZE) {
-        // Calculate opacity: minimal effect
-        const centerOpacity = (twinkleFactor - STAR_CENTER_HIGHLIGHT_THRESHOLD) * STAR_CENTER_OPACITY_MULTIPLIER * CENTER_OPACITY_REDUCTION_FACTOR;
+      if (
+        twinkleFactor > STAR_CENTER_HIGHLIGHT_THRESHOLD &&
+        star.size > STAR_CENTER_HIGHLIGHT_ENHANCED_MIN_SIZE
+      ) {
+        const centerOpacity =
+          (twinkleFactor - STAR_CENTER_HIGHLIGHT_THRESHOLD) *
+          STAR_CENTER_OPACITY_MULTIPLIER *
+          CENTER_OPACITY_REDUCTION_FACTOR;
         ctx.beginPath();
         ctx.arc(star.x, star.y, twinkleSize * 0.2, 0, TWO_PI);
-        ctx.fillStyle = `rgba(255, 255, 255, ${centerOpacity})`;
+        ctx.fillStyle = CACHED_WHITE_PREFIX + centerOpacity + ")";
         ctx.fill();
       }
     }
@@ -503,19 +585,124 @@ const CONNECTION_STAGGER_CONFIG = CONNECTION_CONFIG;
 // Track when the starfield was initialized for staggered connection reveal
 let connectionStartTime: number | null = null;
 
+// ==========================================
+// Spatial Hash Grid for Connection Optimization
+// ==========================================
+
+interface SpatialCell {
+  stars: Star[];
+  indices: number[];
+}
+
+interface SpatialGrid {
+  cells: Map<string, SpatialCell>;
+  cellSize: number;
+}
+
+// Reusable spatial grid (avoid allocation each frame)
+let spatialGrid: SpatialGrid | null = null;
+let lastGridCellSize = 0;
+
+// Reusable buffer for getNearbyStars to avoid creating new arrays each call
+const nearbyStarsBuffer: { star: Star; index: number }[] = [];
+
+/**
+ * Get cell key for a given position
+ */
+function getCellKey(x: number, y: number, cellSize: number): string {
+  const cellX = Math.floor(x / cellSize);
+  const cellY = Math.floor(y / cellSize);
+  return `${cellX},${cellY}`;
+}
+
+/**
+ * Build spatial grid from stars array
+ * @param stars Array of stars to index
+ * @param cellSize Size of each cell (should be >= maxConnectionDistance)
+ */
+function buildSpatialGrid(stars: Star[], cellSize: number): SpatialGrid {
+  // Reuse existing grid if cell size matches
+  if (spatialGrid && lastGridCellSize === cellSize) {
+    spatialGrid.cells.clear();
+  } else {
+    spatialGrid = { cells: new Map(), cellSize };
+    lastGridCellSize = cellSize;
+  }
+
+  const grid = spatialGrid;
+
+  // Add each star to its cell
+  for (let i = 0; i < stars.length; i++) {
+    const star = stars[i];
+    const key = getCellKey(star.x, star.y, cellSize);
+
+    let cell = grid.cells.get(key);
+    if (!cell) {
+      cell = { stars: [], indices: [] };
+      grid.cells.set(key, cell);
+    }
+    cell.stars.push(star);
+    cell.indices.push(i);
+  }
+
+  return grid;
+}
+
+/**
+ * Get stars in nearby cells (including the cell containing the point and all 8 neighbors)
+ * Uses a reusable buffer to avoid array allocation each call
+ */
+function getNearbyStars(
+  x: number,
+  y: number,
+  grid: SpatialGrid,
+): { star: Star; index: number }[] {
+  // Clear buffer instead of creating new array (avoids GC pressure)
+  nearbyStarsBuffer.length = 0;
+
+  const cellX = Math.floor(x / grid.cellSize);
+  const cellY = Math.floor(y / grid.cellSize);
+
+  // Check 3x3 grid of cells centered on the star's cell
+  for (let dx = -1; dx <= 1; dx++) {
+    for (let dy = -1; dy <= 1; dy++) {
+      const key = `${cellX + dx},${cellY + dy}`;
+      const cell = grid.cells.get(key);
+      if (cell) {
+        for (let i = 0; i < cell.stars.length; i++) {
+          nearbyStarsBuffer.push({
+            star: cell.stars[i],
+            index: cell.indices[i],
+          });
+        }
+      }
+    }
+  }
+
+  return nearbyStarsBuffer;
+}
+
 // Draw connections between nearby stars (network effect) with staggered reveal
+// Uses spatial partitioning for O(n) instead of O(n²) performance
 export const drawConnections = (
   ctx: CanvasRenderingContext2D,
   stars: Star[],
   maxDistance: number,
   opacity: number,
-  colorScheme: string
+  colorScheme: string,
 ): void => {
   // Use slightly muted colors for connection lines (balanced brightness)
-  const baseColor = colorScheme === "white" ? "210, 210, 230" : "130, 80, 170"; // Slightly brighter than before but not fully white
+  const baseColor = colorScheme === "white" ? "210, 210, 230" : "130, 80, 170";
 
-  // For performance, check only every 10th star
-  const connectionSources = stars.filter((_, i) => i % 10 === 0);
+  // Build spatial grid for efficient neighbor lookup
+  // Cell size equals maxDistance so we only need to check adjacent cells
+  const grid = buildSpatialGrid(stars, maxDistance);
+
+  // For performance, check only every 10th star as connection sources
+  const connectionSources: { star: Star; index: number }[] = [];
+  for (let i = 0; i < stars.length; i += 10) {
+    connectionSources.push({ star: stars[i], index: i });
+  }
 
   // Enable smooth line rendering
   ctx.lineCap = "round";
@@ -523,82 +710,99 @@ export const drawConnections = (
 
   // Use cached frame time for animation
   const time = getFrameTime();
-  
-  // Initialize connection start time on first call (single-threaded canvas rendering)
+
+  // Initialize connection start time on first call
   if (connectionStartTime === null) {
     connectionStartTime = time;
   }
-  
+
   // Calculate elapsed time since connections started (for stagger effect)
   const elapsedTime = time - connectionStartTime;
-  
-  const { staggerDuration, fadeInDuration, primeMultiplier1, primeMultiplier2, seedModulo } = CONNECTION_STAGGER_CONFIG;
 
-  connectionSources.forEach((star1, index1) => {
-    // Check against all stars for connections
-    stars.forEach((star2, index2) => {
+  const {
+    staggerDuration,
+    fadeInDuration,
+    primeMultiplier1,
+    primeMultiplier2,
+    seedModulo,
+  } = CONNECTION_STAGGER_CONFIG;
+
+  // Process each connection source
+  for (let i = 0; i < connectionSources.length; i++) {
+    const { star: star1, index: index1 } = connectionSources[i];
+
+    // Only check nearby stars using spatial grid (much faster than checking all stars)
+    const nearbyStars = getNearbyStars(star1.x, star1.y, grid);
+
+    for (let j = 0; j < nearbyStars.length; j++) {
+      const { star: star2, index: index2 } = nearbyStars[j];
+
       // Don't connect to self
-      if (star1 === star2) return;
+      if (star1 === star2) continue;
 
       const dist = distance(star1.x, star1.y, star2.x, star2.y);
 
       // Only connect stars within the maximum distance
       if (dist < maxDistance) {
         // Create unique timing offset for each connection based on star indices
-        // This ensures each connection has its own animation phase
-        const uniqueSeed = (index1 * primeMultiplier1 + index2 * primeMultiplier2) % seedModulo;
-        const phaseOffset = uniqueSeed / seedModulo * TWO_PI;
-        
+        const uniqueSeed =
+          (index1 * primeMultiplier1 + index2 * primeMultiplier2) % seedModulo;
+        const phaseOffset = (uniqueSeed / seedModulo) * TWO_PI;
+
         // Calculate when this specific connection should start appearing (staggered)
-        // Use the unique seed to determine when each connection appears
         const connectionDelay = (uniqueSeed / seedModulo) * staggerDuration;
-        
+
         // Calculate stagger progress for this connection (0 = not started, 1 = fully visible)
         let staggerProgress = 0;
         if (elapsedTime > connectionDelay) {
-          staggerProgress = Math.min(1, (elapsedTime - connectionDelay) / fadeInDuration);
+          staggerProgress = Math.min(
+            1,
+            (elapsedTime - connectionDelay) / fadeInDuration,
+          );
         }
-        
+
         // Skip drawing if this connection hasn't started appearing yet
-        if (staggerProgress <= 0) return;
-        
+        if (staggerProgress <= 0) continue;
+
         // Create a slow, smooth pulse with unique timing per connection
-        // Slower frequencies for smoother animation (reduced for less blinking)
         const frequency1 = 0.00005 + (uniqueSeed % 100) / 500000;
         const frequency2 = 0.00003 + (uniqueSeed % 50) / 400000;
-        
-        const pulse1 = Math.sin(time * frequency1 + phaseOffset);
-        const pulse2 = Math.sin(time * frequency2 + phaseOffset * 1.3);
-        
-        // Combine pulses for smoother animation (0.92 to 1.0 range - very minimal variation)
+
+        const pulse1 = fastSin(time * frequency1 + phaseOffset);
+        const pulse2 = fastSin(time * frequency2 + phaseOffset * 1.3);
+
+        // Combine pulses for smoother animation (0.92 to 1.0 range)
         const pulseMultiplier = 0.95 + (pulse1 * 0.025 + pulse2 * 0.025);
-        
-        // Calculate opacity based on distance with smoother falloff - reduced overall opacity
+
+        // Calculate opacity based on distance with smoother falloff
         const distanceRatio = dist / maxDistance;
-        // Use cubic falloff for smoother fade at edges (optimized calculation)
         const distanceRatioSquared = distanceRatio * distanceRatio;
-        const distanceFade = 1 - (distanceRatioSquared * distanceRatio);
-        const baseLineOpacity = opacity * distanceFade * 0.65; // Slightly brighter than before (was 0.5)
-        // Apply stagger progress with smooth step easing for smooth fade-in
+        const distanceFade = 1 - distanceRatioSquared * distanceRatio;
+        const baseLineOpacity = opacity * distanceFade * 0.65;
         const easedProgress = smoothStep(staggerProgress);
         const lineOpacity = baseLineOpacity * pulseMultiplier * easedProgress;
 
         // Use gradient for smoother line appearance
-        const gradient = ctx.createLinearGradient(star1.x, star1.y, star2.x, star2.y);
+        const gradient = ctx.createLinearGradient(
+          star1.x,
+          star1.y,
+          star2.x,
+          star2.y,
+        );
         gradient.addColorStop(0, `rgba(${baseColor}, ${lineOpacity * 0.7})`);
         gradient.addColorStop(0.5, `rgba(${baseColor}, ${lineOpacity})`);
         gradient.addColorStop(1, `rgba(${baseColor}, ${lineOpacity * 0.7})`);
 
-        // Draw line with smooth gradient and slightly thicker line for better visibility
+        // Draw line with smooth gradient
         ctx.beginPath();
         ctx.moveTo(star1.x, star1.y);
         ctx.lineTo(star2.x, star2.y);
         ctx.strokeStyle = gradient;
-        ctx.lineWidth = 0.5 + pulseMultiplier * 0.15; // Thinner lines for subtler appearance
+        ctx.lineWidth = 0.5 + pulseMultiplier * 0.15;
         ctx.stroke();
       }
-    });
-  });
+    }
+  }
 };
 
 // Reset connection start time (useful when starfield is reinitialized)
@@ -615,7 +819,7 @@ export const initStaticStars = (
   centerOffsetX: number = 0,
   centerOffsetY: number = 0,
   starSize: number = 1.0,
-  colorScheme: string = "white"
+  colorScheme: string = "white",
 ): Star[] => {
   return initStars(
     width,
@@ -625,6 +829,6 @@ export const initStaticStars = (
     centerOffsetX,
     centerOffsetY,
     starSize,
-    colorScheme
+    colorScheme,
   );
 };

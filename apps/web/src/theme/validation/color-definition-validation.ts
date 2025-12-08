@@ -1,8 +1,15 @@
-import { ColorDefinition, ValidationResult, ValidationErrorDetails } from "@/theme/types";
+import {
+  ColorDefinition,
+  ValidationResult,
+  ValidationErrorDetails,
+} from "@/theme/types";
 import { printValidationResults } from "./utils/print-validation-results";
 import ColorUtils from "@/theme/utils/color-utils";
 
-export const validateColorDef = (color: ColorDefinition, path: string): ValidationResult => {
+export const validateColorDef = (
+  color: ColorDefinition,
+  path: string,
+): ValidationResult => {
   try {
     const result = ColorUtils.validateColorDefinition(color, path);
 
@@ -16,7 +23,8 @@ export const validateColorDef = (color: ColorDefinition, path: string): Validati
       errors: [
         {
           code: "UNEXPECTED_ERROR",
-          message: error instanceof Error ? error.message : "Unknown error occurred",
+          message:
+            error instanceof Error ? error.message : "Unknown error occurred",
           path,
           details: {
             error: error instanceof Error ? error.message : String(error),

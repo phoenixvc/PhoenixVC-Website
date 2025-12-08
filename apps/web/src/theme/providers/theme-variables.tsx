@@ -1,14 +1,23 @@
 // src/theme/utils/theme-variables.ts
-import { SemanticColors, ThemeColors, ThemeName, ThemeMode, ThemeVariables } from "../types";
+import {
+  SemanticColors,
+  ThemeColors,
+  ThemeName,
+  ThemeMode,
+  ThemeVariables,
+} from "../types";
 import { logger } from "@/utils/logger";
 
 export const generateThemeVariables = (
   colors: ThemeColors,
   mode: ThemeMode,
-  schemeName?: ThemeName
+  schemeName?: ThemeName,
 ): ThemeVariables => {
   try {
-    logger.debug("[ThemeProvider] Generating theme variables", { mode, schemeName });
+    logger.debug("[ThemeProvider] Generating theme variables", {
+      mode,
+      schemeName,
+    });
 
     // Determine which scheme to use:
     let scheme: ThemeColors["schemes"][keyof ThemeColors["schemes"]];
@@ -188,7 +197,6 @@ export const generateThemeVariables = (
   }
 };
 
-
 /**
  * Generate a map of the scheme's semantic colors in your desired format (e.g. HSL).
  *
@@ -201,7 +209,7 @@ export const generateThemeVariables = (
 export function generateSchemeSemantics(
   colors: ThemeColors,
   _mode: ThemeMode,
-  schemeName?: ThemeName
+  schemeName?: ThemeName,
 ): SemanticColors {
   try {
     logger.debug("generateSchemeSemantics", { schemeName });
@@ -219,7 +227,12 @@ export function generateSchemeSemantics(
     const semanticResult: Partial<SemanticColors> = {};
 
     // Required semantic colors
-    const requiredKeys: (keyof SemanticColors)[] = ["success", "warning", "error", "info"];
+    const requiredKeys: (keyof SemanticColors)[] = [
+      "success",
+      "warning",
+      "error",
+      "info",
+    ];
     // Optional semantic colors
     const optionalKeys: (keyof SemanticColors)[] = ["neutral", "hint"];
 

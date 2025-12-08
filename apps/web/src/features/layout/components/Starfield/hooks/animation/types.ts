@@ -10,16 +10,16 @@ import {
   HoverInfo,
   MousePosition,
   Planet,
-  Star
+  Star,
 } from "../../types";
 
 // Add this interface for debug settings
 export interface DebugSettings {
   isDebugMode: boolean;
-    flowStrength: number;
-    gravitationalPull: number;
-    particleSpeed: number;
-    mouseEffectRadius: number;
+  flowStrength: number;
+  gravitationalPull: number;
+  particleSpeed: number;
+  mouseEffectRadius: number;
   lineConnectionDistance: number;
   lineOpacity: number;
   maxVelocity?: number;
@@ -29,81 +29,102 @@ export interface DebugSettings {
 }
 
 export interface AnimationProps {
-    mousePosition: { x: number; y: number; lastX: number; lastY: number; speedX: number; speedY: number; isClicked: boolean; clickTime: number; isOnScreen: boolean; };
-    hoverInfo: { project: PortfolioProject | null; x: number; y: number; show: boolean; }; // Updated to match HoverInfo type
-    gameState: {};
-    starSize: number;
-    canvasRef: MutableRefObject<HTMLCanvasElement | null>;
-    starsRef?: MutableRefObject<Star[]>; // Make optional to match AnimationLoopProps
-    blackHolesRef?: MutableRefObject<BlackHole[]>;
-    planetsRef?: MutableRefObject<Planet[]>;
-    frameCountRef?: MutableRefObject<number>;
-    dimensions: { width: number; height: number };
-    enableFlowEffect: boolean;
-    enableBlackHole: boolean;
-    enableMouseInteraction: boolean;
-    enablePlanets: boolean;
-    flowStrength: number;
-    gravitationalPull: number;
-    particleSpeed: number;
-    planetSize: number;
-    employeeDisplayStyle: "initials" | "avatar" | "both";
-    heroMode: boolean;
-    centerPosition?: { x: number; y: number };
-    colorScheme: string;
-    lineConnectionDistance: number;
-    lineOpacity: number;
-    mouseEffectRadius: number;
-    mouseEffectColor: string;
-    maxVelocity?: number; // Make optional
-    animationSpeed?: number; // Make optional
-    isDarkMode: boolean;
-    debugMode?: boolean; // Make optional
-    gameMode: boolean;
-    setHoverInfo: (_info: SetStateAction<HoverInfo>) => void;
-    setClickBursts: (bursts: ClickBurst[]) => void;
-    setGameState: (state: SetStateAction<GameState>) => void;
-    setCollisionEffects: (effects: SetStateAction<CollisionEffect[]>) => void;
-    createCollisionEffect: (x: number, y: number, color: string, score: number) => CollisionEffect;
-    ensureStarsExist?: () => void;
-    drawDebugInfo?: (
-      ctx: CanvasRenderingContext2D,
-      width: number,
-      height: number,
-      mousePosition: MousePosition,
-      stars: Star[],
-      mouseEffectRadius: number,
-      timestamp: number
-    ) => void;
-    clickBurstsRef?: MutableRefObject<ClickBurst[]>;
-    updateFpsData?: (fps: number, timestamp: number) => void;
-    enableCosmicNavigation?: boolean;
-    camera?: Camera;
-    setCamera?: (camera: Camera) => void;
-    navigationState?: CosmicNavigationState;
-    hoveredObjectId?: string | null;
-    hoveredSunId?: string | null;
-    focusedSunId?: string | null;
-    debugSettings?: DebugSettings; // Add debug settings
-    isMouseOverProjectTooltipRef?: MutableRefObject<boolean>; // Track if mouse is over project tooltip
-    cameraRef?: MutableRefObject<{ cx: number; cy: number; zoom: number }>; // Ref for synchronous camera access
+  mousePosition: {
+    x: number;
+    y: number;
+    lastX: number;
+    lastY: number;
+    speedX: number;
+    speedY: number;
+    isClicked: boolean;
+    clickTime: number;
+    isOnScreen: boolean;
+  };
+  hoverInfo: {
+    project: PortfolioProject | null;
+    x: number;
+    y: number;
+    show: boolean;
+  }; // Updated to match HoverInfo type
+  gameState: {};
+  starSize: number;
+  canvasRef: MutableRefObject<HTMLCanvasElement | null>;
+  starsRef?: MutableRefObject<Star[]>; // Make optional to match AnimationLoopProps
+  blackHolesRef?: MutableRefObject<BlackHole[]>;
+  planetsRef?: MutableRefObject<Planet[]>;
+  frameCountRef?: MutableRefObject<number>;
+  dimensions: { width: number; height: number };
+  enableFlowEffect: boolean;
+  enableBlackHole: boolean;
+  enableMouseInteraction: boolean;
+  enablePlanets: boolean;
+  flowStrength: number;
+  gravitationalPull: number;
+  particleSpeed: number;
+  planetSize: number;
+  employeeDisplayStyle: "initials" | "avatar" | "both";
+  heroMode: boolean;
+  centerPosition?: { x: number; y: number };
+  colorScheme: string;
+  lineConnectionDistance: number;
+  lineOpacity: number;
+  mouseEffectRadius: number;
+  mouseEffectColor: string;
+  maxVelocity?: number; // Make optional
+  animationSpeed?: number; // Make optional
+  isDarkMode: boolean;
+  debugMode?: boolean; // Make optional
+  gameMode: boolean;
+  setHoverInfo: (_info: SetStateAction<HoverInfo>) => void;
+  setClickBursts: (bursts: ClickBurst[]) => void;
+  setGameState: (state: SetStateAction<GameState>) => void;
+  setCollisionEffects: (effects: SetStateAction<CollisionEffect[]>) => void;
+  createCollisionEffect: (
+    x: number,
+    y: number,
+    color: string,
+    score: number,
+  ) => CollisionEffect;
+  ensureStarsExist?: () => void;
+  drawDebugInfo?: (
+    ctx: CanvasRenderingContext2D,
+    width: number,
+    height: number,
+    mousePosition: MousePosition,
+    stars: Star[],
+    mouseEffectRadius: number,
+    timestamp: number,
+  ) => void;
+  clickBurstsRef?: MutableRefObject<ClickBurst[]>;
+  updateFpsData?: (fps: number, timestamp: number) => void;
+  enableCosmicNavigation?: boolean;
+  camera?: Camera;
+  setCamera?: (camera: Camera) => void;
+  navigationState?: CosmicNavigationState;
+  hoveredObjectId?: string | null;
+  hoveredSunId?: string | null;
+  focusedSunId?: string | null;
+  debugSettings?: DebugSettings; // Add debug settings
+  isMouseOverProjectTooltipRef?: MutableRefObject<boolean>; // Track if mouse is over project tooltip
+  cameraRef?: MutableRefObject<{ cx: number; cy: number; zoom: number }>; // Ref for synchronous camera access
+  sidebarWidth?: number; // Width of sidebar for centering calculations
 }
 
 export interface AnimationRefs {
-    animationRef: MutableRefObject<number>;
-    lastTimeRef: MutableRefObject<number | null>;
-    collisionEffectsRef: MutableRefObject<CollisionEffect[]>;
-    pendingCollisionEffectsRef: MutableRefObject<CollisionEffect[]>;
-    fpsValues: MutableRefObject<number[]>;
-    isAnimatingRef: MutableRefObject<boolean>;
-    lastDebugModeRef: MutableRefObject<boolean>;
-    animationStartTimeRef: MutableRefObject<number>;
-    isRestartingRef: MutableRefObject<boolean>;
-    frameSkipRef: MutableRefObject<number>;
-    lastFrameTimeRef: MutableRefObject<number>;
-    animationWatchdogRef: MutableRefObject<number | null>;
-    mousePositionRef: React.MutableRefObject<MousePosition>;
-    hoverInfoRef: React.MutableRefObject<HoverInfo>;
-    gameStateRef: React.MutableRefObject<GameState>; // Changed from unknown to GameState
-    animationErrorCountRef: React.MutableRefObject<number>;
+  animationRef: MutableRefObject<number>;
+  lastTimeRef: MutableRefObject<number | null>;
+  collisionEffectsRef: MutableRefObject<CollisionEffect[]>;
+  pendingCollisionEffectsRef: MutableRefObject<CollisionEffect[]>;
+  fpsValues: MutableRefObject<number[]>;
+  isAnimatingRef: MutableRefObject<boolean>;
+  lastDebugModeRef: MutableRefObject<boolean>;
+  animationStartTimeRef: MutableRefObject<number>;
+  isRestartingRef: MutableRefObject<boolean>;
+  frameSkipRef: MutableRefObject<number>;
+  lastFrameTimeRef: MutableRefObject<number>;
+  animationWatchdogRef: MutableRefObject<number | null>;
+  mousePositionRef: React.MutableRefObject<MousePosition>;
+  hoverInfoRef: React.MutableRefObject<HoverInfo>;
+  gameStateRef: React.MutableRefObject<GameState>; // Changed from unknown to GameState
+  animationErrorCountRef: React.MutableRefObject<number>;
 }

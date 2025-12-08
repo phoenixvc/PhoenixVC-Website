@@ -1,6 +1,10 @@
-import { ColorAdjustments, ColorDefinition, ColorShades, ShadeLevel } from "@/theme/types";
+import {
+  ColorAdjustments,
+  ColorDefinition,
+  ColorShades,
+  ShadeLevel,
+} from "@/theme/types";
 import ColorUtils from "@/theme/utils/color-utils";
-
 
 // Base purple color
 const BASE_PURPLE = "#8B5CF6";
@@ -27,7 +31,18 @@ const generatePurplePalette = (): Record<ShadeLevel, ColorDefinition> => {
 export const purplePalette: ColorShades = {
   ...generatePurplePalette(),
   base: BASE_PURPLE,
-  contrast: ["#000000", "#000000", "#000000", "#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF"],
+  contrast: [
+    "#000000",
+    "#000000",
+    "#000000",
+    "#000000",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+  ],
 };
 
 // Export a function to get a specific purple shade
@@ -36,7 +51,9 @@ export const getPurpleShade = (shade: ShadeLevel): ColorDefinition => {
 };
 
 // Export a function to create a purple with custom adjustments
-export const createPurpleVariant = (adjustments: ColorAdjustments): ColorDefinition => {
+export const createPurpleVariant = (
+  adjustments: ColorAdjustments,
+): ColorDefinition => {
   const baseColor = ColorUtils.createColorDefinition(BASE_PURPLE);
   return ColorUtils.adjustColor(baseColor, adjustments);
 };

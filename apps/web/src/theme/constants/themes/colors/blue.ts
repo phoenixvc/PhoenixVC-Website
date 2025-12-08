@@ -1,5 +1,9 @@
-
-import { ColorAdjustments, ColorDefinition, ColorShades, ShadeLevel } from "@/theme/types";
+import {
+  ColorAdjustments,
+  ColorDefinition,
+  ColorShades,
+  ShadeLevel,
+} from "@/theme/types";
 import ColorUtils from "@/theme/utils/color-utils";
 
 // Base blue color
@@ -27,7 +31,18 @@ const generateBluePalette = (): Record<ShadeLevel, ColorDefinition> => {
 export const bluePalette: ColorShades = {
   ...generateBluePalette(),
   base: BASE_BLUE,
-  contrast: ["#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF"],
+  contrast: [
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+  ],
 };
 
 // Export a function to get a specific blue shade
@@ -36,7 +51,9 @@ export const getBlueShade = (shade: ShadeLevel): ColorDefinition => {
 };
 
 // Export a function to create a blue with custom adjustments
-export const createBlueVariant = (adjustments: ColorAdjustments): ColorDefinition => {
+export const createBlueVariant = (
+  adjustments: ColorAdjustments,
+): ColorDefinition => {
   const baseColor = ColorUtils.createColorDefinition(BASE_BLUE);
   return ColorUtils.adjustColor(baseColor, adjustments);
 };

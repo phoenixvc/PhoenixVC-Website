@@ -35,18 +35,18 @@ export class VariantResolver {
    */
   constructor(
     config?: VariantResolverConfig,
-    strategyFactory?: StrategyFactory
+    strategyFactory?: StrategyFactory,
   ) {
     this.config = {
       logWarnings: config?.logWarnings ?? true,
-      customStrategies: config?.customStrategies ?? []
+      customStrategies: config?.customStrategies ?? [],
     };
 
     this.strategyFactory = strategyFactory || new StrategyFactory();
 
     // Register custom strategies if provided
     if (this.config.customStrategies.length > 0) {
-      this.config.customStrategies.forEach(strategy => {
+      this.config.customStrategies.forEach((strategy) => {
         this.strategyFactory.registerStrategy(strategy);
       });
     }
@@ -62,7 +62,7 @@ export class VariantResolver {
   resolveVariant(
     componentVariants: Record<string, ComponentVariantType>,
     variant: string = "default",
-    actualVariant?: string
+    actualVariant?: string,
   ): ComponentVariantType | undefined {
     // If the specific variant exists, return it
     if (componentVariants[variant]) {
@@ -84,11 +84,16 @@ export class VariantResolver {
       const baseVariant = actualVariant || "default";
 
       // Get strategies that can handle this pattern
-      const strategies = this.strategyFactory.getStrategiesForPattern(dynamicPattern);
+      const strategies =
+        this.strategyFactory.getStrategiesForPattern(dynamicPattern);
 
       // Try each strategy
       for (const strategy of strategies) {
-        const result = strategy.resolveVariant(componentVariants, baseVariant, dynamicPattern);
+        const result = strategy.resolveVariant(
+          componentVariants,
+          baseVariant,
+          dynamicPattern,
+        );
         if (result) return result;
       }
 
@@ -107,11 +112,11 @@ export class VariantResolver {
     return componentVariants.default as ComponentVariantType;
   }
 
-    /**
-     * Registers a custom variant resolution strategy
-     * @param strategy The strategy to register
-     */
-    registerStrategy(strategy: VariantResolutionStrategy): void {
+  /**
+   * Registers a custom variant resolution strategy
+   * @param strategy The strategy to register
+   */
+  registerStrategy(strategy: VariantResolutionStrategy): void {
     this.strategyFactory.registerStrategy(strategy);
-    }
+  }
 }

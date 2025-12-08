@@ -11,7 +11,7 @@ interface MobileCosmicStreamProps {
 
 const MobileCosmicStream: React.FC<MobileCosmicStreamProps> = ({
   navigationState,
-  onSelectObject
+  onSelectObject,
 }) => {
   const { currentLevel, currentGalaxyId, currentSunId } = navigationState;
 
@@ -19,7 +19,7 @@ const MobileCosmicStream: React.FC<MobileCosmicStreamProps> = ({
   const getDisplayObjects = (): CosmicObject[] => {
     if (currentLevel === "universe") {
       // At universe level, show galaxies
-      return getAllCosmicObjects().filter(obj => obj.level === "galaxy");
+      return getAllCosmicObjects().filter((obj) => obj.level === "galaxy");
     } else if (currentLevel === "galaxy" && currentGalaxyId) {
       // At galaxy level, show suns in this galaxy
       return getChildrenOf(currentGalaxyId);
@@ -34,7 +34,7 @@ const MobileCosmicStream: React.FC<MobileCosmicStreamProps> = ({
 
   return (
     <div className={styles.mobileCosmicStream}>
-      {displayObjects.map(obj => (
+      {displayObjects.map((obj) => (
         <div
           key={obj.id}
           className={styles.cosmicStreamItem}

@@ -9,7 +9,10 @@ interface SectionObserverOptions {
 export const useSectionObserver = (
   sectionId: string,
   callback?: (id: string) => void,
-  options: SectionObserverOptions = { threshold: 0.5, rootMargin: "0px 0px -10% 0px" }
+  options: SectionObserverOptions = {
+    threshold: 0.5,
+    rootMargin: "0px 0px -10% 0px",
+  },
 ): RefObject<HTMLDivElement> => {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -25,7 +28,7 @@ export const useSectionObserver = (
 
           const event = new CustomEvent("sectionVisible", {
             detail: { id: sectionId },
-            bubbles: true
+            bubbles: true,
           });
           window.dispatchEvent(event);
         }

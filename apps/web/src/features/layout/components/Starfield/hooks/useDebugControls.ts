@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import { DebugSettings, MousePosition, Star, UseDebugControlsProps } from "../types";
+import {
+  DebugSettings,
+  MousePosition,
+  Star,
+  UseDebugControlsProps,
+} from "../types";
 import { TWO_PI } from "../math";
 
 const STORAGE_KEY = "starfieldDebugSettings";
@@ -33,11 +38,22 @@ export const useDebugControls = ({
   initialMouseEffectRadius = 150,
   initialLineConnectionDistance = 150,
   initialLineOpacity = 0.15,
-  sidebarWidth = 0
+  sidebarWidth = 0,
 }: Omit<UseDebugControlsProps, "resetStarsCallback">): {
   debugSettings: DebugSettings;
-  updateDebugSetting: <K extends keyof DebugSettings>(key: K, value: DebugSettings[K]) => void;
-  drawDebugInfo: (ctx: CanvasRenderingContext2D, width: number, height: number, mousePosition: MousePosition, stars: Star[], mouseEffectRadius: number, timestamp?: number) => void;
+  updateDebugSetting: <K extends keyof DebugSettings>(
+    key: K,
+    value: DebugSettings[K],
+  ) => void;
+  drawDebugInfo: (
+    ctx: CanvasRenderingContext2D,
+    width: number,
+    height: number,
+    mousePosition: MousePosition,
+    stars: Star[],
+    mouseEffectRadius: number,
+    timestamp?: number,
+  ) => void;
 } => {
   /* ---------- bootstrap ---------- */
   const saved = loadSaved();
@@ -45,35 +61,38 @@ export const useDebugControls = ({
   const [debugSettings, setDebugSettings] = useState<DebugSettings>({
     isDebugMode: saved?.isDebugMode ?? initialDebugMode,
     animationSpeed: saved?.animationSpeed ?? initialAnimationSpeed,
-    maxVelocity:     saved?.maxVelocity ?? initialMaxVelocity,
-    flowStrength:    saved?.flowStrength ?? initialFlowStrength,
+    maxVelocity: saved?.maxVelocity ?? initialMaxVelocity,
+    flowStrength: saved?.flowStrength ?? initialFlowStrength,
     gravitationalPull: saved?.gravitationalPull ?? initialGravitationalPull,
-    particleSpeed:   saved?.particleSpeed ?? initialParticleSpeed,
-    starSize:        saved?.starSize ?? initialStarSize,
+    particleSpeed: saved?.particleSpeed ?? initialParticleSpeed,
+    starSize: saved?.starSize ?? initialStarSize,
     employeeOrbitSpeed: saved?.employeeOrbitSpeed ?? initialEmployeeOrbitSpeed,
-    mouseEffectRadius:  saved?.mouseEffectRadius ?? initialMouseEffectRadius,
-    lineConnectionDistance: saved?.lineConnectionDistance ?? initialLineConnectionDistance,
-    lineOpacity:     saved?.lineOpacity ?? initialLineOpacity,
+    mouseEffectRadius: saved?.mouseEffectRadius ?? initialMouseEffectRadius,
+    lineConnectionDistance:
+      saved?.lineConnectionDistance ?? initialLineConnectionDistance,
+    lineOpacity: saved?.lineOpacity ?? initialLineOpacity,
     repulsionEnabled: saved?.repulsionEnabled ?? true,
     repulsionRadius: saved?.repulsionRadius ?? 300,
-    repulsionForce:  saved?.repulsionForce  ?? 100,
-    sidebarWidth
+    repulsionForce: saved?.repulsionForce ?? 100,
+    sidebarWidth,
   });
 
   /* re‑persist whenever anything changes */
-  useEffect(() => { save(debugSettings); }, [debugSettings]);
+  useEffect(() => {
+    save(debugSettings);
+  }, [debugSettings]);
 
   /* sync external prop → state when dev toggles the debug flag */
   useEffect(() => {
-    setDebugSettings(prev => ({ ...prev, isDebugMode: initialDebugMode }));
+    setDebugSettings((prev) => ({ ...prev, isDebugMode: initialDebugMode }));
   }, [initialDebugMode]);
 
-  const updateDebugSetting = useCallback(<K extends keyof DebugSettings>(
-    key: K,
-    value: DebugSettings[K]
-  ): void => {
-    setDebugSettings(prev => ({ ...prev, [key]: value }));
-  }, []);
+  const updateDebugSetting = useCallback(
+    <K extends keyof DebugSettings>(key: K, value: DebugSettings[K]): void => {
+      setDebugSettings((prev) => ({ ...prev, [key]: value }));
+    },
+    [],
+  );
 
   /* -------------- debug HUD drawing -------------- */
   const drawDebugInfo = useCallback(
@@ -84,7 +103,7 @@ export const useDebugControls = ({
       mousePosition: MousePosition,
       stars: Star[],
       mouseEffectRadius: number,
-      timestamp?: number
+      timestamp?: number,
     ): void => {
       if (!debugSettings.isDebugMode) return;
 
@@ -99,7 +118,7 @@ export const useDebugControls = ({
         `Effect Radius: ${mouseEffectRadius}`,
         `Repulse R/F: ${debugSettings.repulsionRadius}/${debugSettings.repulsionForce}`,
         `AnimSpeed: ${debugSettings.animationSpeed.toFixed(2)}x`,
-        `MaxVel: ${debugSettings.maxVelocity.toFixed(2)}`
+        `MaxVel: ${debugSettings.maxVelocity.toFixed(2)}`,
       ];
 
       lines.forEach((txt, i) => ctx.fillText(txt, 10, 20 + i * 18));
@@ -112,7 +131,7 @@ export const useDebugControls = ({
       }
       ctx.restore();
     },
-    [debugSettings]
+    [debugSettings],
   );
 
   return { debugSettings, updateDebugSetting, drawDebugInfo };

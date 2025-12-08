@@ -5,7 +5,7 @@ import * as styles from "./sidebar.module.css";
 const themeOptions = [
   { theme: "default", title: "Default", description: "Clean and minimal" },
   { theme: "dark", title: "Dark", description: "Modern dark mode" },
-  { theme: "modern", title: "Modern", description: "Bold and vibrant" }
+  { theme: "modern", title: "Modern", description: "Bold and vibrant" },
 ];
 
 const Sidebar: React.FC = (): React.ReactElement => {
@@ -22,12 +22,21 @@ const Sidebar: React.FC = (): React.ReactElement => {
     document.body.dataset.theme = activeTheme;
     // Update CSS variables on the root element
     document.documentElement.style.setProperty("--color-primary", primaryColor);
-    document.documentElement.style.setProperty("--color-secondary", secondaryColor);
+    document.documentElement.style.setProperty(
+      "--color-secondary",
+      secondaryColor,
+    );
     document.documentElement.style.setProperty("--color-accent", accentColor);
     document.documentElement.style.setProperty("--radius-sm", radius);
-    document.documentElement.style.setProperty("--radius-md", `calc(${radius} * 2)`);
+    document.documentElement.style.setProperty(
+      "--radius-md",
+      `calc(${radius} * 2)`,
+    );
     document.documentElement.style.setProperty("--spacing-unit", spacing);
-    document.documentElement.style.setProperty("--animation-speed", animationSpeed);
+    document.documentElement.style.setProperty(
+      "--animation-speed",
+      animationSpeed,
+    );
   };
 
   const exportSettings = (): void => {
@@ -42,7 +51,7 @@ const Sidebar: React.FC = (): React.ReactElement => {
           .trim(),
         accent: getComputedStyle(document.documentElement)
           .getPropertyValue("--color-accent")
-          .trim()
+          .trim(),
       },
       layout: {
         radius: getComputedStyle(document.documentElement)
@@ -50,17 +59,17 @@ const Sidebar: React.FC = (): React.ReactElement => {
           .trim(),
         spacing: getComputedStyle(document.documentElement)
           .getPropertyValue("--spacing-unit")
-          .trim()
+          .trim(),
       },
       animation: {
         speed: getComputedStyle(document.documentElement)
           .getPropertyValue("--animation-speed")
-          .trim()
-      }
+          .trim(),
+      },
     };
 
     const blob = new Blob([JSON.stringify(settings, null, 2)], {
-      type: "application/json"
+      type: "application/json",
     });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -92,7 +101,10 @@ const Sidebar: React.FC = (): React.ReactElement => {
         <h2>Color Customization</h2>
         <div className={styles.colorPicker}>
           <div className={styles.colorOption}>
-            <div className={styles.colorPreview} style={{ background: primaryColor }}></div>
+            <div
+              className={styles.colorPreview}
+              style={{ background: primaryColor }}
+            ></div>
             <div className={styles.inputGroup}>
               <label>Primary Color</label>
               <input
@@ -103,7 +115,10 @@ const Sidebar: React.FC = (): React.ReactElement => {
             </div>
           </div>
           <div className={styles.colorOption}>
-            <div className={styles.colorPreview} style={{ background: secondaryColor }}></div>
+            <div
+              className={styles.colorPreview}
+              style={{ background: secondaryColor }}
+            ></div>
             <div className={styles.inputGroup}>
               <label>Secondary Color</label>
               <input
@@ -114,7 +129,10 @@ const Sidebar: React.FC = (): React.ReactElement => {
             </div>
           </div>
           <div className={styles.colorOption}>
-            <div className={styles.colorPreview} style={{ background: accentColor }}></div>
+            <div
+              className={styles.colorPreview}
+              style={{ background: accentColor }}
+            ></div>
             <div className={styles.inputGroup}>
               <label>Accent Color</label>
               <input
@@ -150,7 +168,10 @@ const Sidebar: React.FC = (): React.ReactElement => {
         <h2>Animation Settings</h2>
         <div className={styles.inputGroup}>
           <label>Animation Speed</label>
-          <select value={animationSpeed} onChange={(e) => setAnimationSpeed(e.target.value)}>
+          <select
+            value={animationSpeed}
+            onChange={(e) => setAnimationSpeed(e.target.value)}
+          >
             <option value="0">None</option>
             <option value="0.2s">Fast</option>
             <option value="0.3s">Normal</option>
@@ -158,8 +179,15 @@ const Sidebar: React.FC = (): React.ReactElement => {
           </select>
         </div>
       </div>
-      <button className={styles.btn} onClick={applySettings}>Apply Changes</button>
-      <button className={`${styles.btn} ${styles.btnSecondary}`} onClick={exportSettings}>Export Theme</button>
+      <button className={styles.btn} onClick={applySettings}>
+        Apply Changes
+      </button>
+      <button
+        className={`${styles.btn} ${styles.btnSecondary}`}
+        onClick={exportSettings}
+      >
+        Export Theme
+      </button>
     </aside>
   );
 };

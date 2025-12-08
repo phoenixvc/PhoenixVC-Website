@@ -4,6 +4,7 @@
 import { MousePosition } from "../../types";
 import { AnimationProps } from "./types";
 import { TWO_PI } from "../../math";
+import { getFrameTime } from "../../frameCache";
 
 /**
  * Draw mouse interaction effects (glow, ripples, click flash)
@@ -12,7 +13,7 @@ export function drawMouseEffects(
   ctx: CanvasRenderingContext2D,
   currentMousePosition: MousePosition,
   props: AnimationProps,
-  _deltaTime: number
+  _deltaTime: number,
 ): void {
   // Default to canvas center if mouse position is undefined.
   const mouseX = currentMousePosition.x || ctx.canvas.width / 2;
@@ -24,7 +25,9 @@ export function drawMouseEffects(
     : "rgba(75,0,130,0.3)";
 
   // Use transparent black for dark mode, but transparent white for light mode.
-  const endColor = props.isDarkMode ? "rgba(0, 0, 0, 0)" : "rgba(255, 255, 255, 0)";
+  const endColor = props.isDarkMode
+    ? "rgba(0, 0, 0, 0)"
+    : "rgba(255, 255, 255, 0)";
 
   // Set up the radial gradient for the mouse glow.
   const gradient = ctx.createRadialGradient(
@@ -33,13 +36,15 @@ export function drawMouseEffects(
     0,
     mouseX,
     mouseY,
-    props.mouseEffectRadius
+    props.mouseEffectRadius,
   );
   gradient.addColorStop(
     0,
     currentMousePosition.isClicked
-      ? (props.isDarkMode ? "rgba(138,43,226,0.7)" : "rgba(75,0,130,0.6)")
-      : baseColor
+      ? props.isDarkMode
+        ? "rgba(138,43,226,0.7)"
+        : "rgba(75,0,130,0.6)"
+      : baseColor,
   );
   gradient.addColorStop(1, endColor);
 
@@ -50,9 +55,11 @@ export function drawMouseEffects(
 
   // Determine time since click to drive ripple effects.
   // Use a large value (2000ms+) if no click has occurred to prevent effects on load
-  const timeSinceClick = currentMousePosition.clickTime > 0
-    ? Date.now() - currentMousePosition.clickTime
-    : 2000; // No click yet - beyond all effect thresholds
+  // Use getFrameTime() instead of Date.now() to avoid syscall per frame
+  const timeSinceClick =
+    currentMousePosition.clickTime > 0
+      ? getFrameTime() - currentMousePosition.clickTime
+      : 2000; // No click yet - beyond all effect thresholds
 
   // Draw three layered ripple effects.
   drawRippleEffects(ctx, mouseX, mouseY, props, timeSinceClick);
@@ -69,7 +76,7 @@ function drawRippleEffects(
   mouseX: number,
   mouseY: number,
   props: AnimationProps,
-  timeSinceClick: number
+  timeSinceClick: number,
 ): void {
   for (let i = 0; i < 3; i++) {
     const speed = 0.8 + i * 0.4;
@@ -79,7 +86,7 @@ function drawRippleEffects(
       const maxRadius = props.mouseEffectRadius * 2.5;
       const rippleRadius = Math.min(
         maxRadius,
-        props.mouseEffectRadius * (adjustedTime / 1600) * speed
+        props.mouseEffectRadius * (adjustedTime / 1600) * speed,
       );
       const rippleOpacity = 1 - adjustedTime / 1000;
 
@@ -115,7 +122,7 @@ function drawClickFlash(
   mouseX: number,
   mouseY: number,
   props: AnimationProps,
-  timeSinceClick: number
+  timeSinceClick: number,
 ): void {
   if (timeSinceClick < 300) {
     const flashOpacity = 1 - timeSinceClick / 300;

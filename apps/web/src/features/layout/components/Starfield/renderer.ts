@@ -1,34 +1,42 @@
 // components/Layout/Starfield/renderer.ts
-import { BlackHole, CenterPosition, ContainerBounds, Explosion, MousePosition, Planet, Star } from "./types";
+import {
+  BlackHole,
+  CenterPosition,
+  ContainerBounds,
+  Explosion,
+  MousePosition,
+  Planet,
+  Star,
+} from "./types";
 import { calculateCenter } from "./utils";
 import { getFrameTime } from "./frameCache";
 import { EFFECT_TIMING } from "./physicsConfig";
-import { TWO_PI } from "./math";
+import { TWO_PI, fastSin, fastCos } from "./math";
 
 // Star birthplace indicator positions (along edges where stars respawn)
 const BIRTHPLACE_INDICATORS = [
   { edge: "top", count: 5 },
   { edge: "right", count: 4 },
   { edge: "bottom", count: 5 },
-  { edge: "left", count: 4 }
+  { edge: "left", count: 4 },
 ];
 
 // Draw star birthplace indicators at edges
 export const drawStarBirthplaces = (
   ctx: CanvasRenderingContext2D,
   width: number,
-  height: number
+  height: number,
 ): void => {
   const time = getFrameTime();
-  const pulse = 0.3 + Math.sin(time * 0.001) * 0.15; // Subtle pulse effect
-  
+  const pulse = 0.3 + fastSin(time * 0.001) * 0.15; // Subtle pulse effect
+
   ctx.save();
-  
+
   BIRTHPLACE_INDICATORS.forEach(({ edge, count }) => {
     for (let i = 0; i < count; i++) {
       let x: number, y: number;
       const offset = (i + 0.5) / count; // Distribute evenly along edge
-      
+
       switch (edge) {
         case "top":
           x = width * offset;
@@ -48,18 +56,18 @@ export const drawStarBirthplaces = (
           y = height * offset;
           break;
       }
-      
+
       // Draw subtle glowing dot as birthplace indicator
       const gradient = ctx.createRadialGradient(x, y, 0, x, y, 12);
       gradient.addColorStop(0, `rgba(147, 112, 219, ${pulse * 0.4})`); // Soft purple center
       gradient.addColorStop(0.4, `rgba(138, 43, 226, ${pulse * 0.2})`);
       gradient.addColorStop(1, "rgba(138, 43, 226, 0)");
-      
+
       ctx.beginPath();
       ctx.arc(x, y, 12, 0, TWO_PI);
       ctx.fillStyle = gradient;
       ctx.fill();
-      
+
       // Small bright core
       ctx.beginPath();
       ctx.arc(x, y, 2, 0, TWO_PI);
@@ -67,33 +75,33 @@ export const drawStarBirthplaces = (
       ctx.fill();
     }
   });
-  
+
   ctx.restore();
 };
 
 // Draw a single star
 export const drawStar = (ctx: CanvasRenderingContext2D, star: Star): void => {
-    ctx.beginPath();
-    ctx.arc(star.x, star.y, star.size, 0, TWO_PI);
-    ctx.fillStyle = star.color;
-    ctx.fill();
-  };
+  ctx.beginPath();
+  ctx.arc(star.x, star.y, star.size, 0, TWO_PI);
+  ctx.fillStyle = star.color;
+  ctx.fill();
+};
 
 // Draw a black hole and its particles
 export const drawBlackHole = (
   ctx: CanvasRenderingContext2D,
   blackHole: BlackHole,
   deltaTime: number,
-  particleSpeed: number
+  particleSpeed: number,
 ): void => {
   // Update and draw orbiting particles
-  blackHole.particles.forEach(particle => {
+  blackHole.particles.forEach((particle) => {
     // Update angle based on speed
     particle.angle += particle.speed * deltaTime * particleSpeed;
 
     // Update position
-    particle.x = blackHole.x + Math.cos(particle.angle) * particle.distance;
-    particle.y = blackHole.y + Math.sin(particle.angle) * particle.distance;
+    particle.x = blackHole.x + fastCos(particle.angle) * particle.distance;
+    particle.y = blackHole.y + fastSin(particle.angle) * particle.distance;
 
     // Draw particle
     ctx.beginPath();
@@ -104,8 +112,12 @@ export const drawBlackHole = (
 
   // Draw black hole
   const gradient = ctx.createRadialGradient(
-    blackHole.x, blackHole.y, 0,
-    blackHole.x, blackHole.y, blackHole.radius
+    blackHole.x,
+    blackHole.y,
+    0,
+    blackHole.x,
+    blackHole.y,
+    blackHole.radius,
   );
 
   gradient.addColorStop(0, "rgba(0, 0, 0, 1)");
@@ -239,9 +251,9 @@ export const drawBlackHole = (
 export const drawExplosions = (
   ctx: CanvasRenderingContext2D,
   explosions: Explosion[],
-  now: number
+  now: number,
 ): Explosion[] => {
-  return explosions.filter(explosion => {
+  return explosions.filter((explosion) => {
     const elapsed = now - explosion.startTime;
     if (elapsed > explosion.duration) return false;
 
@@ -275,7 +287,7 @@ export const updateStar = (
   particleSpeed: number,
   sidebarWidth: number,
   centerOffsetX: number,
-  centerOffsetY: number
+  centerOffsetY: number,
 ): Star => {
   // Reset acceleration
   let ax = 0;
@@ -292,8 +304,8 @@ export const updateStar = (
       if (dist > 5) {
         // Gravitational force
         const force = (blackHole.mass / distSq) * gravitationalPull * 0.01;
-        ax += dx / dist * force;
-        ay += dy / dist * force;
+        ax += (dx / dist) * force;
+        ay += (dy / dist) * force;
 
         // If star is too close to black hole, mark it as consumed with delay
         if (dist < blackHole.radius * 0.8) {
@@ -316,7 +328,9 @@ export const updateStar = (
   // Check if consumed star should respawn (after configurable delay with randomization)
   if (star.isConsumed && star.consumedAt) {
     const now = performance.now();
-    const respawnDelay = EFFECT_TIMING.starRespawnDelayBase + Math.random() * EFFECT_TIMING.starRespawnDelayRandom;
+    const respawnDelay =
+      EFFECT_TIMING.starRespawnDelayBase +
+      Math.random() * EFFECT_TIMING.starRespawnDelayRandom;
     if (now - star.consumedAt > respawnDelay) {
       // Respawn at edge of screen (spawn point effect)
       const edge = Math.floor(Math.random() * 4);
@@ -366,8 +380,8 @@ export const updateStar = (
         // Note: Planet type uses 'project' property, not 'employee'
         const employeeMass = empStar.project?.mass ?? 100; // Default mass of 100 if undefined
         const force = (employeeMass / distSq) * gravitationalPull * 0.005;
-        ax += dx / dist * force;
-        ay += dy / dist * force;
+        ax += (dx / dist) * force;
+        ay += (dy / dist) * force;
       }
     }
   }
@@ -375,18 +389,31 @@ export const updateStar = (
   // Apply flow effect around the content area if enabled
   if (enableFlowEffect) {
     const { centerX, centerY } = calculateCenter(
-      canvas.width, canvas.height, sidebarWidth, centerOffsetX, centerOffsetY
+      canvas.width,
+      canvas.height,
+      sidebarWidth,
+      centerOffsetX,
+      centerOffsetY,
     );
     const contentAreaRadius = 150; // Approximate radius of content area
 
     const dxContent = star.x - centerX;
     const dyContent = star.y - centerY;
-    const distContent = Math.sqrt(dxContent * dxContent + dyContent * dyContent);
+    const distContent = Math.sqrt(
+      dxContent * dxContent + dyContent * dyContent,
+    );
 
-    if (distContent < contentAreaRadius * 1.5 && distContent > contentAreaRadius * 0.8) {
+    if (
+      distContent < contentAreaRadius * 1.5 &&
+      distContent > contentAreaRadius * 0.8
+    ) {
       // Calculate tangential velocity components for flowing around content
-      const tangentialFactor = 0.01 * flowStrength *
-        (1 - Math.abs(distContent - contentAreaRadius) / (contentAreaRadius * 0.5));
+      const tangentialFactor =
+        0.01 *
+        flowStrength *
+        (1 -
+          Math.abs(distContent - contentAreaRadius) /
+            (contentAreaRadius * 0.5));
       const perpX = -dyContent / distContent;
       const perpY = dxContent / distContent;
 
@@ -406,9 +433,9 @@ export const updateStar = (
 
     if (dist < 200) {
       // Push stars away from mouse
-      const force = (200 - dist) / 200 * 0.05;
-      ax -= dx / dist * force;
-      ay -= dy / dist * force;
+      const force = ((200 - dist) / 200) * 0.05;
+      ax -= (dx / dist) * force;
+      ay -= (dy / dist) * force;
 
       // Add some of the mouse"s velocity
       star.vx += mouseRef.speedX * 0.01;
@@ -444,143 +471,148 @@ export const updateStar = (
 
 // Update stars for hero mode
 export const updateHeroStar = (
-    star: Star,
-    canvas: HTMLCanvasElement,
-    mouse: MousePosition,
-    centerPosition: CenterPosition,
-    containerBounds: ContainerBounds,
-    deltaTime: number
-  ): Star => {
-    const { width, height } = canvas.getBoundingClientRect();
-    const newStar = { ...star };
+  star: Star,
+  canvas: HTMLCanvasElement,
+  mouse: MousePosition,
+  centerPosition: CenterPosition,
+  containerBounds: ContainerBounds,
+  deltaTime: number,
+): Star => {
+  const { width, height } = canvas.getBoundingClientRect();
+  const newStar = { ...star };
 
-    // Calculate attraction to center of container
-    const centerAttractionStrength = 0.00002 * deltaTime;
-    const dx = centerPosition.x - star.x;
-    const dy = centerPosition.y - star.y;
-    const distToCenter = Math.sqrt(dx * dx + dy * dy);
+  // Calculate attraction to center of container
+  const centerAttractionStrength = 0.00002 * deltaTime;
+  const dx = centerPosition.x - star.x;
+  const dy = centerPosition.y - star.y;
+  const distToCenter = Math.sqrt(dx * dx + dy * dy);
 
-    // Only apply center attraction if we"re outside the container
-    const isOutsideContainer = (
-      star.x < containerBounds.left ||
-      star.x > containerBounds.right ||
-      star.y < containerBounds.top ||
-      star.y > containerBounds.bottom
+  // Only apply center attraction if we"re outside the container
+  const isOutsideContainer =
+    star.x < containerBounds.left ||
+    star.x > containerBounds.right ||
+    star.y < containerBounds.top ||
+    star.y > containerBounds.bottom;
+
+  if (isOutsideContainer && distToCenter > 0) {
+    const centerForce = centerAttractionStrength * (distToCenter / 100);
+    newStar.vx += (dx / distToCenter) * centerForce;
+    newStar.vy += (dy / distToCenter) * centerForce;
+  }
+
+  // Calculate mouse repulsion/attraction
+  if (mouse.isOnScreen) {
+    const mouseDistX = mouse.x - star.x;
+    const mouseDistY = mouse.y - star.y;
+    const mouseDistance = Math.sqrt(
+      mouseDistX * mouseDistX + mouseDistY * mouseDistY,
     );
 
-    if (isOutsideContainer && distToCenter > 0) {
-      const centerForce = centerAttractionStrength * (distToCenter / 100);
-      newStar.vx += (dx / distToCenter) * centerForce;
-      newStar.vy += (dy / distToCenter) * centerForce;
+    if (mouseDistance < 150) {
+      // Mouse repulsion in close range
+      const repulsionStrength = 0.00015 * deltaTime;
+      const repulsionForce = repulsionStrength * (1 - mouseDistance / 150);
+
+      newStar.vx -= (mouseDistX / mouseDistance) * repulsionForce;
+      newStar.vy -= (mouseDistY / mouseDistance) * repulsionForce;
+    } else if (mouseDistance < 300) {
+      // Slight attraction in medium range
+      const attractionStrength = 0.00005 * deltaTime;
+      const attractionForce =
+        attractionStrength * ((mouseDistance - 150) / 150);
+
+      newStar.vx += (mouseDistX / mouseDistance) * attractionForce;
+      newStar.vy += (mouseDistY / mouseDistance) * attractionForce;
     }
 
-    // Calculate mouse repulsion/attraction
-    if (mouse.isOnScreen) {
-      const mouseDistX = mouse.x - star.x;
-      const mouseDistY = mouse.y - star.y;
-      const mouseDistance = Math.sqrt(mouseDistX * mouseDistX + mouseDistY * mouseDistY);
+    // Add some influence from mouse movement
+    const mouseInfluence = 0.00002 * deltaTime;
+    newStar.vx += mouse.speedX * mouseInfluence;
+    newStar.vy += mouse.speedY * mouseInfluence;
+  }
 
-      if (mouseDistance < 150) {
-        // Mouse repulsion in close range
-        const repulsionStrength = 0.00015 * deltaTime;
-        const repulsionForce = repulsionStrength * (1 - mouseDistance / 150);
+  // Apply velocity with damping
+  const damping = 0.98;
+  newStar.vx *= damping;
+  newStar.vy *= damping;
 
-        newStar.vx -= (mouseDistX / mouseDistance) * repulsionForce;
-        newStar.vy -= (mouseDistY / mouseDistance) * repulsionForce;
-      } else if (mouseDistance < 300) {
-        // Slight attraction in medium range
-        const attractionStrength = 0.00005 * deltaTime;
-        const attractionForce = attractionStrength * ((mouseDistance - 150) / 150);
+  newStar.x += newStar.vx * deltaTime;
+  newStar.y += newStar.vy * deltaTime;
 
-        newStar.vx += (mouseDistX / mouseDistance) * attractionForce;
-        newStar.vy += (mouseDistY / mouseDistance) * attractionForce;
-      }
+  // Boundary handling - wrap around with momentum preservation
+  if (newStar.x < -50) newStar.x = width + 50;
+  if (newStar.x > width + 50) newStar.x = -50;
+  if (newStar.y < -50) newStar.y = height + 50;
+  if (newStar.y > height + 50) newStar.y = -50;
 
-      // Add some influence from mouse movement
-      const mouseInfluence = 0.00002 * deltaTime;
-      newStar.vx += mouse.speedX * mouseInfluence;
-      newStar.vy += mouse.speedY * mouseInfluence;
-    }
-
-    // Apply velocity with damping
-    const damping = 0.98;
-    newStar.vx *= damping;
-    newStar.vy *= damping;
-
-    newStar.x += newStar.vx * deltaTime;
-    newStar.y += newStar.vy * deltaTime;
-
-    // Boundary handling - wrap around with momentum preservation
-    if (newStar.x < -50) newStar.x = width + 50;
-    if (newStar.x > width + 50) newStar.x = -50;
-    if (newStar.y < -50) newStar.y = height + 50;
-    if (newStar.y > height + 50) newStar.y = -50;
-
-    return newStar;
-  };
+  return newStar;
+};
 
 // Mouse effect visualization for hero mode
 export const drawMouseEffect = (
-    ctx: CanvasRenderingContext2D,
-    x: number,
-    y: number,
-    radius: number,
-    color: string,
-    isActive: boolean
-  ): void => {
-    if (!isActive) return;
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  radius: number,
+  color: string,
+  isActive: boolean,
+): void => {
+  if (!isActive) return;
 
-    // Draw outer glow
-    const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
-    gradient.addColorStop(0, color);
-    gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+  // Draw outer glow
+  const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+  gradient.addColorStop(0, color);
+  gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
 
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, TWO_PI);
-    ctx.fillStyle = gradient;
-    ctx.fill();
-  };
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, TWO_PI);
+  ctx.fillStyle = gradient;
+  ctx.fill();
+};
 
 // Draw connections between stars (for hero mode) - duller lines
 export const drawStarConnections = (
-    ctx: CanvasRenderingContext2D,
-    stars: Star[],
-    maxDistance: number,
-    opacity: number,
-    color: string
-  ): void => {
-    // Use a duller version of the color - reduce brightness
-    const dullerColor = color.includes("rgba") 
-      ? color.replace(/rgba\((\d+),\s*(\d+),\s*(\d+)/, (_, r, g, b) => 
-          `rgba(${Math.floor(Number(r) * 0.6)}, ${Math.floor(Number(g) * 0.6)}, ${Math.floor(Number(b) * 0.7)}`)
-      : "rgba(120, 100, 140, 0.3)"; // Default duller purple-gray
-    
-    ctx.strokeStyle = dullerColor;
+  ctx: CanvasRenderingContext2D,
+  stars: Star[],
+  maxDistance: number,
+  opacity: number,
+  color: string,
+): void => {
+  // Use a duller version of the color - reduce brightness
+  const dullerColor = color.includes("rgba")
+    ? color.replace(
+        /rgba\((\d+),\s*(\d+),\s*(\d+)/,
+        (_, r, g, b) =>
+          `rgba(${Math.floor(Number(r) * 0.6)}, ${Math.floor(Number(g) * 0.6)}, ${Math.floor(Number(b) * 0.7)}`,
+      )
+    : "rgba(120, 100, 140, 0.3)"; // Default duller purple-gray
 
-    for (let i = 0; i < stars.length; i++) {
+  ctx.strokeStyle = dullerColor;
+
+  for (let i = 0; i < stars.length; i++) {
+    // Skip consumed stars
+    if (stars[i].isConsumed) continue;
+
+    for (let j = i + 1; j < stars.length; j++) {
       // Skip consumed stars
-      if (stars[i].isConsumed) continue;
-      
-      for (let j = i + 1; j < stars.length; j++) {
-        // Skip consumed stars
-        if (stars[j].isConsumed) continue;
-        
-        const dx = stars[i].x - stars[j].x;
-        const dy = stars[i].y - stars[j].y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+      if (stars[j].isConsumed) continue;
 
-        if (distance < maxDistance) {
-          // Calculate opacity based on distance - reduced for duller appearance
-          const lineOpacity = opacity * (1 - distance / maxDistance) * 0.25; // Reduced from 0.4 to 0.25
-          ctx.globalAlpha = lineOpacity;
+      const dx = stars[i].x - stars[j].x;
+      const dy = stars[i].y - stars[j].y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
 
-          ctx.beginPath();
-          ctx.moveTo(stars[i].x, stars[i].y);
-          ctx.lineTo(stars[j].x, stars[j].y);
-          ctx.stroke();
-        }
+      if (distance < maxDistance) {
+        // Calculate opacity based on distance - reduced for duller appearance
+        const lineOpacity = opacity * (1 - distance / maxDistance) * 0.25; // Reduced from 0.4 to 0.25
+        ctx.globalAlpha = lineOpacity;
+
+        ctx.beginPath();
+        ctx.moveTo(stars[i].x, stars[i].y);
+        ctx.lineTo(stars[j].x, stars[j].y);
+        ctx.stroke();
       }
     }
+  }
 
-    ctx.globalAlpha = 1.0;
-  };
+  ctx.globalAlpha = 1.0;
+};
