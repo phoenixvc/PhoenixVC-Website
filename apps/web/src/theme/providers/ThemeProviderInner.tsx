@@ -139,7 +139,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
           timestamp: Date.now()
         }));
       });
-  }, [state.themeName, state.mode, onThemeChange, themeManagerReady]);
+  }, [state.themeName, state.mode, onThemeChange, themeManagerReady, themeCore]);
 
   const setUseSystemMode = useCallback((useSystem: boolean): void => {
     // Update both local state and context
@@ -172,7 +172,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
       .catch(err => {
         logger.error(`Failed to set use system mode "${useSystem}":`, err);
       });
-  }, [setUseSystemModeContext, systemMode, state.themeName, state.mode, onThemeChange, setMode]);
+  }, [setUseSystemModeContext, systemMode, state.themeName, state.mode, onThemeChange, setMode, themeCore]);
 
   // Initialize ThemeStateManager first
   useEffect(() => {
@@ -190,7 +190,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
       logger.error("[ThemeProvider] Failed to initialize state manager:", error);
       setError(error instanceof Error ? error : new Error("Failed to initialize state manager"));
     }
-  }, []);
+  }, [themeCore]);
 
   // Initialize ThemeCore with registries only after state manager is ready
   useEffect(() => {
@@ -226,7 +226,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
       logger.error("[ThemeProvider] Failed to initialize theme system:", error);
       setError(error instanceof Error ? error : new Error("Failed to initialize theme system"));
     }
-  }, [themes, components, themeManagerReady]);
+  }, [themes, components, themeManagerReady, themeCore]);
 
   // Effect to load stored theme settings from localStorage on mount
   useEffect(() => {
@@ -432,7 +432,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
           setLoadingTheme(false);
         }
       });
-  }, [state.themeName, state.mode, onThemeChange, isThemeCached, themeManagerReady]);
+  }, [state.themeName, state.mode, onThemeChange, isThemeCached, themeManagerReady, themeCore]);
 
   const toggleMode = useCallback((): void => {
     const newMode = state.mode === "light" ? "dark" : "light";
@@ -457,7 +457,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
     // Then check component registry
     const registry = themeCore.getComponentRegistry();
     return Object.keys(registry).includes(themeName);
-  }, [themes]);
+  }, [themes, themeCore]);
 
   // Theme loading status
   const isThemeLoading = useCallback((): boolean => {
@@ -484,14 +484,14 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
       logger.error(`[ThemeProvider] Failed to preload theme "${themeName}":`, err);
       throw err;
     }
-  }, [themes]);
+  }, [themes, themeCore]);
 
   const clearThemeCache = useCallback((): void => {
     themeCore.clearThemeCache();
 
     // Also reset the registry to initial state
     setThemes(createThemeRegistry(themeRegistry));
-  }, [themeRegistry]);
+  }, [themeRegistry, themeCore]);
 
   const getCacheStatus = useCallback((): { size: number; schemes: ThemeName[] } => {
     // Get schemes from both registry and ThemeCore
@@ -505,7 +505,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
       size: allSchemes.length,
       schemes: allSchemes
     };
-  }, [themes]);
+  }, [themes, themeCore]);
 
   const typography = useMemo(() => ({
     getScale: (element: string): TypographyScale | undefined => {
@@ -514,11 +514,11 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
     getComponentTypography: (component: string, variant?: string, _mode?: string): TypographyScale | undefined => {
       return themeCore.getComponentTypography(component, variant || "default");
     }
-  }), []);
+  }), [themeCore]);
 
   const getComponentStyle = useCallback((component: string, variant?: string, state?: string, _mode?: string): React.CSSProperties => {
     return themeCore.getComponentStyle(component, variant, state);
-  }, []);
+  }, [themeCore]);
 
   const resetTheme = useCallback(async (): Promise<void> => {
     try {
@@ -552,7 +552,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
     } catch (err) {
       logger.error("Failed to reset theme:", err);
     }
-  }, [state.themeName, state.mode, onThemeChange, themes]);
+  }, [state.themeName, state.mode, onThemeChange, themes, themeCore]);
 
   const contextValue = useMemo((): ThemeContextType => ({
     // Required properties

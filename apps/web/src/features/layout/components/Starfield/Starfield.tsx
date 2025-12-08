@@ -983,7 +983,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
   
   useEffect(() => {
     // Helper function to sync cameraStateRef with current internalCamera position
-    const syncCameraStateRef = () => {
+    const syncCameraStateRef = (): void => {
       cameraStateRef.current = {
         cx: internalCamera.cx,
         cy: internalCamera.cy,
@@ -1313,7 +1313,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
             // its left edge at the center of the visible content area
             left: `calc(50% + ${sidebarWidth / 2}px)`,
             // Ensure the inline style overrides the CSS default
-            position: 'fixed' as const
+            position: "fixed" as const
           }}
         >
           <span className={styles.zoomOutIcon}>←</span>
