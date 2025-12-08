@@ -1,5 +1,13 @@
 import { NavItem } from "@/types";
-import { Home, Info, Target, Briefcase, FileText, Mail, Palette } from "lucide-react";
+import {
+  Home,
+  Info,
+  Target,
+  Briefcase,
+  FileText,
+  Mail,
+  Palette,
+} from "lucide-react";
 
 // Main navigation items used in both header and sidebar
 // Section links (anchors on main page) come before page links
@@ -18,10 +26,22 @@ export const navItems: NavItem[] = [
 // Resource items for sidebar only
 export const resourceItems: NavItem[] = [
   // Documentation link removed - docs.phoenixvc.tech not yet available
-  { label: "Theme Designer", href: "/theme-designer", icon: <Palette size={20} /> },
+  {
+    label: "Theme Designer",
+    href: "/theme-designer",
+    icon: <Palette size={20} />,
+  },
 ];
 
 export const socialLinks = [
-  { href: "https://www.linkedin.com/company/101922781/", label: "LinkedIn", icon: "linkedin" },
-  { href: "https://ebenmare.substack.com/", label: "Substack", icon: "substack" },
+  {
+    href: "https://www.linkedin.com/company/101922781/",
+    label: "LinkedIn",
+    icon: "linkedin",
+  },
+  {
+    href: "https://ebenmare.substack.com/",
+    label: "Substack",
+    icon: "substack",
+  },
 ];

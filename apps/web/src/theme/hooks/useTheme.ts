@@ -8,11 +8,18 @@ export function useTheme(): ThemeContextType & {
   setThemeName: (name: string) => void;
   typography: {
     get: (element: string) => TypographyScale | undefined;
-    getComponentTypography: (component: string, variant?: string) => TypographyScale | undefined;
+    getComponentTypography: (
+      component: string,
+      variant?: string,
+    ) => TypographyScale | undefined;
     getClass: (element: string) => string;
     getStyle: (element: string) => React.CSSProperties;
   };
-  getComponentFullStyle: (component: string, variant?: string, state?: string) => React.CSSProperties;
+  getComponentFullStyle: (
+    component: string,
+    variant?: string,
+    state?: string,
+  ) => React.CSSProperties;
 } {
   const theme = useContext(ThemeContext);
 
@@ -29,7 +36,9 @@ export function useTheme(): ThemeContextType & {
       if (theme.setTheme) {
         theme.setTheme(name);
       } else {
-        console.warn("setThemeName is not available in the current theme context");
+        console.warn(
+          "setThemeName is not available in the current theme context",
+        );
       }
     },
 
@@ -43,9 +52,13 @@ export function useTheme(): ThemeContextType & {
       // Get typography for a component
       getComponentTypography: (
         component: string,
-        variant?: string
+        variant?: string,
       ): TypographyScale | undefined => {
-        return theme.typography?.getComponentTypography(component, variant, theme.themeMode);
+        return theme.typography?.getComponentTypography(
+          component,
+          variant,
+          theme.themeMode,
+        );
       },
 
       // Get typography CSS class
@@ -64,18 +77,23 @@ export function useTheme(): ThemeContextType & {
           letterSpacing: scale.letterSpacing,
           fontWeight: scale.fontWeight,
           ...(scale.fontFamily ? { fontFamily: scale.fontFamily } : {}),
-          ...(scale.textTransform ? { textTransform: scale.textTransform } : {})
+          ...(scale.textTransform
+            ? { textTransform: scale.textTransform }
+            : {}),
         };
-      }
+      },
     },
 
     // Enhanced component helpers with typography
     getComponentFullStyle: (
       component: string,
       variant?: string,
-      state?: string
+      state?: string,
     ): React.CSSProperties => {
-      return theme.getComponentStyle?.(component, variant, state, theme.themeMode) || {};
-    }
+      return (
+        theme.getComponentStyle?.(component, variant, state, theme.themeMode) ||
+        {}
+      );
+    },
   };
 }

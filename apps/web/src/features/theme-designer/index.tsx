@@ -9,7 +9,9 @@ interface ThemeDesignerProps {
   isDarkMode?: boolean;
 }
 
-export const ThemeDesigner: FC<ThemeDesignerProps> = ({ isDarkMode: propDarkMode }) => {
+export const ThemeDesigner: FC<ThemeDesignerProps> = ({
+  isDarkMode: propDarkMode,
+}) => {
   const { themeMode } = useTheme();
   const isDarkMode = propDarkMode ?? themeMode === "dark";
 
@@ -20,7 +22,9 @@ export const ThemeDesigner: FC<ThemeDesignerProps> = ({ isDarkMode: propDarkMode
         description="Customize your Phoenix VC experience with our upcoming theme designer tool."
         noIndex={true}
       />
-      <section className={`${styles.container} ${isDarkMode ? styles.dark : styles.light}`}>
+      <section
+        className={`${styles.container} ${isDarkMode ? styles.dark : styles.light}`}
+      >
         <div className={styles.content}>
           <div className={styles.iconWrapper}>
             <Palette size={64} className={styles.mainIcon} />

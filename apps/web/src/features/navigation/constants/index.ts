@@ -8,33 +8,33 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
     label: "Home",
     type: "section",
     reference: "home", // matches <div id="home">
-    icon: "home"
+    icon: "home",
   },
   {
     path: "/#focus-areas",
     label: "Focus Areas",
     type: "section",
-    reference: "focus" // matches <div id="focus-areas">
+    reference: "focus", // matches <div id="focus-areas">
   },
   {
     path: "/portfolio",
     label: "Portfolio",
-    type: "page"
+    type: "page",
   },
   {
     path: "/blog",
     label: "Blog",
-    type: "page"
+    type: "page",
   },
   {
     path: "/projects",
     label: "Projects",
-    type: "page"
+    type: "page",
   },
   {
     path: "/#contact",
     label: "Contact",
     type: "section",
-    reference: "contact" // matches <div id="contact">
-  }
+    reference: "contact", // matches <div id="contact">
+  },
 ];

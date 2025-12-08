@@ -9,9 +9,9 @@ export const useScrollTo = (): ((target: string) => void) => {
   const scrollTo = useCallback((target: string) => {
     // Remove leading # if present
     const elementId = target.startsWith("#") ? target.slice(1) : target;
-    
+
     const element = document.getElementById(elementId);
-    
+
     if (element) {
       element.scrollIntoView({
         behavior: "smooth",

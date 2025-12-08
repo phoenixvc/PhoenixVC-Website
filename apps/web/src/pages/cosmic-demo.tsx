@@ -6,10 +6,11 @@ import styles from "@/styles/CosmicDemo.module.css";
 const typedStyles = styles as Record<string, string>;
 
 const CosmicDemo: React.FC = () => {
-  const [navigationState, _setNavigationState] = useState<CosmicNavigationState>({
-    currentLevel: "universe",
-    isTransitioning: false
-  });
+  const [navigationState, _setNavigationState] =
+    useState<CosmicNavigationState>({
+      currentLevel: "universe",
+      isTransitioning: false,
+    });
 
   return (
     <Layout>
@@ -17,35 +18,44 @@ const CosmicDemo: React.FC = () => {
         <div className={typedStyles.cosmicInfo}>
           <h1>Cosmic Navigation System</h1>
           <p>
-            Explore the Phoenix VC website through our cosmic navigation system. Click on galaxies,
-            star systems, and special objects to navigate through the cosmic hierarchy.
+            Explore the Phoenix VC website through our cosmic navigation system.
+            Click on galaxies, star systems, and special objects to navigate
+            through the cosmic hierarchy.
           </p>
 
           <div className={typedStyles.navigationStatus}>
             <h2>Current Navigation State</h2>
             <div className={typedStyles.statusItem}>
               <span className={typedStyles.statusLabel}>Level:</span>
-              <span className={typedStyles.statusValue}>{navigationState.currentLevel}</span>
+              <span className={typedStyles.statusValue}>
+                {navigationState.currentLevel}
+              </span>
             </div>
 
             {navigationState.currentGalaxyId && (
               <div className={typedStyles.statusItem}>
                 <span className={typedStyles.statusLabel}>Galaxy:</span>
-                <span className={typedStyles.statusValue}>{navigationState.currentGalaxyId}</span>
+                <span className={typedStyles.statusValue}>
+                  {navigationState.currentGalaxyId}
+                </span>
               </div>
             )}
 
             {navigationState.currentStarSystemId && (
               <div className={typedStyles.statusItem}>
                 <span className={typedStyles.statusLabel}>Star System:</span>
-                <span className={typedStyles.statusValue}>{navigationState.currentStarSystemId}</span>
+                <span className={typedStyles.statusValue}>
+                  {navigationState.currentStarSystemId}
+                </span>
               </div>
             )}
 
             {navigationState.currentSpecialObjectId && (
               <div className={typedStyles.statusItem}>
                 <span className={typedStyles.statusLabel}>Special Object:</span>
-                <span className={typedStyles.statusValue}>{navigationState.currentSpecialObjectId}</span>
+                <span className={typedStyles.statusValue}>
+                  {navigationState.currentSpecialObjectId}
+                </span>
               </div>
             )}
           </div>

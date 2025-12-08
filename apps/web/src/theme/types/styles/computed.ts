@@ -1,6 +1,12 @@
 // /theme/types//styles/computed.ts
 
-import { BaseStyles, HoverStyles, FocusStyles, ActiveStyles, DisabledStyles } from "./base";
+import {
+  BaseStyles,
+  HoverStyles,
+  FocusStyles,
+  ActiveStyles,
+  DisabledStyles,
+} from "./base";
 
 /**
  * Semantic Style Interfaces

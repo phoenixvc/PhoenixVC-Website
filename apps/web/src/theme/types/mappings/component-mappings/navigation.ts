@@ -3,11 +3,10 @@
 import { NavigationColorSet } from "../../components";
 
 export interface NavigationMappings {
-    navbar: NavigationColorSet;
-    sidebar: NavigationColorSet;
-    tab: NavigationColorSet;
-    breadcrumb: NavigationColorSet;
-    menu: NavigationColorSet;
-    pagination: NavigationColorSet;
+  navbar: NavigationColorSet;
+  sidebar: NavigationColorSet;
+  tab: NavigationColorSet;
+  breadcrumb: NavigationColorSet;
+  menu: NavigationColorSet;
+  pagination: NavigationColorSet;
 }
-

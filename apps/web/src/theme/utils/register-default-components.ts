@@ -20,7 +20,7 @@ export function registerDefaultComponents(): void {
 
   // Get the theme core instance
   const themeCore = ThemeCore.getInstance();
-  
+
   // Get the style manager from themeCore
   const styleManager = themeCore.getStyleManager();
 
@@ -32,7 +32,10 @@ export function registerDefaultComponents(): void {
         // and automatically register it in the component registry
         styleManager.getComponentStyle(component, "default", "default");
       } catch (error) {
-        console.error(`Failed to register default component: ${component}`, error);
+        console.error(
+          `Failed to register default component: ${component}`,
+          error,
+        );
       }
     });
   }

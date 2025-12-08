@@ -158,7 +158,8 @@ export const STAR_RENDERING_CONFIG = {
  */
 export const ANIMATION_TIMING_CONFIG = {
   // Throttling intervals (in frames)
-  elementFromPointCheckInterval: 5,
+  // elementFromPoint is an expensive DOM operation, check every 10 frames (~166ms at 60fps)
+  elementFromPointCheckInterval: 10,
   fpsCalculationInterval: 10,
 
   // Camera animation
@@ -252,10 +253,19 @@ export const OPACITY_CONFIG = {
   sun: {
     halo: { highlighted: 0.15, normal: 0.08 },
     atmosphere: { highlighted: 0.5, normal: 0.35 },
-    flares: { dark: { highlighted: 0.7, normal: 0.5 }, light: { highlighted: 0.5, normal: 0.35 } },
-    rays: { dark: { highlighted: 0.5, normal: 0.35 }, light: { highlighted: 0.35, normal: 0.22 } },
+    flares: {
+      dark: { highlighted: 0.7, normal: 0.5 },
+      light: { highlighted: 0.5, normal: 0.35 },
+    },
+    rays: {
+      dark: { highlighted: 0.5, normal: 0.35 },
+      light: { highlighted: 0.35, normal: 0.22 },
+    },
     chromosphere: { dark: 0.6, light: 0.45 },
-    particles: { dark: { highlighted: 0.85, normal: 0.65 }, light: { highlighted: 0.7, normal: 0.5 } },
+    particles: {
+      dark: { highlighted: 0.85, normal: 0.65 },
+      light: { highlighted: 0.7, normal: 0.5 },
+    },
     icon: { dark: 0.85, light: 0.75 },
   },
 

@@ -11,14 +11,21 @@ const DesignDecisionForm = () => {
     <div className="max-w-2xl mx-auto p-6 space-y-8">
       <div className="space-y-2">
         <h1 className="text-2xl font-bold">Phoenix VC Design Direction</h1>
-        <p className="text-gray-600">Define the initial design direction for the website</p>
+        <p className="text-gray-600">
+          Define the initial design direction for the website
+        </p>
       </div>
 
       <div className="space-y-6">
         {/* Visual Style Selection */}
         <div className="space-y-4">
-          <Label className="text-lg font-semibold">1. Select Primary Visual Style</Label>
-          <RadioGroup defaultValue="balanced-modern" className="grid grid-cols-2 gap-4">
+          <Label className="text-lg font-semibold">
+            1. Select Primary Visual Style
+          </Label>
+          <RadioGroup
+            defaultValue="balanced-modern"
+            className="grid grid-cols-2 gap-4"
+          >
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="balanced-modern" id="balanced" />
               <Label htmlFor="balanced">Balanced Modern</Label>
@@ -63,7 +70,9 @@ const DesignDecisionForm = () => {
 
         {/* Color Theme */}
         <div className="space-y-4">
-          <Label className="text-lg font-semibold">3. Color Theme Preference</Label>
+          <Label className="text-lg font-semibold">
+            3. Color Theme Preference
+          </Label>
           <Select>
             <option value="light">Light Mode Primary</option>
             <option value="dark">Dark Mode Primary</option>
@@ -77,8 +86,18 @@ const DesignDecisionForm = () => {
           <div className="space-y-2">
             <Label>Order of Importance (1-5)</Label>
             <div className="grid grid-cols-2 gap-4">
-              <Input type="number" placeholder="Visual Impact" min="1" max="5" />
-              <Input type="number" placeholder="Information Density" min="1" max="5" />
+              <Input
+                type="number"
+                placeholder="Visual Impact"
+                min="1"
+                max="5"
+              />
+              <Input
+                type="number"
+                placeholder="Information Density"
+                min="1"
+                max="5"
+              />
               <Input type="number" placeholder="Interaction" min="1" max="5" />
               <Input type="number" placeholder="Navigation" min="1" max="5" />
               <Input type="number" placeholder="Animation" min="1" max="5" />
@@ -88,8 +107,10 @@ const DesignDecisionForm = () => {
 
         {/* Additional Notes */}
         <div className="space-y-4">
-          <Label className="text-lg font-semibold">5. Additional Requirements</Label>
-          <Textarea 
+          <Label className="text-lg font-semibold">
+            5. Additional Requirements
+          </Label>
+          <Textarea
             placeholder="Enter any specific requirements or preferences..."
             className="h-32"
           />

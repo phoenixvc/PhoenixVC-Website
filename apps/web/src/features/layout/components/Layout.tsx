@@ -39,12 +39,14 @@ const Layout = ({ children }: LayoutProps): React.ReactElement => {
   // Disclaimer states
   const [showGameModeDisclaimer, setShowGameModeDisclaimer] = useState(false);
   const [showMobileDisclaimer, setShowMobileDisclaimer] = useState(false);
-  const [hasShownMobileDisclaimer, setHasShownMobileDisclaimer] = useState(false);
+  const [hasShownMobileDisclaimer, setHasShownMobileDisclaimer] =
+    useState(false);
   // Cosmic navigation state
-  const [_cosmicNavigation, setCosmicNavigation] = useState<CosmicNavigationState>({
-    currentLevel: "universe",
-    isTransitioning: false
-  });
+  const [_cosmicNavigation, setCosmicNavigation] =
+    useState<CosmicNavigationState>({
+      currentLevel: "universe",
+      isTransitioning: false,
+    });
 
   // Create a ref to the starfield component
   const starfieldRef = useRef<StarfieldRef>(null);
@@ -91,7 +93,9 @@ const Layout = ({ children }: LayoutProps): React.ReactElement => {
 
   // Check for system preference on initial load
   useEffect(() => {
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)",
+    ).matches;
     setIsDarkMode(prefersDark);
   }, []);
 
@@ -130,7 +134,10 @@ const Layout = ({ children }: LayoutProps): React.ReactElement => {
 
   // Toggle debug mode
   const toggleDebugMode = (): void => {
-    logger.debug("Debug mode toggle clicked in Layout, current value:", debugMode);
+    logger.debug(
+      "Debug mode toggle clicked in Layout, current value:",
+      debugMode,
+    );
     const newDebugMode = !debugMode;
 
     // Update local state
@@ -158,7 +165,7 @@ const Layout = ({ children }: LayoutProps): React.ReactElement => {
     mousePosition: { x: number; y: number; isOnScreen?: boolean } | null,
     stars: Star[],
     mouseEffectRadius: number,
-    _timestamp?: number
+    _timestamp?: number,
   ): void => {
     // Custom debug visualization
     ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
@@ -172,12 +179,22 @@ const Layout = ({ children }: LayoutProps): React.ReactElement => {
 
     // Handle null mousePosition
     if (mousePosition) {
-      ctx.fillText(`Mouse: ${Math.round(mousePosition.x)}, ${Math.round(mousePosition.y)}`, 20, 70);
+      ctx.fillText(
+        `Mouse: ${Math.round(mousePosition.x)}, ${Math.round(mousePosition.y)}`,
+        20,
+        70,
+      );
 
       // Draw mouse effect radius
       if (mousePosition.isOnScreen) {
         ctx.beginPath();
-        ctx.arc(mousePosition.x, mousePosition.y, mouseEffectRadius, 0, Math.PI * 2);
+        ctx.arc(
+          mousePosition.x,
+          mousePosition.y,
+          mouseEffectRadius,
+          0,
+          Math.PI * 2,
+        );
         ctx.strokeStyle = "rgba(138, 43, 226, 0.5)";
         ctx.lineWidth = 2;
         ctx.stroke();
@@ -204,27 +221,27 @@ const Layout = ({ children }: LayoutProps): React.ReactElement => {
       {/* Always use Starfield, remove conditional rendering */}
       <Starfield
         key={`starfield-${isDarkMode}-${sidebarWidth}-${gameMode}`}
-          ref={starfieldRef}
-          sidebarWidth={sidebarWidth}
-          isDarkMode={isDarkMode}
-          enableFlowEffect={true}
-          enableBlackHole={true}
-          enableMouseInteraction={true}
-          enablePlanets={true}
-          starDensity={1.8}
-          starSize={1.5}
-          particleSpeed={0.05}
-          flowStrength={0.01}
-          gravitationalPull={0.05}
-          mouseEffectRadius={220}
-          mouseEffectColor="rgba(138, 43, 226, 0.15)"
-          blackHoleSize={1.5}
-          gameMode={gameMode}
-          maxVelocity={0.5}
-          debugMode={debugMode}
-          animationSpeed={1.0}
-          drawDebugInfo={customDebugInfo}
-        />
+        ref={starfieldRef}
+        sidebarWidth={sidebarWidth}
+        isDarkMode={isDarkMode}
+        enableFlowEffect={true}
+        enableBlackHole={true}
+        enableMouseInteraction={true}
+        enablePlanets={true}
+        starDensity={1.8}
+        starSize={1.5}
+        particleSpeed={0.05}
+        flowStrength={0.01}
+        gravitationalPull={0.05}
+        mouseEffectRadius={220}
+        mouseEffectColor="rgba(138, 43, 226, 0.15)"
+        blackHoleSize={1.5}
+        gameMode={gameMode}
+        maxVelocity={0.5}
+        debugMode={debugMode}
+        animationSpeed={1.0}
+        drawDebugInfo={customDebugInfo}
+      />
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => isMobile && setIsSidebarOpen(false)}
@@ -246,7 +263,13 @@ const Layout = ({ children }: LayoutProps): React.ReactElement => {
       <div
         className={styles.contentWrapper}
         style={{
-          marginLeft: isMobile ? 0 : isSidebarOpen ? (isCollapsed ? "60px" : "220px") : 0,
+          marginLeft: isMobile
+            ? 0
+            : isSidebarOpen
+              ? isCollapsed
+                ? "60px"
+                : "220px"
+              : 0,
         }}
       >
         <Header
@@ -263,13 +286,24 @@ const Layout = ({ children }: LayoutProps): React.ReactElement => {
           onDebugModeToggle={toggleDebugMode}
         />
 
-        <main id="main-content" className={`${styles.mainContent} ${isDarkMode ? styles.darkMain : styles.lightMain}`} role="main">
+        <main
+          id="main-content"
+          className={`${styles.mainContent} ${isDarkMode ? styles.darkMain : styles.lightMain}`}
+          role="main"
+        >
           {React.Children.map(children, (child) =>
             React.isValidElement(child)
-              ? React.cloneElement(child as React.ReactElement<{ isDarkMode: boolean }>, {
-                  isDarkMode
-                })
-              : child
+              ? React.cloneElement(
+                  child as React.ReactElement<{
+                    isDarkMode: boolean;
+                    sidebarWidth: number;
+                  }>,
+                  {
+                    isDarkMode,
+                    sidebarWidth,
+                  },
+                )
+              : child,
           )}
         </main>
 

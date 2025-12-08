@@ -10,14 +10,20 @@ export class ThemeClassesManager {
   /**
    * Get a specific class for a color scheme and element type.
    */
-  public static getSpecificClass(scheme: ThemeName, suffix: ThemeClassSuffix): string {
+  public static getSpecificClass(
+    scheme: ThemeName,
+    suffix: ThemeClassSuffix,
+  ): string {
     return this.generateClassName(scheme, suffix);
   }
 
   /**
    * Generate class name with proper prefix and separator.
    */
-  private static generateClassName(scheme: ThemeName, suffix: ThemeClassSuffix): string {
+  private static generateClassName(
+    scheme: ThemeName,
+    suffix: ThemeClassSuffix,
+  ): string {
     return [this.CLASS_PREFIX, scheme, suffix]
       .filter(Boolean)
       .join(this.SEPARATOR);
@@ -27,7 +33,9 @@ export class ThemeClassesManager {
    * Check if a class belongs to a specific color scheme.
    */
   public static isThemeClass(className: string, scheme: ThemeName): boolean {
-    return className.startsWith(`${this.CLASS_PREFIX}${this.SEPARATOR}${scheme}`);
+    return className.startsWith(
+      `${this.CLASS_PREFIX}${this.SEPARATOR}${scheme}`,
+    );
   }
 
   /**
@@ -40,12 +48,15 @@ export class ThemeClassesManager {
       "ocean",
       "phoenix",
       "lavender",
-      "cloud"
+      "cloud",
     ];
-    return schemes.reduce((acc, scheme) => ({
-      ...acc,
-      [scheme]: this.getColorSchemeClasses(scheme)
-    }), {} as Record<ThemeName, Theme>);
+    return schemes.reduce(
+      (acc, scheme) => ({
+        ...acc,
+        [scheme]: this.getColorSchemeClasses(scheme),
+      }),
+      {} as Record<ThemeName, Theme>,
+    );
   }
 
   /**
@@ -54,15 +65,17 @@ export class ThemeClassesManager {
   public static replaceColorSchemeClasses(
     currentClasses: string,
     oldScheme: ThemeName,
-    newScheme: ThemeName
+    newScheme: ThemeName,
   ): string {
     const classes = currentClasses.split(" ");
     return classes
-      .map(cls => {
+      .map((cls) => {
         if (this.isThemeClass(cls, oldScheme)) {
           const parts = cls.split(this.SEPARATOR);
           // Remove the prefix and old scheme (first two parts) and rejoin the rest as suffix.
-          const suffix = parts.slice(2).join(this.SEPARATOR) as ThemeClassSuffix;
+          const suffix = parts
+            .slice(2)
+            .join(this.SEPARATOR) as ThemeClassSuffix;
           return this.generateClassName(newScheme, suffix);
         }
         return cls;

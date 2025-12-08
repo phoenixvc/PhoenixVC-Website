@@ -1,5 +1,12 @@
 // apps/web/src/theme/context/ThemeContext.tsx
-import React, { createContext, useContext, useState, useMemo, ReactNode, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  ReactNode,
+  useEffect,
+} from "react";
 
 type Theme = "light" | "dark";
 
@@ -16,7 +23,7 @@ const THEME_STORAGE_KEY = "theme-mode";
 // Get initial theme from localStorage, default to dark
 const getInitialTheme = (): Theme => {
   if (typeof window === "undefined") return "dark";
-  
+
   try {
     const stored = localStorage.getItem(THEME_STORAGE_KEY);
     if (stored === "light" || stored === "dark") {
@@ -25,11 +32,15 @@ const getInitialTheme = (): Theme => {
   } catch (error) {
     console.warn("Failed to load theme from localStorage:", error);
   }
-  
+
   return "dark"; // Default to dark mode
 };
 
-export const ThemeProvider = ({ children }: { children: ReactNode }): React.ReactElement => {
+export const ThemeProvider = ({
+  children,
+}: {
+  children: ReactNode;
+}): React.ReactElement => {
   const [themeMode, setThemeMode] = useState<Theme>(getInitialTheme);
 
   // Persist theme to localStorage whenever it changes
@@ -63,16 +74,17 @@ export const ThemeProvider = ({ children }: { children: ReactNode }): React.Reac
 
   const isDarkMode = useMemo(() => themeMode === "dark", [themeMode]);
 
-  const value = useMemo(() => ({
-    themeMode,
-    toggleTheme,
-    isDarkMode,
-  }), [themeMode, isDarkMode]);
+  const value = useMemo(
+    () => ({
+      themeMode,
+      toggleTheme,
+      isDarkMode,
+    }),
+    [themeMode, isDarkMode],
+  );
 
   return (
-    <ThemeContext.Provider value={value}>
-      {children}
-    </ThemeContext.Provider>
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
   );
 };
 

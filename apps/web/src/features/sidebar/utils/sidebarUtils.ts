@@ -1,10 +1,13 @@
 import { ModeColors } from "@/theme";
 import { ComponentSkin } from "..";
 
-export function mapThemeColorsToSkin(
-  themeClasses: { schemes: Record<string, Record<"light" | "dark", ModeColors>> }
-): ComponentSkin {
-  const themeConfig: Record<string, Record<"light" | "dark", ComponentSkin>> = {};
+export function mapThemeColorsToSkin(themeClasses: {
+  schemes: Record<string, Record<"light" | "dark", ModeColors>>;
+}): ComponentSkin {
+  const themeConfig: Record<
+    string,
+    Record<"light" | "dark", ComponentSkin>
+  > = {};
 
   for (const [themeName, themeScheme] of Object.entries(themeClasses.schemes)) {
     // Initialize the themeConfig for the current theme with empty ComponentSkin objects
@@ -58,18 +61,42 @@ export function mapThemeColorsToSkin(
             outline: modeColors.border,
             light: modeColors.text,
             dark: modeColors.background,
-            muted: { hex: "#AAAAAA", hsl: "hsl(0, 0%, 67%)", rgb: "rgb(170, 170, 170)" }, // Custom ColorDefinition
-            emphasis: { hex: "#FF0000", hsl: "hsl(0, 100%, 50%)", rgb: "rgb(255, 0, 0)" },
+            muted: {
+              hex: "#AAAAAA",
+              hsl: "hsl(0, 0%, 67%)",
+              rgb: "rgb(170, 170, 170)",
+            }, // Custom ColorDefinition
+            emphasis: {
+              hex: "#FF0000",
+              hsl: "hsl(0, 100%, 50%)",
+              rgb: "rgb(255, 0, 0)",
+            },
           },
           componentSet: {
             background: modeColors.background,
             foreground: modeColors.text,
             border: modeColors.border,
             outline: modeColors.border,
-            hover: modeColors.hover || { hex: "#CCCCCC", hsl: "hsl(0, 0%, 80%)", rgb: "rgb(204, 204, 204)" }, // Custom fallback
-            active: modeColors.active || { hex: "#333333", hsl: "hsl(0, 0%, 20%)", rgb: "rgb(51, 51, 51)" }, // Custom fallback
-            disabled: modeColors.disabled || { hex: "#AAAAAA", hsl: "hsl(0, 0%, 67%)", rgb: "rgb(170, 170, 170)" }, // Custom fallback
-            focus: modeColors.focus || { hex: "#0000FF", hsl: "hsl(240, 100%, 50%)", rgb: "rgb(0, 0, 255)" }, // Custom fallback
+            hover: modeColors.hover || {
+              hex: "#CCCCCC",
+              hsl: "hsl(0, 0%, 80%)",
+              rgb: "rgb(204, 204, 204)",
+            }, // Custom fallback
+            active: modeColors.active || {
+              hex: "#333333",
+              hsl: "hsl(0, 0%, 20%)",
+              rgb: "rgb(51, 51, 51)",
+            }, // Custom fallback
+            disabled: modeColors.disabled || {
+              hex: "#AAAAAA",
+              hsl: "hsl(0, 0%, 67%)",
+              rgb: "rgb(170, 170, 170)",
+            }, // Custom fallback
+            focus: modeColors.focus || {
+              hex: "#0000FF",
+              hsl: "hsl(240, 100%, 50%)",
+              rgb: "rgb(0, 0, 255)",
+            }, // Custom fallback
           },
         },
       };

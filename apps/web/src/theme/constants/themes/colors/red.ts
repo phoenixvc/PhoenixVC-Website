@@ -1,6 +1,10 @@
-import { ColorAdjustments, ColorDefinition, ColorShades, ShadeLevel } from "@/theme/types";
+import {
+  ColorAdjustments,
+  ColorDefinition,
+  ColorShades,
+  ShadeLevel,
+} from "@/theme/types";
 import ColorUtils from "@/theme/utils/color-utils";
-
 
 // Base red color
 const BASE_RED = "#EF4444";
@@ -27,7 +31,18 @@ const generateRedPalette = (): Record<ShadeLevel, ColorDefinition> => {
 export const redPalette: ColorShades = {
   ...generateRedPalette(),
   base: BASE_RED,
-  contrast: ["#000000", "#000000", "#000000", "#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF"],
+  contrast: [
+    "#000000",
+    "#000000",
+    "#000000",
+    "#000000",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+  ],
 };
 
 // Export a function to get a specific red shade
@@ -36,7 +51,9 @@ export const getRedShade = (shade: ShadeLevel): ColorDefinition => {
 };
 
 // Export a function to create a red with custom adjustments
-export const createRedVariant = (adjustments: ColorAdjustments): ColorDefinition => {
+export const createRedVariant = (
+  adjustments: ColorAdjustments,
+): ColorDefinition => {
   const baseColor = ColorUtils.createColorDefinition(BASE_RED);
   return ColorUtils.adjustColor(baseColor, adjustments);
 };

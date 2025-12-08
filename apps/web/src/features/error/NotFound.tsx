@@ -15,22 +15,26 @@ const NotFound: FC = memo(() => {
   // Disable animations when user prefers reduced motion
   const contentAnimation = prefersReducedMotion
     ? { initial: {}, animate: {}, transition: {} }
-    : { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.6 } };
+    : {
+        initial: { opacity: 0, y: 20 },
+        animate: { opacity: 1, y: 0 },
+        transition: { duration: 0.6 },
+      };
 
   const headingAnimation = prefersReducedMotion
     ? { initial: {}, animate: {}, transition: {} }
-    : { initial: { scale: 0.5 }, animate: { scale: 1 }, transition: { duration: 0.5, delay: 0.2 } };
+    : {
+        initial: { scale: 0.5 },
+        animate: { scale: 1 },
+        transition: { duration: 0.5, delay: 0.2 },
+      };
 
   return (
-    <section className={`${styles.container} ${isDarkMode ? styles.dark : styles.light}`}>
-      <motion.div
-        className={styles.content}
-        {...contentAnimation}
-      >
-        <motion.h1
-          className={styles.errorCode}
-          {...headingAnimation}
-        >
+    <section
+      className={`${styles.container} ${isDarkMode ? styles.dark : styles.light}`}
+    >
+      <motion.div className={styles.content} {...contentAnimation}>
+        <motion.h1 className={styles.errorCode} {...headingAnimation}>
           404
         </motion.h1>
 

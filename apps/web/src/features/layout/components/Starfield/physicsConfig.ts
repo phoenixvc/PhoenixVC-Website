@@ -208,7 +208,7 @@ export const SIZE_CONFIG = {
   /** Base size range (min + random * range) - reduced for smaller, crisper stars */
   sizeRangeMin: 0.05,
   sizeRangeMax: 0.2,
-  
+
   // Planet/comet rendering
   /** Base planet size multiplier - increased from 2.5 for larger planets with more visible icons */
   planetBaseSize: 8,
@@ -216,7 +216,7 @@ export const SIZE_CONFIG = {
   planetHoverScale: 1.15,
   /** Planet glow radius multiplier */
   planetGlowRadius: 1.5,
-  
+
   // Project identifier (icon/initials on planets)
   /** Clip radius for project icon relative to star size */
   projectIconClipRadius: 0.85,
@@ -291,7 +291,7 @@ export const CAMERA_CONFIG = {
   positionConvergenceThreshold: 0.001,
   /** Threshold for camera zoom convergence */
   zoomConvergenceThreshold: 0.01,
-   /** Target zoom level when focusing on a sun */
+  /** Target zoom level when focusing on a sun */
   sunFocusZoom: 2.5,
   /** Minimum zoom level for dynamic sun focus */
   minSunFocusZoom: 1.8,

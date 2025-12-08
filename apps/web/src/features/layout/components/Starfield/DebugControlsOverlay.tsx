@@ -7,7 +7,10 @@ import { DebugSettings, MousePosition, Star } from "./types"; // Adjust the impo
 
 interface DebugControlsProps {
   debugSettings: DebugSettings;
-  updateDebugSetting: <K extends keyof DebugSettings>(_key: K, _value: DebugSettings[K]) => void;
+  updateDebugSetting: <K extends keyof DebugSettings>(
+    _key: K,
+    _value: DebugSettings[K],
+  ) => void;
   resetStars: () => void;
   sidebarWidth: number;
   // Add new props for debug info
@@ -19,7 +22,9 @@ interface DebugControlsProps {
   setMousePosition?: (_position: MousePosition) => void;
   // Add isDarkMode prop
   isDarkMode?: boolean;
-  onEmployeeOrbitSpeedChange?: (_e: React.ChangeEvent<HTMLInputElement>) => void;
+  onEmployeeOrbitSpeedChange?: (
+    _e: React.ChangeEvent<HTMLInputElement>,
+  ) => void;
 }
 
 const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
@@ -33,7 +38,7 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
   timestamp: _timestamp,
   setMousePosition,
   isDarkMode = true,
-  onEmployeeOrbitSpeedChange
+  onEmployeeOrbitSpeedChange,
 }) => {
   // FPS tracking
   const fpsValues = useRef<number[]>([]);
@@ -48,9 +53,11 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
       }
 
       // Calculate average FPS
-      const avgFps = fpsValues.current.length > 0
-        ? fpsValues.current.reduce((sum, val) => sum + val, 0) / fpsValues.current.length
-        : 0;
+      const avgFps =
+        fpsValues.current.length > 0
+          ? fpsValues.current.reduce((sum, val) => sum + val, 0) /
+            fpsValues.current.length
+          : 0;
       setAverageFps(avgFps);
     }
   }, [fps]);
@@ -61,27 +68,39 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
   }
 
   // Handle input changes with proper typing
-  const handleAnimationSpeedChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+  const handleAnimationSpeedChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ): void => {
     updateDebugSetting("animationSpeed", Number(e.target.value));
   };
 
-  const handleMaxVelocityChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+  const handleMaxVelocityChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ): void => {
     updateDebugSetting("maxVelocity", Number(e.target.value));
   };
 
-  const handleFlowStrengthChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+  const handleFlowStrengthChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ): void => {
     updateDebugSetting("flowStrength", Number(e.target.value));
   };
 
-  const handleGravitationalPullChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+  const handleGravitationalPullChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ): void => {
     updateDebugSetting("gravitationalPull", Number(e.target.value));
   };
 
-  const handleMouseEffectRadiusChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+  const handleMouseEffectRadiusChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ): void => {
     updateDebugSetting("mouseEffectRadius", Number(e.target.value));
   };
 
-  const handleEmployeeOrbitSpeedChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+  const handleEmployeeOrbitSpeedChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ): void => {
     updateDebugSetting("employeeOrbitSpeed", Number(e.target.value));
 
     if (onEmployeeOrbitSpeedChange) {
@@ -89,11 +108,15 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
     }
   };
 
-  const handleLineConnectionDistanceChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+  const handleLineConnectionDistanceChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ): void => {
     updateDebugSetting("lineConnectionDistance", Number(e.target.value));
   };
 
-  const handleLineOpacityChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+  const handleLineOpacityChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ): void => {
     updateDebugSetting("lineOpacity", Number(e.target.value));
   };
 
@@ -113,7 +136,7 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
         speedY: 0,
         isClicked: true,
         clickTime: Date.now(),
-        isOnScreen: true
+        isOnScreen: true,
       };
       setMousePosition(newPos);
     }
@@ -121,7 +144,7 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
 
   // Handle repulsion test
   const handleRepulsionTest = (): void => {
-    const canvasWidth  = window.innerWidth;
+    const canvasWidth = window.innerWidth;
     const canvasHeight = window.innerHeight;
     const cx = canvasWidth / 2;
     const cy = canvasHeight / 2;
@@ -131,26 +154,29 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
         cx,
         cy,
         debugSettings.repulsionRadius,
-        debugSettings.repulsionForce
+        debugSettings.repulsionForce,
       );
       window.starfieldAPI.createExplosion(cx, cy);
     }
   };
 
-
   // Calculate max velocity of any star
-  const maxVelocity = stars.length > 0
-    ? stars.reduce((max, star) => {
-        const vel = Math.sqrt(star.vx * star.vx + star.vy * star.vy);
-        return vel > max ? vel : max;
-      }, 0)
-    : 0;
+  const maxVelocity =
+    stars.length > 0
+      ? stars.reduce((max, star) => {
+          const vel = Math.sqrt(star.vx * star.vx + star.vy * star.vy);
+          return vel > max ? vel : max;
+        }, 0)
+      : 0;
 
   // Determine the CSS classes based on the theme
   const debugControlsClass = `${styles.debugControls} ${!isDarkMode ? styles.debugControlsLight : ""}`;
 
   return (
-    <div className={styles.debugOverlayContainer} onClick={(e) => e.stopPropagation()}>
+    <div
+      className={styles.debugOverlayContainer}
+      onClick={(e) => e.stopPropagation()}
+    >
       <div
         className={styles.debugIndicator}
         style={{ left: `${sidebarWidth + 10}px`, top: "80px" }}
@@ -164,7 +190,7 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
           left: `${sidebarWidth + 10}px`,
           top: "110px",
           maxHeight: "80vh",
-          overflowY: "auto"
+          overflowY: "auto",
         }}
         onClick={(e) => e.stopPropagation()}
         onMouseDown={(e) => e.stopPropagation()}
@@ -179,7 +205,10 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
           <div className={styles.debugInfoGrid}>
             <div>FPS: {Math.round(averageFps)}</div>
             <div>Stars: {stars.length}</div>
-            <div>Mouse: {Math.round(mousePosition.x)}, {Math.round(mousePosition.y)}</div>
+            <div>
+              Mouse: {Math.round(mousePosition.x)},{" "}
+              {Math.round(mousePosition.y)}
+            </div>
             <div>Clicked: {mousePosition.isClicked ? "Yes" : "No"}</div>
             <div>Max Velocity: {maxVelocity.toFixed(2)}</div>
             <div>Effect Radius: {debugSettings.mouseEffectRadius}px</div>
@@ -190,7 +219,9 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
         <div className={styles.controlsSection}>
           <h4>CONTROLS</h4>
           <div>
-            <label>Animation Speed: {debugSettings.animationSpeed.toFixed(2)}x</label>
+            <label>
+              Animation Speed: {debugSettings.animationSpeed.toFixed(2)}x
+            </label>
             <input
               type="range"
               min="0.1"
@@ -224,7 +255,9 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
           </div>
 
           <div>
-            <label>Flow Strength: {debugSettings.flowStrength.toFixed(2)}</label>
+            <label>
+              Flow Strength: {debugSettings.flowStrength.toFixed(2)}
+            </label>
             <input
               type="range"
               min="0"
@@ -241,7 +274,9 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
           </div>
 
           <div>
-            <label>Gravitational Pull: {debugSettings.gravitationalPull.toFixed(2)}</label>
+            <label>
+              Gravitational Pull: {debugSettings.gravitationalPull.toFixed(2)}
+            </label>
             <input
               type="range"
               min="0"
@@ -258,7 +293,9 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
           </div>
 
           <div>
-            <label>Mouse Effect Radius: {debugSettings.mouseEffectRadius}px</label>
+            <label>
+              Mouse Effect Radius: {debugSettings.mouseEffectRadius}px
+            </label>
             <input
               type="range"
               min="50"
@@ -328,7 +365,10 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
           </div>
 
           <div>
-            <label>Portfolio Orbit Speed: {debugSettings.employeeOrbitSpeed.toFixed(5)}</label>
+            <label>
+              Portfolio Orbit Speed:{" "}
+              {debugSettings.employeeOrbitSpeed.toFixed(5)}
+            </label>
             <input
               type="range"
               min="0.00001"
@@ -345,7 +385,9 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
           </div>
 
           <div>
-            <label>Line Connection Distance: {debugSettings.lineConnectionDistance}px</label>
+            <label>
+              Line Connection Distance: {debugSettings.lineConnectionDistance}px
+            </label>
             <input
               type="range"
               min="50"
@@ -409,7 +451,10 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
             Close Debug
           </button>
           <button
-            onClick={e => { e.stopPropagation(); handleRepulsionTest(); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRepulsionTest();
+            }}
             disabled={!debugSettings.repulsionEnabled}
             className={styles.actionButton}
           >

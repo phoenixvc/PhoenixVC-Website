@@ -54,17 +54,26 @@ const ThemeToggle: React.FC = () => {
   }, [themeMode, useSystemMode, themeName]);
 
   // Memoize handlers to prevent recreation on each render
-  const handleSetMode = useCallback((newMode: "light" | "dark") => {
-    setMode(newMode);
-  }, [setMode]);
+  const handleSetMode = useCallback(
+    (newMode: "light" | "dark") => {
+      setMode(newMode);
+    },
+    [setMode],
+  );
 
-  const handleSetThemeClasses = useCallback((themeName: ThemeName) => {
-    setThemeClasses(themeName);
-  }, [setThemeClasses]);
+  const handleSetThemeClasses = useCallback(
+    (themeName: ThemeName) => {
+      setThemeClasses(themeName);
+    },
+    [setThemeClasses],
+  );
 
-  const handleSetUseSystemMode = useCallback((value: boolean) => {
-    setUseSystemMode(value);
-  }, [setUseSystemMode]);
+  const handleSetUseSystemMode = useCallback(
+    (value: boolean) => {
+      setUseSystemMode(value);
+    },
+    [setUseSystemMode],
+  );
 
   return (
     <DropdownMenu>
@@ -80,13 +89,17 @@ const ThemeToggle: React.FC = () => {
         <DropdownMenuItem onClick={() => handleSetMode("light")}>
           <Sun className="mr-2 h-4 w-4" />
           Light
-          {themeMode === "light" && <Check className="ml-auto h-4 w-4 text-primary" />}
+          {themeMode === "light" && (
+            <Check className="ml-auto h-4 w-4 text-primary" />
+          )}
         </DropdownMenuItem>
 
         <DropdownMenuItem onClick={() => handleSetMode("dark")}>
           <Moon className="mr-2 h-4 w-4" />
           Dark
-          {themeMode === "dark" && <Check className="ml-auto h-4 w-4 text-primary" />}
+          {themeMode === "dark" && (
+            <Check className="ml-auto h-4 w-4 text-primary" />
+          )}
         </DropdownMenuItem>
 
         <DropdownMenuCheckboxItem

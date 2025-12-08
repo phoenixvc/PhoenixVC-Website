@@ -15,7 +15,7 @@ export class StrategyFactory {
     this.strategies = [
       new InteractiveStateStrategy(),
       new NavigationStrategy(),
-      new TabStrategy()
+      new TabStrategy(),
     ];
   }
 
@@ -23,7 +23,7 @@ export class StrategyFactory {
    * Gets strategies that can handle the given pattern
    */
   getStrategiesForPattern(pattern: string): VariantResolutionStrategy[] {
-    return this.strategies.filter(strategy => strategy.canHandle(pattern));
+    return this.strategies.filter((strategy) => strategy.canHandle(pattern));
   }
 
   /**

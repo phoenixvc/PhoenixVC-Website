@@ -3,11 +3,14 @@
 import { ButtonColorSet, InputColorSet } from "../../components";
 
 export interface FormElementMappings {
-    input: InputColorSet;
-    select: InputColorSet;
-    checkbox: InputColorSet;
-    radio: InputColorSet;
-    switch: InputColorSet;
-    textarea: InputColorSet;
-    button: Record<"primary" | "secondary" | "ghost" | "link" | "danger", ButtonColorSet>;
+  input: InputColorSet;
+  select: InputColorSet;
+  checkbox: InputColorSet;
+  radio: InputColorSet;
+  switch: InputColorSet;
+  textarea: InputColorSet;
+  button: Record<
+    "primary" | "secondary" | "ghost" | "link" | "danger",
+    ButtonColorSet
+  >;
 }

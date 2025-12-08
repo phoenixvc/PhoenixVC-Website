@@ -54,7 +54,11 @@ export interface CssVariableSet {
  * CSS Variable Utilities
  */
 export interface CssVariableUtils {
-  create: (name: string, value: string, config?: CssVariableConfig) => CssVariable;
+  create: (
+    name: string,
+    value: string,
+    config?: CssVariableConfig,
+  ) => CssVariable;
   format: (variable: CssVariable, options?: CssVariableFormatOptions) => string;
   parse: (cssVariable: string) => Partial<CssVariable>;
 }

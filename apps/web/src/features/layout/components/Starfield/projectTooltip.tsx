@@ -24,7 +24,7 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
   onPin,
   onUnpin,
   onMouseEnter,
-  onMouseLeave
+  onMouseLeave,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -36,11 +36,17 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
   }, []);
 
   // Calculate tooltip position to ensure it stays within viewport
-  const adjustPosition = (): { left: number; top: number; position: "fixed" } => {
+  const adjustPosition = (): {
+    left: number;
+    top: number;
+    position: "fixed";
+  } => {
     const tooltipWidth = 280;
     const tooltipHeight = 250;
-    const windowWidth = typeof window !== "undefined" ? window.innerWidth : 1200;
-    const windowHeight = typeof window !== "undefined" ? window.innerHeight : 800;
+    const windowWidth =
+      typeof window !== "undefined" ? window.innerWidth : 1200;
+    const windowHeight =
+      typeof window !== "undefined" ? window.innerHeight : 800;
 
     let tooltipX = x + 20;
     let tooltipY = y - tooltipHeight / 2;
@@ -58,7 +64,7 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
     return {
       left: tooltipX,
       top: tooltipY,
-      position: "fixed" as const
+      position: "fixed" as const,
     };
   };
 
@@ -67,19 +73,26 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
   // Format status for display
   const formatStatus = (status?: string): string => {
     const statusMap: Record<string, string> = {
-      "alpha": "Alpha",
+      alpha: "Alpha",
       "pre-alpha": "Pre-Alpha",
       "early-stage": "Early Stage",
-      "growth": "Growth Stage",
-      "active": "Active"
+      growth: "Growth Stage",
+      active: "Active",
     };
     return statusMap[status || ""] || "Portfolio";
   };
 
   const projectStage = formatStatus(project.status);
-  const focusAreaLabel = project.focusArea?.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase()) || project.department || "Technology";
+  const focusAreaLabel =
+    project.focusArea
+      ?.replace(/-/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase()) ||
+    project.department ||
+    "Technology";
   const badgeText = projectStage;
-  const skillsList = Array.isArray(project.skills) ? project.skills.slice(0, 3).join(", ") : project.expertise || "Innovation";
+  const skillsList = Array.isArray(project.skills)
+    ? project.skills.slice(0, 3).join(", ")
+    : project.expertise || "Innovation";
 
   // Event handlers
   const handleTooltipClick = (e: React.MouseEvent): void => {
@@ -118,15 +131,17 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
       onMouseLeave={onMouseLeave}
     >
       {isPinned && (
-        <div
-          className={styles.tooltipCloseButton}
-          onClick={handleCloseClick}
-        >×</div>
+        <div className={styles.tooltipCloseButton} onClick={handleCloseClick}>
+          ×
+        </div>
       )}
 
-      <div className={styles.tooltipGlowEffect} style={{
-        background: `radial-gradient(circle at left center, ${isDarkMode ? "rgba(157, 78, 221, 0.12)" : "rgba(123, 44, 191, 0.08)"} 0%, rgba(0, 0, 0, 0) 70%)`
-      }} />
+      <div
+        className={styles.tooltipGlowEffect}
+        style={{
+          background: `radial-gradient(circle at left center, ${isDarkMode ? "rgba(157, 78, 221, 0.12)" : "rgba(123, 44, 191, 0.08)"} 0%, rgba(0, 0, 0, 0) 70%)`,
+        }}
+      />
 
       <div className={styles.tooltipHeader}>
         <div
@@ -137,18 +152,20 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
             backgroundColor: project.image ? "transparent" : projectColor,
             display: "flex",
             alignItems: "center",
-            justifyContent: "center"
+            justifyContent: "center",
           }}
         >
           {project.image ? (
             <img src={project.image} alt={project.name} />
           ) : (
-            <span style={{
-              color: "#ffffff",
-              fontSize: "18px",
-              fontWeight: 700,
-              letterSpacing: "-0.5px"
-            }}>
+            <span
+              style={{
+                color: "#ffffff",
+                fontSize: "18px",
+                fontWeight: 700,
+                letterSpacing: "-0.5px",
+              }}
+            >
               {project.initials || project.name?.substring(0, 2).toUpperCase()}
             </span>
           )}
@@ -167,7 +184,7 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
             style={{
               backgroundColor: `${projectColor}15`,
               color: projectColor,
-              borderColor: `${projectColor}40`
+              borderColor: `${projectColor}40`,
             }}
           >
             {badgeText}
@@ -179,13 +196,16 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
         {skillsList && (
           <div className={styles.tooltipTechSection}>
             <div className={styles.tooltipTechTags}>
-              {(Array.isArray(project.skills) ? project.skills.slice(0, 4) : [project.expertise || "Innovation"]).map((skill, idx) => (
+              {(Array.isArray(project.skills)
+                ? project.skills.slice(0, 4)
+                : [project.expertise || "Innovation"]
+              ).map((skill, idx) => (
                 <span
                   key={idx}
                   className={styles.tooltipTechTag}
                   style={{
                     borderColor: `${projectColor}50`,
-                    backgroundColor: `${projectColor}10`
+                    backgroundColor: `${projectColor}10`,
                   }}
                 >
                   {skill}

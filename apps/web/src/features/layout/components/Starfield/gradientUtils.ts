@@ -22,9 +22,16 @@ export function createRadialGradient(
   y: number,
   innerRadius: number,
   outerRadius: number,
-  colorStops: ColorStop[]
+  colorStops: ColorStop[],
 ): CanvasGradient {
-  const gradient = ctx.createRadialGradient(x, y, innerRadius, x, y, outerRadius);
+  const gradient = ctx.createRadialGradient(
+    x,
+    y,
+    innerRadius,
+    x,
+    y,
+    outerRadius,
+  );
   for (const stop of colorStops) {
     gradient.addColorStop(stop.offset, stop.color);
   }
@@ -40,7 +47,7 @@ export function createLinearGradient(
   y1: number,
   x2: number,
   y2: number,
-  colorStops: ColorStop[]
+  colorStops: ColorStop[],
 ): CanvasGradient {
   const gradient = ctx.createLinearGradient(x1, y1, x2, y2);
   for (const stop of colorStops) {
@@ -61,7 +68,7 @@ export function createGlowGradient(
   rgbStr: string,
   centerOpacity: number = 1,
   midOpacity: number = 0.5,
-  edgeOpacity: number = 0
+  edgeOpacity: number = 0,
 ): CanvasGradient {
   return createRadialGradient(ctx, x, y, 0, radius, [
     { offset: 0, color: rgba(rgbStr, centerOpacity) },
@@ -81,7 +88,7 @@ export function createHaloGradient(
   innerRadius: number,
   outerRadius: number,
   rgbStr: string,
-  opacities: { inner: number; mid1: number; mid2: number; outer: number }
+  opacities: { inner: number; mid1: number; mid2: number; outer: number },
 ): CanvasGradient {
   return createRadialGradient(ctx, x, y, innerRadius, outerRadius, [
     { offset: 0, color: rgba(rgbStr, opacities.inner) },
@@ -102,7 +109,7 @@ export function createSphereGradient(
   radius: number,
   baseColor: string,
   lightenedColors: string[],
-  highlightOffset: { x: number; y: number } = { x: -0.25, y: -0.25 }
+  highlightOffset: { x: number; y: number } = { x: -0.25, y: -0.25 },
 ): CanvasGradient {
   // Gradient originates from highlight point, not center
   const highlightX = x + radius * highlightOffset.x;
@@ -114,7 +121,7 @@ export function createSphereGradient(
     0,
     x + radius * 0.1,
     y + radius * 0.1,
-    radius
+    radius,
   );
 
   // Default color stops for 3D sphere effect
@@ -141,7 +148,7 @@ export function createRingGradient(
   innerRadius: number,
   outerRadius: number,
   color: string,
-  peakOpacity: number = 0.8
+  peakOpacity: number = 0.8,
 ): CanvasGradient {
   return createRadialGradient(ctx, x, y, innerRadius, outerRadius, [
     { offset: 0, color: rgba(color, 0) },
@@ -162,7 +169,7 @@ export function createTrailGradient(
   endY: number,
   rgbStr: string,
   startOpacity: number = 0.8,
-  endOpacity: number = 0
+  endOpacity: number = 0,
 ): CanvasGradient {
   return createLinearGradient(ctx, startX, startY, endX, endY, [
     { offset: 0, color: rgba(rgbStr, startOpacity) },
@@ -182,7 +189,7 @@ export function drawGradientCircle(
   y: number,
   radius: number,
   gradient: CanvasGradient,
-  globalAlpha: number = 1
+  globalAlpha: number = 1,
 ): void {
   const prevAlpha = ctx.globalAlpha;
   ctx.globalAlpha = globalAlpha;
@@ -203,7 +210,7 @@ export function drawGradientRing(
   radius: number,
   gradient: CanvasGradient,
   lineWidth: number,
-  globalAlpha: number = 1
+  globalAlpha: number = 1,
 ): void {
   const prevAlpha = ctx.globalAlpha;
   ctx.globalAlpha = globalAlpha;
@@ -221,7 +228,7 @@ export function drawGradientRing(
  */
 export function createColorStops(
   rgbStr: string,
-  opacities: Array<{ offset: number; opacity: number }>
+  opacities: Array<{ offset: number; opacity: number }>,
 ): ColorStop[] {
   return opacities.map(({ offset, opacity }) => ({
     offset,
@@ -239,11 +246,20 @@ export function drawMultiLayerGlow(
   y: number,
   baseRadius: number,
   rgbStr: string,
-  layers: Array<{ radiusMultiplier: number; opacity: number }>
+  layers: Array<{ radiusMultiplier: number; opacity: number }>,
 ): void {
   for (const layer of layers) {
     const radius = baseRadius * layer.radiusMultiplier;
-    const gradient = createGlowGradient(ctx, x, y, radius, rgbStr, layer.opacity, layer.opacity * 0.3, 0);
+    const gradient = createGlowGradient(
+      ctx,
+      x,
+      y,
+      radius,
+      rgbStr,
+      layer.opacity,
+      layer.opacity * 0.3,
+      0,
+    );
     drawGradientCircle(ctx, x, y, radius, gradient);
   }
 }
@@ -255,13 +271,25 @@ export const GradientPresets = {
   /**
    * Standard star glow
    */
-  starGlow: (ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, rgbStr: string) =>
-    createGlowGradient(ctx, x, y, radius, rgbStr, 1, 0.3, 0),
+  starGlow: (
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    radius: number,
+    rgbStr: string,
+  ) => createGlowGradient(ctx, x, y, radius, rgbStr, 1, 0.3, 0),
 
   /**
    * Soft halo effect
    */
-  softHalo: (ctx: CanvasRenderingContext2D, x: number, y: number, innerR: number, outerR: number, rgbStr: string) =>
+  softHalo: (
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    innerR: number,
+    outerR: number,
+    rgbStr: string,
+  ) =>
     createHaloGradient(ctx, x, y, innerR, outerR, rgbStr, {
       inner: 0.15,
       mid1: 0.08,
@@ -272,7 +300,14 @@ export const GradientPresets = {
   /**
    * Bright halo (for highlighted elements)
    */
-  brightHalo: (ctx: CanvasRenderingContext2D, x: number, y: number, innerR: number, outerR: number, rgbStr: string) =>
+  brightHalo: (
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    innerR: number,
+    outerR: number,
+    rgbStr: string,
+  ) =>
     createHaloGradient(ctx, x, y, innerR, outerR, rgbStr, {
       inner: 0.3,
       mid1: 0.15,

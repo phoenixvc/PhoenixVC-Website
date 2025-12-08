@@ -60,7 +60,8 @@ export class TypographyMapping {
 
   calculateScale(level: ScaleValue): TypographyScale {
     // Assuming ScaleValue is a number
-    const size = this.options.baseSize * Math.pow(this.options.scaleRatio, level - 1);
+    const size =
+      this.options.baseSize * Math.pow(this.options.scaleRatio, level - 1);
     const lineHeight = Math.round(size * this.options.baseLineHeight);
 
     return {
@@ -124,7 +125,10 @@ export class TypographyMapping {
     return css;
   }
 
-  fromCSS(variables: Record<string, string>, prefix: string = "--typography"): void {
+  fromCSS(
+    variables: Record<string, string>,
+    prefix: string = "--typography",
+  ): void {
     const scaleMap = new Map<string, Partial<TypographyScale>>();
 
     Object.entries(variables).forEach(([key, value]) => {

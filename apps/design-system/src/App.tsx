@@ -1,6 +1,6 @@
-import React from 'react';
-import Sidebar from './components/Sidebar/Sidebar';
-import PreviewArea from './components/PreviewArea/PreviewArea';
+import React from "react";
+import Sidebar from "./components/Sidebar/Sidebar";
+import PreviewArea from "./components/PreviewArea/PreviewArea";
 
 const App: React.FC = () => {
   return (

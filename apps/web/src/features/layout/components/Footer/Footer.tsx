@@ -28,7 +28,8 @@ export const Footer: React.FC<FooterProps> = ({ isDarkMode = true }) => {
               <span className={styles.logoText}>Phoenix VC</span>
             </div>
             <p className={styles.description}>
-              Empowering visionary entrepreneurs and innovative startups to shape the future of technology.
+              Empowering visionary entrepreneurs and innovative startups to
+              shape the future of technology.
             </p>
             <div className={styles.socialLinks}>
               {SOCIAL_LINKS.map((link) => (
@@ -55,13 +56,15 @@ export const Footer: React.FC<FooterProps> = ({ isDarkMode = true }) => {
           <motion.div variants={itemVariants} className={styles.linksSection}>
             <h4 className={styles.sectionTitle}>Navigation</h4>
             <ul className={styles.linkList}>
-              {NAVIGATION_ITEMS.filter(item => item.type !== "section").map((item) => (
-                <motion.li key={item.path} variants={itemVariants}>
-                  <a href={item.path} className={styles.link}>
-                    {item.label}
-                  </a>
-                </motion.li>
-              ))}
+              {NAVIGATION_ITEMS.filter((item) => item.type !== "section").map(
+                (item) => (
+                  <motion.li key={item.path} variants={itemVariants}>
+                    <a href={item.path} className={styles.link}>
+                      {item.label}
+                    </a>
+                  </motion.li>
+                ),
+              )}
             </ul>
           </motion.div>
 
@@ -70,10 +73,14 @@ export const Footer: React.FC<FooterProps> = ({ isDarkMode = true }) => {
             <h4 className={styles.sectionTitle}>Resources</h4>
             <ul className={styles.linkList}>
               <motion.li variants={itemVariants}>
-                <a href="/blog" className={styles.link}>Blog</a>
+                <a href="/blog" className={styles.link}>
+                  Blog
+                </a>
               </motion.li>
               <motion.li variants={itemVariants}>
-                <a href="/about" className={styles.link}>About Us</a>
+                <a href="/about" className={styles.link}>
+                  About Us
+                </a>
               </motion.li>
               <motion.li variants={itemVariants}>
                 <a

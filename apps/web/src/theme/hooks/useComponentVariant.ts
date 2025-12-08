@@ -7,7 +7,7 @@ type ComponentState = "default" | "hover" | "active" | "focus" | "disabled";
 export function useComponentVariant(
   componentName: string,
   variantName: string = "default",
-  stateName: ComponentState = "default"
+  stateName: ComponentState = "default",
 ): {
   styles: React.CSSProperties;
   classes: string;
@@ -18,9 +18,16 @@ export function useComponentVariant(
   // Get styles with error handling
   const getStyles = useCallback((): React.CSSProperties => {
     try {
-      return componentTheme.getComponentStyles(componentName, variantName, stateName);
+      return componentTheme.getComponentStyles(
+        componentName,
+        variantName,
+        stateName,
+      );
     } catch (error) {
-      console.warn(`Failed to get styles for ${componentName}.${variantName}.${stateName}:`, error);
+      console.warn(
+        `Failed to get styles for ${componentName}.${variantName}.${stateName}:`,
+        error,
+      );
       return {};
     }
   }, [componentTheme, componentName, variantName, stateName]);
@@ -30,7 +37,10 @@ export function useComponentVariant(
     try {
       return componentTheme.getComponentClasses(componentName, variantName);
     } catch (error) {
-      console.warn(`Failed to get classes for ${componentName}.${variantName}:`, error);
+      console.warn(
+        `Failed to get classes for ${componentName}.${variantName}:`,
+        error,
+      );
       return "";
     }
   }, [componentTheme, componentName, variantName]);
@@ -42,11 +52,18 @@ export function useComponentVariant(
     // Helper for interactive states
     getStateStyles: (state: ComponentState): React.CSSProperties => {
       try {
-        return componentTheme.getComponentStyles(componentName, variantName, state);
+        return componentTheme.getComponentStyles(
+          componentName,
+          variantName,
+          state,
+        );
       } catch (error) {
-        console.warn(`Failed to get state styles for ${componentName}.${variantName}.${state}:`, error);
+        console.warn(
+          `Failed to get state styles for ${componentName}.${variantName}.${state}:`,
+          error,
+        );
         return {};
       }
-    }
+    },
   };
 }

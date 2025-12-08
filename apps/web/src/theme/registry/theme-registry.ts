@@ -1,7 +1,12 @@
 // theme/registry/theme-registry.ts
 
-import { ThemeColors, ThemeName, ThemeMode, ThemeSchemeInitial, ThemeMetadata } from "../types";
-
+import {
+  ThemeColors,
+  ThemeName,
+  ThemeMode,
+  ThemeSchemeInitial,
+  ThemeMetadata,
+} from "../types";
 
 /**
  * Theme Registry for managing and storing themes
@@ -26,13 +31,15 @@ export class ThemeRegistry {
   sourceSchemes: Record<ThemeName, ThemeSchemeInitial>;
 
   constructor(initialData?: Partial<ThemeRegistry>) {
-    this.themes = initialData?.themes || {} as Record<ThemeName, ThemeColors>;
-    this.metadata = initialData?.metadata || {} as Record<ThemeName, ThemeMetadata>;
+    this.themes = initialData?.themes || ({} as Record<ThemeName, ThemeColors>);
+    this.metadata =
+      initialData?.metadata || ({} as Record<ThemeName, ThemeMetadata>);
     this.defaults = {
       themeName: initialData?.defaults?.themeName || "classic",
-      mode: initialData?.defaults?.mode || "dark"
+      mode: initialData?.defaults?.mode || "dark",
     };
-    this.versions = initialData?.versions || {} as Record<ThemeName, string[]>;
+    this.versions =
+      initialData?.versions || ({} as Record<ThemeName, string[]>);
     this.sourceSchemes = {} as Record<ThemeName, ThemeSchemeInitial>;
   }
 
@@ -43,7 +50,7 @@ export class ThemeRegistry {
     name: ThemeName,
     theme: ThemeColors,
     metadata?: Partial<ThemeMetadata>,
-    sourceScheme?: ThemeSchemeInitial
+    sourceScheme?: ThemeSchemeInitial,
   ): void {
     // Store the theme
     this.themes[name] = theme;
@@ -54,7 +61,7 @@ export class ThemeRegistry {
       this.metadata[name] = {
         ...this.metadata[name],
         ...metadata,
-        modified: Date.now()
+        modified: Date.now(),
       };
     } else {
       // Create new metadata
@@ -67,7 +74,7 @@ export class ThemeRegistry {
         preview: metadata?.preview,
         created: Date.now(),
         modified: Date.now(),
-        compatibleModes: metadata?.compatibleModes || ["light", "dark"]
+        compatibleModes: metadata?.compatibleModes || ["light", "dark"],
       };
     }
 
@@ -95,7 +102,9 @@ export class ThemeRegistry {
   setDefaultTheme(themeName: ThemeName, mode?: ThemeMode): void {
     // Verify theme exists
     if (!this.themes[themeName]) {
-      throw new Error(`Cannot set default theme: Theme "${themeName}" not found in registry`);
+      throw new Error(
+        `Cannot set default theme: Theme "${themeName}" not found in registry`,
+      );
     }
 
     this.defaults.themeName = themeName;
@@ -140,15 +149,15 @@ export class ThemeRegistry {
     return Object.entries(this.metadata)
       .filter(([_, meta]) => {
         if (!meta.tags) return false;
-        return tags.some(tag => meta.tags!.includes(tag));
+        return tags.some((tag) => meta.tags!.includes(tag));
       })
       .map(([name]) => name as ThemeName);
   }
 
-/**
- * Export registry data for persistence
- */
-exportData(): {
+  /**
+   * Export registry data for persistence
+   */
+  exportData(): {
     themes: Record<ThemeName, ThemeColors>;
     metadata: Record<ThemeName, ThemeMetadata>;
     defaults: {
@@ -163,7 +172,7 @@ exportData(): {
       metadata: this.metadata,
       defaults: this.defaults,
       versions: this.versions,
-      sourceSchemes: this.sourceSchemes
+      sourceSchemes: this.sourceSchemes,
     };
   }
 
@@ -191,6 +200,8 @@ exportData(): {
 /**
  * Create a new theme registry
  */
-export function createThemeRegistry(initialData?: Partial<ThemeRegistry>): ThemeRegistry {
+export function createThemeRegistry(
+  initialData?: Partial<ThemeRegistry>,
+): ThemeRegistry {
   return new ThemeRegistry(initialData);
 }

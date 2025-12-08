@@ -1,5 +1,9 @@
-
-import { ColorAdjustments, ColorDefinition, ColorShades, ShadeLevel } from "@/theme/types";
+import {
+  ColorAdjustments,
+  ColorDefinition,
+  ColorShades,
+  ShadeLevel,
+} from "@/theme/types";
 import ColorUtils from "@/theme/utils/color-utils";
 
 // Base gray color
@@ -30,7 +34,18 @@ const generateGrayPalette = (): Record<ShadeLevel, ColorDefinition> => {
 export const grayPalette: ColorShades = {
   ...generateGrayPalette(),
   base: BASE_GRAY,
-  contrast: ["#000000", "#000000", "#000000", "#000000", "#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF"],
+  contrast: [
+    "#000000",
+    "#000000",
+    "#000000",
+    "#000000",
+    "#000000",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+  ],
 };
 
 // Export a function to get a specific gray shade
@@ -39,7 +54,9 @@ export const getGrayShade = (shade: ShadeLevel): ColorDefinition => {
 };
 
 // Export a function to create a gray with custom adjustments
-export const createGrayVariant = (adjustments: ColorAdjustments): ColorDefinition => {
+export const createGrayVariant = (
+  adjustments: ColorAdjustments,
+): ColorDefinition => {
   const baseColor = ColorUtils.createColorDefinition(BASE_GRAY);
   return ColorUtils.adjustColor(baseColor, adjustments);
 };

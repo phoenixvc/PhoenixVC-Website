@@ -9,10 +9,13 @@ interface DirectZoomButtonsProps {
   className?: string;
 }
 
-const DirectZoomButtons: React.FC<DirectZoomButtonsProps> = ({ onZoom, className }) => {
+const DirectZoomButtons: React.FC<DirectZoomButtonsProps> = ({
+  onZoom,
+  className,
+}) => {
   return (
     <div className={`${styles.directZoomButtons} ${className || ""}`}>
-      {GALAXIES.map(galaxy => (
+      {GALAXIES.map((galaxy) => (
         <button
           key={galaxy.id}
           className={styles.zoomButton}

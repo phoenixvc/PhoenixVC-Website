@@ -1,6 +1,26 @@
-import { ComponentVariants, Theme, ThemeBorders, ThemeBreakpoints, ThemeColors, ThemeConfig, ThemeScheme, ThemeShadows, ThemeSpacing, ThemeTransitions, ThemeTypography, ThemeVariables, ThemeZIndex } from "@/theme/types";
+import {
+  ComponentVariants,
+  Theme,
+  ThemeBorders,
+  ThemeBreakpoints,
+  ThemeColors,
+  ThemeConfig,
+  ThemeScheme,
+  ThemeShadows,
+  ThemeSpacing,
+  ThemeTransitions,
+  ThemeTypography,
+  ThemeVariables,
+  ThemeZIndex,
+} from "@/theme/types";
 import ColorUtils from "@/theme/utils/color-utils";
-import { createColor, grayPalette, greenPalette, purplePalette, redPalette } from "./colors";
+import {
+  createColor,
+  grayPalette,
+  greenPalette,
+  purplePalette,
+  redPalette,
+} from "./colors";
 import indigoPalette from "./colors/indigo";
 import { defaultTheme } from "./default";
 
@@ -34,7 +54,7 @@ export const lavenderColorScheme: ThemeScheme = {
     background: createColor("#FFFFFF"),
     text: {
       primary: createColor("#1E1B4B"),
-      secondary: createColor("#6D6A94")
+      secondary: createColor("#6D6A94"),
     },
     muted: createColor("#6D6A94"),
     border: createColor("#E2E8F0"),
@@ -43,13 +63,13 @@ export const lavenderColorScheme: ThemeScheme = {
     hover: createColor("rgba(139, 92, 246, 0.04)"),
     active: createColor("rgba(139, 92, 246, 0.08)"),
     focus: createColor("rgba(139, 92, 246, 0.5)"),
-    disabled: createColor("rgba(0, 0, 0, 0.26)")
+    disabled: createColor("rgba(0, 0, 0, 0.26)"),
   },
   dark: {
     background: createColor("#0F172A"),
     text: {
       primary: createColor("#F8FAFC"),
-      secondary: createColor("#94A3B8")
+      secondary: createColor("#94A3B8"),
     },
     muted: createColor("#94A3B8"),
     border: createColor("#334155"),
@@ -58,8 +78,8 @@ export const lavenderColorScheme: ThemeScheme = {
     hover: createColor("rgba(255, 255, 255, 0.08)"),
     active: createColor("rgba(255, 255, 255, 0.16)"),
     focus: createColor("rgba(139, 92, 246, 0.6)"),
-    disabled: createColor("rgba(255, 255, 255, 0.3)")
-  }
+    disabled: createColor("rgba(255, 255, 255, 0.3)"),
+  },
 };
 
 /**
@@ -67,14 +87,14 @@ export const lavenderColorScheme: ThemeScheme = {
  */
 export const lavenderColors: ThemeColors = {
   schemes: {
-    default: lavenderColorScheme
+    default: lavenderColorScheme,
   },
   semantic: {
     success: createColor(greenPalette[500].hex),
     warning: createColor("#F59E0B"),
     error: createColor(redPalette[500].hex),
-    info: createColor(indigoPalette[400].hex)
-  }
+    info: createColor(indigoPalette[400].hex),
+  },
 };
 
 /**
@@ -89,12 +109,12 @@ export const lavenderTheme: Theme = {
     fontFamily: {
       base: "\"Quicksand\", system-ui, sans-serif",
       heading: "\"Playfair Display\", serif",
-      monospace: "\"Fira Code\", monospace"
+      monospace: "\"Fira Code\", monospace",
     },
     fontSize: typedDefaultTheme.typography.fontSize,
     fontWeight: typedDefaultTheme.typography.fontWeight,
     lineHeight: typedDefaultTheme.typography.lineHeight,
-    letterSpacing: typedDefaultTheme.typography.letterSpacing
+    letterSpacing: typedDefaultTheme.typography.letterSpacing,
   },
   borders: {
     radius: {
@@ -102,18 +122,18 @@ export const lavenderTheme: Theme = {
       sm: typedDefaultTheme.borders.radius.sm,
       md: "0.5rem",
       lg: "0.75rem",
-      full: typedDefaultTheme.borders.radius.full
+      full: typedDefaultTheme.borders.radius.full,
     },
     width: typedDefaultTheme.borders.width,
-    style: typedDefaultTheme.borders.style
+    style: typedDefaultTheme.borders.style,
   },
   shadows: {
     none: typedDefaultTheme.shadows.none,
     sm: typedDefaultTheme.shadows.sm,
     md: "0 4px 12px rgba(139, 92, 246, 0.15)",
     lg: "0 10px 25px rgba(139, 92, 246, 0.2)",
-    xl: typedDefaultTheme.shadows.xl
-  }
+    xl: typedDefaultTheme.shadows.xl,
+  },
 };
 
 export default lavenderTheme;

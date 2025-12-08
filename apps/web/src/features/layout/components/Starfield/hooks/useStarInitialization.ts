@@ -1,7 +1,11 @@
 // hooks/useStarInitialization.ts
 import { useCallback, useRef, useState } from "react";
 import { initBlackHoles } from "../blackHoles";
-import { DEFAULT_BLACK_HOLES, DEFAULT_PORTFOLIO_PROJECTS, getColorPalette } from "../constants";
+import {
+  DEFAULT_BLACK_HOLES,
+  DEFAULT_PORTFOLIO_PROJECTS,
+  getColorPalette,
+} from "../constants";
 import { initPlanets } from "../Planets";
 import { resetConnectionStagger } from "../stars";
 import { BlackHole, DebugSettings, Planet, Star } from "../types";
@@ -59,7 +63,7 @@ export const useStarInitialization = ({
   planetSize,
   employeeStarSize,
   debugSettings,
-  cancelAnimation
+  cancelAnimation,
 }: StarInitializationProps): {
   stars: Star[];
   starsRef: React.MutableRefObject<Star[]>;
@@ -75,8 +79,10 @@ export const useStarInitialization = ({
   isStarsInitializedRef: React.MutableRefObject<boolean>;
 } => {
   // Resolve naming: prefer new names (enablePlanets/planetSize) but fallback to deprecated names
-  const effectiveEnablePlanets = enablePlanets ?? enableEmployeeStars ?? DEFAULT_ENABLE_PLANETS;
-  const effectivePlanetSize = planetSize ?? employeeStarSize ?? DEFAULT_PLANET_SIZE;
+  const effectiveEnablePlanets =
+    enablePlanets ?? enableEmployeeStars ?? DEFAULT_ENABLE_PLANETS;
+  const effectivePlanetSize =
+    planetSize ?? employeeStarSize ?? DEFAULT_PLANET_SIZE;
 
   // Store stars in refs to prevent re-renders
   const starsRef = useRef<Star[]>([]);
@@ -91,64 +97,70 @@ export const useStarInitialization = ({
   const [planets, setPlanets] = useState<Planet[]>([]);
 
   // Custom function to initialize stars with lower initial velocities - memoized
-  const initializeStarsWithLowVelocity = useCallback((
-    width: number,
-    height: number,
-    starCount: number,
-    sidebarWidth: number = 0,
-    _centerOffsetX: number = 0,
-    _centerOffsetY: number = 0,
-    starSize: number = 1.0,
-    colorScheme: string = "white"
-  ): Star[] => {
-    logger.debug(`Initializing ${starCount} stars with size ${starSize}`);
+  const initializeStarsWithLowVelocity = useCallback(
+    (
+      width: number,
+      height: number,
+      starCount: number,
+      sidebarWidth: number = 0,
+      _centerOffsetX: number = 0,
+      _centerOffsetY: number = 0,
+      starSize: number = 1.0,
+      colorScheme: string = "white",
+    ): Star[] => {
+      logger.debug(`Initializing ${starCount} stars with size ${starSize}`);
 
-    // Create a new array to hold the stars
-    const stars: Star[] = [];
-    const colors = getColorPalette(colorScheme);
+      // Create a new array to hold the stars
+      const stars: Star[] = [];
+      const colors = getColorPalette(colorScheme);
 
-    // Calculate effective width (accounting for sidebar)
-    const effectiveWidth = width - sidebarWidth;
+      // Calculate effective width (accounting for sidebar)
+      const effectiveWidth = width - sidebarWidth;
 
-    for (let i = 0; i < starCount; i++) {
-      // Position stars within the effective width (after sidebar)
-      const x = sidebarWidth + Math.random() * effectiveWidth;
-      const y = Math.random() * height;
+      for (let i = 0; i < starCount; i++) {
+        // Position stars within the effective width (after sidebar)
+        const x = sidebarWidth + Math.random() * effectiveWidth;
+        const y = Math.random() * height;
 
-      // Random size with weighted distribution (more small stars)
-      const sizeMultiplier = Math.pow(Math.random(), 2) * 2 + 0.5;
-      const size = sizeMultiplier * starSize;
+        // Random size with weighted distribution (more small stars)
+        const sizeMultiplier = Math.pow(Math.random(), 2) * 2 + 0.5;
+        const size = sizeMultiplier * starSize;
 
-      // Random color from palette
-      const color = colors[Math.floor(Math.random() * colors.length)];
+        // Random color from palette
+        const color = colors[Math.floor(Math.random() * colors.length)];
 
-      // Create star with small initial velocity
-      stars.push({
-        x,
-        y,
-        size,
-        color,
-        vx: (Math.random() - 0.5) * 0.05, // Small random initial velocity
-        vy: (Math.random() - 0.5) * 0.05, // Small random initial velocity
-        originalX: x,
-        originalY: y,
-        mass: size * 2,
-        speed: Math.random() * 0.05,  // Small random speed
-        isActive: false,
-        lastPushed: 0,
-        targetVx: 0,
-        targetVy: 0,
-        fx: 0,
-        fy: 0
-      });
-    }
+        // Create star with small initial velocity
+        stars.push({
+          x,
+          y,
+          size,
+          color,
+          vx: (Math.random() - 0.5) * 0.05, // Small random initial velocity
+          vy: (Math.random() - 0.5) * 0.05, // Small random initial velocity
+          originalX: x,
+          originalY: y,
+          mass: size * 2,
+          speed: Math.random() * 0.05, // Small random speed
+          isActive: false,
+          lastPushed: 0,
+          targetVx: 0,
+          targetVy: 0,
+          fx: 0,
+          fy: 0,
+        });
+      }
 
-    logger.debug(`Created ${stars.length} stars with first star:`, stars[0]);
-    return stars;
-  }, []);
+      logger.debug(`Created ${stars.length} stars with first star:`, stars[0]);
+      return stars;
+    },
+    [],
+  );
 
   const initializeElements = useCallback((): void => {
-    logger.debug("Initializing elements with dimensions:", dimensionsRef.current);
+    logger.debug(
+      "Initializing elements with dimensions:",
+      dimensionsRef.current,
+    );
 
     // Always reinitialize stars when this function is called
     isStarsInitializedRef.current = false;
@@ -160,18 +172,27 @@ export const useStarInitialization = ({
       logger.debug("Invalid dimensions, using window dimensions");
       dimensionsRef.current = {
         width: window.innerWidth,
-        height: window.innerHeight
+        height: window.innerHeight,
       };
     }
 
     if (canvasRef.current) {
       canvasRef.current.width = dimensionsRef.current.width;
       canvasRef.current.height = dimensionsRef.current.height;
-      logger.debug("Canvas dimensions set to:", canvasRef.current.width, canvasRef.current.height);
+      logger.debug(
+        "Canvas dimensions set to:",
+        canvasRef.current.width,
+        canvasRef.current.height,
+      );
     }
 
     // Create stars with explicit dimensions
-    const starCount = Math.floor(dimensionsRef.current.width * dimensionsRef.current.height * 0.00015 * starDensity);
+    const starCount = Math.floor(
+      dimensionsRef.current.width *
+        dimensionsRef.current.height *
+        0.00015 *
+        starDensity,
+    );
     logger.debug(`Creating ${starCount} stars`);
 
     const newStars = initializeStarsWithLowVelocity(
@@ -182,7 +203,7 @@ export const useStarInitialization = ({
       centerOffsetX,
       centerOffsetY,
       starSize,
-      colorScheme
+      colorScheme,
     );
 
     // Initialize black holes
@@ -197,7 +218,7 @@ export const useStarInitialization = ({
       blackHoleSize,
       particleSpeed,
       colorScheme,
-      starSize
+      starSize,
     );
 
     // Initialize employee stars with extremely slow orbit speeds
@@ -209,11 +230,11 @@ export const useStarInitialization = ({
       sidebarWidth,
       centerOffsetX,
       centerOffsetY,
-      effectivePlanetSize
+      effectivePlanetSize,
     );
 
     // Modify employee stars to have extremely slow orbit speeds
-    const modifiedPlanets = newPlanets.map(empStar => ({
+    const modifiedPlanets = newPlanets.map((empStar) => ({
       ...empStar,
       orbitSpeed: debugSettings.employeeOrbitSpeed, // Use debug setting
       pulsation: {
@@ -222,10 +243,10 @@ export const useStarInitialization = ({
         minScale: 1,
         maxScale: 1,
         scale: 1,
-        direction: 1
+        direction: 1,
       },
       trailLength: 0,
-      glowIntensity: empStar.glowIntensity || 1.0
+      glowIntensity: empStar.glowIntensity || 1.0,
     }));
 
     // Update refs first
@@ -255,7 +276,7 @@ export const useStarInitialization = ({
     initializeStarsWithLowVelocity,
     debugSettings.employeeOrbitSpeed,
     canvasRef,
-    dimensionsRef
+    dimensionsRef,
   ]);
 
   // Create a function to ensure stars exist (for animation loop)
@@ -294,7 +315,7 @@ export const useStarInitialization = ({
             targetVx: 0,
             targetVy: 0,
             fx: 0,
-            fy: 0
+            fy: 0,
           });
         }
 
@@ -322,7 +343,7 @@ export const useStarInitialization = ({
 
     // Cancel any existing animation first
     cancelAnimation();
-    
+
     // Reset connection stagger to restart the connection reveal animation
     resetConnectionStagger();
 
@@ -342,7 +363,7 @@ export const useStarInitialization = ({
       centerOffsetX,
       centerOffsetY,
       starSize,
-      colorScheme
+      colorScheme,
     );
 
     logger.debug(`Created ${newStars.length} stars`);
@@ -370,7 +391,7 @@ export const useStarInitialization = ({
     initializeStarsWithLowVelocity,
     initializeElements,
     cancelAnimation,
-    dimensionsRef
+    dimensionsRef,
   ]);
 
   return {
@@ -386,6 +407,6 @@ export const useStarInitialization = ({
     initializeElements,
     ensureStarsExist,
     resetStars,
-    isStarsInitializedRef
+    isStarsInitializedRef,
   };
 };
