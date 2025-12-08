@@ -94,12 +94,9 @@ export const initStars = (
   const stars: Star[] = [];
   const colors = getColorPalette(colorScheme);
 
-  // Calculate effective width (accounting for sidebar)
-  const effectiveWidth = width - sidebarWidth;
-
   for (let i = 0; i < count; i++) {
-    // Position stars within the effective width (after sidebar)
-    const x = sidebarWidth + Math.random() * effectiveWidth;
+    // Position stars across full canvas width
+    const x = Math.random() * width;
     const y = Math.random() * height;
 
     // Random size with weighted distribution (more small stars, crisper appearance)
