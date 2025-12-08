@@ -30,6 +30,7 @@ import { useAnimationLoop } from "./hooks/useAnimationLoop";
 import { useMouseInteraction } from "./hooks/useMouseInteraction";
 import { useParticleEffects } from "./hooks/useParticleEffects";
 import { useDebugControls } from "./hooks/useDebugControls";
+import { useOffscreenCanvas } from "./hooks/useOffscreenCanvas";
 import DebugControlsOverlay from "./DebugControlsOverlay";
 import { useStarInitialization } from "./hooks/useStarInitialization";
 import {
@@ -290,6 +291,15 @@ const InteractiveStarfield = forwardRef<
       cancelAnimation: () => cancelAnimationRef.current(),
     });
 
+    // Use offscreen canvas for performance optimization
+    // Layers: stars (pre-rendered), effects (dynamic)
+    const offscreenCanvas = useOffscreenCanvas({
+      width: dimensionsRef.current.width || window.innerWidth,
+      height: dimensionsRef.current.height || window.innerHeight,
+      layers: ["stars", "effects"],
+      enabled: true, // Controlled by feature flag internally
+    });
+
     const mousePositionRef = useRef<MousePosition>({
       x: window.innerWidth / 2,
       y: window.innerHeight / 2,
@@ -478,6 +488,11 @@ const InteractiveStarfield = forwardRef<
         // Update refs directly
         dimensionsRef.current = { width, height };
 
+        // Resize offscreen canvas layers to match
+        if (offscreenCanvas.isEnabled) {
+          offscreenCanvas.resize(width, height);
+        }
+
         // Update container bounds if in hero mode
         if (heroMode && containerRef?.current) {
           const rect = containerRef.current.getBoundingClientRect();
@@ -536,6 +551,7 @@ const InteractiveStarfield = forwardRef<
       gameState,
       handleMouseEvents,
       initializeElements,
+      offscreenCanvas,
     ]);
 
     useEffect(() => {
@@ -851,6 +867,7 @@ const InteractiveStarfield = forwardRef<
         isMouseOverProjectTooltipRef,
         cameraRef: cameraStateRef,
         sidebarWidth,
+        offscreenCanvas, // Offscreen canvas for performance optimization
       }),
       // eslint-disable-next-line react-hooks/exhaustive-deps
       [
@@ -935,8 +952,11 @@ const InteractiveStarfield = forwardRef<
         if (window.starfieldAPI) {
           delete window.starfieldAPI;
         }
+
+        // Clean up offscreen canvas layers
+        offscreenCanvas.cleanup();
       };
-    }, []);
+    }, [offscreenCanvas]);
 
     // Delay showing starfield until initialization is complete
     // This prevents users from seeing the initial movement to designated positions

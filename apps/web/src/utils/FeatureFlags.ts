@@ -235,7 +235,7 @@ const DEFAULT_FLAGS: FeatureFlagsState = {
   offscreenCanvas: {
     name: 'offscreenCanvas',
     category: 'performance',
-    description: 'Use OffscreenCanvas for rendering (if available)',
+    description: 'Use OffscreenCanvas for multi-layer rendering (reduces draw calls)',
     enabled: false,  // Start disabled, enable after performance baseline
     defaultEnabled: false,
     impactsPerformance: true,
@@ -243,25 +243,25 @@ const DEFAULT_FLAGS: FeatureFlagsState = {
   batchRendering: {
     name: 'batchRendering',
     category: 'performance',
-    description: 'Batch similar draw calls together',
+    description: '[Internal] Batch similar draw calls (always enabled)',
     enabled: true,
     defaultEnabled: true,
-    impactsPerformance: true,
+    impactsPerformance: false,  // Can't be disabled, doesn't affect auto-adjust
   },
   spatialIndexing: {
     name: 'spatialIndexing',
     category: 'performance',
-    description: 'Use spatial indexing for collision detection',
+    description: '[Internal] Spatial hash grid for O(n) neighbor lookup (always enabled)',
     enabled: true,
     defaultEnabled: true,
-    impactsPerformance: true,
+    impactsPerformance: false,  // Can't be disabled, doesn't affect auto-adjust
   },
   frameSkipping: {
     name: 'frameSkipping',
     category: 'performance',
-    description: 'Skip frames when behind on rendering',
-    enabled: false,
-    defaultEnabled: false,
+    description: 'Skip heavy operations on alternating frames (connections)',
+    enabled: true,  // Now enabled by default since it's already happening
+    defaultEnabled: true,
     impactsPerformance: true,
   },
 

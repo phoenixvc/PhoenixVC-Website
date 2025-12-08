@@ -12,6 +12,7 @@ import {
   Planet,
   Star,
 } from "../../types";
+import { UseOffscreenCanvasReturn } from "../useOffscreenCanvas";
 
 // Add this interface for debug settings
 export interface DebugSettings {
@@ -108,6 +109,7 @@ export interface AnimationProps {
   isMouseOverProjectTooltipRef?: MutableRefObject<boolean>; // Track if mouse is over project tooltip
   cameraRef?: MutableRefObject<{ cx: number; cy: number; zoom: number }>; // Ref for synchronous camera access
   sidebarWidth?: number; // Width of sidebar for centering calculations
+  offscreenCanvas?: UseOffscreenCanvasReturn; // Offscreen canvas for performance optimization
 }
 
 export interface AnimationRefs {

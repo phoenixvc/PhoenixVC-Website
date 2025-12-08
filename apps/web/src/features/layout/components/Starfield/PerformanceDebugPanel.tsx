@@ -6,6 +6,7 @@ import {
   performanceMonitor,
   type PerformanceMetrics,
   type PerformanceRating,
+  type SectionMetrics,
 } from '../../../../utils/PerformanceMonitor';
 import {
   featureFlags,
@@ -21,6 +22,36 @@ interface PerformanceDebugPanelProps {
   sidebarWidth?: number;
   isDarkMode?: boolean;
 }
+
+// Map section names to feature flags for linking metrics to features
+const SECTION_TO_FLAG: Record<string, keyof FeatureFlagsState> = {
+  stars: 'glowEffects',
+  connections: 'starConnections',
+  suns: 'sunEffects',
+  particles: 'particleEffects',
+};
+
+// Colors for performance impact visualization
+const IMPACT_COLORS = {
+  low: '#0cce6b',      // Green - < 10% of frame
+  medium: '#ffa400',   // Orange - 10-25% of frame
+  high: '#ff6b35',     // Red-orange - 25-40% of frame
+  critical: '#ff4e42', // Red - > 40% of frame
+};
+
+const getImpactColor = (percentOfFrame: number): string => {
+  if (percentOfFrame < 10) return IMPACT_COLORS.low;
+  if (percentOfFrame < 25) return IMPACT_COLORS.medium;
+  if (percentOfFrame < 40) return IMPACT_COLORS.high;
+  return IMPACT_COLORS.critical;
+};
+
+const getImpactLabel = (percentOfFrame: number): string => {
+  if (percentOfFrame < 10) return 'Low';
+  if (percentOfFrame < 25) return 'Medium';
+  if (percentOfFrame < 40) return 'High';
+  return 'Critical';
+};
 
 const RATING_COLORS: Record<PerformanceRating, string> = {
   excellent: '#0cce6b',
@@ -53,12 +84,14 @@ const PerformanceDebugPanel: React.FC<PerformanceDebugPanelProps> = ({
   isDarkMode = true,
 }) => {
   const [metrics, setMetrics] = useState<PerformanceMetrics | null>(null);
+  const [sectionMetrics, setSectionMetrics] = useState<SectionMetrics[]>([]);
   const [flags, setFlags] = useState<FeatureFlagsState>(featureFlags.getAllFlags());
   const [autoAdjust, setAutoAdjust] = useState(featureFlags.isAutoAdjustEnabled());
   const [monitoringEnabled, setMonitoringEnabled] = useState(performanceMonitor.isEnabled());
   const [expandedCategories, setExpandedCategories] = useState<Set<FeatureCategory>>(
     new Set(['rendering', 'effects'])
   );
+  const [showSectionBreakdown, setShowSectionBreakdown] = useState(true);
 
   // Update metrics periodically
   useEffect(() => {
@@ -66,10 +99,11 @@ const PerformanceDebugPanel: React.FC<PerformanceDebugPanelProps> = ({
 
     const updateMetrics = (): void => {
       setMetrics(performanceMonitor.getMetrics());
+      setSectionMetrics(performanceMonitor.getSectionMetrics());
     };
 
     updateMetrics();
-    const interval = setInterval(updateMetrics, 1000);
+    const interval = setInterval(updateMetrics, 500); // Update more frequently for responsiveness
 
     return () => clearInterval(interval);
   }, [isVisible, monitoringEnabled]);
@@ -295,6 +329,147 @@ const PerformanceDebugPanel: React.FC<PerformanceDebugPanelProps> = ({
             </div>
           )}
         </div>
+
+        {/* Section Performance Breakdown */}
+        {metrics && monitoringEnabled && sectionMetrics.length > 0 && (
+          <div className={styles.debugInfoSection}>
+            <h4
+              style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+              onClick={() => setShowSectionBreakdown(!showSectionBreakdown)}
+            >
+              <span style={{ transform: showSectionBreakdown ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }}>
+                ▶
+              </span>
+              SECTION BREAKDOWN
+            </h4>
+            {showSectionBreakdown && (
+              <div style={{ marginTop: '8px' }}>
+                {sectionMetrics
+                  .filter((s) => s.name !== 'frame') // Skip total frame time
+                  .map((section) => {
+                    const impactColor = getImpactColor(section.percentOfFrame);
+                    const impactLabel = getImpactLabel(section.percentOfFrame);
+                    const linkedFlag = SECTION_TO_FLAG[section.name];
+                    const isEnabled = linkedFlag ? featureFlags.isEnabled(linkedFlag) : true;
+
+                    return (
+                      <div
+                        key={section.name}
+                        style={{
+                          marginBottom: '8px',
+                          opacity: isEnabled ? 1 : 0.5,
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', marginBottom: '2px' }}>
+                          <span style={{ textTransform: 'capitalize' }}>
+                            {section.name}
+                            {linkedFlag && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  featureFlags.toggle(linkedFlag);
+                                }}
+                                style={{
+                                  marginLeft: '4px',
+                                  padding: '1px 4px',
+                                  fontSize: '8px',
+                                  background: isEnabled ? '#444' : '#222',
+                                  border: 'none',
+                                  borderRadius: '2px',
+                                  color: isEnabled ? '#fff' : '#666',
+                                  cursor: 'pointer',
+                                }}
+                                title={isEnabled ? 'Click to disable' : 'Click to enable'}
+                              >
+                                {isEnabled ? 'ON' : 'OFF'}
+                              </button>
+                            )}
+                          </span>
+                          <span style={{ color: impactColor, fontWeight: 500 }}>
+                            {section.avgTime.toFixed(2)}ms ({section.percentOfFrame.toFixed(1)}%)
+                          </span>
+                        </div>
+                        {/* Impact bar */}
+                        <div
+                          style={{
+                            height: '6px',
+                            background: isDarkMode ? '#222' : '#eee',
+                            borderRadius: '3px',
+                            overflow: 'hidden',
+                            position: 'relative',
+                          }}
+                        >
+                          <div
+                            style={{
+                              height: '100%',
+                              width: `${Math.min(100, section.percentOfFrame)}%`,
+                              background: impactColor,
+                              transition: 'width 0.3s',
+                            }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '8px', color: isDarkMode ? '#555' : '#aaa', marginTop: '1px' }}>
+                          <span>Impact: {impactLabel}</span>
+                          <span>Min: {section.minTime.toFixed(2)}ms / Max: {section.maxTime.toFixed(2)}ms</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                {/* Frame budget indicator */}
+                <div style={{ marginTop: '12px', padding: '8px', background: isDarkMode ? '#1a1a1a' : '#f5f5f5', borderRadius: '4px' }}>
+                  <div style={{ fontSize: '9px', color: isDarkMode ? '#888' : '#666', marginBottom: '4px' }}>
+                    Frame Budget (16.67ms for 60fps)
+                  </div>
+                  <div
+                    style={{
+                      height: '8px',
+                      background: isDarkMode ? '#333' : '#ddd',
+                      borderRadius: '4px',
+                      overflow: 'hidden',
+                      position: 'relative',
+                    }}
+                  >
+                    {/* Budget segments */}
+                    {sectionMetrics
+                      .filter((s) => s.name !== 'frame')
+                      .reduce<{ offset: number; sections: { name: string; width: number; color: string; offset: number }[] }>(
+                        (acc, section) => {
+                          const width = Math.min(section.percentOfFrame, 100 - acc.offset);
+                          acc.sections.push({
+                            name: section.name,
+                            width,
+                            color: getImpactColor(section.percentOfFrame),
+                            offset: acc.offset,
+                          });
+                          acc.offset += width;
+                          return acc;
+                        },
+                        { offset: 0, sections: [] }
+                      )
+                      .sections.map((seg) => (
+                        <div
+                          key={seg.name}
+                          title={`${seg.name}: ${seg.width.toFixed(1)}%`}
+                          style={{
+                            position: 'absolute',
+                            left: `${seg.offset}%`,
+                            height: '100%',
+                            width: `${seg.width}%`,
+                            background: seg.color,
+                          }}
+                        />
+                      ))}
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '8px', color: isDarkMode ? '#555' : '#aaa', marginTop: '2px' }}>
+                    <span>0%</span>
+                    <span>50%</span>
+                    <span>100%</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Auto-Adjust Section */}
         <div className={styles.debugInfoSection}>

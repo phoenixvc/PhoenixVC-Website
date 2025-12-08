@@ -145,8 +145,10 @@ export const animate = (
 
     // Performance optimization: Draw connections every 2 frames for smoother appearance
     // Previously every 8 frames caused visible flickering on star connections
+    // Controlled by frameSkipping feature flag
+    const frameSkippingEnabled = featureFlags.isEnabled("frameSkipping");
     refs.frameSkipRef.current = (refs.frameSkipRef.current + 1) % 2;
-    const shouldSkipHeavyOperations = refs.frameSkipRef.current !== 0;
+    const shouldSkipHeavyOperations = frameSkippingEnabled && refs.frameSkipRef.current !== 0;
 
     // Increment frame counter
     if (props.frameCountRef) props.frameCountRef.current++;
@@ -213,14 +215,40 @@ export const animate = (
     const enableGlow = featureFlags.isEnabled("glowEffects");
     const enableTwinkle = featureFlags.isEnabled("twinkleEffects");
 
-    if (props.focusedSunId) {
-      ctx.save();
-      ctx.globalAlpha = STAR_RENDERING_CONFIG.focusedBackgroundAlpha;
-      drawStars(ctx, currentStars, enableGlow, enableTwinkle);
-      ctx.restore();
+    // Check if offscreen canvas is available and enabled
+    const offscreen = props.offscreenCanvas;
+    const useOffscreenForStars = offscreen?.isEnabled && offscreen?.isSupported && featureFlags.isEnabled("offscreenCanvas");
+
+    if (useOffscreenForStars && offscreen) {
+      // Use offscreen canvas for stars - better performance for static-ish content
+      const starsLayer = offscreen.getLayer("stars");
+
+      if (starsLayer && offscreen.shouldRedraw("stars")) {
+        // Clear and redraw stars to offscreen canvas
+        starsLayer.ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawStars(starsLayer.ctx as CanvasRenderingContext2D, currentStars, enableGlow, enableTwinkle);
+      }
+
+      // Composite stars layer to main canvas
+      if (props.focusedSunId) {
+        ctx.save();
+        ctx.globalAlpha = STAR_RENDERING_CONFIG.focusedBackgroundAlpha;
+        offscreen.compositeToMain(ctx, "stars");
+        ctx.restore();
+      } else {
+        offscreen.compositeToMain(ctx, "stars");
+      }
     } else {
-      // Always draw stars first - this ensures they always appear
-      drawStars(ctx, currentStars, enableGlow, enableTwinkle);
+      // Direct rendering (fallback)
+      if (props.focusedSunId) {
+        ctx.save();
+        ctx.globalAlpha = STAR_RENDERING_CONFIG.focusedBackgroundAlpha;
+        drawStars(ctx, currentStars, enableGlow, enableTwinkle);
+        ctx.restore();
+      } else {
+        // Always draw stars first - this ensures they always appear
+        drawStars(ctx, currentStars, enableGlow, enableTwinkle);
+      }
     }
 
     performanceMonitor.endSection("stars");
@@ -440,6 +468,12 @@ export const animate = (
       props.animationSpeed,
     );
     endTiming("updateStarPositions");
+
+    // Mark stars layer as dirty since positions changed
+    // This ensures the offscreen canvas redraws on the next frame
+    if (offscreen?.isEnabled) {
+      offscreen.markDirty("stars");
+    }
 
     // Note: handleBoundaries removed - updateStarPositions already handles wrapping
     // Adding it here caused double-wrapping and potential oscillation at edges

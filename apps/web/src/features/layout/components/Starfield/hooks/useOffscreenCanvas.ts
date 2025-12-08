@@ -2,6 +2,82 @@
 // Hook for managing offscreen canvas layers for improved rendering performance
 // Offscreen canvas allows pre-rendering static or slowly-changing content
 
+/**
+ * # Offscreen Canvas Performance Optimization
+ *
+ * ## Overview
+ * This hook provides multi-layer offscreen canvas rendering to improve performance
+ * by separating content into layers that can be rendered independently.
+ *
+ * ## When to Use Offscreen Canvas
+ *
+ * ✅ **Good use cases:**
+ * - Static backgrounds that rarely change
+ * - Content that updates less frequently than the main animation (e.g., every 100ms)
+ * - Complex visual elements that can be pre-rendered once
+ * - Separating UI layers from game/animation layers
+ *
+ * ❌ **Avoid using for:**
+ * - Content that changes every frame (stars moving constantly)
+ * - Small, simple draw operations (overhead exceeds benefit)
+ * - When memory is constrained (each layer uses additional GPU memory)
+ *
+ * ## Optimal Usage Pattern
+ *
+ * ```typescript
+ * // 1. Initialize with appropriate layers
+ * const offscreen = useOffscreenCanvas({
+ *   width: canvasWidth,
+ *   height: canvasHeight,
+ *   layers: ['background', 'midground', 'effects'],
+ *   enabled: true,
+ * });
+ *
+ * // 2. In your render loop, check if layer needs redraw
+ * if (offscreen.shouldRedraw('background')) {
+ *   const layer = offscreen.getLayer('background');
+ *   if (layer) {
+ *     layer.ctx.clearRect(0, 0, width, height);
+ *     // Draw to layer.ctx instead of main ctx
+ *     drawBackgroundElements(layer.ctx);
+ *   }
+ * }
+ *
+ * // 3. Composite layer to main canvas (very fast - just a drawImage)
+ * offscreen.compositeToMain(mainCtx, 'background');
+ *
+ * // 4. Mark layer as dirty when content changes
+ * offscreen.markDirty('background');
+ * ```
+ *
+ * ## Layer Recommendations
+ *
+ * | Layer Type | Redraw Interval | Example Content |
+ * |------------|-----------------|-----------------|
+ * | background | 1000ms+ | Static nebula, gradient |
+ * | stars | 16ms (every frame) | Moving stars |
+ * | effects | 16ms (every frame) | Particles, explosions |
+ * | ui | On change only | Score, labels |
+ *
+ * ## Performance Considerations
+ *
+ * - Each layer allocates GPU memory (width × height × 4 bytes for RGBA)
+ * - Compositing is fast (single drawImage call per layer)
+ * - Pre-rendering saves time only if the content is complex
+ * - For the Starfield, stars move every frame, so offscreen canvas
+ *   provides minimal benefit unless we cache the render and only update positions
+ *
+ * ## Browser Support
+ *
+ * OffscreenCanvas is supported in modern browsers:
+ * - Chrome 69+
+ * - Firefox 105+
+ * - Safari 16.4+
+ * - Edge 79+
+ *
+ * Falls back to regular canvas elements if OffscreenCanvas is unavailable.
+ */
+
 import { useCallback, useEffect, useRef } from 'react';
 import { logger } from '@/utils';
 import { featureFlags } from '@/utils';
