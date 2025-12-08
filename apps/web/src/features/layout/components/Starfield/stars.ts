@@ -410,9 +410,9 @@ export const drawStars = (
         star.x, star.y, glowRadius
       );
 
-      // Get base color and create brighter version for center (using cached parsing)
+      // Use pre-cached parsed color from star initialization (avoids per-frame parsing)
       const baseColor = star.color;
-      const parsed = parseRgbaColor(baseColor);
+      const parsed = star.parsedColor ?? null;
 
       // Use optimized color functions to avoid string manipulation in hot path
       const brighterColorStr = parsed ? brightenColor(parsed, 100) : baseColor;

@@ -111,6 +111,8 @@ export interface Planet {
   cachedCoreRgb?: { r: number; g: number; b: number };
   /** Cached RGB values for sun/glow color (avoids hexToRgb per frame) */
   cachedGlowRgb?: { r: number; g: number; b: number };
+  /** Cached unique offset for animation timing (avoids string reduce per frame) */
+  cachedUniqueOffset?: number;
 }
 
 export interface HoverInfo {

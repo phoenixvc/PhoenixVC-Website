@@ -4,6 +4,7 @@
 import { MousePosition } from "../../types";
 import { AnimationProps } from "./types";
 import { TWO_PI } from "../../math";
+import { getFrameTime } from "../../frameCache";
 
 /**
  * Draw mouse interaction effects (glow, ripples, click flash)
@@ -50,8 +51,9 @@ export function drawMouseEffects(
 
   // Determine time since click to drive ripple effects.
   // Use a large value (2000ms+) if no click has occurred to prevent effects on load
+  // Use getFrameTime() instead of Date.now() to avoid syscall per frame
   const timeSinceClick = currentMousePosition.clickTime > 0
-    ? Date.now() - currentMousePosition.clickTime
+    ? getFrameTime() - currentMousePosition.clickTime
     : 2000; // No click yet - beyond all effect thresholds
 
   // Draw three layered ripple effects.

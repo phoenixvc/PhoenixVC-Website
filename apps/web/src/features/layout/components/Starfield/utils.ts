@@ -1,6 +1,6 @@
 // components/Layout/Starfield/utils.ts
 
-import { distance as mathDistance, distanceSquared } from "./math";
+import { distance as mathDistance, distanceSquared, fastSin, fastCos } from "./math";
 
 // Re-export distance from math.ts for backwards compatibility
 export { distanceSquared };
@@ -29,8 +29,8 @@ export const applyGravity = (
     const angle = Math.atan2(pointY - starY, pointX - starX);
 
     // Apply force to velocity (with time scaling)
-    const forceX = Math.cos(angle) * force * 0.0001 * deltaTime;
-    const forceY = Math.sin(angle) * force * 0.0001 * deltaTime;
+    const forceX = fastCos(angle) * force * 0.0001 * deltaTime;
+    const forceY = fastSin(angle) * force * 0.0001 * deltaTime;
 
     return {
       vx: starVx + forceX,

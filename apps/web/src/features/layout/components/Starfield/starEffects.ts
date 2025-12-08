@@ -3,7 +3,25 @@
 
 import { Planet, PortfolioProject } from "./types";
 import { getFrameTime } from "./frameCache";
-import { TWO_PI } from "./math";
+import { TWO_PI, fastSin, fastCos } from "./math";
+
+/**
+ * Get or compute cached unique offset for a planet (avoids string reduce per frame)
+ */
+function getUniqueOffset(planet: Planet): number {
+  if (planet.cachedUniqueOffset !== undefined) {
+    return planet.cachedUniqueOffset;
+  }
+
+  const offset = planet.project?.id
+    ? (typeof planet.project.id === "string"
+        ? planet.project.id.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0)
+        : Number(planet.project.id))
+    : Math.random() * 1000;
+
+  planet.cachedUniqueOffset = offset;
+  return offset;
+}
 
 // Re-export from dedicated modules for backward compatibility
 export { drawStarTrail } from "./cometTrail";
@@ -18,16 +36,12 @@ export function drawStarGlow(
   starSize: number,
   softRgb: {r: number, g: number, b: number}
 ): void {
-  // Create a unique offset for this star based on project ID with proper null checking
-  const uniqueOffset = planet.project?.id
-    ? (typeof planet.project.id === "string"
-        ? planet.project.id.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0)
-        : Number(planet.project.id))
-    : Math.random() * 1000; // Fallback to a random offset if no project ID
+  // Use cached unique offset (avoids string reduce per frame)
+  const uniqueOffset = getUniqueOffset(planet);
 
   // Apply subtle pulsing effect using the unique offset
   const pulseTime = getFrameTime() * 0.0003 + (uniqueOffset * 0.05);
-  const pulseFactor = 1 + Math.sin(pulseTime) * 0.1; // 10% size variation
+  const pulseFactor = 1 + fastSin(pulseTime) * 0.1; // 10% size variation
 
   // Enhanced glow effect - softer glow with independent pulsing
   const glowMultiplier = planet.glowIntensity ||
@@ -113,21 +127,17 @@ export function drawHoverEffects(
       ctx.restore();
     }
 
-    // Use the employee ID or another unique property to create independent pulse timing
-    const uniqueOffset = planet.employee?.id
-      ? (typeof planet.employee.id === "string"
-          ? planet.employee.id.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0)
-          : Number(planet.employee.id))
-      : Math.random() * 1000;
+    // Use cached unique offset (avoids string reduce per frame)
+    const uniqueOffset = getUniqueOffset(planet);
 
     // Use the unique offset to create independent pulse timing
     const pulseTime = getFrameTime() * 0.0005 + (uniqueOffset * 0.1);
-    const pulseOpacity = 0.4 + Math.sin(pulseTime * 1.5) * 0.2;
-    const pulseSize = starSize * (1.3 + Math.sin(pulseTime * 1) * 0.2);
+    const pulseOpacity = 0.4 + fastSin(pulseTime * 1.5) * 0.2;
+    const pulseSize = starSize * (1.3 + fastSin(pulseTime * 1) * 0.2);
 
     ctx.beginPath();
     ctx.arc(planet.x, planet.y, pulseSize, 0, TWO_PI);
-    ctx.lineWidth = 1.5 + Math.sin(pulseTime * 2) * 0.5;
+    ctx.lineWidth = 1.5 + fastSin(pulseTime * 2) * 0.5;
     ctx.strokeStyle = `rgba(${softRgb.r}, ${softRgb.g}, ${softRgb.b}, ${pulseOpacity})`;
     ctx.stroke();
     ctx.restore();
@@ -140,10 +150,10 @@ export function drawHoverEffects(
       const clickIndicatorY = planet.y - starSize * 1.2;
 
       // Draw pulsing circle with smoother animation
-      const clickPulse = 0.85 + Math.sin(pulseTime * 2.5) * 0.15;
+      const clickPulse = 0.85 + fastSin(pulseTime * 2.5) * 0.15;
       ctx.beginPath();
       ctx.arc(clickIndicatorX, clickIndicatorY, clickIndicatorSize * clickPulse, 0, TWO_PI);
-      ctx.fillStyle = `rgba(255, 255, 255, ${0.6 + Math.sin(pulseTime * 2) * 0.2})`;
+      ctx.fillStyle = `rgba(255, 255, 255, ${0.6 + fastSin(pulseTime * 2) * 0.2})`;
       ctx.fill();
 
       // Draw click icon
@@ -171,8 +181,8 @@ export function drawHoverEffects(
         skills.forEach((skill, i) => {
           // Use unique timing for skill icon rotation too
           const angle = (i / skillCount) * TWO_PI + getFrameTime() * 0.0005 + (uniqueOffset * 0.01);
-          const iconX = planet.x + Math.cos(angle) * orbitRadius;
-          const iconY = planet.y + Math.sin(angle) * orbitRadius;
+          const iconX = planet.x + fastCos(angle) * orbitRadius;
+          const iconY = planet.y + fastSin(angle) * orbitRadius;
 
           // Draw skill icon background
           ctx.beginPath();
@@ -220,15 +230,13 @@ export function drawStarFlares(
 
       ctx.beginPath();
       ctx.moveTo(planet.x, planet.y);
-      ctx.lineTo(
-        planet.x + Math.cos(flareAngle) * flareLength,
-        planet.y + Math.sin(flareAngle) * flareLength
-      );
+      const flareEndX = planet.x + fastCos(flareAngle) * flareLength;
+      const flareEndY = planet.y + fastSin(flareAngle) * flareLength;
+      ctx.lineTo(flareEndX, flareEndY);
 
       const flareGradient = ctx.createLinearGradient(
         planet.x, planet.y,
-        planet.x + Math.cos(flareAngle) * flareLength,
-        planet.y + Math.sin(flareAngle) * flareLength
+        flareEndX, flareEndY
       );
 
       flareGradient.addColorStop(0, "rgba(255, 255, 255, 0.7)");
