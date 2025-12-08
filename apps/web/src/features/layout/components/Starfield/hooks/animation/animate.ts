@@ -181,10 +181,8 @@ export const animate = (
       const cameraCenterX = cameraValues.cx * canvas.width;
       const cameraCenterY = cameraValues.cy * canvas.height;
 
-      // Calculate the viewport center accounting for sidebar offset
-      // The visible content area is shifted right by sidebarWidth, so we offset the center
-      const sidebarOffset = (props.sidebarWidth ?? 0) / 2;
-      const viewportCenterX = canvas.width / 2 + sidebarOffset;
+      // Calculate the viewport center
+      const viewportCenterX = canvas.width / 2;
       const viewportCenterY = canvas.height / 2;
 
       // Apply transformation to center the camera target in the visible viewport

@@ -45,8 +45,8 @@ export const initBlackHoles = (
   if (!enableBlackHole) return [];
 
   return defaultBlackHoles.map((hole, index) => {
-    // Position black hole relative to canvas size, accounting for sidebar
-    const x = sidebarWidth + hole.x * (width - sidebarWidth) + centerOffsetX;
+    // Position black hole relative to canvas size
+    const x = hole.x * width + centerOffsetX;
     const y = hole.y * height + centerOffsetY;
 
     // Reduce the radius significantly to make black holes less massive

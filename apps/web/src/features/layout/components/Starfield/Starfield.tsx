@@ -1388,122 +1388,116 @@ const InteractiveStarfield = forwardRef<
                   }
                 }
               }
-            }}
-          />
-        </div>
+            }
+          }}
+        />
+      </div>
 
-        {/* Only render debug controls when debug mode is active */}
-        {debugSettings.isDebugMode && (
-          <DebugControlsOverlay
-            debugSettings={debugSettings}
-            updateDebugSetting={updateDebugSetting}
-            resetStars={resetStars}
-            sidebarWidth={sidebarWidth}
-            stars={stars}
-            mousePosition={mousePosition}
-            fps={currentFps}
-            timestamp={timestamp}
-            setMousePosition={setMousePosition}
-            isDarkMode={isDarkMode}
-          />
-        )}
+      {/* Only render debug controls when debug mode is active */}
+      {debugSettings.isDebugMode && (
+        <DebugControlsOverlay
+          debugSettings={debugSettings}
+          updateDebugSetting={updateDebugSetting}
+          resetStars={resetStars}
+          sidebarWidth={sidebarWidth}
+          stars={stars}
+          mousePosition={mousePosition}
+          fps={currentFps}
+          timestamp={timestamp}
+          setMousePosition={setMousePosition}
+          isDarkMode={isDarkMode}
+        />
+      )}
 
-        {pinnedProject && (
-          <ProjectTooltip
-            project={pinnedProject}
-            x={pinnedPosition.x}
-            y={pinnedPosition.y}
-            isPinned={true}
-            isDarkMode={isDarkMode}
-            onUnpin={handleUnpinProject}
-          />
-        )}
+      {pinnedProject && (
+        <ProjectTooltip
+          project={pinnedProject}
+          x={pinnedPosition.x}
+          y={pinnedPosition.y}
+          isPinned={true}
+          isDarkMode={isDarkMode}
+          onUnpin={handleUnpinProject}
+        />
+      )}
 
-        {hoverInfo.show && hoverInfo.project && !pinnedProject && (
-          <ProjectTooltip
-            project={hoverInfo.project}
-            x={hoverInfo.x}
-            y={hoverInfo.y}
-            isDarkMode={isDarkMode}
-            onPin={handlePinProject}
-            onMouseEnter={handleProjectTooltipMouseEnter}
-            onMouseLeave={handleProjectTooltipMouseLeave}
-          />
-        )}
+      {hoverInfo.show && hoverInfo.project && !pinnedProject && (
+        <ProjectTooltip
+          project={hoverInfo.project}
+          x={hoverInfo.x}
+          y={hoverInfo.y}
+          isDarkMode={isDarkMode}
+          onPin={handlePinProject}
+          onMouseEnter={handleProjectTooltipMouseEnter}
+          onMouseLeave={handleProjectTooltipMouseLeave}
+        />
+      )}
 
-        {/* Sun tooltip when hovering over a focus area sun - only show if no project tooltip is visible */}
-        {hoveredSun && !pinnedProject && !hoverInfo.show && (
-          <SunTooltip
-            sun={hoveredSun}
-            isDarkMode={isDarkMode}
-            onClick={(sunId): void => zoomToSun(sunId)}
-            onMouseEnter={(): void => {
-              // Clear any pending hide timeout when mouse enters tooltip
-              if (sunHideTimeoutRef.current) {
-                clearTimeout(sunHideTimeoutRef.current);
-                sunHideTimeoutRef.current = null;
-              }
-            }}
-            onMouseLeave={(): void => {
-              // Start hide timeout when mouse leaves tooltip
-              sunHideTimeoutRef.current = setTimeout((): void => {
-                hoveredSunIdRef.current = null;
-                setHoveredSunId(null);
-                setHoveredSun(null);
-              }, 200);
-            }}
-          />
-        )}
+      {/* Sun tooltip when hovering over a focus area sun - only show if no project tooltip is visible */}
+      {hoveredSun && !pinnedProject && !hoverInfo.show && (
+        <SunTooltip
+          sun={hoveredSun}
+          isDarkMode={isDarkMode}
+          onClick={(sunId): void => zoomToSun(sunId)}
+          onMouseEnter={(): void => {
+            // Clear any pending hide timeout when mouse enters tooltip
+            if (sunHideTimeoutRef.current) {
+              clearTimeout(sunHideTimeoutRef.current);
+              sunHideTimeoutRef.current = null;
+            }
+          }}
+          onMouseLeave={(): void => {
+            // Start hide timeout when mouse leaves tooltip
+            sunHideTimeoutRef.current = setTimeout((): void => {
+              hoveredSunIdRef.current = null;
+              setHoveredSunId(null);
+              setHoveredSun(null);
+            }, 200);
+          }}
+        />
+      )}
 
-        {/* Vignette overlay when focused on a sun */}
-        {focusedSunId && (
-          <div
-            className={`${styles.cameraVignette} ${!isDarkMode ? styles.cameraVignetteLight : ""}`}
-          />
-        )}
+      {/* Vignette overlay when focused on a sun */}
+      {focusedSunId && (
+        <div className={`${styles.cameraVignette} ${!isDarkMode ? styles.cameraVignetteLight : ""}`} />
+      )}
 
-        {/* Focus area indicator when zoomed into a sun */}
-        {focusedSunId &&
-          ((): React.ReactElement | null => {
-            const sunState = getSunStates().find((s) => s.id === focusedSunId);
-            return sunState ? (
-              <div
-                className={`${styles.focusAreaIndicator} ${!isDarkMode ? styles.focusAreaIndicatorLight : ""}`}
-              >
-                <div className={styles.focusAreaLabel}>
-                  <span className={styles.focusAreaIcon}>🔍</span>
-                  <span className={styles.focusAreaName}>{sunState.name}</span>
-                </div>
-              </div>
-            ) : null;
-          })()}
+      {/* Focus area indicator when zoomed into a sun */}
+      {focusedSunId && ((): React.ReactElement | null => {
+        const sunState = getSunStates().find(s => s.id === focusedSunId);
+        return sunState ? (
+          <div className={`${styles.focusAreaIndicator} ${!isDarkMode ? styles.focusAreaIndicatorLight : ""}`}>
+            <div className={styles.focusAreaLabel}>
+              <span className={styles.focusAreaIcon}>🔍</span>
+              <span className={styles.focusAreaName}>{sunState.name}</span>
+            </div>
+          </div>
+        ) : null;
+      })()}
 
-        {/* Zoom out button when focused on a sun */}
-        {focusedSunId && (
-          <button
-            className={`${styles.zoomOutButton} ${!isDarkMode ? styles.zoomOutButtonLight : ""}`}
-            onClick={(): void => zoomToSun(focusedSunId)}
-            style={{
-              // Center button in visible content area, accounting for sidebar width
-              left: `calc(50% + ${sidebarWidth / 2}px)`,
-            }}
-          >
-            <span className={styles.zoomOutIcon}>←</span>
-            Zoom Out
-          </button>
-        )}
+      {/* Zoom out button when focused on a sun */}
+      {focusedSunId && (
+        <button
+          className={`${styles.zoomOutButton} ${!isDarkMode ? styles.zoomOutButtonLight : ""}`}
+          onClick={(): void => zoomToSun(focusedSunId)}
+          style={{
+            left: "50%"
+          }}
+        >
+          <span className={styles.zoomOutIcon}>←</span>
+          Zoom Out
+        </button>
+      )}
 
-        {/* Add score overlay if in game mode */}
-        {gameMode && (
-          <ScoreOverlay
-            remainingClicks={gameState.remainingClicks}
-            currentScore={gameState.score}
-            highScores={gameState.highScores}
-          />
-        )}
-      </>
-    );
-  },
-);
+      {/* Add score overlay if in game mode */}
+      {gameMode && (
+        <ScoreOverlay
+          remainingClicks={gameState.remainingClicks}
+          currentScore={gameState.score}
+          highScores={gameState.highScores}
+        />
+      )}
+    </>
+  );
+});
 
 export default InteractiveStarfield;

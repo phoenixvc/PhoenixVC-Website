@@ -144,8 +144,6 @@ const Hero: FC<ExtendedHeroProps> = memo(
         data-starfield-passthrough="true"
         style={{
           backgroundPosition: `center ${scrollPosition * 0.05}px`,
-          // Offset padding to center content accounting for sidebar
-          paddingLeft: `${sidebarWidth}px`,
         }}
       >
         <div
@@ -346,8 +344,7 @@ const Hero: FC<ExtendedHeroProps> = memo(
                 y: { repeat: Infinity, duration: 1.5 },
               }}
               style={{
-                // Center in visible content area, accounting for sidebar width
-                left: `calc(50% + ${sidebarWidth / 2}px)`,
+                left: "50%"
               }}
               onClick={() => scrollTo("focus-areas")}
               aria-label="Scroll to explore content"
