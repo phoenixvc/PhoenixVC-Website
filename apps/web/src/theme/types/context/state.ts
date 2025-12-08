@@ -6,12 +6,10 @@ import { ThemeContextError } from "./error";
  * Extend the core ThemeState to add context-specific state properties.
  */
 export interface ExtendedThemeState extends Required<ThemeState> {
-
-    // Context-specific additions:
-    isLoading?: boolean;
-    error?: Error | null;
+  // Context-specific additions:
+  isLoading?: boolean;
+  error?: Error | null;
 }
-
 
 /**
  * Theme context state interface.

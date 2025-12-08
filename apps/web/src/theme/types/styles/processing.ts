@@ -95,5 +95,8 @@ export interface StyleUtils {
   merge: (...styles: RawStyles[]) => RawStyles;
   toCss: (styles: RawStyles, options?: StyleGenerationOptions) => string;
   generateClassNames: (styles: RawStyles, prefix?: string) => string[];
-  process: (styles: RawStyles, options?: StyleGenerationOptions) => StyleProcessingResult;
+  process: (
+    styles: RawStyles,
+    options?: StyleGenerationOptions,
+  ) => StyleProcessingResult;
 }

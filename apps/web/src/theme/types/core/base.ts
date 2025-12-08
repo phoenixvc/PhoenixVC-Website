@@ -8,7 +8,14 @@ import { ComponentVariants } from "../mappings/component-variants";
 /**
  * Core Theme Identity
  */
-export type ThemeName = "classic" | "forest" | "ocean" | "phoenix" | "lavender" | "cloud" | "cosmic-frontier";
+export type ThemeName =
+  | "classic"
+  | "forest"
+  | "ocean"
+  | "phoenix"
+  | "lavender"
+  | "cloud"
+  | "cosmic-frontier";
 export type ThemeMode = "light" | "dark";
 
 /**
@@ -94,7 +101,6 @@ export interface ThemeConstantsType {
 interface _ThemeCore {
   getTheme: (themeName: ThemeName) => ThemeColors | undefined;
 }
-
 
 /**
  * Configuration options for theme acquisition
@@ -219,7 +225,7 @@ export interface IThemeRegistry {
     name: ThemeName,
     theme: ThemeColors,
     metadata?: Partial<ThemeMetadata>,
-    sourceScheme?: ThemeSchemeInitial
+    sourceScheme?: ThemeSchemeInitial,
   ): void;
 
   /**
@@ -326,7 +332,12 @@ export interface ThemeTypography {
   };
 }
 
-export type ThemeCacheSource = "local" | "remote" | "default" | "registered" | "registry";
+export type ThemeCacheSource =
+  | "local"
+  | "remote"
+  | "default"
+  | "registered"
+  | "registry";
 
 export interface ThemeBorders {
   radius: {
@@ -432,7 +443,7 @@ export interface IThemeCacheService {
     name: ThemeName,
     themeData: ThemeColors | ThemeSchemeInitial,
     semantic?: SemanticColors,
-    source?: ThemeCacheSource
+    source?: ThemeCacheSource,
   ): ThemeColors;
 
   /**

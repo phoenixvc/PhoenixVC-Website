@@ -56,7 +56,13 @@ export function hexToRgb(hex: string): RGB | null {
 
   // Handle 3-digit shorthand hex (e.g., "fff" -> "ffffff")
   if (/^[a-fA-F0-9]{3}$/.test(cleanHex)) {
-    cleanHex = cleanHex[0] + cleanHex[0] + cleanHex[1] + cleanHex[1] + cleanHex[2] + cleanHex[2];
+    cleanHex =
+      cleanHex[0] +
+      cleanHex[0] +
+      cleanHex[1] +
+      cleanHex[1] +
+      cleanHex[2] +
+      cleanHex[2];
   }
 
   // Validate 6-digit hex
@@ -88,7 +94,10 @@ export function hexToRgb(hex: string): RGB | null {
  * @param hex - Hex color string
  * @param fallback - Default RGB if parsing fails
  */
-export function hexToRgbSafe(hex: string, fallback: RGB = RENDERING_COLORS.defaults.sunColor): RGB {
+export function hexToRgbSafe(
+  hex: string,
+  fallback: RGB = RENDERING_COLORS.defaults.sunColor,
+): RGB {
   return hexToRgb(hex) ?? fallback;
 }
 
@@ -103,7 +112,8 @@ export function rgbToString(rgb: RGB): string {
  * Convert RGB to hex string
  */
 export function rgbToHex(rgb: RGB): string {
-  const toHex = (n: number): string => Math.round(n).toString(16).padStart(2, "0");
+  const toHex = (n: number): string =>
+    Math.round(n).toString(16).padStart(2, "0");
   return `#${toHex(rgb.r)}${toHex(rgb.g)}${toHex(rgb.b)}`;
 }
 
@@ -227,7 +237,10 @@ export function hslToRgb(hsl: HSL): RGB {
  * @param hueShift - Amount to shift hue (0-1, default 0.11 for analogous)
  * @returns Secondary color as "rgb(r, g, b)" string
  */
-export function getSecondaryColor(hex: string, hueShift: number = 0.11): string {
+export function getSecondaryColor(
+  hex: string,
+  hueShift: number = 0.11,
+): string {
   const rgb = hexToRgb(hex);
   if (!rgb) return hex;
 
@@ -278,7 +291,9 @@ export function rgba(rgb: RGB | string, alpha: number): string {
  * Parse an RGBA color string
  */
 export function parseRgba(color: string): RGBA | null {
-  const rgbaMatch = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+  const rgbaMatch = color.match(
+    /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/,
+  );
   if (rgbaMatch) {
     return {
       r: parseInt(rgbaMatch[1], 10),
@@ -317,7 +332,7 @@ export function interpolateColor(color1: RGB, color2: RGB, t: number): RGB {
 export function createSoftenedColor(
   baseRgb: RGB,
   factor: number = 0.85,
-  brightness: number = 38
+  brightness: number = 38,
 ): RGB {
   return {
     r: Math.round(baseRgb.r * factor + brightness),

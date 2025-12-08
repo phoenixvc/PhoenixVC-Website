@@ -32,22 +32,46 @@ const ScrollToHash = (): null => {
 };
 
 // Lazy load route-based components for code splitting
-const Blog = lazy(() => import("./features/blog").then(m => ({ default: m.Blog })));
-const Portfolio = lazy(() => import("./features/portfolio").then(m => ({ default: m.Portfolio })));
-const ProjectDetail = lazy(() => import("./features/portfolio/ProjectDetail").then(m => ({ default: m.ProjectDetail })));
-const AboutPage = lazy(() => import("./features/about-page").then(m => ({ default: m.AboutPage })));
-const ThemeDesigner = lazy(() => import("./features/theme-designer").then(m => ({ default: m.ThemeDesigner })));
+const Blog = lazy(() =>
+  import("./features/blog").then((m) => ({ default: m.Blog })),
+);
+const Portfolio = lazy(() =>
+  import("./features/portfolio").then((m) => ({ default: m.Portfolio })),
+);
+const ProjectDetail = lazy(() =>
+  import("./features/portfolio/ProjectDetail").then((m) => ({
+    default: m.ProjectDetail,
+  })),
+);
+const AboutPage = lazy(() =>
+  import("./features/about-page").then((m) => ({ default: m.AboutPage })),
+);
+const ThemeDesigner = lazy(() =>
+  import("./features/theme-designer").then((m) => ({
+    default: m.ThemeDesigner,
+  })),
+);
 
 // Lazy load homepage sections
-const LazyInvestmentFocus = lazy(() => import("./features/investment-focus").then(m => ({ default: m.InvestmentFocus })));
-const LazyAbout = lazy(() => import("./features/about").then(m => ({ default: m.About })));
+const LazyInvestmentFocus = lazy(() =>
+  import("./features/investment-focus").then((m) => ({
+    default: m.InvestmentFocus,
+  })),
+);
+const LazyAbout = lazy(() =>
+  import("./features/about").then((m) => ({ default: m.About })),
+);
 // const LazyTeam = lazy(() => import("./features/team").then(m => ({ default: m.Team })));
-const LazyContact = lazy(() => import("./features/contact").then(m => ({ default: m.Contact })));
+const LazyContact = lazy(() =>
+  import("./features/contact").then((m) => ({ default: m.Contact })),
+);
 
 // Loading fallback component using skeleton
-const PageLoader = ({ isDarkMode = false }: { isDarkMode?: boolean }): React.JSX.Element => (
-  <PageSkeleton isDarkMode={isDarkMode} />
-);
+const PageLoader = ({
+  isDarkMode = false,
+}: {
+  isDarkMode?: boolean;
+}): React.JSX.Element => <PageSkeleton isDarkMode={isDarkMode} />;
 
 const App = (): React.JSX.Element => {
   const { themeMode } = useTheme(); // Get current theme mode
@@ -58,67 +82,88 @@ const App = (): React.JSX.Element => {
       <BrowserRouter>
         <ScrollToHash />
         <Routes>
-          <Route path="/" element={
-          <Layout>
-            <Hero
-              title="Shaping Tomorrow's Technology"
-              subtitle="Strategic investments and partnerships empowering innovation across the globe"
-              enableMouseTracking={true}
-            />
-            <Suspense fallback={<PageLoader isDarkMode={isDarkMode} />}>
-              <LazyInvestmentFocus />
-              <LazyAbout />
-              <LazyContact />
-            </Suspense>
-          </Layout>
-        } />
+          <Route
+            path="/"
+            element={
+              <Layout>
+                <Hero
+                  title="Shaping Tomorrow's Technology"
+                  subtitle="Strategic investments and partnerships empowering innovation across the globe"
+                  enableMouseTracking={true}
+                />
+                <Suspense fallback={<PageLoader isDarkMode={isDarkMode} />}>
+                  <LazyInvestmentFocus />
+                  <LazyAbout />
+                  <LazyContact />
+                </Suspense>
+              </Layout>
+            }
+          />
 
-        <Route path="/blog" element={
-          <Layout>
-            <Suspense fallback={<PageLoader isDarkMode={isDarkMode} />}>
-              <Blog />
-            </Suspense>
-          </Layout>
-        } />
+          <Route
+            path="/blog"
+            element={
+              <Layout>
+                <Suspense fallback={<PageLoader isDarkMode={isDarkMode} />}>
+                  <Blog />
+                </Suspense>
+              </Layout>
+            }
+          />
 
-        <Route path="/portfolio" element={
-          <Layout>
-            <Suspense fallback={<PageLoader isDarkMode={isDarkMode} />}>
-              <Portfolio />
-            </Suspense>
-          </Layout>
-        } />
+          <Route
+            path="/portfolio"
+            element={
+              <Layout>
+                <Suspense fallback={<PageLoader isDarkMode={isDarkMode} />}>
+                  <Portfolio />
+                </Suspense>
+              </Layout>
+            }
+          />
 
-        <Route path="/portfolio/:projectId" element={
-          <Layout>
-            <Suspense fallback={<PageLoader isDarkMode={isDarkMode} />}>
-              <ProjectDetail />
-            </Suspense>
-          </Layout>
-        } />
+          <Route
+            path="/portfolio/:projectId"
+            element={
+              <Layout>
+                <Suspense fallback={<PageLoader isDarkMode={isDarkMode} />}>
+                  <ProjectDetail />
+                </Suspense>
+              </Layout>
+            }
+          />
 
-          <Route path="/about" element={
-            <Layout>
-              <Suspense fallback={<PageLoader isDarkMode={isDarkMode} />}>
-                <AboutPage />
-              </Suspense>
-            </Layout>
-          } />
+          <Route
+            path="/about"
+            element={
+              <Layout>
+                <Suspense fallback={<PageLoader isDarkMode={isDarkMode} />}>
+                  <AboutPage />
+                </Suspense>
+              </Layout>
+            }
+          />
 
-          <Route path="/theme-designer" element={
-            <Layout>
-              <Suspense fallback={<PageLoader isDarkMode={isDarkMode} />}>
-                <ThemeDesigner isDarkMode={isDarkMode} />
-              </Suspense>
-            </Layout>
-          } />
+          <Route
+            path="/theme-designer"
+            element={
+              <Layout>
+                <Suspense fallback={<PageLoader isDarkMode={isDarkMode} />}>
+                  <ThemeDesigner isDarkMode={isDarkMode} />
+                </Suspense>
+              </Layout>
+            }
+          />
 
           {/* 404 Not Found - must be last */}
-          <Route path="*" element={
-            <Layout>
-              <NotFound />
-            </Layout>
-          } />
+          <Route
+            path="*"
+            element={
+              <Layout>
+                <NotFound />
+              </Layout>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </ErrorBoundary>

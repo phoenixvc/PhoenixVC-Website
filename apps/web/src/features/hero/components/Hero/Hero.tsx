@@ -3,7 +3,14 @@ import { useScrollTo } from "@/hooks/useScrollTo";
 import { useSectionObserver } from "@/hooks/useSectionObserver";
 import { useTheme } from "@/theme";
 import { AnimatePresence, motion } from "framer-motion";
-import React, { FC, memo, useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  FC,
+  memo,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { heroAnimations } from "../../animations";
 import { DEFAULT_HERO_CONTENT } from "../../constants";
 import styles from "./hero.module.css";
@@ -46,25 +53,28 @@ const Hero: FC<ExtendedHeroProps> = memo(
     const [showReturnToStars, setShowReturnToStars] = useState(false); // Hide at top of page
     const [scrollPosition, setScrollPosition] = useState(0);
 
-    const handleMouseMove = useCallback((e: MouseEvent): void => {
-      const container = containerRef.current;
-      if (!container) return;
+    const handleMouseMove = useCallback(
+      (e: MouseEvent): void => {
+        const container = containerRef.current;
+        if (!container) return;
 
-      const rect = container.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+        const rect = container.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
 
-      // Check if mouse is near the border (within 20px)
-      const borderThreshold = 20;
-      const isNearBorder =
-        x < borderThreshold ||
-        y < borderThreshold ||
-        x > rect.width - borderThreshold ||
-        y > rect.height - borderThreshold;
+        // Check if mouse is near the border (within 20px)
+        const borderThreshold = 20;
+        const isNearBorder =
+          x < borderThreshold ||
+          y < borderThreshold ||
+          x > rect.width - borderThreshold ||
+          y > rect.height - borderThreshold;
 
-      setIsMouseNearBorder(isNearBorder);
-      setMousePosition({ x, y });
-    }, [containerRef]);
+        setIsMouseNearBorder(isNearBorder);
+        setMousePosition({ x, y });
+      },
+      [containerRef],
+    );
 
     // Mouse tracking effect
     useEffect(() => {
@@ -98,7 +108,10 @@ const Hero: FC<ExtendedHeroProps> = memo(
       return (): void => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    const getThemeStyles = (): { textColor: string; gradientColors: string } => {
+    const getThemeStyles = (): {
+      textColor: string;
+      gradientColors: string;
+    } => {
       const textColor = isDarkMode ? "text-white" : "text-gray-900";
       const gradientColors = accentColor
         ? `from-${accentColor} to-${accentColor}`
@@ -168,11 +181,11 @@ const Hero: FC<ExtendedHeroProps> = memo(
                     <motion.div
                       className={`${styles.heroContentInner} ${isDarkMode ? styles.darkInner : styles.lightInner} ${isMinimized ? styles.minimized : ""}`}
                       initial={{ opacity: 0, y: 40, scale: 0.95 }}
-                      animate={{ 
-                        opacity: 1, 
-                        y: 0, 
+                      animate={{
+                        opacity: 1,
+                        y: 0,
                         scale: 1,
-                        height: isMinimized ? "auto" : "auto"
+                        height: isMinimized ? "auto" : "auto",
                       }}
                       exit={{ opacity: 0, y: -20, scale: 0.95 }}
                       transition={{
@@ -189,13 +202,27 @@ const Hero: FC<ExtendedHeroProps> = memo(
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.3 }}
-                        aria-label={isMinimized ? "Expand hero content" : "Minimize hero content"}
+                        aria-label={
+                          isMinimized
+                            ? "Expand hero content"
+                            : "Minimize hero content"
+                        }
                         title={isMinimized ? "Expand" : "Minimize"}
                       >
                         {isMinimized ? (
-                          <Maximize2 size={16} className={isDarkMode ? "text-white" : "text-gray-800"} />
+                          <Maximize2
+                            size={16}
+                            className={
+                              isDarkMode ? "text-white" : "text-gray-800"
+                            }
+                          />
                         ) : (
-                          <Minimize2 size={16} className={isDarkMode ? "text-white" : "text-gray-800"} />
+                          <Minimize2
+                            size={16}
+                            className={
+                              isDarkMode ? "text-white" : "text-gray-800"
+                            }
+                          />
                         )}
                       </motion.button>
 
@@ -288,7 +315,9 @@ const Hero: FC<ExtendedHeroProps> = memo(
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.2 }}
                           >
-                            <span className={`bg-gradient-to-r ${gradientColors} bg-clip-text text-transparent ${styles.minimizedTitle}`}>
+                            <span
+                              className={`bg-gradient-to-r ${gradientColors} bg-clip-text text-transparent ${styles.minimizedTitle}`}
+                            >
                               {title}
                             </span>
                           </motion.div>

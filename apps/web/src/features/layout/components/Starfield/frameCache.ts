@@ -7,8 +7,10 @@
  * Call updateFrameCache() at the start of each animation frame.
  */
 let cachedFrameTime = Date.now();
-let cachedWindowWidth = typeof window !== "undefined" ? window.innerWidth : 1920;
-let cachedWindowHeight = typeof window !== "undefined" ? window.innerHeight : 1080;
+let cachedWindowWidth =
+  typeof window !== "undefined" ? window.innerWidth : 1920;
+let cachedWindowHeight =
+  typeof window !== "undefined" ? window.innerHeight : 1080;
 
 /**
  * Update the frame cache. Call this once at the start of each animation frame.

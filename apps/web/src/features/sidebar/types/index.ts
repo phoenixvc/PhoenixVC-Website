@@ -32,7 +32,10 @@ export interface SidebarItemGroup extends SidebarItemBase {
 }
 
 // Union type for all sidebar items
-export type SidebarItem = SidebarItemLink | SidebarItemButton | SidebarItemGroup;
+export type SidebarItem =
+  | SidebarItemLink
+  | SidebarItemButton
+  | SidebarItemGroup;
 
 // SidebarItemType can be a SidebarItem (not a string anymore)
 export type SidebarItemType = SidebarItem;

@@ -13,7 +13,7 @@ export class TypographyManager {
     this.registry = registry || {
       presets: new Map(),
       scales: new Map(),
-      components: new Map()
+      components: new Map(),
     };
   }
 
@@ -21,7 +21,7 @@ export class TypographyManager {
   getComponentTypography(
     component: string,
     variant: string = "default",
-    mode: ThemeMode = "light"
+    mode: ThemeMode = "light",
   ): TypographyScale | undefined {
     // Check component-specific typography first
     const componentMap = this.registry.components.get(component);
@@ -40,7 +40,9 @@ export class TypographyManager {
       case "h6": {
         const level = component === "heading" ? 1 : parseInt(component[1]);
         const preset = this.getActivePreset(mode);
-        return preset ? preset[`h${level}` as keyof TypographyPreset] as TypographyScale : undefined;
+        return preset
+          ? (preset[`h${level}` as keyof TypographyPreset] as TypographyScale)
+          : undefined;
       }
 
       case "body":
@@ -76,7 +78,7 @@ export class TypographyManager {
   setComponentTypography(
     component: string,
     variant: string,
-    typography: TypographyScale
+    typography: TypographyScale,
   ): void {
     let componentMap = this.registry.components.get(component);
     if (!componentMap) {
@@ -89,7 +91,7 @@ export class TypographyManager {
   // Generate CSS variables for typography
   generateTypographyVariables(
     mode: ThemeMode = "light",
-    prefix: string = "--typography"
+    prefix: string = "--typography",
   ): Record<string, string> {
     const variables: Record<string, string> = {};
 
@@ -101,7 +103,8 @@ export class TypographyManager {
           // We know scale is a TypographyScale object
           Object.entries(scale as TypographyScale).forEach(([prop, value]) => {
             // Handle different value types appropriately
-            variables[`${prefix}-${key}-${prop}`] = value !== undefined ? String(value) : "";
+            variables[`${prefix}-${key}-${prop}`] =
+              value !== undefined ? String(value) : "";
           });
         }
       });
@@ -123,9 +126,7 @@ export class TypographyManager {
   }
 
   // Generate CSS classes for typography
-  generateTypographyClasses(
-    mode: ThemeMode = "light"
-  ): Record<string, string> {
+  generateTypographyClasses(mode: ThemeMode = "light"): Record<string, string> {
     const classes: Record<string, string> = {};
     const preset = this.getActivePreset(mode);
 

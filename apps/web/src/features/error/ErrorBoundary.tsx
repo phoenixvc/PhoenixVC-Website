@@ -112,7 +112,7 @@ export class ErrorBoundary extends Component<Props, State> {
             </p>
             <div className={styles.actions}>
               <button
-                onClick={() => window.location.href = "/"}
+                onClick={() => (window.location.href = "/")}
                 className={styles.primaryButton}
               >
                 Go Home

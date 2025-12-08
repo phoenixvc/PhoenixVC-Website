@@ -1,8 +1,14 @@
 // theme/registry/component-registry-manager.ts
-import { ComponentVariants, ComponentVariantType } from "../types/mappings/component-variants";
+import {
+  ComponentVariants,
+  ComponentVariantType,
+} from "../types/mappings/component-variants";
 import { VariantResolver, VariantResolverConfig } from "./variant-resolver";
 import { VariantResolutionStrategy } from "./variant-resolution/variant-resolution-strategy";
-import { ComponentThemeRegistry, createComponentRegistry } from "./component-theme-registry";
+import {
+  ComponentThemeRegistry,
+  createComponentRegistry,
+} from "./component-theme-registry";
 import { ColorDefinition } from "../types/core/colors";
 import ColorUtils from "../utils/color-utils";
 import { Theme } from "../types";
@@ -18,10 +24,11 @@ export class ComponentRegistryManager {
 
   constructor(
     initialRegistry?: Partial<ComponentThemeRegistry>,
-    config?: ComponentRegistryManagerConfig
+    config?: ComponentRegistryManagerConfig,
   ) {
     // Initialize variant resolver
-    this.variantResolver = config?.variantResolver ||
+    this.variantResolver =
+      config?.variantResolver ||
       new VariantResolver(config?.variantResolverConfig);
 
     // Initialize with default registry if provided
@@ -35,7 +42,9 @@ export class ComponentRegistryManager {
   /**
    * Initialize registry from a ComponentThemeRegistry object
    */
-  private initializeFromObject(registry: Partial<ComponentThemeRegistry>): void {
+  private initializeFromObject(
+    registry: Partial<ComponentThemeRegistry>,
+  ): void {
     Object.entries(registry).forEach(([componentName, variants]) => {
       if (!variants) return;
 
@@ -61,13 +70,20 @@ export class ComponentRegistryManager {
       const value = result[key];
 
       if (value && typeof value === "object") {
-        if ("hex" in value && typeof (value as { hex: unknown }).hex === "string") {
+        if (
+          "hex" in value &&
+          typeof (value as { hex: unknown }).hex === "string"
+        ) {
           // This looks like a ColorDefinition, hydrate it
-          const colorDef = ColorUtils.ensureColorDefinition(value as Partial<ColorDefinition>);
+          const colorDef = ColorUtils.ensureColorDefinition(
+            value as Partial<ColorDefinition>,
+          );
           (result as Record<string, unknown>)[key] = colorDef;
         } else {
           // Recursively process nested objects
-          (result as Record<string, unknown>)[key] = this.hydrateRegistryColors(value as object);
+          (result as Record<string, unknown>)[key] = this.hydrateRegistryColors(
+            value as object,
+          );
         }
       }
     }
@@ -109,38 +125,37 @@ export class ComponentRegistryManager {
    * Get a component variant with improved typing
    * This overload allows for strongly-typed component names when available
    */
-  getVariant<T extends keyof ComponentThemeRegistry, V extends keyof ComponentThemeRegistry[T]>(
-    component: T,
-    variant: V
-  ): ComponentThemeRegistry[T][V];
+  getVariant<
+    T extends keyof ComponentThemeRegistry,
+    V extends keyof ComponentThemeRegistry[T],
+  >(component: T, variant: V): ComponentThemeRegistry[T][V];
 
   getVariant<T extends keyof ComponentThemeRegistry>(
     component: T,
-    variant: string
+    variant: string,
   ): ComponentVariantType | undefined;
 
   // Then provide a single implementation that handles all cases
   getVariant<T extends keyof ComponentThemeRegistry>(
     component: T,
-    variant: string
+    variant: string,
   ): ComponentVariantType | undefined {
     const componentVariants = this.getComponentVariants(component);
     if (!componentVariants) return undefined;
     return componentVariants[variant] as ComponentVariantType;
   }
 
-
   getComponentVariants<T extends keyof ComponentThemeRegistry>(
-    component: T
+    component: T,
   ): ComponentThemeRegistry[T] | undefined;
 
   getComponentVariants(
-    component: string
+    component: string,
   ): Record<string, ComponentVariantType> | undefined;
 
   // Single implementation for both overloads
   getComponentVariants(
-    component: string
+    component: string,
   ): Record<string, ComponentVariantType> | undefined {
     const registry = this.getRegistry();
     return registry[component];
@@ -152,7 +167,7 @@ export class ComponentRegistryManager {
   setVariant<T extends ComponentVariantType>(
     component: string,
     variant: string,
-    value: T
+    value: T,
   ): void {
     // Create component entry if it doesn"t exist
     if (!this.registry.has(component)) {
@@ -173,7 +188,6 @@ export class ComponentRegistryManager {
     const componentMap = this.registry.get(component);
     return componentMap ? componentMap.has(variant) : false;
   }
-
 
   /**
    * Get the entire registry as a ComponentThemeRegistry object
@@ -203,7 +217,9 @@ export class ComponentRegistryManager {
    * @param filter Optional filter to include only specific components
    * @returns Filtered copy of the component registry
    */
-  getAllComponentVariants(filter?: Array<keyof ComponentThemeRegistry>): Partial<ComponentThemeRegistry> {
+  getAllComponentVariants(
+    filter?: Array<keyof ComponentThemeRegistry>,
+  ): Partial<ComponentThemeRegistry> {
     const registry = this.getRegistry();
 
     if (!filter || filter.length === 0) {
@@ -281,7 +297,7 @@ export class ComponentRegistryManager {
   getVariantWithFallback<T extends keyof ComponentThemeRegistry>(
     component: T,
     variant: string = "default",
-    actualVariant?: string
+    actualVariant?: string,
   ): ComponentVariantType | undefined {
     const componentVariants = this.getComponentVariants(component);
     if (!componentVariants) {
@@ -290,7 +306,11 @@ export class ComponentRegistryManager {
     }
 
     try {
-      return this.variantResolver.resolveVariant(componentVariants, variant, actualVariant);
+      return this.variantResolver.resolveVariant(
+        componentVariants,
+        variant,
+        actualVariant,
+      );
     } catch (error) {
       console.warn(`Error resolving variant ${component}.${variant}: ${error}`);
       return componentVariants.default as ComponentVariantType;

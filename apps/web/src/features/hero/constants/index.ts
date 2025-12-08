@@ -2,28 +2,29 @@
 export const ANIMATION_CONFIG = {
   duration: {
     container: 0.8,
-    item: 0.5
+    item: 0.5,
   },
   stagger: 0.2,
-  ease: "easeOut"
+  ease: "easeOut",
 } as const;
 
 export const DEFAULT_HERO_CONTENT = {
   title: "Shaping Tomorrow's Technology",
-  subtitle: "Strategic investments and partnerships empowering innovation across the globe",
+  subtitle:
+    "Strategic investments and partnerships empowering innovation across the globe",
   primaryCta: {
     text: "Our Focus Areas",
-    href: "#focus-areas"
+    href: "#focus-areas",
   },
   secondaryCta: {
     text: "Get in Touch",
-    href: "#contact"
-  }
+    href: "#contact",
+  },
 } as const;
 
 export const BREAKPOINTS = {
   sm: "640px",
   md: "768px",
   lg: "1024px",
-  xl: "1280px"
+  xl: "1280px",
 } as const;

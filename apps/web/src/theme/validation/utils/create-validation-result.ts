@@ -17,7 +17,7 @@ export function createValidationResult<T>(
     message: string;
     path: string;
     details?: Record<string, unknown>;
-  }> = []
+  }> = [],
 ): ValidationResult {
   if (errors.length === 0) {
     return {

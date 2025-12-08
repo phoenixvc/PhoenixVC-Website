@@ -26,7 +26,9 @@ export class ThemeErrorBoundary extends React.Component<
     errorStack: null,
   };
 
-  public static getDerivedStateFromError(error: Error): Partial<ThemeErrorBoundaryState> {
+  public static getDerivedStateFromError(
+    error: Error,
+  ): Partial<ThemeErrorBoundaryState> {
     // Extract the stack trace
     const errorStack = error.stack || null;
 
@@ -45,7 +47,7 @@ export class ThemeErrorBoundary extends React.Component<
 
     // Update state with error info
     this.setState({
-      errorInfo: errorInfo
+      errorInfo: errorInfo,
     });
 
     // Call the error handler if provided
@@ -70,7 +72,8 @@ export class ThemeErrorBoundary extends React.Component<
       // Reload the page
       window.location.reload();
     } catch (e) {
-      const error = e instanceof Error ? e : new Error("Unknown error during reset");
+      const error =
+        e instanceof Error ? e : new Error("Unknown error during reset");
       console.error("[ThemeErrorBoundary] Reset failed:", error);
     }
   };
@@ -86,7 +89,9 @@ export class ThemeErrorBoundary extends React.Component<
 
     if (this.state.error && this.state.error.message) {
       // Extract property path from error message
-      const propertyMatch = this.state.error.message.match(/reading [""]([^""]+)[""]/i);
+      const propertyMatch = this.state.error.message.match(
+        /reading [""]([^""]+)[""]/i,
+      );
       if (propertyMatch && propertyMatch[1]) {
         propertyPath = propertyMatch[1];
       }
@@ -98,7 +103,12 @@ export class ThemeErrorBoundary extends React.Component<
       for (const line of stackLines) {
         if (line.includes("render") || line.includes("component")) {
           const match = line.match(/at ([A-Za-z0-9_$]+)\./);
-          if (match && match[1] && match[1] !== "React" && match[1] !== "ThemeErrorBoundary") {
+          if (
+            match &&
+            match[1] &&
+            match[1] !== "React" &&
+            match[1] !== "ThemeErrorBoundary"
+          ) {
             componentName = match[1];
             break;
           }
@@ -107,15 +117,19 @@ export class ThemeErrorBoundary extends React.Component<
     }
 
     return (
-      <div className="theme-error-fallback" role="alert" aria-live="polite"
-           style={{
-             padding: "20px",
-             border: "2px solid #f44336",
-             borderRadius: "4px",
-             backgroundColor: "#fff3f3",
-             maxWidth: "800px",
-             margin: "20px auto"
-           }}>
+      <div
+        className="theme-error-fallback"
+        role="alert"
+        aria-live="polite"
+        style={{
+          padding: "20px",
+          border: "2px solid #f44336",
+          borderRadius: "4px",
+          backgroundColor: "#fff3f3",
+          maxWidth: "800px",
+          margin: "20px auto",
+        }}
+      >
         <h2 style={{ color: "#d32f2f" }}>Theme Error</h2>
         <p>Something went wrong with the theme system.</p>
 
@@ -125,21 +139,29 @@ export class ThemeErrorBoundary extends React.Component<
             <p style={{ fontWeight: "bold" }}>{this.state.error.message}</p>
 
             <div style={{ marginTop: "10px" }}>
-              <p><strong>Likely Issue:</strong> Unable to access <code>{propertyPath}</code> property because its parent object is undefined</p>
-              <p><strong>Probable Location:</strong> {componentName}</p>
+              <p>
+                <strong>Likely Issue:</strong> Unable to access{" "}
+                <code>{propertyPath}</code> property because its parent object
+                is undefined
+              </p>
+              <p>
+                <strong>Probable Location:</strong> {componentName}
+              </p>
             </div>
 
             <div style={{ marginTop: "15px" }}>
               <h4>Stack Trace:</h4>
-              <pre style={{
-                backgroundColor: "#f5f5f5",
-                padding: "10px",
-                overflow: "auto",
-                maxHeight: "200px",
-                fontSize: "12px",
-                border: "1px solid #ddd",
-                borderRadius: "4px"
-              }}>
+              <pre
+                style={{
+                  backgroundColor: "#f5f5f5",
+                  padding: "10px",
+                  overflow: "auto",
+                  maxHeight: "200px",
+                  fontSize: "12px",
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                }}
+              >
                 {this.state.errorStack || "No stack trace available"}
               </pre>
             </div>
@@ -147,15 +169,17 @@ export class ThemeErrorBoundary extends React.Component<
             {this.state.errorInfo && (
               <div style={{ marginTop: "15px" }}>
                 <h4>Component Stack:</h4>
-                <pre style={{
-                  backgroundColor: "#f5f5f5",
-                  padding: "10px",
-                  overflow: "auto",
-                  maxHeight: "200px",
-                  fontSize: "12px",
-                  border: "1px solid #ddd",
-                  borderRadius: "4px"
-                }}>
+                <pre
+                  style={{
+                    backgroundColor: "#f5f5f5",
+                    padding: "10px",
+                    overflow: "auto",
+                    maxHeight: "200px",
+                    fontSize: "12px",
+                    border: "1px solid #ddd",
+                    borderRadius: "4px",
+                  }}
+                >
                   {this.state.errorInfo.componentStack}
                 </pre>
               </div>
@@ -164,7 +188,9 @@ export class ThemeErrorBoundary extends React.Component<
         )}
 
         <div style={{ marginTop: "20px" }}>
-          <p><strong>Troubleshooting Tips:</strong></p>
+          <p>
+            <strong>Troubleshooting Tips:</strong>
+          </p>
           <ul>
             <li>Check if your theme configuration is properly initialized</li>
             <li>Verify that all required theme properties are defined</li>
@@ -184,7 +210,7 @@ export class ThemeErrorBoundary extends React.Component<
             color: "white",
             border: "none",
             borderRadius: "4px",
-            cursor: "pointer"
+            cursor: "pointer",
           }}
         >
           Reset Theme

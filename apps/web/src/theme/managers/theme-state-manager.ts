@@ -1,7 +1,13 @@
 // src/theme/core/theme-state-manager.ts
 
 import { ThemeStorageManager } from "./theme-storage-manager";
-import { ThemeName, ThemeConfig, ThemeMode, ThemeState, StorageOptions } from "../types";
+import {
+  ThemeName,
+  ThemeConfig,
+  ThemeMode,
+  ThemeState,
+  StorageOptions,
+} from "../types";
 import { themeValidationManager } from "./theme-validation-manager";
 import { ThemeAcquisitionManager } from "./theme-acquisition-manager";
 import { ThemeCacheService } from "../services/theme-cache-service";
@@ -32,7 +38,9 @@ export class ThemeStateManager {
   private listeners: Set<() => void>;
   private mediaQuery: MediaQueryList | null = null;
 
-  private constructor(config: ThemeConfig = { name: "default", useSystem: true }) {
+  private constructor(
+    config: ThemeConfig = { name: "default", useSystem: true },
+  ) {
     // Initialize all properties first to avoid undefined errors
     this.listeners = new Set();
     this._initialized = false;
@@ -47,11 +55,11 @@ export class ThemeStateManager {
       themeName: config.themeName || "classic",
       mode: config.mode || "dark",
       direction: config.direction || "ltr",
-      version: config.version || "1.0.0"
+      version: config.version || "1.0.0",
     };
 
     // Initialize state asynchronously
-    this.initializeStateAsync().catch(error => {
+    this.initializeStateAsync().catch((error) => {
       console.error("[ThemeStateManager] Failed to initialize state:", error);
     });
 
@@ -62,9 +70,15 @@ export class ThemeStateManager {
 
       // Load the initial theme after state is initialized
       setTimeout(() => {
-        this.loadAndApplyTheme(this.currentThemeName).catch(error => {
-          console.error("[ThemeStateManager] Failed to load initial theme:", error);
-          this._loadingError = error instanceof Error ? error : new Error("Failed to load initial theme");
+        this.loadAndApplyTheme(this.currentThemeName).catch((error) => {
+          console.error(
+            "[ThemeStateManager] Failed to load initial theme:",
+            error,
+          );
+          this._loadingError =
+            error instanceof Error
+              ? error
+              : new Error("Failed to load initial theme");
         });
       }, 0);
     }
@@ -114,7 +128,10 @@ export class ThemeStateManager {
         ? storedTheme
         : "classic";
     } catch (error) {
-      console.error("[ThemeStateManager] Error getting stored theme name:", error);
+      console.error(
+        "[ThemeStateManager] Error getting stored theme name:",
+        error,
+      );
       return "classic";
     }
   }
@@ -126,7 +143,10 @@ export class ThemeStateManager {
         ? storedMode
         : "dark";
     } catch (error) {
-      console.error("[ThemeStateManager] Error getting stored theme mode:", error);
+      console.error(
+        "[ThemeStateManager] Error getting stored theme mode:",
+        error,
+      );
       return "dark";
     }
   }
@@ -136,7 +156,10 @@ export class ThemeStateManager {
       // getUseSystem() already defaults to false if no stored value
       return await ThemeStorageManager.getUseSystem();
     } catch (error) {
-      console.error("[ThemeStateManager] Error getting stored use system setting:", error);
+      console.error(
+        "[ThemeStateManager] Error getting stored use system setting:",
+        error,
+      );
       return false;
     }
   }
@@ -184,7 +207,10 @@ export class ThemeStateManager {
         this.mediaQuery.addListener(handleChange);
       }
     } catch (error) {
-      console.error("[ThemeStateManager] Error initializing system mode listener:", error);
+      console.error(
+        "[ThemeStateManager] Error initializing system mode listener:",
+        error,
+      );
       this.handleSystemModeError();
     }
   }
@@ -203,7 +229,10 @@ export class ThemeStateManager {
       // Apply storage options to ThemeStorageManager
       await ThemeStorageManager.configureStorage(options);
 
-      console.log("[ThemeStateManager] Storage options configured:", options.provider || "default");
+      console.log(
+        "[ThemeStateManager] Storage options configured:",
+        options.provider || "default",
+      );
 
       // Re-initialize state from the potentially new storage
       await this.initializeStateAsync();
@@ -214,12 +243,17 @@ export class ThemeStateManager {
       // Notify listeners of the change
       this.notify();
     } catch (error) {
-      console.error("[ThemeStateManager] Error configuring storage options:", error);
+      console.error(
+        "[ThemeStateManager] Error configuring storage options:",
+        error,
+      );
       throw error;
     }
   }
 
-  private handleSystemModeChange(e: MediaQueryListEvent | MediaQueryList): void {
+  private handleSystemModeChange(
+    e: MediaQueryListEvent | MediaQueryList,
+  ): void {
     this.systemMode = e.matches ? "dark" : "light";
     if (this.useSystem) {
       this.applyTheme();
@@ -252,19 +286,29 @@ export class ThemeStateManager {
         // Apply the theme
         this.applyTheme();
       } catch (error) {
-        console.error(`[ThemeStateManager] Failed to load theme "${themeName}":`, error);
-        this._loadingError = error instanceof Error ? error : new Error(`Failed to load theme "${themeName}"`);
+        console.error(
+          `[ThemeStateManager] Failed to load theme "${themeName}":`,
+          error,
+        );
+        this._loadingError =
+          error instanceof Error
+            ? error
+            : new Error(`Failed to load theme "${themeName}"`);
 
         // If this isn't the default theme, try to fall back
         if (themeName !== THEME_STORAGE_CONSTANTS.DEFAULTS.THEME_NAME) {
-          console.warn(`[ThemeStateManager] Falling back to default theme: ${THEME_STORAGE_CONSTANTS.DEFAULTS.THEME_NAME}`);
+          console.warn(
+            `[ThemeStateManager] Falling back to default theme: ${THEME_STORAGE_CONSTANTS.DEFAULTS.THEME_NAME}`,
+          );
 
           // Reset theme name to default
           this.currentThemeName = THEME_STORAGE_CONSTANTS.DEFAULTS.THEME_NAME;
           await ThemeStorageManager.saveThemeName(this.currentThemeName);
 
           // Try to load default theme
-          await ThemeAcquisitionManager.getInstance().acquireTheme(THEME_STORAGE_CONSTANTS.DEFAULTS.THEME_NAME);
+          await ThemeAcquisitionManager.getInstance().acquireTheme(
+            THEME_STORAGE_CONSTANTS.DEFAULTS.THEME_NAME,
+          );
           this.applyTheme();
         } else {
           // This is already the default theme and it failed to load
@@ -322,19 +366,29 @@ export class ThemeStateManager {
         // Apply the theme
         this.applyTheme();
       } catch (error) {
-        console.error(`[ThemeStateManager] Failed to load theme "${themeName}":`, error);
-        this._loadingError = error instanceof Error ? error : new Error(`Failed to load theme "${themeName}"`);
+        console.error(
+          `[ThemeStateManager] Failed to load theme "${themeName}":`,
+          error,
+        );
+        this._loadingError =
+          error instanceof Error
+            ? error
+            : new Error(`Failed to load theme "${themeName}"`);
 
         // If this isn't the default theme, try to fall back
         if (themeName !== THEME_STORAGE_CONSTANTS.DEFAULTS.THEME_NAME) {
-          console.warn(`[ThemeStateManager] Falling back to default theme: ${THEME_STORAGE_CONSTANTS.DEFAULTS.THEME_NAME}`);
+          console.warn(
+            `[ThemeStateManager] Falling back to default theme: ${THEME_STORAGE_CONSTANTS.DEFAULTS.THEME_NAME}`,
+          );
 
           // Reset theme name to default
           this.currentThemeName = THEME_STORAGE_CONSTANTS.DEFAULTS.THEME_NAME;
           await ThemeStorageManager.saveThemeName(this.currentThemeName);
 
           // Try to load default theme
-          await ThemeAcquisitionManager.getInstance().acquireTheme(THEME_STORAGE_CONSTANTS.DEFAULTS.THEME_NAME);
+          await ThemeAcquisitionManager.getInstance().acquireTheme(
+            THEME_STORAGE_CONSTANTS.DEFAULTS.THEME_NAME,
+          );
           this.applyTheme();
         } else {
           // This is already the default theme and it failed to load
@@ -363,9 +417,9 @@ export class ThemeStateManager {
         detail: {
           mode,
           themeName: this.currentThemeName,
-          isLoading: this._isLoadingTheme
+          isLoading: this._isLoadingTheme,
         },
-      })
+      }),
     );
   }
 
@@ -442,7 +496,10 @@ export class ThemeStateManager {
       await ThemeAcquisitionManager.getInstance().preloadTheme(themeName);
       this.notify();
     } catch (error) {
-      console.error(`[ThemeStateManager] Error preloading theme "${themeName}":`, error);
+      console.error(
+        `[ThemeStateManager] Error preloading theme "${themeName}":`,
+        error,
+      );
     }
   }
 
@@ -459,7 +516,7 @@ export class ThemeStateManager {
     const cacheStatus = ThemeCacheService.getInstance().getCacheStatus();
     return {
       size: cacheStatus.size,
-      schemes: cacheStatus.themes
+      schemes: cacheStatus.themes,
     };
   }
 
@@ -490,13 +547,18 @@ export class ThemeStateManager {
 
   private getInitialSystemMode(): ThemeMode {
     if (typeof window === "undefined") return "light";
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    return window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
   }
 
   /**
    * Public getter returning the current theme state.
    */
-  getState(): ThemeState & { isLoadingTheme: boolean; loadingError: Error | null } {
+  getState(): ThemeState & {
+    isLoadingTheme: boolean;
+    loadingError: Error | null;
+  } {
     return {
       themeName: this.currentThemeName,
       mode: this.useSystem ? this.systemMode : this.currentMode,
@@ -516,7 +578,7 @@ export class ThemeStateManager {
       // Use config properties
       name: this.config.name,
       direction: this.config.direction || "ltr",
-      version: this.config.version || "1.0.0"
+      version: this.config.version || "1.0.0",
     };
   }
 

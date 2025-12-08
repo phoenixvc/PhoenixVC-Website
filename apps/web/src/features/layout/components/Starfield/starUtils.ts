@@ -25,77 +25,90 @@ export function hexToRgb(hex: string): { r: number; g: number; b: number } {
  * Create a softened version of a color
  * Re-exported from colorUtils.ts for backwards compatibility
  */
-export function createSoftenedColor(
-  baseRgb: { r: number; g: number; b: number }
-): { r: number; g: number; b: number } {
+export function createSoftenedColor(baseRgb: {
+  r: number;
+  g: number;
+  b: number;
+}): { r: number; g: number; b: number } {
   return createSoftenedColorFromColorUtils(baseRgb);
 }
 
-  // Helper function to ensure valid hex color with opacity
-  export const ensureValidHexColor = (baseColor: string, opacity: number): string => {
-    // Make sure opacity is between 0-255 and convert to hex
-    const opacityHex = Math.min(255, Math.max(0, Math.floor(opacity * 255))).toString(16).padStart(2, "0");
+// Helper function to ensure valid hex color with opacity
+export const ensureValidHexColor = (
+  baseColor: string,
+  opacity: number,
+): string => {
+  // Make sure opacity is between 0-255 and convert to hex
+  const opacityHex = Math.min(255, Math.max(0, Math.floor(opacity * 255)))
+    .toString(16)
+    .padStart(2, "0");
 
-    // If baseColor is already a hex color with # prefix
-    if (baseColor.startsWith("#")) {
-      // Remove any existing alpha component if it"s an 8-digit hex
-      const baseHex = baseColor.length > 7 ? baseColor.substring(0, 7) : baseColor;
-      return `${baseHex}${opacityHex}`;
-    }
-
-    // Default fallback color if format is invalid
-    return `#ffffff${opacityHex}`;
-  };
-
-  // Calculate star pulsation
-  export function calculatePulsation(empStar: Planet): number {
-    let scaleFactor = 1;
-    if (!empStar.useSimpleRendering && empStar.pulsation) {
-      if (!empStar.pulsation.enabled) {
-        empStar.pulsation.enabled = true;
-      }
-
-      // Smoother pulsation with sine wave and reduced amplitude
-      const pulsationTime = getFrameTime() * empStar.pulsation.speed;
-      const pulsationRange = empStar.pulsation.maxScale - empStar.pulsation.minScale;
-      const pulsationMid = (empStar.pulsation.maxScale + empStar.pulsation.minScale) / 2;
-
-      // Use sine wave for smoother pulsation with more subtle effect
-      empStar.pulsation.scale = pulsationMid + fastSin(pulsationTime) * (pulsationRange / 2);
-
-      scaleFactor = empStar.pulsation.scale;
-    }
-    return scaleFactor;
+  // If baseColor is already a hex color with # prefix
+  if (baseColor.startsWith("#")) {
+    // Remove any existing alpha component if it"s an 8-digit hex
+    const baseHex =
+      baseColor.length > 7 ? baseColor.substring(0, 7) : baseColor;
+    return `${baseHex}${opacityHex}`;
   }
 
-  export function updateStarPosition(empStar: Planet, _deltaTime: number): void {
-    const fixedDelta = empStar.useSimpleRendering ? 0.2 : 0.5;
-    const directionMultiplier = empStar.orbitalDirection === "clockwise" ? 1 : -1;
+  // Default fallback color if format is invalid
+  return `#ffffff${opacityHex}`;
+};
 
-    const ox = empStar.orbitCenter?.x ?? 0;
-    const oy = empStar.orbitCenter?.y ?? 0;
-
-    if (empStar.useSimpleRendering) {
-      empStar.angle += directionMultiplier * 0.00005 * fixedDelta;
-    } else {
-      const speedMultiplier = directionMultiplier * empStar.orbitSpeed * fixedDelta * 1.0; // Reduced from 2.0 to 1.0 (halved movement)
-      empStar.angle += speedMultiplier;
+// Calculate star pulsation
+export function calculatePulsation(empStar: Planet): number {
+  let scaleFactor = 1;
+  if (!empStar.useSimpleRendering && empStar.pulsation) {
+    if (!empStar.pulsation.enabled) {
+      empStar.pulsation.enabled = true;
     }
 
-    const a = empStar.orbitRadius;
-    // Apply vertical factor to create more vertically stretched orbits
-    const verticalFactor = empStar.verticalFactor || 1.0;
-    const b = empStar.orbitRadius * (1 - empStar.pathEccentricity) * verticalFactor;
+    // Smoother pulsation with sine wave and reduced amplitude
+    const pulsationTime = getFrameTime() * empStar.pulsation.speed;
+    const pulsationRange =
+      empStar.pulsation.maxScale - empStar.pulsation.minScale;
+    const pulsationMid =
+      (empStar.pulsation.maxScale + empStar.pulsation.minScale) / 2;
 
-    if (empStar.useSimpleRendering) {
-      empStar.x = ox + a * fastCos(empStar.angle);
-      empStar.y = oy + b * fastSin(empStar.angle);
-    } else {
-      const tiltRadians = empStar.pathTilt * (Math.PI / 180);
-      const baseX = a * fastCos(empStar.angle);
-      const baseY = b * fastSin(empStar.angle);
+    // Use sine wave for smoother pulsation with more subtle effect
+    empStar.pulsation.scale =
+      pulsationMid + fastSin(pulsationTime) * (pulsationRange / 2);
 
-      empStar.x = ox + baseX;
-      empStar.y = oy + baseY * fastCos(tiltRadians);
-    }
+    scaleFactor = empStar.pulsation.scale;
   }
+  return scaleFactor;
+}
+
+export function updateStarPosition(empStar: Planet, _deltaTime: number): void {
+  const fixedDelta = empStar.useSimpleRendering ? 0.2 : 0.5;
+  const directionMultiplier = empStar.orbitalDirection === "clockwise" ? 1 : -1;
+
+  const ox = empStar.orbitCenter?.x ?? 0;
+  const oy = empStar.orbitCenter?.y ?? 0;
+
+  if (empStar.useSimpleRendering) {
+    empStar.angle += directionMultiplier * 0.00005 * fixedDelta;
+  } else {
+    const speedMultiplier =
+      directionMultiplier * empStar.orbitSpeed * fixedDelta * 1.0; // Reduced from 2.0 to 1.0 (halved movement)
+    empStar.angle += speedMultiplier;
+  }
+
+  const a = empStar.orbitRadius;
+  // Apply vertical factor to create more vertically stretched orbits
+  const verticalFactor = empStar.verticalFactor || 1.0;
+  const b =
+    empStar.orbitRadius * (1 - empStar.pathEccentricity) * verticalFactor;
+
+  if (empStar.useSimpleRendering) {
+    empStar.x = ox + a * fastCos(empStar.angle);
+    empStar.y = oy + b * fastSin(empStar.angle);
+  } else {
+    const tiltRadians = empStar.pathTilt * (Math.PI / 180);
+    const baseX = a * fastCos(empStar.angle);
+    const baseY = b * fastSin(empStar.angle);
+
+    empStar.x = ox + baseX;
+    empStar.y = oy + baseY * fastCos(tiltRadians);
+  }
+}

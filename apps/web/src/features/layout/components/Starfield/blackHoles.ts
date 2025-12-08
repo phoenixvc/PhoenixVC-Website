@@ -7,10 +7,18 @@ import { BLACK_HOLE_RENDERING_CONFIG as BH } from "./renderingConfig";
 import { TWO_PI, fastSin, fastCos } from "./math";
 
 // Helper to parse RGB values from rgba string (called once per particle, not per frame)
-function parseRgbFromRgba(rgbaString: string): { r: number; g: number; b: number } {
+function parseRgbFromRgba(rgbaString: string): {
+  r: number;
+  g: number;
+  b: number;
+} {
   const match = rgbaString.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
   if (match) {
-    return { r: parseInt(match[1], 10), g: parseInt(match[2], 10), b: parseInt(match[3], 10) };
+    return {
+      r: parseInt(match[1], 10),
+      g: parseInt(match[2], 10),
+      b: parseInt(match[3], 10),
+    };
   }
   return { r: 200, g: 100, b: 200 }; // Fallback purple
 }
@@ -20,14 +28,19 @@ export const initBlackHoles = (
   width: number,
   height: number,
   enableBlackHole: boolean,
-  defaultBlackHoles: Array<{ x: number; y: number; radius: number; color: string }>,
+  defaultBlackHoles: Array<{
+    x: number;
+    y: number;
+    radius: number;
+    color: string;
+  }>,
   sidebarWidth: number,
   centerOffsetX: number,
   centerOffsetY: number,
   blackHoleSize: number,
   _particleSpeed: number,
   _colorScheme: string,
-  _starSize: number
+  _starSize: number,
 ): BlackHole[] => {
   if (!enableBlackHole) return [];
 
@@ -46,8 +59,10 @@ export const initBlackHoles = (
     const mass = radius * BH.massCoefficient;
 
     // Random rotation speed within configured range
-    const rotationSpeed = BH.rotation.baseSpeed *
-      (Math.random() * (BH.rotation.randomMax - BH.rotation.randomMin) + BH.rotation.randomMin);
+    const rotationSpeed =
+      BH.rotation.baseSpeed *
+      (Math.random() * (BH.rotation.randomMax - BH.rotation.randomMin) +
+        BH.rotation.randomMin);
 
     return {
       id,
@@ -60,7 +75,7 @@ export const initBlackHoles = (
       active: true,
       rotation: 0,
       rotationSpeed,
-      lastParticleTime: 0
+      lastParticleTime: 0,
     };
   });
 };
@@ -70,7 +85,7 @@ export const drawBlackHole = (
   ctx: CanvasRenderingContext2D,
   blackHole: BlackHole,
   deltaTime: number,
-  particleSpeed: number
+  particleSpeed: number,
 ): void => {
   const { x, y, radius, color: _color, particles } = blackHole;
 
@@ -79,13 +94,22 @@ export const drawBlackHole = (
 
   // Draw outer gravitational distortion glow (pulsing effect)
   const pulseTime = getFrameTime() * BH.pulse.timeMultiplier;
-  const pulseFactor = 1 + fastSin(pulseTime * BH.pulse.frequency) * BH.pulse.amplitude;
+  const pulseFactor =
+    1 + fastSin(pulseTime * BH.pulse.frequency) * BH.pulse.amplitude;
 
   // Outer gravitational glow - very subtle
   ctx.save();
   const outerGlowInner = radius * BH.outerGlow.innerRadiusMultiplier;
-  const outerGlowOuter = radius * BH.outerGlow.outerRadiusMultiplier * pulseFactor;
-  const outerGlow = ctx.createRadialGradient(x, y, outerGlowInner, x, y, outerGlowOuter);
+  const outerGlowOuter =
+    radius * BH.outerGlow.outerRadiusMultiplier * pulseFactor;
+  const outerGlow = ctx.createRadialGradient(
+    x,
+    y,
+    outerGlowInner,
+    x,
+    y,
+    outerGlowOuter,
+  );
   for (const stop of BH.outerGlow.colorStops) {
     outerGlow.addColorStop(stop.offset, stop.color);
   }
@@ -102,14 +126,19 @@ export const drawBlackHole = (
 
     // Add particles within configured range
     const particleRange = BH.particles.countMax - BH.particles.countMin;
-    const particlesToAdd = Math.floor(Math.random() * (particleRange + 1)) + BH.particles.countMin;
+    const particlesToAdd =
+      Math.floor(Math.random() * (particleRange + 1)) + BH.particles.countMin;
 
     for (let i = 0; i < particlesToAdd; i++) {
       const angle = Math.random() * TWO_PI;
       const distanceRange = BH.particles.distanceMax - BH.particles.distanceMin;
-      const distance = radius * (BH.particles.distanceMin + Math.random() * distanceRange);
-      const speedRange = BH.particles.speedRandomMax - BH.particles.speedRandomMin;
-      const speed = BH.particles.speedBase * particleSpeed *
+      const distance =
+        radius * (BH.particles.distanceMin + Math.random() * distanceRange);
+      const speedRange =
+        BH.particles.speedRandomMax - BH.particles.speedRandomMin;
+      const speed =
+        BH.particles.speedBase *
+        particleSpeed *
         (Math.random() * speedRange + BH.particles.speedRandomMin);
       const particleColor = randomColor("purple", BH.particles.alphaBase);
       const sizeRange = BH.particles.sizeMax - BH.particles.sizeMin;
@@ -126,8 +155,9 @@ export const drawBlackHole = (
         distance,
         speed,
         color: particleColor,
-        alpha: BH.particles.alphaBase + Math.random() * BH.particles.alphaRandom,
-        rgb
+        alpha:
+          BH.particles.alphaBase + Math.random() * BH.particles.alphaRandom,
+        rgb,
       };
 
       particles.push(newParticle);
@@ -163,7 +193,10 @@ export const drawBlackHole = (
 
     // Remove particles that are too close to center or have faded out
     // Use swap-and-pop: O(1) removal instead of splice's O(n) shifting
-    if ((particle.alpha && particle.alpha <= 0) || particle.distance < radius * BH.particles.removalThreshold) {
+    if (
+      (particle.alpha && particle.alpha <= 0) ||
+      particle.distance < radius * BH.particles.removalThreshold
+    ) {
       // Swap with last element and pop (O(1) removal)
       const lastIndex = particles.length - 1;
       if (i !== lastIndex) {
@@ -201,12 +234,23 @@ export const drawBlackHole = (
 
   // Draw multiple rotating rings for depth effect
   for (let ring = 0; ring < BH.disk.ringCount; ring++) {
-    const ringRadius = diskRadius * (BH.disk.ringBaseSize + ring * BH.disk.ringSizeStep);
-    const ringOpacity = BH.disk.ringBaseOpacity - ring * BH.disk.ringOpacityStep;
-    const ringRotation = rotationAngle * (1 + ring * BH.disk.ringRotationFactor);
+    const ringRadius =
+      diskRadius * (BH.disk.ringBaseSize + ring * BH.disk.ringSizeStep);
+    const ringOpacity =
+      BH.disk.ringBaseOpacity - ring * BH.disk.ringOpacityStep;
+    const ringRotation =
+      rotationAngle * (1 + ring * BH.disk.ringRotationFactor);
 
     ctx.beginPath();
-    ctx.ellipse(x, y, ringRadius, ringRadius * BH.disk.ellipseRatio, ringRotation, 0, TWO_PI);
+    ctx.ellipse(
+      x,
+      y,
+      ringRadius,
+      ringRadius * BH.disk.ellipseRatio,
+      ringRotation,
+      0,
+      TWO_PI,
+    );
     ctx.strokeStyle = `rgba(${BH.disk.color}, ${ringOpacity})`;
     ctx.lineWidth = BH.disk.baseLineWidth - ring * BH.disk.lineWidthStep;
     ctx.stroke();
@@ -225,12 +269,25 @@ export const drawBlackHole = (
   ctx.fill();
 
   // Draw pulsing event horizon (inner ring)
-  const eventHorizonPulse = (1 - BH.eventHorizon.pulseAmplitude) + fastSin(pulseTime * 2) * BH.eventHorizon.pulseAmplitude;
+  const eventHorizonPulse =
+    1 -
+    BH.eventHorizon.pulseAmplitude +
+    fastSin(pulseTime * 2) * BH.eventHorizon.pulseAmplitude;
   ctx.beginPath();
-  ctx.arc(x, y, radius * BH.eventHorizon.radiusMultiplier * eventHorizonPulse, 0, TWO_PI);
-  const ehOpacity = BH.eventHorizon.baseOpacity + fastSin(pulseTime * 2.5) * BH.eventHorizon.opacityAmplitude;
+  ctx.arc(
+    x,
+    y,
+    radius * BH.eventHorizon.radiusMultiplier * eventHorizonPulse,
+    0,
+    TWO_PI,
+  );
+  const ehOpacity =
+    BH.eventHorizon.baseOpacity +
+    fastSin(pulseTime * 2.5) * BH.eventHorizon.opacityAmplitude;
   ctx.strokeStyle = `rgba(${BH.disk.color}, ${ehOpacity})`;
-  ctx.lineWidth = BH.eventHorizon.baseLineWidth + fastSin(pulseTime * 3) * BH.eventHorizon.lineWidthAmplitude;
+  ctx.lineWidth =
+    BH.eventHorizon.baseLineWidth +
+    fastSin(pulseTime * 3) * BH.eventHorizon.lineWidthAmplitude;
   ctx.stroke();
 
   // Draw inner core highlight

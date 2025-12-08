@@ -10,7 +10,7 @@ export const useMouseInteraction = (
   stars: Star[],
   gameMode: boolean,
   gameState: GameState,
-  setGameState: React.Dispatch<React.SetStateAction<GameState>>
+  setGameState: React.Dispatch<React.SetStateAction<GameState>>,
 ): {
   mousePosition: MousePosition;
   setMousePosition: React.Dispatch<React.SetStateAction<MousePosition>>;
@@ -29,98 +29,116 @@ export const useMouseInteraction = (
     speedY: 0,
     isClicked: false,
     clickTime: 0,
-    isOnScreen: false
+    isOnScreen: false,
   });
 
   // Throttling refs
   const lastMoveTimeRef = useRef(0);
 
   // Shared handler for both mouse and touch events
-  const handlePointerMove = useCallback((clientX: number, clientY: number): void => {
-    const now = Date.now();
-    if (now - lastMoveTimeRef.current < 16) return; // ~60fps
-    lastMoveTimeRef.current = now;
+  const handlePointerMove = useCallback(
+    (clientX: number, clientY: number): void => {
+      const now = Date.now();
+      if (now - lastMoveTimeRef.current < 16) return; // ~60fps
+      lastMoveTimeRef.current = now;
 
-    const newPosition = {
-      x: clientX,
-      y: clientY,
-      lastX: mousePosition.x,
-      lastY: mousePosition.y,
-      speedX: clientX - mousePosition.x,
-      speedY: clientY - mousePosition.y,
-      isClicked: mousePosition.isClicked,
-      clickTime: mousePosition.clickTime,
-      isOnScreen: true
-    };
+      const newPosition = {
+        x: clientX,
+        y: clientY,
+        lastX: mousePosition.x,
+        lastY: mousePosition.y,
+        speedX: clientX - mousePosition.x,
+        speedY: clientY - mousePosition.y,
+        isClicked: mousePosition.isClicked,
+        clickTime: mousePosition.clickTime,
+        isOnScreen: true,
+      };
 
-    // Update state
-    setMousePosition(newPosition);
+      // Update state
+      setMousePosition(newPosition);
 
-    // Debug log to verify the mouse position is being updated
-    logger.debug("Mouse/touch position updated:", {
-      clientX,
-      clientY,
-      isOnScreen: true,
-      isClicked: mousePosition.isClicked
-    });
-  }, [mousePosition]);
+      // Debug log to verify the mouse position is being updated
+      logger.debug("Mouse/touch position updated:", {
+        clientX,
+        clientY,
+        isOnScreen: true,
+        isClicked: mousePosition.isClicked,
+      });
+    },
+    [mousePosition],
+  );
 
   // Throttled mouse move handler
-  const handleMouseMove = useCallback((e: MouseEvent): void => {
-    const { clientX, clientY } = e;
-    handlePointerMove(clientX, clientY);
-  }, [handlePointerMove]);
+  const handleMouseMove = useCallback(
+    (e: MouseEvent): void => {
+      const { clientX, clientY } = e;
+      handlePointerMove(clientX, clientY);
+    },
+    [handlePointerMove],
+  );
 
   // Touch move handler
-  const handleTouchMove = useCallback((e: TouchEvent): void => {
-    if (e.touches.length > 0) {
-      const { clientX, clientY } = e.touches[0];
-      handlePointerMove(clientX, clientY);
-    }
-  }, [handlePointerMove]);
+  const handleTouchMove = useCallback(
+    (e: TouchEvent): void => {
+      if (e.touches.length > 0) {
+        const { clientX, clientY } = e.touches[0];
+        handlePointerMove(clientX, clientY);
+      }
+    },
+    [handlePointerMove],
+  );
 
   // Shared handler for pointer down events
-  const handlePointerDown = useCallback((clientX: number, clientY: number): void => {
-    // Update mouse position
-    setMousePosition(prev => ({
-      ...prev,
-      x: clientX,
-      y: clientY,
-      isClicked: true,
-      clickTime: Date.now()
-    }));
-
-    logger.debug("Pointer down:", { clientX, clientY });
-
-    // Game mode: apply force to nearby stars and use a click
-    if (gameMode && gameState.remainingClicks > 0) {
-      // Apply force to nearby stars
-      applyClickForce(stars, clientX, clientY, mouseEffectRadius * 1.5, 2.0);
-
-      // Use a click
-      setGameState(prev => ({
+  const handlePointerDown = useCallback(
+    (clientX: number, clientY: number): void => {
+      // Update mouse position
+      setMousePosition((prev) => ({
         ...prev,
-        remainingClicks: prev.remainingClicks - 1
+        x: clientX,
+        y: clientY,
+        isClicked: true,
+        clickTime: Date.now(),
       }));
-    }
-  }, [gameMode, gameState, mouseEffectRadius, setGameState, stars]);
 
-  const handleMouseDown = useCallback((e: MouseEvent): void => {
-    const { clientX, clientY } = e;
-    handlePointerDown(clientX, clientY);
-  }, [handlePointerDown]);
+      logger.debug("Pointer down:", { clientX, clientY });
 
-  const handleTouchStart = useCallback((e: TouchEvent): void => {
-    if (e.touches.length > 0) {
-      const { clientX, clientY } = e.touches[0];
+      // Game mode: apply force to nearby stars and use a click
+      if (gameMode && gameState.remainingClicks > 0) {
+        // Apply force to nearby stars
+        applyClickForce(stars, clientX, clientY, mouseEffectRadius * 1.5, 2.0);
+
+        // Use a click
+        setGameState((prev) => ({
+          ...prev,
+          remainingClicks: prev.remainingClicks - 1,
+        }));
+      }
+    },
+    [gameMode, gameState, mouseEffectRadius, setGameState, stars],
+  );
+
+  const handleMouseDown = useCallback(
+    (e: MouseEvent): void => {
+      const { clientX, clientY } = e;
       handlePointerDown(clientX, clientY);
-    }
-  }, [handlePointerDown]);
+    },
+    [handlePointerDown],
+  );
+
+  const handleTouchStart = useCallback(
+    (e: TouchEvent): void => {
+      if (e.touches.length > 0) {
+        const { clientX, clientY } = e.touches[0];
+        handlePointerDown(clientX, clientY);
+      }
+    },
+    [handlePointerDown],
+  );
 
   const handlePointerUp = useCallback((): void => {
-    setMousePosition(prev => ({
+    setMousePosition((prev) => ({
       ...prev,
-      isClicked: false
+      isClicked: false,
     }));
     logger.debug("Pointer up");
   }, []);
@@ -134,9 +152,9 @@ export const useMouseInteraction = (
   }, [handlePointerUp]);
 
   const handleMouseLeave = useCallback((): void => {
-    setMousePosition(prev => ({
+    setMousePosition((prev) => ({
       ...prev,
-      isOnScreen: false
+      isOnScreen: false,
     }));
     logger.debug("Mouse left screen");
   }, []);
@@ -170,12 +188,12 @@ export const useMouseInteraction = (
       window.removeEventListener("touchend", handleTouchEnd);
 
       logger.debug("Mouse and touch event listeners cleaned up");
-    }
+    },
   };
 
   return {
     mousePosition,
     setMousePosition,
-    handleMouseEvents
+    handleMouseEvents,
   };
 };

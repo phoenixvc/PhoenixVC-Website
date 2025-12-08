@@ -8,10 +8,9 @@ interface ComponentManagerProviderProps {
   manager: ComponentManager;
 }
 
-export const ComponentManagerProvider: React.FC<ComponentManagerProviderProps> = ({
-  children,
-  manager
-}) => {
+export const ComponentManagerProvider: React.FC<
+  ComponentManagerProviderProps
+> = ({ children, manager }) => {
   return (
     <ComponentManagerContext.Provider value={manager}>
       {children}

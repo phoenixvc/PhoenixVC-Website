@@ -1,7 +1,7 @@
 // apps/web/src/features/hero/components/HeroSkeleton/HeroSkeleton.tsx
-import { FC, memo } from 'react';
-import { Skeleton } from '@/components/ui/Skeleton/Skeleton';
-import styles from './HeroSkeleton.module.css';
+import { FC, memo } from "react";
+import { Skeleton } from "@/components/ui/Skeleton/Skeleton";
+import styles from "./HeroSkeleton.module.css";
 
 // TODO: Production hardening:
 // 1. Make the skeleton more closely match the final Hero component layout.
@@ -20,5 +20,5 @@ const HeroSkeleton: FC = memo(() => {
   );
 });
 
-HeroSkeleton.displayName = 'HeroSkeleton';
+HeroSkeleton.displayName = "HeroSkeleton";
 export default HeroSkeleton;

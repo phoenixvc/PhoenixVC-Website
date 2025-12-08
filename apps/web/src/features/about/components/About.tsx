@@ -52,23 +52,27 @@ const coreValues = [
   {
     icon: <Shield size={24} />,
     title: "Integrity",
-    description: "We uphold the highest ethical standards in all our dealings and decisions."
+    description:
+      "We uphold the highest ethical standards in all our dealings and decisions.",
   },
   {
     icon: <Globe size={24} />,
     title: "Collaboration",
-    description: "We believe in the power of partnership and collective intelligence."
+    description:
+      "We believe in the power of partnership and collective intelligence.",
   },
   {
     icon: <Zap size={24} />,
     title: "Visionary Thinking",
-    description: "We look beyond the horizon to identify tomorrow's opportunities."
+    description:
+      "We look beyond the horizon to identify tomorrow's opportunities.",
   },
   {
     icon: <Award size={24} />,
     title: "Sustainability",
-    description: "We invest with purpose, considering long-term impact beyond financial returns."
-  }
+    description:
+      "We invest with purpose, considering long-term impact beyond financial returns.",
+  },
 ];
 
 const About: FC<AboutProps> = memo((): React.ReactElement => {
@@ -86,7 +90,7 @@ const About: FC<AboutProps> = memo((): React.ReactElement => {
     "At Phoenix VC, our mission is to empower innovation, fuel growth, and shape the future through strategic investments and partnerships. We are committed to identifying and nurturing exceptional entrepreneurs, startups, and businesses that have the potential to revolutionize industries and create lasting positive impact.",
     "Our core values of integrity, collaboration, and visionary thinking drive our investment decisions and guide our interactions with founders, investors, and stakeholders. Through diligent research, rigorous due diligence, and a forward-thinking approach, we strive to identify transformative opportunities in the technology sector.",
     "Furthermore, we are committed to responsible investing practices that align with environmental, social, and governance (ESG) principles. By integrating sustainability considerations into our investment strategies, we strive to create a positive ripple effect that goes beyond financial gains and contributes to a more equitable and sustainable future.",
-    "Phoenix VC is driven by a passion for unlocking untapped potential, driving disruptive change, and fostering a culture of entrepreneurship. We aim to be a trusted partner for founders and investors, a catalyst for innovation, and a driving force behind the success stories of tomorrow. Together, we will soar to new heights, igniting possibilities and shaping a brighter future for generations to come."
+    "Phoenix VC is driven by a passion for unlocking untapped potential, driving disruptive change, and fostering a culture of entrepreneurship. We aim to be a trusted partner for founders and investors, a catalyst for innovation, and a driving force behind the success stories of tomorrow. Together, we will soar to new heights, igniting possibilities and shaping a brighter future for generations to come.",
   ];
 
   useEffect(() => {
@@ -116,7 +120,10 @@ const About: FC<AboutProps> = memo((): React.ReactElement => {
   }, [isDarkMode]);
 
   useEffect(() => {
-    logger.debug("Video source updated for theme:", isDarkMode ? "dark" : "light");
+    logger.debug(
+      "Video source updated for theme:",
+      isDarkMode ? "dark" : "light",
+    );
 
     // Check if video files exist with a properly structured async function
     (async (): Promise<void> => {
@@ -131,10 +138,9 @@ const About: FC<AboutProps> = memo((): React.ReactElement => {
 
       await checkVideoExists("/PhoenixVC_to_Phoenix.mp4");
       await checkVideoExists("/Phoenix_to_PhoenixVC.mp4");
-    })().catch(error => {
+    })().catch((error) => {
       logger.error("Error in video check process:", error);
     });
-
   }, [isDarkMode]);
 
   return (
@@ -159,7 +165,10 @@ const About: FC<AboutProps> = memo((): React.ReactElement => {
             About Us
           </motion.h2>
 
-          <motion.div className={styles.divider} variants={aboutAnimations.item} />
+          <motion.div
+            className={styles.divider}
+            variants={aboutAnimations.item}
+          />
 
           {/* Featured statement */}
           <motion.div
@@ -187,7 +196,7 @@ const About: FC<AboutProps> = memo((): React.ReactElement => {
                     // Use the promise API but handle it properly
                     const playPromise = video.play();
                     if (playPromise !== undefined) {
-                      playPromise.catch(error => {
+                      playPromise.catch((error) => {
                         logger.error("Error playing video:", error);
                       });
                     }
@@ -206,13 +215,20 @@ const About: FC<AboutProps> = memo((): React.ReactElement => {
 
                 {/* Logo Image with opacity transition */}
                 <img
-                  src={isDarkMode ? "/LOGO_V3_Primary_darkbg.png" : "/LOGO_V3_Primary_lightbg.png"}
+                  src={
+                    isDarkMode
+                      ? "/LOGO_V3_Primary_darkbg.png"
+                      : "/LOGO_V3_Primary_lightbg.png"
+                  }
                   alt="Phoenix VC Logo"
                   className={styles.logoImage}
                   width={400}
                   height={400}
                   loading="lazy"
-                  style={{ opacity: videoLoaded ? 0.9 : 1, transition: "opacity 0.3s ease" }}
+                  style={{
+                    opacity: videoLoaded ? 0.9 : 1,
+                    transition: "opacity 0.3s ease",
+                  }}
                 />
 
                 {/* Video that shows on hover */}
@@ -225,7 +241,11 @@ const About: FC<AboutProps> = memo((): React.ReactElement => {
                     preload="metadata"
                   >
                     <source
-                      src={isDarkMode ? "/PhoenixVC_to_Phoenix.mp4" : "/Phoenix_to_PhoenixVC.mp4"}
+                      src={
+                        isDarkMode
+                          ? "/PhoenixVC_to_Phoenix.mp4"
+                          : "/Phoenix_to_PhoenixVC.mp4"
+                      }
                       type="video/mp4"
                     />
                     Your browser does not support the video tag.
@@ -265,9 +285,7 @@ const About: FC<AboutProps> = memo((): React.ReactElement => {
                   variants={aboutAnimations.valueCard}
                   whileHover={{ y: -5, transition: { duration: 0.2 } }}
                 >
-                  <div className={styles.valueIconContainer}>
-                    {value.icon}
-                  </div>
+                  <div className={styles.valueIconContainer}>{value.icon}</div>
                   <h4 className={styles.valueTitle}>{value.title}</h4>
                   <p className={styles.valueDescription}>{value.description}</p>
                 </motion.div>
@@ -280,7 +298,9 @@ const About: FC<AboutProps> = memo((): React.ReactElement => {
             className={styles.ctaSection}
             variants={aboutAnimations.item}
           >
-            <p className={styles.ctaText}>Ready to partner with us on your journey?</p>
+            <p className={styles.ctaText}>
+              Ready to partner with us on your journey?
+            </p>
             <motion.a
               href="#contact"
               className={styles.ctaButton}
@@ -290,7 +310,6 @@ const About: FC<AboutProps> = memo((): React.ReactElement => {
               Get in Touch <ArrowRight size={16} className={styles.ctaIcon} />
             </motion.a>
           </motion.div>
-
         </motion.div>
       </div>
     </section>

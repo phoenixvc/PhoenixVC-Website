@@ -16,33 +16,33 @@ export function pickObject(
   screenY: number,
   camera: Camera,
   width: number,
-  height: number
+  height: number,
 ): CosmicObject | null {
   // Convert screen coordinates to world coordinates
   const worldCoords = screenToWorld(screenX, screenY, camera, width, height);
-  
+
   // Get all objects at the current navigation level
   const objects = getAllObjectsAtCurrentLevel(camera);
-  
+
   // Find the object closest to the click point
   let closestObject: CosmicObject | null = null;
   let closestDistance = Infinity;
-  
+
   for (const obj of objects) {
     const dx = obj.position.x - worldCoords.x;
     const dy = obj.position.y - worldCoords.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
-    
+
     // Check if the click is within the object's radius
     // Use a larger radius for easier clicking
     const clickRadius = obj.size * 1.5;
-    
+
     if (distance < clickRadius && distance < closestDistance) {
       closestObject = obj;
       closestDistance = distance;
     }
   }
-  
+
   return closestObject;
 }
 
@@ -56,12 +56,12 @@ export function pickObject(
 export function drillDown(
   currentState: CosmicNavigationState,
   camera: Camera,
-  clickedObject: CosmicObject
-): { nav: CosmicNavigationState, cam: Camera } {
+  clickedObject: CosmicObject,
+): { nav: CosmicNavigationState; cam: Camera } {
   // Default to current state
   let newState = { ...currentState };
   let newCamera = { ...camera };
-  
+
   // Determine new state based on clicked object level
   switch (clickedObject.level) {
     case "galaxy":
@@ -71,20 +71,20 @@ export function drillDown(
         currentSunId: undefined,
         currentPlanetId: undefined,
         currentSpecialObjectId: undefined,
-        isTransitioning: true
+        isTransitioning: true,
       };
-      
+
       // Set camera to zoom to galaxy position
       newCamera = {
         ...camera,
         target: {
           cx: clickedObject.position.x,
           cy: clickedObject.position.y,
-          zoom: 2.5  // Zoom level for galaxy view
-        }
+          zoom: 2.5, // Zoom level for galaxy view
+        },
       };
       break;
-      
+
     case "sun":
       newState = {
         currentLevel: "sun",
@@ -92,20 +92,20 @@ export function drillDown(
         currentSunId: clickedObject.id,
         currentPlanetId: undefined,
         currentSpecialObjectId: undefined,
-        isTransitioning: true
+        isTransitioning: true,
       };
-      
+
       // Set camera to zoom to sun position
       newCamera = {
         ...camera,
         target: {
           cx: clickedObject.position.x,
           cy: clickedObject.position.y,
-          zoom: 5  // Zoom level for sun view
-        }
+          zoom: 5, // Zoom level for sun view
+        },
       };
       break;
-      
+
     case "planet":
       newState = {
         currentLevel: "planet",
@@ -113,20 +113,20 @@ export function drillDown(
         currentSunId: clickedObject.parentId,
         currentPlanetId: clickedObject.id,
         currentSpecialObjectId: undefined,
-        isTransitioning: true
+        isTransitioning: true,
       };
-      
+
       // Set camera to zoom to planet position
       newCamera = {
         ...camera,
         target: {
           cx: clickedObject.position.x,
           cy: clickedObject.position.y,
-          zoom: 8  // Zoom level for planet view
-        }
+          zoom: 8, // Zoom level for planet view
+        },
       };
       break;
-      
+
     case "special":
       newState = {
         currentLevel: "special",
@@ -134,21 +134,21 @@ export function drillDown(
         currentSunId: undefined,
         currentPlanetId: undefined,
         currentSpecialObjectId: clickedObject.id,
-        isTransitioning: true
+        isTransitioning: true,
       };
-      
+
       // Set camera to zoom to special object position
       newCamera = {
         ...camera,
         target: {
           cx: clickedObject.position.x,
           cy: clickedObject.position.y,
-          zoom: 4  // Zoom level for special objects
-        }
+          zoom: 4, // Zoom level for special objects
+        },
       };
       break;
   }
-  
+
   return { nav: newState, cam: newCamera };
 }
 
@@ -198,11 +198,11 @@ export function worldToScreen(
   worldY: number,
   camera: Camera,
   width: number,
-  height: number
+  height: number,
 ): { x: number; y: number } {
   return {
     x: (worldX - camera.cx) * width * camera.zoom + width / 2,
-    y: (worldY - camera.cy) * height * camera.zoom + height / 2
+    y: (worldY - camera.cy) * height * camera.zoom + height / 2,
   };
 }
 
@@ -220,11 +220,11 @@ export function screenToWorld(
   screenY: number,
   camera: Camera,
   width: number,
-  height: number
+  height: number,
 ): { x: number; y: number } {
   return {
     x: camera.cx + (screenX - width / 2) / (width * camera.zoom),
-    y: camera.cy + (screenY - height / 2) / (height * camera.zoom)
+    y: camera.cy + (screenY - height / 2) / (height * camera.zoom),
   };
 }
 
@@ -244,7 +244,7 @@ export function isVisibleInViewport(
   radius: number,
   camera: Camera,
   width: number,
-  height: number
+  height: number,
 ): boolean {
   const screenX = (worldX - camera.cx) * width * camera.zoom + width / 2;
   const screenY = (worldY - camera.cy) * height * camera.zoom + height / 2;

@@ -21,15 +21,18 @@ type ReportCallback = (metric: WebVitalsMetric) => void;
 
 // Thresholds based on Google's Core Web Vitals guidelines (2024)
 const THRESHOLDS = {
-  LCP: { good: 2500, poor: 4000 },  // Largest Contentful Paint
-  INP: { good: 200, poor: 500 },    // Interaction to Next Paint (replaces FID)
-  FID: { good: 100, poor: 300 },    // First Input Delay (deprecated, kept for fallback)
-  CLS: { good: 0.1, poor: 0.25 },   // Cumulative Layout Shift
-  FCP: { good: 1800, poor: 3000 },  // First Contentful Paint
-  TTFB: { good: 800, poor: 1800 },  // Time to First Byte
+  LCP: { good: 2500, poor: 4000 }, // Largest Contentful Paint
+  INP: { good: 200, poor: 500 }, // Interaction to Next Paint (replaces FID)
+  FID: { good: 100, poor: 300 }, // First Input Delay (deprecated, kept for fallback)
+  CLS: { good: 0.1, poor: 0.25 }, // Cumulative Layout Shift
+  FCP: { good: 1800, poor: 3000 }, // First Contentful Paint
+  TTFB: { good: 800, poor: 1800 }, // Time to First Byte
 };
 
-const getRating = (name: string, value: number): "good" | "needs-improvement" | "poor" => {
+const getRating = (
+  name: string,
+  value: number,
+): "good" | "needs-improvement" | "poor" => {
   const threshold = THRESHOLDS[name as keyof typeof THRESHOLDS];
   if (!threshold) return "good";
 
@@ -41,19 +44,22 @@ const getRating = (name: string, value: number): "good" | "needs-improvement" | 
 // Report to console in development
 const defaultReporter: ReportCallback = (metric): void => {
   if (import.meta.env.DEV) {
-    const color = metric.rating === "good" ? "#0cce6b"
-      : metric.rating === "needs-improvement" ? "#ffa400"
-      : "#ff4e42";
+    const color =
+      metric.rating === "good"
+        ? "#0cce6b"
+        : metric.rating === "needs-improvement"
+          ? "#ffa400"
+          : "#ff4e42";
 
     logger.debug(
-      `[Web Vitals] ${metric.name}: ${metric.value.toFixed(2)}${metric.name === "CLS" ? "" : "ms"} (${metric.rating})`
+      `[Web Vitals] ${metric.name}: ${metric.value.toFixed(2)}${metric.name === "CLS" ? "" : "ms"} (${metric.rating})`,
     );
 
     // Also log to console with color for better visibility in dev
     if (typeof console !== "undefined" && console.log) {
       console.log(
         `%c[Web Vitals] ${metric.name}: ${metric.value.toFixed(2)}${metric.name === "CLS" ? "" : "ms"} (${metric.rating})`,
-        `color: ${color}; font-weight: bold;`
+        `color: ${color}; font-weight: bold;`,
       );
     }
   }
@@ -61,7 +67,10 @@ const defaultReporter: ReportCallback = (metric): void => {
 
 // Send metrics to an analytics endpoint
 // Default sample rate of 10% to reduce noise in production
-const createEndpointReporter = (endpoint: string, sampleRate = 0.1): ReportCallback => {
+const createEndpointReporter = (
+  endpoint: string,
+  sampleRate = 0.1,
+): ReportCallback => {
   // Determine if this session should be sampled
   const shouldSample = Math.random() < sampleRate;
 
@@ -104,7 +113,9 @@ const observeLCP = (callback: ReportCallback): void => {
   try {
     const observer = new PerformanceObserver((list): void => {
       const entries = list.getEntries();
-      const lastEntry = entries[entries.length - 1] as PerformanceEntry & { startTime: number };
+      const lastEntry = entries[entries.length - 1] as PerformanceEntry & {
+        startTime: number;
+      };
 
       const metric: WebVitalsMetric = {
         name: "LCP",
@@ -128,7 +139,10 @@ const observeFID = (callback: ReportCallback): void => {
 
   try {
     const observer = new PerformanceObserver((list): void => {
-      const entries = list.getEntries() as (PerformanceEntry & { processingStart: number; startTime: number })[];
+      const entries = list.getEntries() as (PerformanceEntry & {
+        processingStart: number;
+        startTime: number;
+      })[];
 
       entries.forEach((entry): void => {
         const fid = entry.processingStart - entry.startTime;
@@ -156,7 +170,10 @@ const observeCLS = (callback: ReportCallback): void => {
   try {
     let clsValue = 0;
     const observer = new PerformanceObserver((list): void => {
-      const entries = list.getEntries() as (PerformanceEntry & { hadRecentInput: boolean; value: number })[];
+      const entries = list.getEntries() as (PerformanceEntry & {
+        hadRecentInput: boolean;
+        value: number;
+      })[];
 
       entries.forEach((entry): void => {
         if (!entry.hadRecentInput) {
@@ -187,7 +204,9 @@ const observeFCP = (callback: ReportCallback): void => {
   try {
     const observer = new PerformanceObserver((list): void => {
       const entries = list.getEntries();
-      const fcpEntry = entries.find((entry) => entry.name === "first-contentful-paint") as PerformanceEntry & { startTime: number };
+      const fcpEntry = entries.find(
+        (entry) => entry.name === "first-contentful-paint",
+      ) as PerformanceEntry & { startTime: number };
 
       if (fcpEntry) {
         const metric: WebVitalsMetric = {
@@ -235,7 +254,11 @@ const observeINP = (callback: ReportCallback): void => {
     });
 
     // Observe event timing entries
-    observer.observe({ type: "event", buffered: true, durationThreshold: 16 } as PerformanceObserverInit);
+    observer.observe({
+      type: "event",
+      buffered: true,
+      durationThreshold: 16,
+    } as PerformanceObserverInit);
 
     // Report final INP value when page is hidden
     document.addEventListener("visibilitychange", (): void => {
@@ -258,7 +281,9 @@ const observeINP = (callback: ReportCallback): void => {
 };
 
 // Initialize all Core Web Vitals observers
-export const initWebVitals = (config?: WebVitalsConfig | ReportCallback): void => {
+export const initWebVitals = (
+  config?: WebVitalsConfig | ReportCallback,
+): void => {
   let reporter: ReportCallback;
 
   // Handle both old signature (callback) and new signature (config)
@@ -266,7 +291,10 @@ export const initWebVitals = (config?: WebVitalsConfig | ReportCallback): void =
     reporter = config;
   } else if (config?.endpoint) {
     // Create endpoint reporter if endpoint is provided
-    const endpointReporter = createEndpointReporter(config.endpoint, config.sampleRate);
+    const endpointReporter = createEndpointReporter(
+      config.endpoint,
+      config.sampleRate,
+    );
     reporter = (metric): void => {
       // Always log in dev mode
       if (config.debug || import.meta.env.DEV) {

@@ -7,7 +7,10 @@ class CssVariableManager {
   private secondaryColor: string;
   private neutralBaseColor: string = "#808080"; // Medium gray as default neutral base
 
-  constructor(primaryColor: string = "#3b82f6", secondaryColor: string = "#10b981") {
+  constructor(
+    primaryColor: string = "#3b82f6",
+    secondaryColor: string = "#10b981",
+  ) {
     this.primaryColor = primaryColor;
     this.secondaryColor = secondaryColor;
     this.generateColorPalette();
@@ -42,14 +45,17 @@ class CssVariableManager {
   /**
    * Generates color variations from 100-900 for a given base color
    */
-  private generateColorVariations(colorName: string, baseHsl: { h: number, s: number, l: number }): void {
+  private generateColorVariations(
+    colorName: string,
+    baseHsl: { h: number; s: number; l: number },
+  ): void {
     // For 100-900 scale:
     // - 500 is the base color
     // - Lower numbers are lighter (higher lightness)
     // - Higher numbers are darker (lower lightness)
 
     const variations = [
-      { level: 50, lightness: 0.97 },  // Very light
+      { level: 50, lightness: 0.97 }, // Very light
       { level: 100, lightness: 0.95 },
       { level: 200, lightness: 0.85 },
       { level: 300, lightness: 0.75 },
@@ -58,8 +64,8 @@ class CssVariableManager {
       { level: 600, lightness: 0.45 },
       { level: 700, lightness: 0.35 },
       { level: 800, lightness: 0.25 },
-      { level: 900, lightness: 0.15 },  // Very dark
-      { level: 950, lightness: 0.08 }   // Extremely dark
+      { level: 900, lightness: 0.15 }, // Very dark
+      { level: 950, lightness: 0.08 }, // Extremely dark
     ];
 
     variations.forEach(({ level, lightness }) => {
@@ -67,7 +73,7 @@ class CssVariableManager {
       const newHsl = {
         h: baseHsl.h,
         s: level < 500 ? Math.max(baseHsl.s * 0.9, 0.1) : baseHsl.s, // Slightly desaturate lighter shades
-        l: lightness
+        l: lightness,
       };
 
       // Convert to hex
@@ -84,12 +90,16 @@ class CssVariableManager {
    * Generates neutral color variations from 100-900
    * Neutral colors typically have very low saturation
    */
-  private generateNeutralVariations(baseHsl: { h: number, s: number, l: number }): void {
+  private generateNeutralVariations(baseHsl: {
+    h: number;
+    s: number;
+    l: number;
+  }): void {
     // For neutrals, we want very low saturation
     const neutralHsl = { ...baseHsl, s: 0.05 };
 
     const variations = [
-      { level: 50, lightness: 0.99 },   // Almost white
+      { level: 50, lightness: 0.99 }, // Almost white
       { level: 100, lightness: 0.98 },
       { level: 200, lightness: 0.93 },
       { level: 300, lightness: 0.85 },
@@ -98,8 +108,8 @@ class CssVariableManager {
       { level: 600, lightness: 0.48 },
       { level: 700, lightness: 0.35 },
       { level: 800, lightness: 0.22 },
-      { level: 900, lightness: 0.10 },  // Almost black
-      { level: 950, lightness: 0.05 }   // Extremely dark
+      { level: 900, lightness: 0.1 }, // Almost black
+      { level: 950, lightness: 0.05 }, // Extremely dark
     ];
 
     variations.forEach(({ level, lightness }) => {
@@ -118,7 +128,9 @@ class CssVariableManager {
    */
   setColorVariable(variableName: string, colorValue: string): void {
     // Normalize variable name
-    const normalizedName = variableName.startsWith("--") ? variableName : `--${variableName}`;
+    const normalizedName = variableName.startsWith("--")
+      ? variableName
+      : `--${variableName}`;
 
     // Store in cache
     this.cache.set(normalizedName, colorValue);
@@ -163,7 +175,10 @@ class CssVariableManager {
         }
       }
     } catch (error) {
-      console.warn("Could not access document styles, using generated values", error);
+      console.warn(
+        "Could not access document styles, using generated values",
+        error,
+      );
     }
   }
 
@@ -174,7 +189,9 @@ class CssVariableManager {
   getValue(variableName: string): string {
     // Normalize variable name
     const normalizedName = variableName.replace(/var\(|\)/g, "").trim();
-    const cssVarName = normalizedName.startsWith("--") ? normalizedName : `--${normalizedName}`;
+    const cssVarName = normalizedName.startsWith("--")
+      ? normalizedName
+      : `--${normalizedName}`;
 
     // Check cache first
     if (this.cache.has(cssVarName)) {
@@ -215,7 +232,9 @@ class CssVariableManager {
     }
 
     // Default fallback
-    console.warn(`No value found for CSS variable: ${cssVarName}, using default`);
+    console.warn(
+      `No value found for CSS variable: ${cssVarName}, using default`,
+    );
     return "#cccccc";
   }
 
@@ -228,7 +247,7 @@ class CssVariableManager {
     const newHsl = {
       h: baseHsl.h,
       s: level < 500 ? Math.max(baseHsl.s * 0.9, 0.1) : baseHsl.s,
-      l: Math.min(Math.max(lightnessFactor, 0.05), 0.95)
+      l: Math.min(Math.max(lightnessFactor, 0.05), 0.95),
     };
 
     const rgb = ColorUtils.hslToRgb(newHsl);
@@ -244,7 +263,7 @@ class CssVariableManager {
     const newHsl = {
       h: baseHsl.h,
       s: 0.05, // Very low saturation for neutrals
-      l: Math.min(Math.max(lightnessFactor, 0.05), 0.98)
+      l: Math.min(Math.max(lightnessFactor, 0.05), 0.98),
     };
 
     const rgb = ColorUtils.hslToRgb(newHsl);
@@ -264,22 +283,22 @@ class CssVariableManager {
       const rgbObj = ColorUtils.hexToRgb(colorValue) as RGBColor;
       // Check if rgbObj is properly structured
       if (typeof rgbObj !== "object" || rgbObj === null || !("r" in rgbObj)) {
-        throw new Error(`Invalid RGB object returned from hexToRgb: ${JSON.stringify(rgbObj)}`);
+        throw new Error(
+          `Invalid RGB object returned from hexToRgb: ${JSON.stringify(rgbObj)}`,
+        );
       }
 
       const rgb = `rgb(${rgbObj.r}, ${rgbObj.g}, ${rgbObj.b})`;
       const hsl = ColorUtils.rgbToHsl(rgbObj);
       return { hex: colorValue, rgb, hsl };
-    }
-    else if (colorValue.startsWith("rgb")) {
+    } else if (colorValue.startsWith("rgb")) {
       // It"s an RGB color
       const rgbObj = this.parseRgbString(colorValue);
       const rgb = colorValue;
       const hex = ColorUtils.rgbToHex(rgbObj);
       const hsl = ColorUtils.rgbToHsl(rgbObj);
       return { hex, rgb, hsl };
-    }
-    else if (colorValue.startsWith("hsl")) {
+    } else if (colorValue.startsWith("hsl")) {
       // It"s an HSL color
       const hsl = colorValue;
       const hslObj = this.parseHslString(colorValue);
@@ -287,8 +306,7 @@ class CssVariableManager {
       const rgb = `rgb(${rgbObj.r}, ${rgbObj.g}, ${rgbObj.b})`;
       const hex = ColorUtils.rgbToHex(rgbObj);
       return { hex, rgb, hsl };
-    }
-    else if (colorValue.startsWith("var(")) {
+    } else if (colorValue.startsWith("var(")) {
       // It"s a reference to another CSS variable
       // Recursively resolve it
       const innerVarName = colorValue.replace(/var\(|\)/g, "").trim();
@@ -359,20 +377,22 @@ class CssVariableManager {
   }
 
   // Helper to parse HSL string like "hsl(120, 100%, 50%)"
-  private parseHslString(hslStr: string): { h: number, s: number, l: number } {
-    const matches = hslStr.match(/hsl\(\s*(\d+)\s*,\s*(\d+)%\s*,\s*(\d+)%\s*\)/);
+  private parseHslString(hslStr: string): { h: number; s: number; l: number } {
+    const matches = hslStr.match(
+      /hsl\(\s*(\d+)\s*,\s*(\d+)%\s*,\s*(\d+)%\s*\)/,
+    );
     if (!matches) {
       throw new Error(`Invalid HSL string: ${hslStr}`);
     }
     return {
       h: parseInt(matches[1], 10),
       s: parseInt(matches[2], 10) / 100,
-      l: parseInt(matches[3], 10) / 100
+      l: parseInt(matches[3], 10) / 100,
     };
   }
 
   // Helper to parse RGB string like "rgb(255, 0, 0)"
-  private parseRgbString(rgbStr: string): { r: number, g: number, b: number } {
+  private parseRgbString(rgbStr: string): { r: number; g: number; b: number } {
     const matches = rgbStr.match(/rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/);
     if (!matches) {
       throw new Error(`Invalid RGB string: ${rgbStr}`);
@@ -380,7 +400,7 @@ class CssVariableManager {
     return {
       r: parseInt(matches[1], 10),
       g: parseInt(matches[2], 10),
-      b: parseInt(matches[3], 10)
+      b: parseInt(matches[3], 10),
     };
   }
 }

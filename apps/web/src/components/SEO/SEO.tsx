@@ -13,7 +13,8 @@ interface SEOProps {
 }
 
 const DEFAULT_TITLE = "Phoenix VC | Shaping Tomorrow's Technology";
-const DEFAULT_DESCRIPTION = "Strategic investments and partnerships empowering innovation across the globe. Phoenix VC invests in visionary founders building transformative technology.";
+const DEFAULT_DESCRIPTION =
+  "Strategic investments and partnerships empowering innovation across the globe. Phoenix VC invests in visionary founders building transformative technology.";
 const DEFAULT_OG_IMAGE = "https://phoenixvc.tech/og-image.png";
 const SITE_URL = "https://phoenixvc.tech";
 
@@ -37,9 +38,15 @@ const SEO: FC<SEOProps> = ({
     document.title = fullTitle;
 
     // Helper to update or create meta tag
-    const updateMeta = (name: string, content: string, isProperty = false): void => {
+    const updateMeta = (
+      name: string,
+      content: string,
+      isProperty = false,
+    ): void => {
       const attr = isProperty ? "property" : "name";
-      let meta = document.querySelector(`meta[${attr}="${name}"]`) as HTMLMetaElement;
+      let meta = document.querySelector(
+        `meta[${attr}="${name}"]`,
+      ) as HTMLMetaElement;
 
       if (!meta) {
         meta = document.createElement("meta");
@@ -75,7 +82,9 @@ const SEO: FC<SEOProps> = ({
     updateMeta("twitter:image", ogImage);
 
     // Canonical URL
-    let canonical = document.querySelector("link[rel=\"canonical\"]") as HTMLLinkElement;
+    let canonical = document.querySelector(
+      "link[rel=\"canonical\"]",
+    ) as HTMLLinkElement;
     if (!canonical) {
       canonical = document.createElement("link");
       canonical.rel = "canonical";
@@ -87,7 +96,15 @@ const SEO: FC<SEOProps> = ({
     return (): void => {
       document.title = DEFAULT_TITLE;
     };
-  }, [fullTitle, description, keywords, ogImage, ogType, canonicalUrl, noIndex]);
+  }, [
+    fullTitle,
+    description,
+    keywords,
+    ogImage,
+    ogType,
+    canonicalUrl,
+    noIndex,
+  ]);
 
   return null; // This component doesn't render anything
 };

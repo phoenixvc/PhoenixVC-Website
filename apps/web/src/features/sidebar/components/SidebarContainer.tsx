@@ -16,11 +16,11 @@ const SidebarContainer: React.FC<ExtendedSidebarContainerProps> = ({
   isOpen = false,
   onClick,
   mode: _mode = "light",
-  collapsed: _collapsed = false
+  collapsed: _collapsed = false,
 }): React.ReactElement => {
   const themeContext = useTheme() || {
     themeName: "default",
-    getComponentStyle: (): Record<string, unknown> => ({})
+    getComponentStyle: (): Record<string, unknown> => ({}),
   };
   const { themeName: _themeName = "default" } = themeContext;
 
@@ -45,8 +45,10 @@ const SidebarContainer: React.FC<ExtendedSidebarContainerProps> = ({
   }, []);
 
   // Get component style from theme using the consistent path structure
-  const containerStyle = themeContext.getComponentStyle?.("sidebar.container", variant) || {};
-  const sidebarStyle = themeContext.getComponentStyle?.("sidebar.style", variant) || {};
+  const containerStyle =
+    themeContext.getComponentStyle?.("sidebar.container", variant) || {};
+  const sidebarStyle =
+    themeContext.getComponentStyle?.("sidebar.style", variant) || {};
 
   // Combine styles with priority: theme style > default variant style > passed style
   const combinedStyle: React.CSSProperties = {
@@ -65,7 +67,7 @@ const SidebarContainer: React.FC<ExtendedSidebarContainerProps> = ({
     overflow: "auto",
     ...containerStyle,
     ...sidebarStyle,
-    ...style
+    ...style,
   };
 
   // Define CSS classes for open/closed states
@@ -76,7 +78,7 @@ const SidebarContainer: React.FC<ExtendedSidebarContainerProps> = ({
     isMobile ? "w-full md:w-64" : "w-64",
     "transition-transform duration-300 ease-in-out",
     `theme-${_themeName}-sidebar-${variant}`,
-    className
+    className,
   );
 
   return (

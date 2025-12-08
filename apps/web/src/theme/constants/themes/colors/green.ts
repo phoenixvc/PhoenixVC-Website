@@ -1,6 +1,10 @@
-import { ColorAdjustments, ColorDefinition, ColorShades, ShadeLevel } from "@/theme/types";
+import {
+  ColorAdjustments,
+  ColorDefinition,
+  ColorShades,
+  ShadeLevel,
+} from "@/theme/types";
 import ColorUtils from "@/theme/utils/color-utils";
-
 
 // Base green color
 const BASE_GREEN = "#10B981";
@@ -27,7 +31,18 @@ const generateGreenPalette = (): Record<ShadeLevel, ColorDefinition> => {
 export const greenPalette: ColorShades = {
   ...generateGreenPalette(),
   base: BASE_GREEN,
-  contrast: ["#000000", "#000000", "#000000", "#000000", "#000000", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF"],
+  contrast: [
+    "#000000",
+    "#000000",
+    "#000000",
+    "#000000",
+    "#000000",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+    "#FFFFFF",
+  ],
 };
 
 // Export a function to get a specific green shade
@@ -36,7 +51,9 @@ export const getGreenShade = (shade: ShadeLevel): ColorDefinition => {
 };
 
 // Export a function to create a green with custom adjustments
-export const createGreenVariant = (adjustments: ColorAdjustments): ColorDefinition => {
+export const createGreenVariant = (
+  adjustments: ColorAdjustments,
+): ColorDefinition => {
   const baseColor = ColorUtils.createColorDefinition(BASE_GREEN);
   return ColorUtils.adjustColor(baseColor, adjustments);
 };

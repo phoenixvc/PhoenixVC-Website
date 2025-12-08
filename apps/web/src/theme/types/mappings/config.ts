@@ -1,4 +1,3 @@
-
 /**
  * Base mapping configuration
  */

@@ -18,8 +18,7 @@ const buttonVariants = cva(
           "bg-[hsl(var(--color-secondary))] text-[hsl(var(--color-secondary-foreground))] shadow-sm hover:bg-[hsl(var(--color-secondary),0.8)]",
         ghost:
           "hover:bg-[hsl(var(--color-accent))] hover:text-[hsl(var(--color-accent-foreground))]",
-        link:
-          "text-[hsl(var(--color-primary))] underline-offset-4 hover:underline",
+        link: "text-[hsl(var(--color-primary))] underline-offset-4 hover:underline",
       },
       size: {
         default: "h-9 px-4 py-2",
@@ -32,7 +31,7 @@ const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
+  },
 );
 
 export interface ButtonProps
@@ -51,7 +50,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       />
     );
-  }
+  },
 );
 Button.displayName = "Button";
 

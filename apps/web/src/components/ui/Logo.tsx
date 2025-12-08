@@ -11,7 +11,7 @@ interface LogoProps {
 export const Logo: React.FC<LogoProps> = ({
   className,
   variant = "default",
-  component = "logo"
+  component = "logo",
 }) => {
   const themeContext = useTheme();
 
@@ -21,7 +21,7 @@ export const Logo: React.FC<LogoProps> = ({
   const style = themeContext.getComponentStyle?.(component, variant) || {};
 
   // Get specific class for the text if you prefer class-based styling
-  const textClass = themeContext.getSpecificClass?.("text") as string || "";
+  const textClass = (themeContext.getSpecificClass?.("text") as string) || "";
 
   // Get CSS variable for specific properties if needed
   const logoColor = themeContext.getCssVariable("theme-logo-color");
@@ -32,12 +32,12 @@ export const Logo: React.FC<LogoProps> = ({
       className={cn(
         "text-2xl font-bold transition-colors duration-200",
         textClass,
-        className
+        className,
       )}
       style={{
         ...style,
         // Override with specific CSS variables if needed
-        color: logoColor || style.color
+        color: logoColor || style.color,
       }}
     >
       Phoenix VC

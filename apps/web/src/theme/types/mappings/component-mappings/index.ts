@@ -8,8 +8,8 @@ import { CodeSyntaxMappings } from "./code-syntax.js";
 import { VisualizationMappings } from "./visualization.js";
 import { MediaMappings } from "./media.js";
 
-export interface ComponentMappings extends
-    FormElementMappings,
+export interface ComponentMappings
+  extends FormElementMappings,
     NavigationMappings,
     ContainerMappings,
     FeedbackMappings,

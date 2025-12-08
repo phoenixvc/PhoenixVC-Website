@@ -9,12 +9,12 @@ import styles from "../styles/sidebar.module.css";
 const itemVariants = {
   active: {
     scale: 1.02,
-    transition: { duration: 0.2 }
+    transition: { duration: 0.2 },
   },
   inactive: {
     scale: 1,
-    transition: { duration: 0.2 }
-  }
+    transition: { duration: 0.2 },
+  },
 };
 
 const SidebarItem: React.FC<SidebarItemProps> = ({
@@ -28,11 +28,11 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
   href = "#",
   mode: _mode = "light",
   collapsed: _collapsed = false,
-  type: _type = "link"
+  type: _type = "link",
 }): React.ReactElement => {
   const themeContext = useTheme() || {
     themeName: "default",
-    getComponentStyle: (): Record<string, unknown> => ({})
+    getComponentStyle: (): Record<string, unknown> => ({}),
   };
 
   // Function to determine if the item is active based on current URL
@@ -56,12 +56,13 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
   }, [active, href]);
 
   // Get component style from theme
-  const itemStyle = themeContext.getComponentStyle?.("sidebar.item", variant) || {};
+  const itemStyle =
+    themeContext.getComponentStyle?.("sidebar.item", variant) || {};
 
   // Combine passed style with theme style
   const combinedStyle = {
     ...itemStyle,
-    ...style
+    ...style,
   };
 
   // Use CSS module classes with improved active state detection
@@ -70,7 +71,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
     isActive && styles.sidebarItemActive,
     _collapsed && styles.sidebarItemCollapsed,
     _mode === "dark" ? styles.darkItem : styles.lightItem,
-    className
+    className,
   );
 
   // Determine if this is a link or button based on onClick

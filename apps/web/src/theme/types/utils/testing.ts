@@ -23,7 +23,9 @@ export const createTheme = (config?: Partial<ThemeConfig>): ThemeConfig => {
  * @example
  * const testTheme = createTestTheme({ mode: 'dark' });
  */
-export const createTestTheme = (overrides?: DeepPartial<ThemeConfig>): ThemeConfig => {
+export const createTestTheme = (
+  overrides?: DeepPartial<ThemeConfig>,
+): ThemeConfig => {
   const baseTheme: ThemeConfig = {
     ...createTheme(),
     useSystem: true, // Provide a default value or the appropriate default
@@ -32,6 +34,9 @@ export const createTestTheme = (overrides?: DeepPartial<ThemeConfig>): ThemeConf
   return {
     ...baseTheme,
     ...overrides,
-    useSystem: overrides && "useSystem" in overrides ? overrides.useSystem! : baseTheme.useSystem,
+    useSystem:
+      overrides && "useSystem" in overrides
+        ? overrides.useSystem!
+        : baseTheme.useSystem,
   };
 };

@@ -6,7 +6,7 @@ export type Level = "universe" | "galaxy" | "sun" | "planet" | "special";
 export interface CosmicNavigationState {
   currentLevel: Level;
   currentGalaxyId?: string;
-  currentSunId?: string;  // Changed from currentStarSystemId
+  currentSunId?: string; // Changed from currentStarSystemId
   currentPlanetId?: string;
   currentSpecialObjectId?: string;
   isTransitioning: boolean;

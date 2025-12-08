@@ -1,7 +1,16 @@
 // components/Layout/Header/Header.tsx
 import React, { FC, useEffect, useState, useRef } from "react";
 import styles from "./header.module.css";
-import { Menu, Sun, Moon, Bug, Gamepad2, ChevronDown, User, Palette } from "lucide-react";
+import {
+  Menu,
+  Sun,
+  Moon,
+  Bug,
+  Gamepad2,
+  ChevronDown,
+  User,
+  Palette,
+} from "lucide-react";
 import { HeaderProps } from "./types";
 import { navItems } from "@/constants/navigation";
 import { useTheme } from "@/theme";
@@ -21,7 +30,7 @@ const Header: FC<HeaderProps> = ({
   onDebugModeToggle,
 }): React.ReactElement => {
   // Calculate header left offset based on sidebar state (desktop only)
-  const headerLeftOffset = isMobile ? 0 : (isSidebarOpen ? sidebarWidth : 0);
+  const headerLeftOffset = isMobile ? 0 : isSidebarOpen ? sidebarWidth : 0;
   const [scrolled, setScrolled] = useState(false);
   const [activePath, setActivePath] = useState("");
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
@@ -29,7 +38,8 @@ const Header: FC<HeaderProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const { themeName, setThemeName } = useTheme();
-  const _currentPath = typeof window !== "undefined" ? window.location.pathname : "";
+  const _currentPath =
+    typeof window !== "undefined" ? window.location.pathname : "";
 
   // Available themes with "coming soon" labels
   const availableThemes = [
@@ -74,7 +84,10 @@ const Header: FC<HeaderProps> = ({
 
     // Close profile menu when clicking outside
     const handleClickOutside = (event: MouseEvent): void => {
-      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+      if (
+        profileMenuRef.current &&
+        !profileMenuRef.current.contains(event.target as Node)
+      ) {
         setProfileMenuOpen(false);
         setThemeMenuOpen(false);
       }
@@ -113,7 +126,7 @@ const Header: FC<HeaderProps> = ({
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
-  const mobileMenuItems = navItems.map(item => {
+  const mobileMenuItems = navItems.map((item) => {
     type ButtonStyle = "default" | "primary" | "secondary";
     let buttonStyle: ButtonStyle = "default";
 
@@ -126,7 +139,7 @@ const Header: FC<HeaderProps> = ({
     return {
       path: item.href,
       label: item.label,
-      style: buttonStyle
+      style: buttonStyle,
     };
   });
 
@@ -139,7 +152,7 @@ const Header: FC<HeaderProps> = ({
         style={{
           left: `${headerLeftOffset}px`,
           width: `calc(100% - ${headerLeftOffset}px)`,
-          transition: "left 0.3s ease, width 0.3s ease"
+          transition: "left 0.3s ease, width 0.3s ease",
         }}
       >
         <div className={styles.headerContainer}>
@@ -219,7 +232,9 @@ const Header: FC<HeaderProps> = ({
               className={styles.themeToggleButton}
               onClick={onThemeToggle}
               aria-label="Toggle theme"
-              title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              title={
+                isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"
+              }
             >
               {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
             </button>
@@ -236,7 +251,10 @@ const Header: FC<HeaderProps> = ({
                     <User size={16} className={styles.profileUserIcon} />
                   </div>
                 </div>
-                <ChevronDown size={16} className={`${styles.dropdownIcon} ${profileMenuOpen ? styles.open : ""}`} />
+                <ChevronDown
+                  size={16}
+                  className={`${styles.dropdownIcon} ${profileMenuOpen ? styles.open : ""}`}
+                />
               </button>
 
               {/* Profile Dropdown Menu */}
@@ -248,31 +266,48 @@ const Header: FC<HeaderProps> = ({
                     </div>
                     <div className={styles.profileInfo}>
                       <div className={styles.profileName}>Guest User</div>
-                      <div className={styles.profileEmail}>guest@example.com</div>
+                      <div className={styles.profileEmail}>
+                        guest@example.com
+                      </div>
                     </div>
                   </div>
 
                   <div className={styles.dropdownDivider}></div>
 
                   {/* Theme Selection Option */}
-                  <div className={styles.dropdownItem} onClick={() => setThemeMenuOpen(!themeMenuOpen)}>
+                  <div
+                    className={styles.dropdownItem}
+                    onClick={() => setThemeMenuOpen(!themeMenuOpen)}
+                  >
                     <Palette size={18} className={styles.dropdownItemIcon} />
                     <span>Theme Selection</span>
-                    <ChevronDown size={16} className={`${styles.dropdownItemChevron} ${themeMenuOpen ? styles.open : ""}`} />
+                    <ChevronDown
+                      size={16}
+                      className={`${styles.dropdownItemChevron} ${themeMenuOpen ? styles.open : ""}`}
+                    />
                   </div>
 
                   {/* Theme Selection Submenu */}
                   {themeMenuOpen && (
                     <div className={styles.themeSubmenu}>
-                      {availableThemes.map(theme => (
+                      {availableThemes.map((theme) => (
                         <div
                           key={theme.id}
                           className={`${styles.themeOption} ${themeName === theme.id ? styles.activeTheme : ""}`}
-                          onClick={() => !theme.comingSoon && handleThemeSelect(theme.id)}
+                          onClick={() =>
+                            !theme.comingSoon && handleThemeSelect(theme.id)
+                          }
                         >
-                          <div className={styles.themeColorIndicator} data-theme={theme.id}></div>
+                          <div
+                            className={styles.themeColorIndicator}
+                            data-theme={theme.id}
+                          ></div>
                           <span>{theme.name}</span>
-                          {theme.comingSoon && <span className={styles.comingSoonBadge}>Coming Soon</span>}
+                          {theme.comingSoon && (
+                            <span className={styles.comingSoonBadge}>
+                              Coming Soon
+                            </span>
+                          )}
                         </div>
                       ))}
                     </div>

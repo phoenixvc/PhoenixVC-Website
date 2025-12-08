@@ -1,15 +1,19 @@
 // theme/managers/component-manager.ts
 import { ThemeName } from "../types/core/base";
-import { BaseStyles, CardVariant, ComponentState, InteractiveState, ThemePropertyStyles } from "../types";
+import {
+  BaseStyles,
+  CardVariant,
+  ComponentState,
+  InteractiveState,
+  ThemePropertyStyles,
+} from "../types";
 import { ComponentThemeRegistry } from "../registry/component-theme-registry";
 
 export class ComponentManager {
   private registry: ComponentThemeRegistry;
   //TODO private colorMapping: ColorMapping; //TODO ThemeMode,
 
-  constructor(
-    registry: ComponentThemeRegistry
-  ) {
+  constructor(registry: ComponentThemeRegistry) {
     this.registry = registry;
   }
 
@@ -30,7 +34,11 @@ export class ComponentManager {
     }
 
     // Handle simple variants that are directly ComponentState
-    if ("background" in componentVariant && "foreground" in componentVariant && "border" in componentVariant) {
+    if (
+      "background" in componentVariant &&
+      "foreground" in componentVariant &&
+      "border" in componentVariant
+    ) {
       return componentVariant as ComponentState;
     }
 
@@ -54,13 +62,13 @@ export class ComponentManager {
     if ("interactive" in parentVariant && parentVariant.interactive) {
       switch (state) {
         case "hover":
-          return parentVariant.interactive.hover ?
-            { ...componentVariant, ...parentVariant.interactive.hover } :
-            componentVariant;
+          return parentVariant.interactive.hover
+            ? { ...componentVariant, ...parentVariant.interactive.hover }
+            : componentVariant;
         case "active":
-          return parentVariant.interactive.active ?
-            { ...componentVariant, ...parentVariant.interactive.active } :
-            componentVariant;
+          return parentVariant.interactive.active
+            ? { ...componentVariant, ...parentVariant.interactive.active }
+            : componentVariant;
         default:
           return componentVariant;
       }
@@ -69,7 +77,10 @@ export class ComponentManager {
     // Handle legacy interactive state format
     const interactiveState = componentVariant as InteractiveState;
     if (interactiveState[state as keyof InteractiveState]) {
-      return { ...componentVariant, ...interactiveState[state as keyof InteractiveState] };
+      return {
+        ...componentVariant,
+        ...interactiveState[state as keyof InteractiveState],
+      };
     }
 
     return componentVariant;
@@ -77,7 +88,7 @@ export class ComponentManager {
 
   // Generate CSS variables for all components
   generateAllVariables(
-    registry: ComponentThemeRegistry = this.registry
+    registry: ComponentThemeRegistry = this.registry,
   ): Record<string, string> {
     const variables: Record<string, string> = {};
 
@@ -88,14 +99,20 @@ export class ComponentManager {
       // Process each variant
       Object.entries(variants).forEach(([variantName, variantConfig]) => {
         // Generate variables for this component variant
-        const componentVars = this.generateComponentVariables(componentName, variantName);
+        const componentVars = this.generateComponentVariables(
+          componentName,
+          variantName,
+        );
 
         // Add to the result
         Object.assign(variables, componentVars);
 
         // Also generate recursive variables with more flexibility
         const prefix = `--theme-${componentName}-${variantName}`;
-        const recursiveVars = this.generateVariablesForVariant(prefix, variantConfig);
+        const recursiveVars = this.generateVariablesForVariant(
+          prefix,
+          variantConfig,
+        );
 
         // Add recursive variables to the result
         Object.assign(variables, recursiveVars);
@@ -140,19 +157,23 @@ export class ComponentManager {
     // Handle interactive states
     if ("interactive" in parentVariant && parentVariant.interactive) {
       if (parentVariant.interactive.hover?.background?.hex) {
-        variables[`${prefix}-hover-bg`] = parentVariant.interactive.hover.background.hex;
+        variables[`${prefix}-hover-bg`] =
+          parentVariant.interactive.hover.background.hex;
       }
 
       if (parentVariant.interactive.hover?.foreground?.hex) {
-        variables[`${prefix}-hover-fg`] = parentVariant.interactive.hover.foreground.hex;
+        variables[`${prefix}-hover-fg`] =
+          parentVariant.interactive.hover.foreground.hex;
       }
 
       if (parentVariant.interactive.active?.background?.hex) {
-        variables[`${prefix}-active-bg`] = parentVariant.interactive.active.background.hex;
+        variables[`${prefix}-active-bg`] =
+          parentVariant.interactive.active.background.hex;
       }
 
       if (parentVariant.interactive.active?.foreground?.hex) {
-        variables[`${prefix}-active-fg`] = parentVariant.interactive.active.foreground.hex;
+        variables[`${prefix}-active-fg`] =
+          parentVariant.interactive.active.foreground.hex;
       }
     }
 
@@ -204,7 +225,7 @@ export class ComponentManager {
   private processVariantObject(
     prefix: string,
     obj: unknown,
-    result: Record<string, string>
+    result: Record<string, string>,
   ): void {
     if (!obj || typeof obj !== "object") return;
 
@@ -230,7 +251,7 @@ export class ComponentManager {
   generateComponentClasses(
     component: string,
     variant: string = "default",
-    scheme: ThemeName = "classic"
+    scheme: ThemeName = "classic",
   ): Record<string, string> {
     const componentState = this.getComponentState(component, variant);
     if (!componentState) return {};
@@ -283,7 +304,7 @@ export class ComponentManager {
   // Generate classes for all components
   generateAllClasses(
     scheme: ThemeName = "classic",
-    registry: ComponentThemeRegistry = this.registry
+    registry: ComponentThemeRegistry = this.registry,
   ): Record<string, string> {
     const classes: Record<string, string> = {};
 
@@ -294,7 +315,11 @@ export class ComponentManager {
       // Process each variant
       Object.entries(variants).forEach(([variantName]) => {
         // Generate classes for this component variant
-        const componentClasses = this.generateComponentClasses(componentName, variantName, scheme);
+        const componentClasses = this.generateComponentClasses(
+          componentName,
+          variantName,
+          scheme,
+        );
 
         // Add to the result
         Object.assign(classes, componentClasses);
@@ -350,7 +375,10 @@ export class ComponentManager {
   }
 
   // Extract state-specific styles from a variant
-  private extractStateStyles(variant: unknown, state: string): Record<string, unknown> {
+  private extractStateStyles(
+    variant: unknown,
+    state: string,
+  ): Record<string, unknown> {
     // Type guard to ensure variant is an object
     if (!variant || typeof variant !== "object") {
       return {};
@@ -376,7 +404,9 @@ export class ComponentManager {
 
         if (state === "active" && cardVariant.interactive.active) {
           // Ensure we"re spreading an object
-          const activeStyles = this.ensureObject(cardVariant.interactive.active);
+          const activeStyles = this.ensureObject(
+            cardVariant.interactive.active,
+          );
           return { ...baseStyles, ...activeStyles };
         }
       }
@@ -425,11 +455,9 @@ export class ComponentManager {
 
     return (
       "default" in potentialCardVariant &&
-      (
-        ("interactive" in potentialCardVariant) ||
-        ("header" in potentialCardVariant) ||
-        ("footer" in potentialCardVariant)
-      )
+      ("interactive" in potentialCardVariant ||
+        "header" in potentialCardVariant ||
+        "footer" in potentialCardVariant)
     );
   }
 
@@ -472,6 +500,8 @@ export class ComponentManager {
 
   // Get component variants for a specific component
   getComponentVariants(component: string): Record<string, unknown> | undefined {
-    return this.registry[component] ? { ...this.registry[component] } : undefined;
+    return this.registry[component]
+      ? { ...this.registry[component] }
+      : undefined;
   }
 }
