@@ -3,6 +3,7 @@
 
 import { Planet } from "../../types";
 import { fastSin } from "../../math";
+import { featureFlags } from "@/utils";
 import {
   getSunStates,
   initializeSunStates,
@@ -169,32 +170,37 @@ export function drawSuns(
       isDarkMode,
       layers,
     );
-    drawSolarFlares(
-      ctx,
-      x,
-      y,
-      size,
-      time,
-      sunState,
-      rgbStr,
-      secondaryRgbStr,
-      isHighlighted,
-      isDarkMode,
-      flares,
-    );
-    drawCoronaRays(
-      ctx,
-      x,
-      y,
-      size,
-      time,
-      sunState,
-      rgbStr,
-      secondaryRgbStr,
-      isHighlighted,
-      isDarkMode,
-      rays,
-    );
+    // Check feature flags for sun sub-effects
+    if (featureFlags.isEnabled("sunFlares")) {
+      drawSolarFlares(
+        ctx,
+        x,
+        y,
+        size,
+        time,
+        sunState,
+        rgbStr,
+        secondaryRgbStr,
+        isHighlighted,
+        isDarkMode,
+        flares,
+      );
+    }
+    if (featureFlags.isEnabled("sunCorona")) {
+      drawCoronaRays(
+        ctx,
+        x,
+        y,
+        size,
+        time,
+        sunState,
+        rgbStr,
+        secondaryRgbStr,
+        isHighlighted,
+        isDarkMode,
+        rays,
+      );
+    }
     drawChromosphere(
       ctx,
       x,

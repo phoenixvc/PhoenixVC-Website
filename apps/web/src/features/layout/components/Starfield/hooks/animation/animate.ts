@@ -9,7 +9,7 @@ import {
   updateStarPositions,
 } from "../../stars";
 import { drawStarBirthplaces } from "../../renderer";
-import { logger } from "@/utils/logger";
+import { logger, performanceMonitor, featureFlags } from "@/utils";
 import { updateFrameCache, getFrameTime } from "../../frameCache";
 import {
   BlackHole,
@@ -43,7 +43,7 @@ import {
   checkSunHover,
   getCurrentSunPositions,
 } from "./sunRendering";
-// Import performance profiler
+// Import performance profiler (legacy - kept for detailed section timing)
 import {
   startTiming,
   endTiming,
@@ -63,6 +63,9 @@ let cachedFilteredPlanets: Planet[] = [];
 let cachedFocusedSunId: string | null = null;
 let cachedPlanetsLength = 0;
 
+// Track last frame time for performance monitoring
+let lastAnimateTime = 0;
+
 export const animate = (
   timestamp: number,
   props: AnimationProps,
@@ -71,6 +74,13 @@ export const animate = (
   try {
     // Update frame cache at the start of each frame
     updateFrameCache();
+
+    // Record frame time for performance monitor
+    if (lastAnimateTime > 0) {
+      performanceMonitor.recordFrameTime(timestamp - lastAnimateTime);
+    }
+    lastAnimateTime = timestamp;
+    performanceMonitor.startFrame();
 
     if (props.debugSettings?.verboseLogs) {
       logger.debug(
@@ -135,8 +145,10 @@ export const animate = (
 
     // Performance optimization: Draw connections every 2 frames for smoother appearance
     // Previously every 8 frames caused visible flickering on star connections
+    // Controlled by frameSkipping feature flag
+    const frameSkippingEnabled = featureFlags.isEnabled("frameSkipping");
     refs.frameSkipRef.current = (refs.frameSkipRef.current + 1) % 2;
-    const shouldSkipHeavyOperations = refs.frameSkipRef.current !== 0;
+    const shouldSkipHeavyOperations = frameSkippingEnabled && refs.frameSkipRef.current !== 0;
 
     // Increment frame counter
     if (props.frameCountRef) props.frameCountRef.current++;
@@ -196,16 +208,26 @@ export const animate = (
 
     // Draw background stars with reduced opacity when focused on a sun
     // This makes the focused area more prominent
+    // NOTE: Offscreen canvas is NOT used for stars because they move every frame.
+    // Offscreen canvas only benefits static or slowly-changing content.
     startTiming("drawStars");
+    performanceMonitor.startSection("stars");
+
+    // Pass feature flags to star drawing for glow/twinkle control
+    const enableGlow = featureFlags.isEnabled("glowEffects");
+    const enableTwinkle = featureFlags.isEnabled("twinkleEffects");
+
     if (props.focusedSunId) {
       ctx.save();
       ctx.globalAlpha = STAR_RENDERING_CONFIG.focusedBackgroundAlpha;
-      drawStars(ctx, currentStars);
+      drawStars(ctx, currentStars, enableGlow, enableTwinkle);
       ctx.restore();
     } else {
       // Always draw stars first - this ensures they always appear
-      drawStars(ctx, currentStars);
+      drawStars(ctx, currentStars, enableGlow, enableTwinkle);
     }
+
+    performanceMonitor.endSection("stars");
     endTiming("drawStars");
 
     // Draw star birthplace indicators at the edges where stars respawn
@@ -217,21 +239,25 @@ export const animate = (
     // Get planets for sun size calculation - use direct reference to avoid GC pressure
     const currentPlanets: Planet[] = props.planetsRef?.current ?? [];
 
-    // Draw suns (focus area orbital centers) - always visible
-    // Pass hovered sun id, focused sun id for interactive effects, deltaTime for physics, and planets for size calculation
-    startTiming("drawSuns");
-    drawSuns(
-      ctx,
-      canvas.width,
-      canvas.height,
-      timestamp,
-      props.isDarkMode,
-      props.hoveredSunId,
-      deltaTime,
-      props.focusedSunId,
-      currentPlanets,
-    );
-    endTiming("drawSuns");
+    // Draw suns (focus area orbital centers) - check feature flag
+    const shouldDrawSuns = featureFlags.isEnabled("sunEffects");
+    if (shouldDrawSuns) {
+      startTiming("drawSuns");
+      performanceMonitor.startSection("suns");
+      drawSuns(
+        ctx,
+        canvas.width,
+        canvas.height,
+        timestamp,
+        props.isDarkMode,
+        props.hoveredSunId,
+        deltaTime,
+        props.focusedSunId,
+        currentPlanets,
+      );
+      performanceMonitor.endSection("suns");
+      endTiming("drawSuns");
+    }
 
     // Get current values from refs - use direct reference to avoid GC pressure
     const currentBlackHoles: BlackHole[] = props.blackHolesRef?.current ?? [];
@@ -373,15 +399,28 @@ export const animate = (
     }
 
     // Draw connections between stars (network effect) - only if not skipping heavy operations
-    if (!shouldSkipHeavyOperations) {
+    // Check feature flag and performance metrics before drawing
+    const shouldDrawConnections =
+      !shouldSkipHeavyOperations &&
+      featureFlags.isEnabled("starConnections");
+
+    if (shouldDrawConnections) {
       startTiming("drawConnections");
+      performanceMonitor.startSection("connections");
+
+      // Get dynamic connection distance from feature flags (may be auto-adjusted)
+      const connectionDistance =
+        featureFlags.getValue("starConnections") ?? props.lineConnectionDistance;
+
       drawConnections(
         ctx,
         currentStars,
-        props.lineConnectionDistance,
+        connectionDistance,
         props.lineOpacity,
         props.colorScheme,
       );
+
+      performanceMonitor.endSection("connections");
       endTiming("drawConnections");
     }
 
@@ -410,10 +449,14 @@ export const animate = (
     // Adding it here caused double-wrapping and potential oscillation at edges
 
     // Draw black holes if enabled (hide when focused on a sun for cleaner view)
-    if (props.enableBlackHole && !props.focusedSunId) {
+    // Check both the prop and the feature flag
+    const shouldDrawBlackHoles = props.enableBlackHole && !props.focusedSunId && featureFlags.isEnabled("blackHoleEffects");
+    if (shouldDrawBlackHoles) {
+      performanceMonitor.startSection("blackHoles");
       currentBlackHoles.forEach((blackHole: BlackHole) => {
         drawBlackHole(ctx, blackHole, deltaTime, props.particleSpeed * 0.01);
       });
+      performanceMonitor.endSection("blackHoles");
     }
 
     // Draw portfolio comets/planets
@@ -443,6 +486,7 @@ export const animate = (
     }
 
     startTiming("updatePlanets");
+    performanceMonitor.startSection("planets");
     updatePlanets(
       ctx,
       planetsToRender,
@@ -451,10 +495,13 @@ export const animate = (
       props.employeeDisplayStyle,
       currentCamera, // Pass the camera (may be undefined if cosmic navigation is disabled)
     );
+    performanceMonitor.endSection("planets");
     endTiming("updatePlanets");
 
     // Draw mouse effects
+    performanceMonitor.startSection("mouseEffects");
     drawMouseEffects(ctx, currentMousePosition, props, deltaTime);
+    performanceMonitor.endSection("mouseEffects");
 
     // Draw cosmic navigation if enabled
     if (props.enableCosmicNavigation && props.navigationState && props.camera) {
@@ -494,18 +541,23 @@ export const animate = (
       }
     }
 
-    // Process particles and effects
-    processParticleEffects(
-      ctx,
-      timestamp,
-      deltaTime,
-      props,
-      refs,
-      currentStars,
-      currentPlanets,
-      currentGameState,
-      shouldSkipHeavyOperations,
-    );
+    // Process particles and effects - check feature flag
+    const shouldProcessParticles = featureFlags.isEnabled("particleEffects");
+    if (shouldProcessParticles) {
+      performanceMonitor.startSection("particles");
+      processParticleEffects(
+        ctx,
+        timestamp,
+        deltaTime,
+        props,
+        refs,
+        currentStars,
+        currentPlanets,
+        currentGameState,
+        shouldSkipHeavyOperations,
+      );
+      performanceMonitor.endSection("particles");
+    }
 
     // Draw debug information if debug mode is enabled
     if (props.debugMode && !shouldSkipHeavyOperations) {
@@ -591,6 +643,7 @@ export const animate = (
     // End frame-level profiling
     endTiming("frame");
     endFrame();
+    performanceMonitor.endFrame();
 
     // Update star positions in the ref - consolidate this to one place
     if (
