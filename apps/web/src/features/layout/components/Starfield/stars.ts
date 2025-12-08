@@ -691,14 +691,35 @@ function getNearbyStars(
   return nearbyStarsBuffer;
 }
 
+// Viewport bounds for culling (optional optimization)
+export interface ViewportBounds {
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+}
+
+// Check if a point is within viewport bounds (with padding for connections)
+function isInViewport(x: number, y: number, viewport: ViewportBounds | null, padding: number): boolean {
+  if (!viewport) return true;
+  return (
+    x >= viewport.minX - padding &&
+    x <= viewport.maxX + padding &&
+    y >= viewport.minY - padding &&
+    y <= viewport.maxY + padding
+  );
+}
+
 // Draw connections between nearby stars (network effect) with staggered reveal
 // Uses spatial partitioning for O(n) instead of O(n²) performance
+// Optional viewport culling for additional performance when zoomed/panned
 export const drawConnections = (
   ctx: CanvasRenderingContext2D,
   stars: Star[],
   maxDistance: number,
   opacity: number,
   colorScheme: string,
+  viewport: ViewportBounds | null = null,
 ): void => {
   // Use slightly muted colors for connection lines (balanced brightness)
   const baseColor = colorScheme === "white" ? "210, 210, 230" : "130, 80, 170";
@@ -708,9 +729,15 @@ export const drawConnections = (
   const grid = buildSpatialGrid(stars, maxDistance);
 
   // For performance, check only every 10th star as connection sources
+  // Apply viewport culling if bounds are provided
   const connectionSources: { star: Star; index: number }[] = [];
   for (let i = 0; i < stars.length; i += 10) {
-    connectionSources.push({ star: stars[i], index: i });
+    const star = stars[i];
+    // Skip stars outside viewport (with padding for connections that might reach into view)
+    if (viewport && !isInViewport(star.x, star.y, viewport, maxDistance)) {
+      continue;
+    }
+    connectionSources.push({ star, index: i });
   }
 
   // Enable smooth line rendering
