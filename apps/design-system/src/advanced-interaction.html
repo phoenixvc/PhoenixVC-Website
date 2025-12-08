@@ -14,7 +14,7 @@
       top: 0;
       left: 0;
       pointer-events: none;
-      z-index: 1000;
+      z-index: 1;
     }
 
     /* Grid System */
@@ -133,7 +133,9 @@
           World = Matter.World,
           Bodies = Matter.Bodies,
           Body = Matter.Body,
-          Composite = Matter.Composite;
+          Composite = Matter.Composite,
+          Mouse = Matter.Mouse,
+          MouseConstraint = Matter.MouseConstraint;
 
     const engine = Engine.create();
     const canvas = document.getElementById('physics-canvas');
@@ -157,6 +159,23 @@
     ];
 
     World.add(engine.world, walls);
+    
+    // Setup mouse interaction for dragging physics objects
+    // Use document.body instead of canvas to allow interaction without blocking page elements
+    const mouse = Mouse.create(document.body);
+    const mouseConstraint = MouseConstraint.create(engine, {
+      mouse: mouse,
+      constraint: {
+        stiffness: 0.2,
+        render: {
+          visible: false
+        }
+      }
+    });
+    
+    World.add(engine.world, mouseConstraint);
+    render.mouse = mouse;
+    
     Engine.run(engine);
     Render.run(render);
 
