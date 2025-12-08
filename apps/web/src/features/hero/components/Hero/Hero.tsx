@@ -131,8 +131,6 @@ const Hero: FC<ExtendedHeroProps> = memo(
         data-starfield-passthrough="true"
         style={{
           backgroundPosition: `center ${scrollPosition * 0.05}px`,
-          // Offset padding to center content accounting for sidebar
-          paddingLeft: `${sidebarWidth}px`,
         }}
       >
         <div
