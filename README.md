@@ -128,6 +128,18 @@ The application will be available at `http://localhost:5173`.
 
 ## 7. Future Development & Known Issues
 
+### Planned Features
+
+For detailed requirements and specifications of planned features, see the [Product Requirements Documents (PRDs)](docs/prd/) directory:
+- [Game Mode with Spaceships](docs/prd/001-game-mode-spaceships.md)
+- [Physics & Math Calculations](docs/prd/002-physics-math-calculations.md)
+- [Background Workers & Offscreen Renderers](docs/prd/003-background-workers-offscreen-renderers.md)
+- [Planet Orbit Interactions](docs/prd/004-planet-orbit-interactions.md)
+- [Zoom Functionality](docs/prd/005-zoom-functionality.md)
+- [AI-Generated Constellation Patterns](docs/prd/006-ai-constellation-patterns.md)
+
+### Known Issues
+
 - **Storybook:** The installation of Storybook for the design system failed due to a timeout. This should be revisited to provide a proper component library.
 - **Production Hardening:** The POCs implemented in Phase 3 require further work for production readiness, as noted by the `// TODO` comments in the code. This includes adding comprehensive tests, handling edge cases, and further performance optimization.
 
@@ -139,7 +151,10 @@ PhoenixVC-Website/
 │   ├── web/              # Main website application
 │   ├── design-system/    # Shared design system components
 │   └── api/              # Azure Functions API
-├── docs/                 # MkDocs documentation
+├── docs/                 # Documentation
+│   ├── prd/             # Product Requirements Documents
+│   ├── adr/             # Architecture Decision Records
+│   └── src/             # MkDocs documentation source
 ├── infra/
 │   └── bicep/           # Azure infrastructure as code
 ├── scripts/             # Deployment and utility scripts
