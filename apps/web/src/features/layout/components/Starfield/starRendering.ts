@@ -15,6 +15,7 @@ import { Planet } from "./types";
 import { SUNS } from "./cosmos/cosmicHierarchy";
 import { TWO_PI, fastSin, fastCos } from "./math";
 import { SIZE_CONFIG, CAMERA_CONFIG } from "./physicsConfig";
+import { logger } from "@/utils/logger";
 
 // Image cache to avoid creating new Image objects every frame
 const imageCache = new Map<string, HTMLImageElement>();
@@ -38,7 +39,7 @@ function getCachedImage(src: string): HTMLImageElement | null {
     // Track load failures
     img.onerror = (): void => {
       failedImages.add(src);
-      console.warn(`Failed to load image: ${src}`);
+      logger.warn(`Failed to load image: ${src}`);
     };
     
     img.src = src;
