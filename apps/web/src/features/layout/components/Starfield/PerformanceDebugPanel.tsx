@@ -259,7 +259,7 @@ const PerformanceDebugPanel: React.FC<PerformanceDebugPanelProps> = ({
     >
       <div
         className={styles.debugIndicator}
-        style={{ left: `${sidebarWidth + 10}px`, top: "80px" }}
+        style={{ left: `${sidebarWidth + 310}px`, top: "80px" }}
         onClick={(e) => e.stopPropagation()}
       >
         Performance Debug
@@ -268,7 +268,7 @@ const PerformanceDebugPanel: React.FC<PerformanceDebugPanelProps> = ({
       <div
         className={debugControlsClass}
         style={{
-          left: `${sidebarWidth + 10}px`,
+          left: `${sidebarWidth + 310}px`,
           top: "110px",
           maxHeight: "85vh",
           width: "280px",
