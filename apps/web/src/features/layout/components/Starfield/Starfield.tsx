@@ -1307,8 +1307,7 @@ const InteractiveStarfield = forwardRef<StarfieldRef, InteractiveStarfieldProps>
           className={`${styles.zoomOutButton} ${!isDarkMode ? styles.zoomOutButtonLight : ""}`}
           onClick={(): void => zoomToSun(focusedSunId)}
           style={{
-            // Center button in visible content area, accounting for sidebar width
-            left: `calc(50% + ${sidebarWidth / 2}px)`
+            left: "50%"
           }}
         >
           <span className={styles.zoomOutIcon}>←</span>
