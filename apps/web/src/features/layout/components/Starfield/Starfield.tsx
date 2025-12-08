@@ -1388,8 +1388,7 @@ const InteractiveStarfield = forwardRef<
                   }
                 }
               }
-            }
-          }}
+            }}
         />
       </div>
 
