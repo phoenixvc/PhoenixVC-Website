@@ -1,3 +1,8 @@
+import { logger as rootLogger, type ILogger } from '../../utils/ILogger';
+
+// Internal logger instance for theme system
+const themeLogger: ILogger = rootLogger.createChild('Theme');
+
 export class LogManager {
   /**
    * Main logging method with options for different log types
@@ -24,18 +29,18 @@ export class LogManager {
     const fullMessage = `[${prefix}] ${message}`;
 
     if (options?.group) {
-      console.group(fullMessage);
-      return () => console.groupEnd();
+      themeLogger.group(fullMessage);
+      return () => themeLogger.groupEnd();
     } else if (options?.warn) {
-      console.warn(fullMessage);
+      themeLogger.warn(fullMessage);
     } else if (options?.error) {
-      console.error(fullMessage);
+      themeLogger.error(fullMessage);
     } else if (options?.info) {
-      console.info(fullMessage);
+      themeLogger.info(fullMessage);
     } else if (options?.debug) {
-      console.debug(fullMessage);
+      themeLogger.debug(fullMessage);
     } else {
-      console.log(fullMessage);
+      themeLogger.log(fullMessage);
     }
 
     return () => {}; // No-op end function if no group was started

@@ -1,6 +1,6 @@
 // utils/performance.ts
 // Core Web Vitals monitoring utility
-import { logger } from "./logger";
+import { logger } from "./ILogger";
 
 interface WebVitalsMetric {
   name: string;
@@ -44,23 +44,20 @@ const getRating = (
 // Report to console in development
 const defaultReporter: ReportCallback = (metric): void => {
   if (import.meta.env.DEV) {
-    const color =
-      metric.rating === "good"
-        ? "#0cce6b"
-        : metric.rating === "needs-improvement"
-          ? "#ffa400"
-          : "#ff4e42";
+    const ratingText = metric.rating === "good"
+      ? "GOOD"
+      : metric.rating === "needs-improvement"
+        ? "NEEDS IMPROVEMENT"
+        : "POOR";
 
-    logger.debug(
-      `[Web Vitals] ${metric.name}: ${metric.value.toFixed(2)}${metric.name === "CLS" ? "" : "ms"} (${metric.rating})`,
-    );
+    const message = `${metric.name}: ${metric.value.toFixed(2)}${metric.name === "CLS" ? "" : "ms"} (${ratingText})`;
 
-    // Also log to console with color for better visibility in dev
-    if (typeof console !== "undefined" && console.log) {
-      console.log(
-        `%c[Web Vitals] ${metric.name}: ${metric.value.toFixed(2)}${metric.name === "CLS" ? "" : "ms"} (${metric.rating})`,
-        `color: ${color}; font-weight: bold;`,
-      );
+    if (metric.rating === "good") {
+      logger.debug(message);
+    } else if (metric.rating === "needs-improvement") {
+      logger.warn(message);
+    } else {
+      logger.error(message);
     }
   }
 };
