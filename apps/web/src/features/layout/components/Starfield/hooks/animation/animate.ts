@@ -67,7 +67,7 @@ let cachedPlanetsLength = 0;
 let lastSunLeaveTime: number | null = null;
 const SUN_HOVER_HIDE_DELAY_MS = 200; // Same delay as tooltip hide delay
 
-// Planet tooltip delay tracking - prevents tooltip from disappearing immediately  
+// Planet tooltip delay tracking - prevents tooltip from disappearing immediately
 let lastPlanetLeaveTime: number | null = null;
 const PLANET_TOOLTIP_HIDE_DELAY_MS = 200; // Same delay as tooltip hide delay
 
