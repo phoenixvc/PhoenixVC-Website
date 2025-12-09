@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState, useRef, forwardRef } from "react";
+import React, { useEffect, useState, forwardRef } from "react";
 import styles from "./sunTooltip.module.css";
 
 export interface SunInfo {
