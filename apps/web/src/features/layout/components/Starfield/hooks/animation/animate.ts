@@ -380,33 +380,30 @@ export const animate = (
       !isOverContentCard &&
       currentFrameCount % ANIMATION_TIMING_CONFIG.elementFromPointCheckInterval === 0
     ) {
-      // Don't update if mouse is over the sun tooltip
-      if (!props.isMouseOverSunTooltipRef?.current) {
-        const sunHoverResult = checkSunHover(
-          currentMousePosition.x,
-          currentMousePosition.y,
-          canvas.width,
-          canvas.height,
-        );
+      const sunHoverResult = checkSunHover(
+        currentMousePosition.x,
+        currentMousePosition.y,
+        canvas.width,
+        canvas.height,
+      );
 
-        if (sunHoverResult) {
-          // Only update if different sun or not currently showing
-          if (props.hoveredSunId !== sunHoverResult.sun.id) {
-            props.setHoveredSunId(sunHoverResult.sun.id);
-            props.setHoveredSun({
-              id: sunHoverResult.sun.id,
-              name: sunHoverResult.sun.name,
-              description: sunHoverResult.sun.description,
-              color: sunHoverResult.sun.color,
-              x: sunHoverResult.x,
-              y: sunHoverResult.y,
-            });
-          }
-        } else if (props.hoveredSunId !== null) {
-          // Clear hover if no sun is hovered and we had one before
-          props.setHoveredSunId(null);
-          props.setHoveredSun(null);
+      if (sunHoverResult) {
+        // Only update if different sun or not currently showing, and not over the tooltip
+        if (props.hoveredSunId !== sunHoverResult.sun.id && !props.isMouseOverSunTooltipRef?.current) {
+          props.setHoveredSunId(sunHoverResult.sun.id);
+          props.setHoveredSun({
+            id: sunHoverResult.sun.id,
+            name: sunHoverResult.sun.name,
+            description: sunHoverResult.sun.description,
+            color: sunHoverResult.sun.color,
+            x: sunHoverResult.x,
+            y: sunHoverResult.y,
+          });
         }
+      } else if (props.hoveredSunId !== null && !props.isMouseOverSunTooltipRef?.current) {
+        // Clear hover if no sun is hovered, we had one before, and mouse is not over the tooltip
+        props.setHoveredSunId(null);
+        props.setHoveredSun(null);
       }
     }
 
