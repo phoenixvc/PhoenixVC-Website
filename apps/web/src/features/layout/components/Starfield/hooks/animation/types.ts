@@ -109,6 +109,9 @@ export interface AnimationProps {
   focusedSunId?: string | null;
   debugSettings?: DebugSettings; // Add debug settings
   isMouseOverProjectTooltipRef?: MutableRefObject<boolean>; // Track if mouse is over project tooltip
+  isMouseOverSunTooltipRef?: MutableRefObject<boolean>; // Track if mouse is over sun tooltip
+  setHoveredSunId?: (sunId: string | null) => void; // Callback to update hovered sun ID
+  setHoveredSun?: (sun: { id: string; name: string; description?: string; color: string; x: number; y: number } | null) => void; // Callback to update hovered sun info
   cameraRef?: MutableRefObject<{ cx: number; cy: number; zoom: number }>; // Ref for synchronous camera access
   sidebarWidth?: number; // Width of sidebar for centering calculations
 }
