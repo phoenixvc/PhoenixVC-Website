@@ -25,6 +25,7 @@ export const useAnimationLoop = (
   
   // Use the passed mousePositionRef if available, otherwise create a local one
   // This allows the animation loop to always read the latest mouse position
+  // Note: isOnScreen defaults to false to prevent effects before real mouse interaction
   const mousePositionRef = props.mousePositionRef || useRef(
     props.mousePosition || {
       x: 0,
@@ -35,7 +36,7 @@ export const useAnimationLoop = (
       speedY: 0,
       isClicked: false,
       clickTime: 0,
-      isOnScreen: false,
+      isOnScreen: false, // Start false - only true after real mouse interaction
     },
   );
   
