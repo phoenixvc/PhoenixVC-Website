@@ -418,6 +418,10 @@ export const animate = (
         props.setHoveredSunId(null);
         props.setHoveredSun(null);
         lastSunLeaveTime = null;
+        // Reset the tooltip ref since the tooltip will be unmounted
+        if (props.isMouseOverSunTooltipRef) {
+          props.isMouseOverSunTooltipRef.current = false;
+        }
       } else if (!currentHoverInfo.show) {
         // Only check sun hover when no planet tooltip is showing
         const sunHoverResult = checkSunHover(
@@ -443,9 +447,9 @@ export const animate = (
               y: sunHoverResult.y,
             });
           }
-        } else if (props.isMouseOverSunTooltipRef?.current) {
-          // Mouse is over the tooltip - clear any pending leave time
-          // This prevents the hover from clearing while interacting with the tooltip
+        } else if (props.hoveredSunId !== null && props.isMouseOverSunTooltipRef?.current) {
+          // Mouse is over the tooltip (only valid when sun is hovered and tooltip is rendered)
+          // Clear any pending leave time to prevent hover from clearing while interacting
           lastSunLeaveTime = null;
         } else if (props.hoveredSunId !== null) {
           // Mouse has left the sun and is not over the tooltip
@@ -460,10 +464,17 @@ export const animate = (
             props.setHoveredSunId(null);
             props.setHoveredSun(null);
             lastSunLeaveTime = null; // Reset for next hover
+            // Reset the tooltip ref since the tooltip will be unmounted
+            if (props.isMouseOverSunTooltipRef) {
+              props.isMouseOverSunTooltipRef.current = false;
+            }
           }
-        } else if (props.hoveredSunId === null) {
-          // No sun is hovered and none was previously hovered - reset leave time
+        } else {
+          // No sun is hovered - reset leave time and tooltip ref
           lastSunLeaveTime = null;
+          if (props.isMouseOverSunTooltipRef) {
+            props.isMouseOverSunTooltipRef.current = false;
+          }
         }
       }
     }
