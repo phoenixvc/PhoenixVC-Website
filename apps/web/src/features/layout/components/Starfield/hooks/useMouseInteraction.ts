@@ -1,5 +1,5 @@
 // components/Layout/Starfield/hooks/useMouseInteraction.ts
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useMemo } from "react";
 import { MousePosition, Star, GameState } from "../types";
 import { applyClickForce } from "../stars";
 import { logger } from "@/utils/logger";
@@ -34,6 +34,20 @@ export const useMouseInteraction = (
 
   // Throttling refs
   const lastMoveTimeRef = useRef(0);
+
+  // Store game-related values in refs to keep callbacks stable
+  const gameModeRef = useRef(gameMode);
+  const gameStateRef = useRef(gameState);
+  const starsRef = useRef(stars);
+  const mouseEffectRadiusRef = useRef(mouseEffectRadius);
+  const setGameStateRef = useRef(setGameState);
+
+  // Keep refs in sync with props
+  gameModeRef.current = gameMode;
+  gameStateRef.current = gameState;
+  starsRef.current = stars;
+  mouseEffectRadiusRef.current = mouseEffectRadius;
+  setGameStateRef.current = setGameState;
 
   // Shared handler for both mouse and touch events
   const handlePointerMove = useCallback(
@@ -77,6 +91,7 @@ export const useMouseInteraction = (
   );
 
   // Shared handler for pointer down events
+  // Uses refs for game-related values to maintain stable callback identity
   const handlePointerDown = useCallback(
     (clientX: number, clientY: number): void => {
       // Update mouse position
@@ -91,18 +106,28 @@ export const useMouseInteraction = (
       logger.debug("Pointer down:", { clientX, clientY });
 
       // Game mode: apply force to nearby stars and use a click
-      if (gameMode && gameState.remainingClicks > 0) {
+      // Read from refs to avoid callback instability
+      if (
+        gameModeRef.current &&
+        gameStateRef.current.remainingClicks > 0
+      ) {
         // Apply force to nearby stars
-        applyClickForce(stars, clientX, clientY, mouseEffectRadius * 1.5, 2.0);
+        applyClickForce(
+          starsRef.current,
+          clientX,
+          clientY,
+          mouseEffectRadiusRef.current * 1.5,
+          2.0,
+        );
 
         // Use a click
-        setGameState((prev) => ({
+        setGameStateRef.current((prev) => ({
           ...prev,
           remainingClicks: prev.remainingClicks - 1,
         }));
       }
     },
-    [gameMode, gameState, mouseEffectRadius, setGameState, stars],
+    [], // Empty deps - all values accessed via refs
   );
 
   const handleMouseDown = useCallback(
@@ -148,37 +173,51 @@ export const useMouseInteraction = (
     logger.debug("Mouse left screen");
   }, []);
 
-  // Event handlers object
-  const handleMouseEvents = {
-    setup: (): void => {
-      // Mouse events
-      window.addEventListener("mousemove", handleMouseMove);
-      window.addEventListener("mousedown", handleMouseDown);
-      window.addEventListener("mouseup", handleMouseUp);
-      window.addEventListener("mouseleave", handleMouseLeave);
+  // Event handlers object - memoized to prevent unstable identity causing
+  // useEffect cleanup/setup cycles that remove event listeners permanently
+  const handleMouseEvents = useMemo(
+    () => ({
+      setup: (): void => {
+        // Mouse events
+        window.addEventListener("mousemove", handleMouseMove);
+        window.addEventListener("mousedown", handleMouseDown);
+        window.addEventListener("mouseup", handleMouseUp);
+        window.addEventListener("mouseleave", handleMouseLeave);
 
-      // Touch events
-      window.addEventListener("touchmove", handleTouchMove, { passive: true });
-      window.addEventListener("touchstart", handleTouchStart, { passive: true });
-      window.addEventListener("touchend", handleTouchEnd);
+        // Touch events
+        window.addEventListener("touchmove", handleTouchMove, { passive: true });
+        window.addEventListener("touchstart", handleTouchStart, {
+          passive: true,
+        });
+        window.addEventListener("touchend", handleTouchEnd);
 
-      logger.debug("Mouse and touch event listeners set up");
-    },
-    cleanup: (): void => {
-      // Mouse events
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mousedown", handleMouseDown);
-      window.removeEventListener("mouseup", handleMouseUp);
-      window.removeEventListener("mouseleave", handleMouseLeave);
+        logger.debug("Mouse and touch event listeners set up");
+      },
+      cleanup: (): void => {
+        // Mouse events
+        window.removeEventListener("mousemove", handleMouseMove);
+        window.removeEventListener("mousedown", handleMouseDown);
+        window.removeEventListener("mouseup", handleMouseUp);
+        window.removeEventListener("mouseleave", handleMouseLeave);
 
-      // Touch events
-      window.removeEventListener("touchmove", handleTouchMove);
-      window.removeEventListener("touchstart", handleTouchStart);
-      window.removeEventListener("touchend", handleTouchEnd);
+        // Touch events
+        window.removeEventListener("touchmove", handleTouchMove);
+        window.removeEventListener("touchstart", handleTouchStart);
+        window.removeEventListener("touchend", handleTouchEnd);
 
-      logger.debug("Mouse and touch event listeners cleaned up");
-    },
-  };
+        logger.debug("Mouse and touch event listeners cleaned up");
+      },
+    }),
+    [
+      handleMouseMove,
+      handleMouseDown,
+      handleMouseUp,
+      handleMouseLeave,
+      handleTouchMove,
+      handleTouchStart,
+      handleTouchEnd,
+    ],
+  );
 
   return {
     mousePosition,
