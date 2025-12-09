@@ -40,7 +40,9 @@ export interface AnimationProps {
     clickTime: number;
     isOnScreen: boolean;
   };
-  mousePositionRef?: MutableRefObject<MousePosition>; // Add ref for direct access in animation loop
+  // Optional ref for live mouse position updates without breaking memoization
+  // When provided, the animation loop reads directly from this ref on each frame
+  mousePositionRef?: MutableRefObject<MousePosition>;
   hoverInfo: {
     project: PortfolioProject | null;
     x: number;

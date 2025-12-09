@@ -84,6 +84,7 @@ export const useAnimationLoop = (
   // Update refs when props change (only if we're using local refs)
   useEffect(() => {
     // Only update mousePositionRef if we're using a local ref (not a passed one)
+    // When using a passed ref, the parent component updates it directly
     if (!props.mousePositionRef && props.mousePosition) {
       mousePositionRef.current = props.mousePosition;
     }
