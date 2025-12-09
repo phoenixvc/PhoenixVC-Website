@@ -435,8 +435,8 @@ export const animate = (
           // Mouse is over a sun - clear any pending hide timeout and show hover
           lastSunLeaveTime = null;
 
-          // Only update if different sun or not currently showing, and not over the tooltip
-          if (props.hoveredSunId !== sunHoverResult.sun.id && !props.isMouseOverSunTooltipRef?.current) {
+          // Only update if different sun
+          if (props.hoveredSunId !== sunHoverResult.sun.id) {
             props.setHoveredSunId(sunHoverResult.sun.id);
             props.setHoveredSun({
               id: sunHoverResult.sun.id,
@@ -448,7 +448,7 @@ export const animate = (
             });
           }
         } else if (props.hoveredSunId !== null && props.isMouseOverSunTooltipRef?.current) {
-          // Mouse is over the tooltip (only valid when sun is hovered and tooltip is rendered)
+          // Mouse is over the tooltip (not over the sun itself)
           // Clear any pending leave time to prevent hover from clearing while interacting
           lastSunLeaveTime = null;
         } else if (props.hoveredSunId !== null) {
