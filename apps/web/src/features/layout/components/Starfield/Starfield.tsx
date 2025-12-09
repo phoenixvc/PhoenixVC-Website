@@ -323,15 +323,15 @@ const InteractiveStarfield = forwardRef<
     });
 
     const mousePositionRef = useRef<MousePosition>({
-      x: window.innerWidth / 2,
-      y: window.innerHeight / 2,
-      lastX: window.innerWidth / 2,
-      lastY: window.innerHeight / 2,
+      x: 0,
+      y: 0,
+      lastX: 0,
+      lastY: 0,
       speedX: 0,
       speedY: 0,
       isClicked: false,
       clickTime: 0,
-      isOnScreen: true, // Force to true for testing
+      isOnScreen: false, // Start false - only true after real mouse interaction
     });
 
     // Get mouse interaction hooks
