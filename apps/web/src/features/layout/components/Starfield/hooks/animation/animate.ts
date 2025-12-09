@@ -401,13 +401,13 @@ export const animate = (
       }
     }
 
-    // Check sun hover (similar to planet hover) - throttled to every N frames
+    // Check sun hover on every frame for responsive hover effects
+    // Unlike elementFromPoint which is expensive, checkSunHover is a cheap calculation
     if (
       props.enableMouseInteraction &&
       props.setHoveredSunId &&
       props.setHoveredSun &&
-      !isOverContentCard &&
-      currentFrameCount % ANIMATION_TIMING_CONFIG.elementFromPointCheckInterval === 0
+      !isOverContentCard
     ) {
       const sunHoverResult = checkSunHover(
         currentMousePosition.x,

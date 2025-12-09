@@ -386,9 +386,9 @@ export const checkPlanetHover = (
     return true;
   }
 
-  if (currentHoverInfo.show) {
-    setHoverInfo({ ...currentHoverInfo, show: false });
-  }
+  // Always signal to hide tooltip when no planet is hovered
+  // Even if currentHoverInfo.show is false, we want to ensure consistent state
+  setHoverInfo({ project: null, x: 0, y: 0, show: false });
   return false;
 };
 
