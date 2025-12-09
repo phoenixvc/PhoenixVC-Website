@@ -1339,13 +1339,9 @@ const InteractiveStarfield = forwardRef<
             isMouseOverSunTooltipRef.current = true;
           }}
           onMouseLeave={(): void => {
+            // Just set the ref to false - the animation loop handles clearing the hover
+            // based on whether the mouse is still in the sun's hit area
             isMouseOverSunTooltipRef.current = false;
-            // Start hide timeout when mouse leaves tooltip
-            sunHideTimeoutRef.current = setTimeout((): void => {
-              hoveredSunIdRef.current = null;
-              setHoveredSunId(null);
-              setHoveredSun(null);
-            }, 200);
           }}
         />
       )}
