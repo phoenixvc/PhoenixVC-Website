@@ -23,10 +23,9 @@ export const useAnimationLoop = (
   const lastFrameTimeRef = useRef<number>(Date.now());
   const frameSkipRef = useRef<number>(0);
   
-  // Use the passed mousePositionRef if available, otherwise create a local one
-  // This allows the animation loop to always read the latest mouse position
-  // Note: isOnScreen defaults to false to prevent effects before real mouse interaction
-  const mousePositionRef = props.mousePositionRef || useRef(
+  // Always create a local ref unconditionally to satisfy React Hooks rules
+  // Use the passed mousePositionRef if available, otherwise use the local one
+  const localMousePositionRef = useRef(
     props.mousePosition || {
       x: 0,
       y: 0,
@@ -39,6 +38,9 @@ export const useAnimationLoop = (
       isOnScreen: false, // Start false - only true after real mouse interaction
     },
   );
+  
+  // Use the passed mousePositionRef if available, otherwise use the local one
+  const mousePositionRef = props.mousePositionRef || localMousePositionRef;
   
   const hoverInfoRef = useRef(
     props.hoverInfo || { project: null, x: 0, y: 0, show: false },
@@ -95,7 +97,7 @@ export const useAnimationLoop = (
       // Type assertion to ensure we're treating gameState as GameState
       gameStateRef.current = props.gameState as GameState;
     }
-  }, [props.mousePositionRef, props.mousePosition, props.hoverInfo, props.gameState]);
+  }, [props.mousePositionRef, props.mousePosition, props.hoverInfo, props.gameState, mousePositionRef]);
 
   // Update FPS data callback - uses props.updateFpsData directly which is stable
   const updateFpsData = useCallback(
