@@ -300,20 +300,20 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     focusArea: "mobility-transportation",
   },
 
-  // AI & Machine Learning Focus Area - AutoPR
+  // AI & Machine Learning Focus Area - CodeFlow AI
   {
     id: "autopr",
-    name: "AutoPR",
-    initials: "AP",
+    name: "CodeFlow AI",
+    initials: "CF",
     position: "PR Automation",
     mass: 180,
     color: "#5dade2", // Lighter blue variant - AI & ML focus area
-    image: "/themes/autopr-icon.svg",
-    fullName: "AutoPR Engine",
+    image: "/themes/codeflow-icon.svg",
+    fullName: "CodeFlow AI",
     speed: 0.000021,
     title: "AI-Powered PR Automation Platform (Pre-Alpha)",
     status: "pre-alpha",
-    bio: "AutoPR Engine is a comprehensive AI-powered automation platform that transforms GitHub pull request workflows through intelligent analysis, issue creation, and multi-agent collaboration. Features CodeRabbit, GitHub Copilot integration, and 25+ platform detection.",
+    bio: "CodeFlow AI is a comprehensive AI-powered automation platform that transforms GitHub pull request workflows through intelligent analysis, issue creation, and multi-agent collaboration. Features CodeRabbit, GitHub Copilot integration, and 25+ platform detection.",
     department: "Developer Tools",
     experience: 0,
     expertise: "AI, Automation, GitHub, DevOps",
