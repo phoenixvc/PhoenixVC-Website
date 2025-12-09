@@ -458,40 +458,45 @@ export const animate = (
               y: sunHoverResult.y,
             });
           }
-        } else if (props.hoveredSunId !== null && props.isMouseOverSunTooltipRef?.current) {
-          // Mouse is over the tooltip (not the sun itself)
-          // Check if we've been relying on tooltip alone for too long (stuck state protection)
-          const timeSinceLastHit = lastSunHitTime ? currentFrameTime - lastSunHitTime : Infinity;
-          if (timeSinceLastHit > SUN_HOVER_MAX_TOOLTIP_TIME_MS) {
-            // Force clear hover - tooltip ref is likely stuck
-            props.setHoveredSunId(null);
-            props.setHoveredSun(null);
-            lastSunLeaveTime = null;
-            lastSunHitTime = null;
-            if (props.isMouseOverSunTooltipRef) {
-              props.isMouseOverSunTooltipRef.current = false;
-            }
-          } else {
-            // Within acceptable time - keep hover active for tooltip interaction
-            lastSunLeaveTime = null;
-          }
         } else if (props.hoveredSunId !== null) {
-          // Mouse has left the sun and is not over the tooltip
-          // Start tracking leave time if not already tracking
-          if (lastSunLeaveTime === null) {
-            lastSunLeaveTime = currentFrameTime;
+          // Check if mouse is actually over the tooltip element using geometric bounds
+          let isMouseOverTooltip = false;
+          if (props.sunTooltipElementRef?.current) {
+            const tooltipElement = props.sunTooltipElementRef.current;
+            const rect = tooltipElement.getBoundingClientRect();
+            const mouseX = currentMousePosition.x;
+            const mouseY = currentMousePosition.y;
+            
+            // Check if mouse position is within tooltip bounds
+            isMouseOverTooltip = (
+              mouseX >= rect.left &&
+              mouseX <= rect.right &&
+              mouseY >= rect.top &&
+              mouseY <= rect.bottom
+            );
           }
+          
+          if (isMouseOverTooltip) {
+            // Mouse is actually over the tooltip - keep hover active
+            lastSunLeaveTime = null;
+          } else {
+            // Mouse has left both the sun and the tooltip
+            // Start tracking leave time if not already tracking
+            if (lastSunLeaveTime === null) {
+              lastSunLeaveTime = currentFrameTime;
+            }
 
-          // Only clear hover after the delay has passed
-          const timeSinceLeave = currentFrameTime - lastSunLeaveTime;
-          if (timeSinceLeave >= SUN_HOVER_HIDE_DELAY_MS) {
-            props.setHoveredSunId(null);
-            props.setHoveredSun(null);
-            lastSunLeaveTime = null; // Reset for next hover
-            lastSunHitTime = null; // Reset hit time
-            // Reset the tooltip ref since the tooltip will be unmounted
-            if (props.isMouseOverSunTooltipRef) {
-              props.isMouseOverSunTooltipRef.current = false;
+            // Only clear hover after the delay has passed
+            const timeSinceLeave = currentFrameTime - lastSunLeaveTime;
+            if (timeSinceLeave >= SUN_HOVER_HIDE_DELAY_MS) {
+              props.setHoveredSunId(null);
+              props.setHoveredSun(null);
+              lastSunLeaveTime = null; // Reset for next hover
+              lastSunHitTime = null; // Reset hit time
+              // Reset the tooltip ref since the tooltip will be unmounted
+              if (props.isMouseOverSunTooltipRef) {
+                props.isMouseOverSunTooltipRef.current = false;
+              }
             }
           }
         } else {

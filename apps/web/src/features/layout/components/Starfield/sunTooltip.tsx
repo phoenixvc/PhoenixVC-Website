@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, useEffect, useState, useRef, forwardRef } from "react";
 import styles from "./sunTooltip.module.css";
 
 export interface SunInfo {
@@ -18,13 +18,13 @@ interface SunTooltipProps {
   onMouseLeave?: () => void;
 }
 
-const SunTooltip: FC<SunTooltipProps> = ({
+const SunTooltip = forwardRef<HTMLDivElement, SunTooltipProps>(({
   sun,
   isDarkMode = true,
   onClick,
   onMouseEnter,
   onMouseLeave,
-}) => {
+}, ref) => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -75,6 +75,7 @@ const SunTooltip: FC<SunTooltipProps> = ({
 
   return (
     <div
+      ref={ref}
       className={`
         ${styles.sunTooltip}
         ${isVisible ? styles.visible : ""}
@@ -110,6 +111,8 @@ const SunTooltip: FC<SunTooltipProps> = ({
       </div>
     </div>
   );
-};
+});
+
+SunTooltip.displayName = "SunTooltip";
 
 export default SunTooltip;
