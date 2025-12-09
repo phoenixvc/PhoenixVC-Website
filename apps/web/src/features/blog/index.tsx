@@ -1,6 +1,7 @@
 // /features/blog/index.tsx
 import { useTheme } from "@/theme";
 import React, { useEffect, useState, FormEvent, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Linkedin,
   Search,
@@ -8,6 +9,7 @@ import {
   ExternalLink,
   Calendar,
   User,
+  X,
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import styles from "./Blog.module.css";
@@ -175,6 +177,7 @@ const categories = [
 export const Blog = (): React.ReactElement => {
   const { themeMode } = useTheme();
   const isDarkMode = themeMode === "dark";
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [subscribeStatus, setSubscribeStatus] = useState<
     "idle" | "success" | "error"
@@ -254,6 +257,15 @@ export const Blog = (): React.ReactElement => {
       <section
         className={`${styles.blogSection} ${isDarkMode ? styles.dark : styles.light}`}
       >
+        {/* Close button - fixed top right like a modal */}
+        <button
+          onClick={() => void navigate("/")}
+          className={styles.closeButton}
+          aria-label="Close and return to home"
+        >
+          <X size={24} />
+        </button>
+
         <div className={styles.container}>
           <div className={styles.cosmicBackground}>
             <h1 className={styles.sectionHeading}>Our Blog</h1>

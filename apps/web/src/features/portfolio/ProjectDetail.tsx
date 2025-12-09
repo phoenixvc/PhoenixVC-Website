@@ -23,6 +23,7 @@ import {
   ChevronRight,
   Home,
   Bot,
+  X,
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 import {
@@ -134,6 +135,15 @@ export const ProjectDetail = (): React.ReactElement => {
       <section
         className={`${styles.projectDetail} ${isDarkMode ? styles.dark : styles.light}`}
       >
+        {/* Close button - fixed top right like a modal */}
+        <button
+          onClick={() => void navigate("/")}
+          className={styles.closeButton}
+          aria-label="Close and return to home"
+        >
+          <X size={24} />
+        </button>
+
         <div className={styles.container}>
           <motion.div
             className={styles.content}
