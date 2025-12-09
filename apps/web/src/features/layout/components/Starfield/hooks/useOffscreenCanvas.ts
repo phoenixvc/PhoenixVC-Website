@@ -142,6 +142,9 @@ export const useOffscreenCanvas = ({
     }
 
     perfLogger.current.debug(`Initializing ${layers.length} offscreen layers at ${width}x${height}`);
+    
+    // Capture the current value of layersRef for use in the cleanup function
+    const currentLayersRef = layersRef.current;
 
     layers.forEach((name) => {
       try {
@@ -160,7 +163,7 @@ export const useOffscreenCanvas = ({
         }
 
         if (ctx) {
-          layersRef.current.set(name, {
+          currentLayersRef.set(name, {
             canvas,
             ctx,
             needsRedraw: true,
@@ -174,9 +177,9 @@ export const useOffscreenCanvas = ({
       }
     });
 
-    return () => {
-      // Cleanup layers
-      layersRef.current.clear();
+    return (): void => {
+      // Cleanup layers using the captured ref value
+      currentLayersRef.clear();
     };
   }, [isFeatureEnabled, width, height, layers]);
 

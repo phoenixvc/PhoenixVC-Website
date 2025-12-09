@@ -22,7 +22,10 @@ export const useAnimationLoop = (
   const lastTimeRef = useRef<number | null>(null); // Explicitly typed as number | null
   const lastFrameTimeRef = useRef<number>(Date.now());
   const frameSkipRef = useRef<number>(0);
-  const mousePositionRef = useRef(
+  
+  // Always create a local ref unconditionally to satisfy React Hooks rules
+  // Use the passed mousePositionRef if available, otherwise use the local one
+  const localMousePositionRef = useRef(
     props.mousePosition || {
       x: 0,
       y: 0,
@@ -32,9 +35,13 @@ export const useAnimationLoop = (
       speedY: 0,
       isClicked: false,
       clickTime: 0,
-      isOnScreen: true,
+      isOnScreen: false, // Start false - only true after real mouse interaction
     },
   );
+  
+  // Use the passed mousePositionRef if available, otherwise use the local one
+  const mousePositionRef = props.mousePositionRef || localMousePositionRef;
+  
   const hoverInfoRef = useRef(
     props.hoverInfo || { project: null, x: 0, y: 0, show: false },
   );
@@ -76,9 +83,11 @@ export const useAnimationLoop = (
   /* ------------------------------------------ */
   const DEBUG_LOG = latestPropsRef.current.debugSettings?.verboseLogs ?? false;
 
-  // Update refs when props change
+  // Update refs when props change (only if we're using local refs)
   useEffect(() => {
-    if (props.mousePosition) {
+    // Only update mousePositionRef if we're using a local ref (not a passed one)
+    // When using a passed ref, the parent component updates it directly
+    if (!props.mousePositionRef && props.mousePosition) {
       mousePositionRef.current = props.mousePosition;
     }
     if (props.hoverInfo) {
@@ -88,7 +97,7 @@ export const useAnimationLoop = (
       // Type assertion to ensure we're treating gameState as GameState
       gameStateRef.current = props.gameState as GameState;
     }
-  }, [props.mousePosition, props.hoverInfo, props.gameState]);
+  }, [props.mousePositionRef, props.mousePosition, props.hoverInfo, props.gameState, mousePositionRef]);
 
   // Update FPS data callback - uses props.updateFpsData directly which is stable
   const updateFpsData = useCallback(

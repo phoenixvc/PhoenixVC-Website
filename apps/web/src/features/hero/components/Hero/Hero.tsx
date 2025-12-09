@@ -36,7 +36,7 @@ const Hero: FC<ExtendedHeroProps> = memo(
     colorScheme = "purple",
     accentColor,
     enableMouseTracking = false,
-    sidebarWidth = 0,
+    _sidebarWidth = 0,
   }): React.ReactElement => {
     const { themeMode } = useTheme();
     const isDarkMode = themeMode === "dark";

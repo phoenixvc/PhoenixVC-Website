@@ -31,6 +31,7 @@ import { useMouseInteraction } from "./hooks/useMouseInteraction";
 import { useParticleEffects } from "./hooks/useParticleEffects";
 import { useDebugControls } from "./hooks/useDebugControls";
 import DebugControlsOverlay from "./DebugControlsOverlay";
+import PerformanceDebugPanel from "./PerformanceDebugPanel";
 import { useStarInitialization } from "./hooks/useStarInitialization";
 import {
   applyClickForce,
@@ -137,6 +138,9 @@ const InteractiveStarfield = forwardRef<
     const [currentFps, setCurrentFps] = useState<number>(0);
     const [timestamp, setTimestamp] = useState<number>(0);
     const fpsValuesRef = useRef<number[]>([]);
+
+    // Performance panel state
+    const [showPerformancePanel, setShowPerformancePanel] = useState<boolean>(false);
 
     const updateFpsData = useCallback(
       (fps: number, currentTimestamp: number): void => {
@@ -323,15 +327,15 @@ const InteractiveStarfield = forwardRef<
     });
 
     const mousePositionRef = useRef<MousePosition>({
-      x: window.innerWidth / 2,
-      y: window.innerHeight / 2,
-      lastX: window.innerWidth / 2,
-      lastY: window.innerHeight / 2,
+      x: 0,
+      y: 0,
+      lastX: 0,
+      lastY: 0,
       speedX: 0,
       speedY: 0,
       isClicked: false,
       clickTime: 0,
-      isOnScreen: true, // Force to true for testing
+      isOnScreen: false, // Start false - only true after real mouse interaction
     });
 
     // Get mouse interaction hooks
@@ -676,7 +680,8 @@ const InteractiveStarfield = forwardRef<
         dimensions: dimensionsRef.current,
         stars: starsRef.current,
         blackHoles: blackHolesRef.current,
-        mousePosition: mousePositionRef.current, // Read from ref, not state
+        mousePosition: mousePositionRef.current, // Initial snapshot for initialization
+        mousePositionRef, // Pass ref itself for live updates in animation loop
         enableFlowEffect: performanceTier !== "low" && enableFlowEffect, // Disable heavy flow in low tier
         enableBlackHole,
         enableMouseInteraction,
@@ -1275,6 +1280,18 @@ const InteractiveStarfield = forwardRef<
           fps={currentFps}
           timestamp={timestamp}
           setMousePosition={setMousePosition}
+          isDarkMode={isDarkMode}
+          onTogglePerformancePanel={() => setShowPerformancePanel(prev => !prev)}
+          showPerformancePanel={showPerformancePanel}
+        />
+      )}
+
+      {/* Performance Debug Panel */}
+      {showPerformancePanel && (
+        <PerformanceDebugPanel
+          isVisible={true}
+          onClose={() => setShowPerformancePanel(false)}
+          sidebarWidth={sidebarWidth}
           isDarkMode={isDarkMode}
         />
       )}
