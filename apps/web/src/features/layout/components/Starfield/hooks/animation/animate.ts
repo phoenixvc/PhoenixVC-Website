@@ -435,8 +435,13 @@ export const animate = (
           // Mouse is over a sun - clear any pending hide timeout and show hover
           lastSunLeaveTime = null;
 
-          // Only update if different sun or not currently showing, and not over the tooltip
-          if (props.hoveredSunId !== sunHoverResult.sun.id && !props.isMouseOverSunTooltipRef?.current) {
+          // Always update when hovering a different sun (even if over old tooltip)
+          // This ensures the hover effect switches properly between suns
+          if (props.hoveredSunId !== sunHoverResult.sun.id) {
+            // Reset tooltip ref when switching suns to prevent stale state
+            if (props.isMouseOverSunTooltipRef) {
+              props.isMouseOverSunTooltipRef.current = false;
+            }
             props.setHoveredSunId(sunHoverResult.sun.id);
             props.setHoveredSun({
               id: sunHoverResult.sun.id,
