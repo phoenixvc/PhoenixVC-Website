@@ -454,6 +454,10 @@ export const animate = (
               y: currentMousePosition.y,
             });
           }
+        } else if (props.hoveredSunId !== null && props.isMouseOverSunTooltipRef?.current) {
+          // Mouse is over the tooltip (not over the sun itself)
+          // Clear any pending leave time to prevent hover from clearing while interacting
+          lastSunLeaveTime = null;
         } else if (props.hoveredSunId !== null) {
           // Mouse has left the sun hit area
           // Check if mouse is over the tooltip using geometric bounds check
