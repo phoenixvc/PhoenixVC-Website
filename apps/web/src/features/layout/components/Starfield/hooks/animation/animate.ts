@@ -350,11 +350,11 @@ export const animate = (
         if (!newInfo.show && currentHoverInfo.show) {
           // Mouse has left the planet - start tracking leave time
           if (lastPlanetLeaveTime === null) {
-            lastPlanetLeaveTime = Date.now();
+            lastPlanetLeaveTime = getFrameTime();
           }
           
           // Only hide after delay has passed
-          const timeSinceLeave = Date.now() - lastPlanetLeaveTime;
+          const timeSinceLeave = getFrameTime() - lastPlanetLeaveTime;
           if (timeSinceLeave >= PLANET_TOOLTIP_HIDE_DELAY_MS) {
             props.setHoverInfo(newInfo);
             lastPlanetLeaveTime = null; // Reset for next hover
@@ -435,11 +435,11 @@ export const animate = (
         // Mouse has left the sun and is not over the tooltip
         // Start tracking leave time if not already tracking
         if (lastSunLeaveTime === null) {
-          lastSunLeaveTime = Date.now();
+          lastSunLeaveTime = getFrameTime();
         }
         
         // Only clear hover after the delay has passed
-        const timeSinceLeave = Date.now() - lastSunLeaveTime;
+        const timeSinceLeave = getFrameTime() - lastSunLeaveTime;
         if (timeSinceLeave >= SUN_HOVER_HIDE_DELAY_MS) {
           props.setHoveredSunId(null);
           props.setHoveredSun(null);
