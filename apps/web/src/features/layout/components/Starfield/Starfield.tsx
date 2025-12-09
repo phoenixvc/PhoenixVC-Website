@@ -227,8 +227,6 @@ const InteractiveStarfield = forwardRef<
     // Sun hover state for focus area suns
     const [hoveredSun, setHoveredSun] = useState<SunInfo | null>(null);
     const [hoveredSunId, setHoveredSunId] = useState<string | null>(null);
-    // Ref to track current value and avoid unnecessary state updates
-    const hoveredSunIdRef = useRef<string | null>(null);
     // Ref to the sun tooltip DOM element for accurate hover detection
     const sunTooltipElementRef = useRef<HTMLDivElement | null>(null);
     // Track if mouse is over the sun tooltip to prevent hiding while interacting
