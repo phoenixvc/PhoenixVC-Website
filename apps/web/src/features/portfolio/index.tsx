@@ -68,10 +68,10 @@ const projects: Project[] = [
   },
   {
     id: "autopr",
-    name: "AutoPR",
+    name: "CodeFlow AI",
     description: "AI-powered GitHub PR automation and issue management",
     longDescription:
-      "AutoPR Engine is a comprehensive AI-powered automation platform that transforms GitHub pull request workflows through intelligent analysis, issue creation, and multi-agent collaboration. Features CodeRabbit, GitHub Copilot integration, platform detection for 25+ development platforms, and supports Linear, Slack, and other integrations.",
+      "CodeFlow AI is a comprehensive AI-powered automation platform that transforms GitHub pull request workflows through intelligent analysis, issue creation, and multi-agent collaboration. Features CodeRabbit, GitHub Copilot integration, platform detection for 25+ development platforms, and supports Linear, Slack, and other integrations.",
     icon: <Bot size={32} />,
     website: "https://autopr.io",
     github: "https://github.com/JustAGhosT/autopr-engine",
