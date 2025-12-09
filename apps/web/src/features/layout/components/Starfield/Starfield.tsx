@@ -229,6 +229,8 @@ const InteractiveStarfield = forwardRef<
     const [hoveredSunId, setHoveredSunId] = useState<string | null>(null);
     // Ref to track current value and avoid unnecessary state updates
     const hoveredSunIdRef = useRef<string | null>(null);
+    // Track if mouse is over the sun tooltip to prevent hiding while interacting
+    const isMouseOverSunTooltipRef = useRef(false);
     // Ref for debouncing sun tooltip hide
     const sunHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
       null,
@@ -727,6 +729,9 @@ const InteractiveStarfield = forwardRef<
         camera: internalCamera,
         setCamera: setInternalCamera,
         isMouseOverProjectTooltipRef,
+        isMouseOverSunTooltipRef,
+        setHoveredSunId,
+        setHoveredSun,
         cameraRef: cameraStateRef,
         sidebarWidth,
       }),
@@ -1331,8 +1336,10 @@ const InteractiveStarfield = forwardRef<
               clearTimeout(sunHideTimeoutRef.current);
               sunHideTimeoutRef.current = null;
             }
+            isMouseOverSunTooltipRef.current = true;
           }}
           onMouseLeave={(): void => {
+            isMouseOverSunTooltipRef.current = false;
             // Start hide timeout when mouse leaves tooltip
             sunHideTimeoutRef.current = setTimeout((): void => {
               hoveredSunIdRef.current = null;

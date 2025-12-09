@@ -372,6 +372,44 @@ export const animate = (
       }
     }
 
+    // Check sun hover (similar to planet hover) - throttled to every N frames
+    if (
+      props.enableMouseInteraction &&
+      props.setHoveredSunId &&
+      props.setHoveredSun &&
+      !isOverContentCard &&
+      currentFrameCount % ANIMATION_TIMING_CONFIG.elementFromPointCheckInterval === 0
+    ) {
+      // Don't update if mouse is over the sun tooltip
+      if (!props.isMouseOverSunTooltipRef?.current) {
+        const sunHoverResult = checkSunHover(
+          currentMousePosition.x,
+          currentMousePosition.y,
+          canvas.width,
+          canvas.height,
+        );
+
+        if (sunHoverResult) {
+          // Only update if different sun or not currently showing
+          if (props.hoveredSunId !== sunHoverResult.sun.id) {
+            props.setHoveredSunId(sunHoverResult.sun.id);
+            props.setHoveredSun({
+              id: sunHoverResult.sun.id,
+              name: sunHoverResult.sun.name,
+              description: sunHoverResult.sun.description,
+              color: sunHoverResult.sun.color,
+              x: sunHoverResult.x,
+              y: sunHoverResult.y,
+            });
+          }
+        } else if (props.hoveredSunId !== null) {
+          // Clear hover if no sun is hovered and we had one before
+          props.setHoveredSunId(null);
+          props.setHoveredSun(null);
+        }
+      }
+    }
+
     // Draw connections between stars (network effect) - only if not skipping heavy operations
     if (!shouldSkipHeavyOperations) {
       startTiming("drawConnections");
