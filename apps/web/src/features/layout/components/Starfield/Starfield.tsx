@@ -31,6 +31,7 @@ import { useMouseInteraction } from "./hooks/useMouseInteraction";
 import { useParticleEffects } from "./hooks/useParticleEffects";
 import { useDebugControls } from "./hooks/useDebugControls";
 import DebugControlsOverlay from "./DebugControlsOverlay";
+import PerformanceDebugPanel from "./PerformanceDebugPanel";
 import { useStarInitialization } from "./hooks/useStarInitialization";
 import {
   applyClickForce,
@@ -137,6 +138,9 @@ const InteractiveStarfield = forwardRef<
     const [currentFps, setCurrentFps] = useState<number>(0);
     const [timestamp, setTimestamp] = useState<number>(0);
     const fpsValuesRef = useRef<number[]>([]);
+
+    // Performance panel state
+    const [showPerformancePanel, setShowPerformancePanel] = useState<boolean>(false);
 
     const updateFpsData = useCallback(
       (fps: number, currentTimestamp: number): void => {
@@ -1275,6 +1279,18 @@ const InteractiveStarfield = forwardRef<
           fps={currentFps}
           timestamp={timestamp}
           setMousePosition={setMousePosition}
+          isDarkMode={isDarkMode}
+          onTogglePerformancePanel={() => setShowPerformancePanel(prev => !prev)}
+          showPerformancePanel={showPerformancePanel}
+        />
+      )}
+
+      {/* Performance Debug Panel */}
+      {showPerformancePanel && (
+        <PerformanceDebugPanel
+          isVisible={true}
+          onClose={() => setShowPerformancePanel(false)}
+          sidebarWidth={sidebarWidth}
           isDarkMode={isDarkMode}
         />
       )}
