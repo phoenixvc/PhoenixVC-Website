@@ -99,7 +99,8 @@ export const animate = (
     }
 
     // Update last frame time for watchdog (use cached frame time)
-    refs.lastFrameTimeRef.current = getFrameTime();
+    const currentFrameTime = getFrameTime();
+    refs.lastFrameTimeRef.current = currentFrameTime;
 
     // Add a safety check for starsRef at the beginning of each frame
     if (!props.starsRef) {
@@ -349,7 +350,6 @@ export const animate = (
         // Handle delayed hiding for planet tooltips
         if (!newInfo.show && currentHoverInfo.show) {
           // Mouse has left the planet - start tracking leave time
-          const currentFrameTime = getFrameTime();
           if (lastPlanetLeaveTime === null) {
             lastPlanetLeaveTime = currentFrameTime;
           }
@@ -435,7 +435,6 @@ export const animate = (
       } else if (props.hoveredSunId !== null && !props.isMouseOverSunTooltipRef?.current) {
         // Mouse has left the sun and is not over the tooltip
         // Start tracking leave time if not already tracking
-        const currentFrameTime = getFrameTime();
         if (lastSunLeaveTime === null) {
           lastSunLeaveTime = currentFrameTime;
         }
