@@ -1288,7 +1288,7 @@ const InteractiveStarfield = forwardRef<
       {/* Performance Debug Panel */}
       {showPerformancePanel && (
         <PerformanceDebugPanel
-          isVisible={showPerformancePanel}
+          isVisible={true}
           onClose={() => setShowPerformancePanel(false)}
           sidebarWidth={sidebarWidth}
           isDarkMode={isDarkMode}
