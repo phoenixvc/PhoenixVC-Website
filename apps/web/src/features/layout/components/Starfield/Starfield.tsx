@@ -676,7 +676,8 @@ const InteractiveStarfield = forwardRef<
         dimensions: dimensionsRef.current,
         stars: starsRef.current,
         blackHoles: blackHolesRef.current,
-        mousePosition: mousePositionRef.current, // Read from ref, not state
+        mousePosition: mousePositionRef.current, // Initial snapshot for initialization
+        mousePositionRef, // Pass ref itself for live updates in animation loop
         enableFlowEffect: performanceTier !== "low" && enableFlowEffect, // Disable heavy flow in low tier
         enableBlackHole,
         enableMouseInteraction,

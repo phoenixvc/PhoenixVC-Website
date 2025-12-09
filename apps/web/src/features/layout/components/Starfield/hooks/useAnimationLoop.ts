@@ -22,7 +22,10 @@ export const useAnimationLoop = (
   const lastTimeRef = useRef<number | null>(null); // Explicitly typed as number | null
   const lastFrameTimeRef = useRef<number>(Date.now());
   const frameSkipRef = useRef<number>(0);
-  const mousePositionRef = useRef(
+  
+  // Use the passed mousePositionRef if available, otherwise create a local one
+  // This allows the animation loop to always read the latest mouse position
+  const mousePositionRef = props.mousePositionRef || useRef(
     props.mousePosition || {
       x: 0,
       y: 0,
@@ -32,9 +35,10 @@ export const useAnimationLoop = (
       speedY: 0,
       isClicked: false,
       clickTime: 0,
-      isOnScreen: true,
+      isOnScreen: false,
     },
   );
+  
   const hoverInfoRef = useRef(
     props.hoverInfo || { project: null, x: 0, y: 0, show: false },
   );
@@ -76,9 +80,10 @@ export const useAnimationLoop = (
   /* ------------------------------------------ */
   const DEBUG_LOG = latestPropsRef.current.debugSettings?.verboseLogs ?? false;
 
-  // Update refs when props change
+  // Update refs when props change (only if we're using local refs)
   useEffect(() => {
-    if (props.mousePosition) {
+    // Only update mousePositionRef if we're using a local ref (not a passed one)
+    if (!props.mousePositionRef && props.mousePosition) {
       mousePositionRef.current = props.mousePosition;
     }
     if (props.hoverInfo) {
@@ -88,7 +93,7 @@ export const useAnimationLoop = (
       // Type assertion to ensure we're treating gameState as GameState
       gameStateRef.current = props.gameState as GameState;
     }
-  }, [props.mousePosition, props.hoverInfo, props.gameState]);
+  }, [props.mousePositionRef, props.mousePosition, props.hoverInfo, props.gameState]);
 
   // Update FPS data callback - uses props.updateFpsData directly which is stable
   const updateFpsData = useCallback(
