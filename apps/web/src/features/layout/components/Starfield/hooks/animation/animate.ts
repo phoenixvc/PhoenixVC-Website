@@ -344,6 +344,9 @@ export const animate = (
 
         // Don't hide the tooltip if mouse is currently over it (allows clicking links)
         if (!newInfo.show && props.isMouseOverProjectTooltipRef?.current) {
+          // Clear any pending leave time when mouse is over the tooltip
+          // This prevents stale timers from affecting behavior
+          lastPlanetLeaveTime = null;
           return;
         }
 
@@ -419,7 +422,7 @@ export const animate = (
       if (sunHoverResult) {
         // Mouse is over a sun - clear any pending hide timeout and show hover
         lastSunLeaveTime = null;
-        
+
         // Only update if different sun or not currently showing, and not over the tooltip
         if (props.hoveredSunId !== sunHoverResult.sun.id && !props.isMouseOverSunTooltipRef?.current) {
           props.setHoveredSunId(sunHoverResult.sun.id);
@@ -432,13 +435,17 @@ export const animate = (
             y: sunHoverResult.y,
           });
         }
-      } else if (props.hoveredSunId !== null && !props.isMouseOverSunTooltipRef?.current) {
+      } else if (props.isMouseOverSunTooltipRef?.current) {
+        // Mouse is over the tooltip - clear any pending leave time
+        // This prevents the hover from clearing while interacting with the tooltip
+        lastSunLeaveTime = null;
+      } else if (props.hoveredSunId !== null) {
         // Mouse has left the sun and is not over the tooltip
         // Start tracking leave time if not already tracking
         if (lastSunLeaveTime === null) {
           lastSunLeaveTime = currentFrameTime;
         }
-        
+
         // Only clear hover after the delay has passed
         const timeSinceLeave = currentFrameTime - lastSunLeaveTime;
         if (timeSinceLeave >= SUN_HOVER_HIDE_DELAY_MS) {
