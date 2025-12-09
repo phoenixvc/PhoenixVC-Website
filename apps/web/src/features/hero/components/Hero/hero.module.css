@@ -184,8 +184,22 @@
   z-index: 10;
 }
 
-.returnToStarsButton:hover {
+/* Light mode styling for return button */
+.lightInner .returnToStarsButton {
+  background-color: rgba(255, 255, 255, 0.4);
+  color: #1f2937;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode hover styling */
+.darkInner .returnToStarsButton:hover {
   background-color: rgba(0, 0, 0, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Light mode hover styling */
+.lightInner .returnToStarsButton:hover {
+  background-color: rgba(255, 255, 255, 0.6);
   transform: translateY(-2px);
 }
 
@@ -300,8 +314,21 @@
   z-index: 10;
 }
 
-.minimizeButton:hover {
+/* Light mode styling for minimize button */
+.lightInner .minimizeButton {
+  background-color: rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode hover styling */
+.darkInner .minimizeButton:hover {
   background-color: rgba(0, 0, 0, 0.4);
+  transform: scale(1.05);
+}
+
+/* Light mode hover styling */
+.lightInner .minimizeButton:hover {
+  background-color: rgba(255, 255, 255, 0.5);
   transform: scale(1.05);
 }
 

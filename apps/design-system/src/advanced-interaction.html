@@ -13,8 +13,21 @@
       position: fixed;
       top: 0;
       left: 0;
-      pointer-events: none;
-      z-index: 1000;
+      pointer-events: auto;
+      z-index: 1;
+    }
+
+    /* Ensure interactive content is above canvas and receives events */
+    .showcase-grid {
+      position: relative;
+      z-index: 10;
+    }
+
+    .btn-interactive,
+    .grid-item,
+    .showcase-grid button {
+      position: relative;
+      pointer-events: auto;
     }
 
     /* Grid System */
@@ -133,7 +146,9 @@
           World = Matter.World,
           Bodies = Matter.Bodies,
           Body = Matter.Body,
-          Composite = Matter.Composite;
+          Composite = Matter.Composite,
+          Mouse = Matter.Mouse,
+          MouseConstraint = Matter.MouseConstraint;
 
     const engine = Engine.create();
     const canvas = document.getElementById('physics-canvas');
@@ -157,6 +172,59 @@
     ];
 
     World.add(engine.world, walls);
+    
+    // Setup mouse interaction for dragging physics objects
+    // Use render.canvas to properly track mouse on the physics canvas
+    const mouse = Mouse.create(render.canvas);
+    const mouseConstraint = MouseConstraint.create(engine, {
+      mouse: mouse,
+      constraint: {
+        stiffness: 0.2,
+        render: {
+          visible: false
+        }
+      }
+    });
+    
+    World.add(engine.world, mouseConstraint);
+    render.mouse = mouse;
+    
+    // Prevent the mouse constraint from interfering with page scrolling
+    if (mouse.mousewheel) {
+      mouse.element.removeEventListener('mousewheel', mouse.mousewheel);
+      mouse.element.removeEventListener('DOMMouseScroll', mouse.mousewheel);
+    }
+    
+    // Add some interactive physics objects for testing
+    // Position objects relative to window size for responsive design
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const interactiveObjects = [
+      Bodies.circle(w * 0.15, h * 0.2, 30, { 
+        restitution: 0.8,
+        render: { fillStyle: '#3b82f6' }
+      }),
+      Bodies.circle(w * 0.3, h * 0.15, 40, { 
+        restitution: 0.8,
+        render: { fillStyle: '#8b5cf6' }
+      }),
+      Bodies.rectangle(w * 0.5, h * 0.2, 60, 60, { 
+        restitution: 0.6,
+        render: { fillStyle: '#ec4899' }
+      }),
+      Bodies.circle(w * 0.7, h * 0.25, 35, { 
+        restitution: 0.8,
+        render: { fillStyle: '#10b981' }
+      }),
+      Bodies.rectangle(w * 0.85, h * 0.18, 50, 50, { 
+        restitution: 0.6,
+        angle: Math.PI / 4,
+        render: { fillStyle: '#f59e0b' }
+      })
+    ];
+    
+    World.add(engine.world, interactiveObjects);
+    
     Engine.run(engine);
     Render.run(render);
 
