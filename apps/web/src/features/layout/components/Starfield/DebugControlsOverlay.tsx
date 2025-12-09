@@ -25,6 +25,9 @@ interface DebugControlsProps {
   onEmployeeOrbitSpeedChange?: (
     _e: React.ChangeEvent<HTMLInputElement>,
   ) => void;
+  // Add performance panel control props
+  onTogglePerformancePanel?: () => void;
+  showPerformancePanel?: boolean;
 }
 
 const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
@@ -39,6 +42,8 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
   setMousePosition,
   isDarkMode = true,
   onEmployeeOrbitSpeedChange,
+  onTogglePerformancePanel,
+  showPerformancePanel = false,
 }) => {
   // FPS tracking
   const fpsValues = useRef<number[]>([]);
@@ -460,6 +465,17 @@ const DebugControlsOverlay: React.FC<DebugControlsProps> = ({
           >
             Test Repulsion
           </button>
+          {onTogglePerformancePanel && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onTogglePerformancePanel();
+              }}
+              className={styles.actionButton}
+            >
+              {showPerformancePanel ? "Hide" : "Show"} Performance
+            </button>
+          )}
         </div>
       </div>
     </div>
