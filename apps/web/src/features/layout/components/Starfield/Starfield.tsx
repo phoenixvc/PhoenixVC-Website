@@ -227,8 +227,8 @@ const InteractiveStarfield = forwardRef<
     // Sun hover state for focus area suns
     const [hoveredSun, setHoveredSun] = useState<SunInfo | null>(null);
     const [hoveredSunId, setHoveredSunId] = useState<string | null>(null);
-    // Ref to track current value and avoid unnecessary state updates
-    const hoveredSunIdRef = useRef<string | null>(null);
+    // Ref to the sun tooltip DOM element for accurate hover detection
+    const sunTooltipElementRef = useRef<HTMLDivElement | null>(null);
     // Track if mouse is over the sun tooltip to prevent hiding while interacting
     const isMouseOverSunTooltipRef = useRef(false);
     // Ref for debouncing sun tooltip hide
@@ -734,6 +734,7 @@ const InteractiveStarfield = forwardRef<
         setHoveredSun,
         cameraRef: cameraStateRef,
         sidebarWidth,
+        sunTooltipElementRef,
       }),
       // eslint-disable-next-line react-hooks/exhaustive-deps
       [
@@ -1327,6 +1328,7 @@ const InteractiveStarfield = forwardRef<
       {/* Sun tooltip when hovering over a focus area sun - only show if no project tooltip is visible */}
       {hoveredSun && !pinnedProject && !hoverInfo.show && (
         <SunTooltip
+          ref={sunTooltipElementRef}
           sun={hoveredSun}
           isDarkMode={isDarkMode}
           onClick={(sunId): void => zoomToSun(sunId)}
