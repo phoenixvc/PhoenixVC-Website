@@ -35,8 +35,8 @@ import { logger } from "@/utils/logger";
 const defaultState: ThemeState = {
   name: "Default Theme",
   themeName: "classic",
-  mode: "light",
-  useSystem: true,
+  mode: "dark",
+  useSystem: false,
   systemMode: "light",
   initialized: false,
   timestamp: Date.now(),
