@@ -429,27 +429,12 @@ const InteractiveStarfield = forwardRef<
           }
           return false;
         },
-        checkHover: (x: number, y: number): string | null => {
-           if (!canvasRef.current) return null;
-           const rect = canvasRef.current.getBoundingClientRect();
-           // Pass the current internal camera to checkSunHover to match animation loop logic
-           const result = checkSunHover(x, y, rect.width, rect.height, internalCamera);
-           return result ? result.sun.id : null;
-        },
-        getPinnedCount: (): number => pinnedProjects.length,
-        getHoveredSunId: (): string | null => hoveredSunId,
-        getCamera: () => internalCamera,
-        pinProject: (id: string) => {
-            // Helper for testing
-             const project = { id, title: "Test Project", description: "Test" } as PortfolioProject;
-             handlePinProject(project);
-        }
       };
 
       return (): void => {
         delete window.starfieldAPI;
       };
-    }, [starsRef, pinnedProjects, hoveredSunId]);
+    }, [starsRef]);
 
     // Initialize elements on mount - intentionally runs once
     useEffect(() => {

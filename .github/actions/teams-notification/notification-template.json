@@ -1,0 +1,49 @@
+{
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "type": "AdaptiveCard",
+  "version": "1.2",
+  "body": [
+    {
+      "type": "TextBlock",
+      "text": "Phoenix VC {{environment}} Deployment Notification",
+      "weight": "Bolder",
+      "size": "Large"
+    },
+    {
+      "type": "TextBlock",
+      "text": "Deployment to {{environment}} Completed",
+      "wrap": true
+    },
+    {
+      "type": "FactSet",
+      "facts": [
+        { "title": "Environment", "value": "{{environment}}" },
+        { "title": "Location", "value": "{{location_code}}" },
+        { "title": "Resource Group", "value": "{{resource_group}}" },
+        { "title": "Site URL", "value": "{{deployment_url}}" }
+      ]
+    },
+    {
+      "type": "TextBlock",
+      "text": "The deployment to {{environment}} has completed successfully. Please review the details above and take any necessary actions.",
+      "wrap": true
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.OpenUrl",
+      "title": "View Site",
+      "url": "{{deployment_url}}"
+    },
+    {
+      "type": "Action.OpenUrl",
+      "title": "Approve Production Deployment",
+      "url": "{{approval_url}}"
+    },
+    {
+      "type": "Action.OpenUrl",
+      "title": "Rollback Deployment",
+      "url": "{{rollback_url}}"
+    }
+  ]
+}

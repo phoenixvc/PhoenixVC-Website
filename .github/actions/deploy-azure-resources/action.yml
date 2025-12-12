@@ -29,6 +29,13 @@ outputs:
   staticSiteUrl:
     description: "URL of the deployed Static Web App"
     value: ${{ steps.deploy.outputs.staticSiteUrl }}
+  teamsLogicAppUrl:
+    description: "URL of the deployed Teams Logic App"
+    value: ${{ steps.retrieve_logic_url.outputs.teamsLogicAppUrl }}
+  githubLogicAppUrl:
+    description: "URL of the deployed GitHub Logic App"
+    value: ${{ steps.retrieve_github_logic_url.outputs.githubLogicAppUrl }}
+
 runs:
   using: "composite"
   steps:
@@ -265,6 +272,80 @@ runs:
         AZURE_SUBSCRIPTION_ID: ${{ inputs.azure_subscription_id }}
         GITHUB_TOKEN: ${{ inputs.token }}
 
+    - name: Debug Before Logic App URL Retrieval
+      shell: bash
+      run: |
+        echo "==========================="
+        echo "🔍 DEBUG: Before Logic App URL Retrieval"
+        echo "==========================="
+        echo "Skip Logic Apps: ${{ inputs.skip_logic_apps }}"
+        echo "Teams Logic App Name: ${{ inputs.environment }}-${{ inputs.location_code }}-la-phoenixvc"
+        echo "GitHub Logic App Name: ${{ inputs.environment }}-${{ inputs.location_code }}-la-github"
+        echo "==========================="
+
+    - name: Retrieve Teams Logic App Trigger URL
+      if: ${{ inputs.skip_logic_apps != 'true' }}
+      id: retrieve_logic_url
+      shell: bash
+      run: |
+        # Define Variables for Teams Logic App
+        subscriptionId="${{ inputs.azure_subscription_id }}"
+        resourceGroupName="${{ inputs.environment }}-${{ inputs.location_code }}-rg-phoenixvc-website"
+        logicAppName="${{ inputs.environment }}-${{ inputs.location_code }}-la-phoenixvc"
+        triggerName="manual"
+
+        echo "🔍 DEBUG: Retrieving Teams Logic App URL for: $logicAppName"
+        url="https://management.azure.com/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.Logic/workflows/$logicAppName/triggers/$triggerName/listCallbackUrl?api-version=2019-05-01"
+        echo "API URL: $url"
+
+        # Add error handling for the REST call
+        set +e  # Don't exit on error
+        response=$(az rest --method POST --uri "$url" --query "value" -o tsv 2>&1)
+        REST_EXIT_CODE=$?
+        set -e  # Resume exit on error
+
+        if [ $REST_EXIT_CODE -ne 0 ]; then
+          echo "⚠️ Error retrieving Teams Logic App URL: $response"
+          echo "teamsLogicAppUrl=" >> "$GITHUB_OUTPUT"
+        elif [[ -n "$response" ]]; then
+          echo "✅ Retrieved Teams Logic App URL: $response"
+          echo "teamsLogicAppUrl=$response" >> "$GITHUB_OUTPUT"
+        else
+          echo "⚠️ Teams Logic App URL could not be retrieved"
+          echo "teamsLogicAppUrl=" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Retrieve GitHub Logic App Trigger URL
+      if: ${{ inputs.skip_logic_apps != 'true' }}
+      id: retrieve_github_logic_url
+      shell: bash
+      run: |
+        # Define Variables for GitHub Logic App
+        subscriptionId="${{ inputs.azure_subscription_id }}"
+        resourceGroupName="${{ inputs.environment }}-${{ inputs.location_code }}-rg-phoenixvc-website"
+        logicAppName="${{ inputs.environment }}-${{ inputs.location_code }}-la-github"
+        triggerName="manual"
+
+        echo "🔍 DEBUG: Retrieving GitHub Logic App URL for: $logicAppName"
+        url="https://management.azure.com/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.Logic/workflows/$logicAppName/triggers/$triggerName/listCallbackUrl?api-version=2019-05-01"
+        echo "API URL: $url"
+
+        # Add error handling for the REST call
+        set +e  # Don't exit on error
+        response=$(az rest --method POST --uri "$url" --query "value" -o tsv 2>&1)
+        REST_EXIT_CODE=$?
+        set -e  # Resume exit on error
+
+        if [ $REST_EXIT_CODE -ne 0 ]; then
+          echo "⚠️ Error retrieving GitHub Logic App URL: $response"
+          echo "githubLogicAppUrl=" >> "$GITHUB_OUTPUT"
+        elif [[ -n "$response" ]]; then
+          echo "✅ Retrieved GitHub Logic App URL: $response"
+          echo "githubLogicAppUrl=$response" >> "$GITHUB_OUTPUT"
+        else
+          echo "⚠️ GitHub Logic App URL could not be retrieved"
+          echo "githubLogicAppUrl=" >> "$GITHUB_OUTPUT"
+        fi
 
     - name: Debug Summary
       shell: bash
