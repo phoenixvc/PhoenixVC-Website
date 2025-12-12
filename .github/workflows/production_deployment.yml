@@ -256,16 +256,16 @@ jobs:
           RESOURCE_GROUP="prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website"
           DOCS_SWA_NAME="prod-${{ env.LOCATION_CODE }}-swa-phoenixvc-docs"
           DOMAIN="docs.phoenixvc.tech"
-          
+
           echo "Configuring custom domain $DOMAIN for docs..."
-          
+
           # Check if custom domain already exists
           DOMAIN_STATUS=$(az staticwebapp hostname show \
             --resource-group "$RESOURCE_GROUP" \
             --name "$DOCS_SWA_NAME" \
             --hostname "$DOMAIN" \
             --query "status" -o tsv 2>/dev/null || echo "NotFound")
-          
+
           if [[ "$DOMAIN_STATUS" == "NotFound" ]]; then
             echo "Adding custom domain: $DOMAIN"
             az staticwebapp hostname set \
@@ -389,4 +389,3 @@ jobs:
           deployment_id: ${{ github.event.inputs.deploymentId }}
           artifact_id: ${{ github.event.inputs.artifactId }}
           run_id: ${{ github.event.inputs.runId }}
-
