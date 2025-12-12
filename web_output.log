@@ -1,0 +1,16 @@
+
+> phoenixvc-modernized@1.0.1 web
+> npm run dev --workspace=@phoenixvc/web
+
+
+> @phoenixvc/web@0.0.0 dev
+> vite
+
+Port 5173 is in use, trying another one...
+Port 5174 is in use, trying another one...
+
+  VITE v5.4.21  ready in 626 ms
+
+  ➜  Local:   http://localhost:5175/
+  ➜  Network: use --host to expose
+10:32:13 AM [vite] hmr update /src/theme/theme.css, /src/features/layout/components/Starfield/Starfield.tsx

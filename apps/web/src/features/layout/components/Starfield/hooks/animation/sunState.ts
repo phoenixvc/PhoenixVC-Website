@@ -4,6 +4,7 @@
 import { SUNS } from "../../cosmos/cosmicHierarchy";
 import { getSunStates, initializeSunStates } from "../../sunSystem";
 import { Camera } from "../../cosmos/types";
+import { SUN_RENDERING_CONFIG } from "../../renderingConfig";
 
 /**
  * Encapsulated module state to prevent leakage
@@ -151,15 +152,17 @@ export function checkSunHover(
     // Sun positions are in world coordinates (normalized * canvas dimensions)
     const x = sunState.x * width;
     const y = sunState.y * height;
+
+    // Use exact same size calculation as rendering
     const baseSize = Math.max(
-      20,
-      Math.min(width, height) * sunState.size * 0.6,
+      SUN_RENDERING_CONFIG.minSize,
+      Math.min(width, height) * sunState.size * SUN_RENDERING_CONFIG.sizeMultiplier,
     );
-    // Increase hit area for better clickability
-    // Scale hit radius by zoom for consistent hover detection at different zoom levels
-    const zoomFactor = camera?.zoom || 1;
-    // Reduced hit radius to 1.0 to fix sticky hover persistence
-    const hitRadius = baseSize * 1.0 / zoomFactor;
+
+    // Fix: Do not divide by zoomFactor for world-space comparison.
+    // The visual radius in world space is baseSize.
+    // We add a small buffer (1.1x) for usability, but keep it tight to prevent stickiness.
+    const hitRadius = baseSize * 1.1;
 
     // Compare world mouse coords with world sun coords
     const distance = Math.sqrt(

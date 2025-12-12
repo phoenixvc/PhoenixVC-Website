@@ -328,6 +328,10 @@ export const animate = (
           // Check if hovering over sidebar (should allow tooltips)
           const isInsideSidebar =
             elementAtMouse.closest("aside, [role=\"complementary\"]") !== null;
+          // Check if element has explicit passthrough data attribute
+          const hasPassthrough =
+            elementAtMouse.closest("[data-starfield-passthrough=\"true\"]") !==
+            null;
 
           // Only consider it as "over content card" if it's NOT any of the allowed elements
           isOverContentCard =
@@ -335,7 +339,8 @@ export const animate = (
             !isInsideStarfield &&
             !isInsideHeroSection &&
             !isInsideHeader &&
-            !isInsideSidebar;
+            !isInsideSidebar &&
+            !hasPassthrough;
         }
       }
       cachedIsOverContentCard = isOverContentCard;
@@ -422,12 +427,14 @@ export const animate = (
     if (
       props.enableMouseInteraction &&
       props.setHoveredSunId &&
-      props.setHoveredSun &&
-      !isOverContentCard
+      props.setHoveredSun
     ) {
-      // If a planet tooltip is showing, clear sun hover immediately
-      // This prevents both sun and planet hover effects from showing simultaneously
-      if (currentHoverInfo.show && props.hoveredSunId !== null) {
+      // If a planet tooltip is showing OR we are over a content card, clear sun hover immediately
+      // This prevents sticky hovers when moving to UI elements and conflicts with planet tooltips
+      if (
+        (currentHoverInfo.show || isOverContentCard) &&
+        props.hoveredSunId !== null
+      ) {
         refs.sunHoverClearPendingRef.current = true; // Mark as pending to prevent race condition
         props.setHoveredSunId(null);
         props.setHoveredSun(null);
@@ -436,8 +443,8 @@ export const animate = (
         if (props.isMouseOverSunTooltipRef) {
           props.isMouseOverSunTooltipRef.current = false;
         }
-      } else if (!currentHoverInfo.show) {
-        // Only check sun hover when no planet tooltip is showing
+      } else if (!currentHoverInfo.show && !isOverContentCard) {
+        // Only check sun hover when no planet tooltip is showing and not blocked by content
         const sunHoverResult = checkSunHover(
           currentMousePosition.x,
           currentMousePosition.y,
