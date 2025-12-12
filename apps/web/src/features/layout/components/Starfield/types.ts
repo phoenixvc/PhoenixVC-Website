@@ -535,6 +535,11 @@ declare global {
       ) => number;
       getStarsCount: () => number;
       createExplosion: (x: number, y: number) => boolean;
+      checkHover: (x: number, y: number) => string | null;
+      getPinnedCount: () => number;
+      getHoveredSunId: () => string | null;
+      getCamera: () => Camera;
+      pinProject: (id: string) => void;
     };
   }
 }
