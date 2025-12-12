@@ -12,8 +12,8 @@ export const THEME_STORAGE_CONSTANTS = {
   },
   DEFAULTS: {
     THEME_NAME: "classic" as ThemeName,
-    THEME_MODE: "light" as ThemeMode,
-    USE_SYSTEM: true,
+    THEME_MODE: "dark" as ThemeMode,
+    USE_SYSTEM: false,
   },
   VALID_THEMES: [
     "classic",
