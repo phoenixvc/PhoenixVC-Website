@@ -225,15 +225,6 @@ jobs:
           repository: ${{ github.repository }}
           token: ${{ github.token }}
 
-      - name: Get Deployment Information
-        id: get_deployment_info
-        run: |
-          DEPLOYMENT_ID="${{ github.run_id }}_${{ github.sha }}"
-          # Generate a unique artifact ID based on timestamp and hash
-          ARTIFACT_ID="phoenixvc_$(date +%Y%m%d)_${{ github.sha }}_${{ github.run_number }}"
-          echo "deployment_id=${DEPLOYMENT_ID}" >> $GITHUB_OUTPUT
-          echo "artifact_id=${ARTIFACT_ID}" >> $GITHUB_OUTPUT
-
   # ───────────────────────────────────────────────
   # ✅ STAGING SITE DEPLOYMENT VIA SWA CLI
   # ───────────────────────────────────────────────
@@ -276,61 +267,25 @@ jobs:
     needs: [build_apps, deploy_resources_staging, swa_deploy_staging, check_relevant_changes]
     if: always() && (needs.check_relevant_changes.outputs.resources_changed == 'true' || github.event_name == 'workflow_dispatch')
     steps:
-      - name: Log Required Variables
-        run: |
-          echo "Logging required variables for Teams Notification..."
-          echo "Deployment ID: ${{ needs.swa_deploy_staging.outputs.deployment_id }}"
-          echo "Artifact ID: ${{ needs.build_apps.outputs.web_artifact_id }}"
-          echo "Run ID: ${{ github.run_id }}"
-
-          if [[ -z "${{ needs.swa_deploy_staging.outputs.deployment_id }}" ]]; then
-            echo "⚠️ Deployment ID is missing (Deployment likely failed or was skipped)."
-          fi
-          if [[ -z "${{ needs.build_apps.outputs.web_artifact_id }}" ]]; then
-             echo "⚠️ Artifact ID is missing (Build likely failed)."
-          fi
-
       - name: Checkout Repository for Notification
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Log Deployment Output Values
-        run: |
-          if [[ "${{ needs.check_relevant_changes.outputs.resources_changed }}" == "false" && "${{ github.event_name }}" != "workflow_dispatch" ]]; then
-            echo "Staging deployment was skipped - no relevant changes detected"
-          else
-            echo "Static Site URL: ${{ needs.deploy_resources_staging.outputs.staticSiteUrl }}"
-            echo "Teams Logic App URL: ${{ needs.deploy_resources_staging.outputs.teamsLogicAppUrl }}"
-            echo "GitHub Logic App URL: ${{ needs.deploy_resources_staging.outputs.githubLogicAppUrl }}"
-          fi
-
       - name: Notify Staging via Teams
-        if: (needs.check_relevant_changes.outputs.resources_changed == 'true' || github.event_name == 'workflow_dispatch') && (needs.swa_deploy_staging.result == 'success' || github.event.inputs.SEND_STAGING_FAILED == 'true')
+        if: (needs.check_relevant_changes.outputs.resources_changed == 'true' || github.event_name == 'workflow_dispatch')
         uses: ./.github/actions/teams-notification
         with:
-          webhook_url: "https://phoenixvc568.webhook.office.com/webhookb2/17b0291f-b70b-4bdd-9266-f212ae03a2bd@7edf4423-ccb3-4275-bc80-64dae3ef0148/IncomingWebhook/3174ffcca3804d34ae923ba2e131f82e/a41dbcc0-67a6-4a23-bdec-b780dcebefa9/V2MOPWeKY7ywC8-iGptxHlSIZpwHVxw2FLAOAMU2N0hmM1"
-          title: "Staging Deployment Complete"
-          message: "The deployment to the STAGING environment has completed successfully. Please review the deployment and take any necessary actions."
-          environment: "staging"
+          webhook_url: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          title: ${{ needs.swa_deploy_staging.result == 'success' && 'Staging Deployment Complete' || 'Staging Deployment Failed' }}
+          message: ${{ needs.swa_deploy_staging.result == 'success' && 'The deployment to the STAGING environment has completed successfully.' || 'The deployment to STAGING has failed.' }}
+          status: ${{ needs.swa_deploy_staging.result == 'success' && 'success' || 'failure' }}
+          environment: "Staging"
           deployment_url: ${{ needs.swa_deploy_staging.outputs.staging_url }}
-          logic_app_url: ${{ needs.deploy_resources_staging.outputs.teamsLogicAppUrl }}
-          github_logic_app_url: ${{ needs.deploy_resources_staging.outputs.githubLogicAppUrl }}
-          branch: ${{ github.ref }}
-          location_code: ${{ env.LOCATION_CODE }}
-          resource_group: staging-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
-          color: "0076D7"
-          approval_url: ${{ needs.deploy_resources_staging.outputs.githubLogicAppUrl }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          teams_token: ${{ secrets.TEAMS_TOKEN }}
-          change_summary: ${{ needs.check_relevant_changes.outputs.change_summary }}
-          deployment_id: ${{ needs.swa_deploy_staging.outputs.deployment_id }}
-          artifact_id: ${{ needs.build_apps.outputs.web_artifact_id }}
           run_id: ${{ github.run_id }}
           version: ${{ needs.build_apps.outputs.web_app_version }}
           author: ${{ needs.build_apps.outputs.web_app_author }}
-          repository: ${{ needs.build_apps.outputs.web_app_repository }}
-          pr_description: ${{ github.event.pull_request.body || 'N/A' }}
+          branch: ${{ github.ref }}
 
   # ───────────────────────────────────────────────
   # ✅ DEPLOY PRODUCTION RESOURCES
@@ -342,8 +297,6 @@ jobs:
     environment: production
     outputs:
       staticSiteUrl: ${{ steps.deploy_production_resources.outputs.staticSiteUrl }}
-      teamsLogicAppUrl: ${{ steps.deploy_production_resources.outputs.teamsLogicAppUrl }}
-      githubLogicAppUrl: ${{ steps.deploy_production_resources.outputs.githubLogicAppUrl }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -615,14 +568,10 @@ jobs:
           webhook_url: ${{ secrets.TEAMS_WEBHOOK_URL }}
           title: ${{ needs.swa_deploy_production.result == 'success' && 'Production Deployment Complete' || 'Production Deployment Failed' }}
           message: ${{ needs.swa_deploy_production.result == 'success' && 'The deployment to PRODUCTION has completed successfully.' || 'The deployment to PRODUCTION has failed. Manual intervention required.' }}
-          environment: "production"
+          status: ${{ needs.swa_deploy_production.result == 'success' && 'success' || 'failure' }}
+          environment: "Production"
           deployment_url: ${{ needs.swa_deploy_production.outputs.production_url }}
-          logic_app_url: ${{ needs.deploy_resources_production.outputs.teamsLogicAppUrl }}
-          github_logic_app_url: ${{ needs.deploy_resources_production.outputs.githubLogicAppUrl }}
-          branch: ${{ github.ref }}
-          location_code: ${{ env.LOCATION_CODE }}
-          resource_group: prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
-          color: ${{ needs.swa_deploy_production.result == 'success' && '00A300' || 'FF0000' }}
-          deployment_id: ${{ needs.swa_deploy_production.outputs.deployment_id }}
-          artifact_id: ${{ needs.build_apps.outputs.web_artifact_id }}
           run_id: ${{ github.run_id }}
+          version: ${{ needs.build_apps.outputs.web_app_version }}
+          author: ${{ needs.build_apps.outputs.web_app_author }}
+          branch: ${{ github.ref }}

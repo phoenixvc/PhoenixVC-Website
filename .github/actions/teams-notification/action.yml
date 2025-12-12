@@ -1,237 +1,41 @@
 name: "Teams Notification"
-description: "Send a notification to Microsoft Teams with deployment information using a file-based JSON template, encoding GitHub and Teams tokens."
+description: "Send a modernized Adaptive Card notification to Microsoft Teams via Webhook."
 
 inputs:
-  logic_app_url:
-    description: "URL of the Logic App HTTP trigger endpoint"
-    required: true
-  template_path:
-    description: "Path to the JSON template file relative to the repository root"
-    required: false
-    default: ".github/actions/teams-notification/logic-app-teams-template.json"
   webhook_url:
-    description: "Microsoft Teams webhook URL"
-    required: false
-    default: "https://phoenixvc568.webhook.office.com/webhookb2/..."
+    description: "The Microsoft Teams Incoming Webhook URL."
+    required: true
   message:
-    description: "Notification message"
-    required: true
-  environment:
-    description: "Deployment environment (e.g. staging, prod)"
-    required: true
-  deployment_url:
-    description: "URL of the deployed site"
-    required: true
-  branch:
-    description: "Branch that was deployed"
-    required: true
-  location_code:
-    description: "Location code of the deployment"
-    required: true
-  resource_group:
-    description: "Resource group name"
-    required: true
-  approval_url:
-    description: "URL for approval action (staging only)"
-    required: false
-    default: ""
-  rollback_url:
-    description: "URL for rollback action (prod only)"
-    required: false
-    default: ""
-  github_token:
-    description: "GitHub token to be encoded and passed along"
-    required: true
-  teams_token:
-    description: "Teams token to be encoded and passed along"
-    required: true
-  github_logic_app_url:
-    description: "GitHub Logic App URL (used to build the approvalUrl)"
+    description: "The main body text of the notification."
     required: true
   title:
-    description: "Title for the notification"
-    required: true
-  color:
-    description: "Color for the notification card"
+    description: "The title of the notification card."
     required: false
-    default: "0076D7"
-  change_summary:
-    description: "Summary of changes being deployed"
+    default: "Deployment Notification"
+  status:
+    description: "The status of the event (success, failure, info). Determines color and emoji."
     required: false
-    default: ""
-  deployment_id:
-    description: "Deployment ID (required for approvalUrl)"
+    default: "info"
+  environment:
+    description: "The name of the environment (e.g., Production, Staging)."
     required: false
-    default: ""
-  artifact_id:
-    description: "Artifact ID (required for approvalUrl)"
+    default: "Production"
+  deployment_url:
+    description: "URL to the deployed application."
     required: false
-    default: ""
   run_id:
-    description: "Run ID (required for approvalUrl)"
+    description: "GitHub Run ID to link back to the workflow logs."
     required: false
-    default: ""
-  # New metadata inputs
   version:
-    description: "Package version from package.json"
+    description: "Version of the application being deployed."
     required: false
-    default: ""
+  branch:
+    description: "The branch name."
+    required: false
   author:
-    description: "Package author from package.json"
+    description: "The author of the commit/deployment."
     required: false
-    default: ""
-  repository:
-    description: "Package repository from package.json"
-    required: false
-    default: ""
-  pr_description:
-    description: "Pull Request description if available"
-    required: false
-    default: ""
 
 runs:
-  using: "composite"
-  steps:
-    - name: Checkout Repository for Template
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-
-    - name: Read and Substitute Template
-      shell: bash
-      id: build_payload
-      env:
-        INPUT_CHANGE_SUMMARY: ${{ inputs.change_summary }}
-        INPUT_PR_DESCRIPTION: ${{ inputs.pr_description }}
-        INPUT_MESSAGE: ${{ inputs.message }}
-        INPUT_TITLE: ${{ inputs.title }}
-      run: |
-        # Read the JSON template file
-        TEMPLATE=$(cat "$(pwd)/${{ inputs.template_path }}")
-        echo "Template contents:"
-        echo "$TEMPLATE"
-
-        # Use input values and set default for color if empty
-        color="${{ inputs.color }}"
-        if [ -z "$color" ]; then
-          color="0076D7"
-        fi
-
-        webhook_url="${{ inputs.webhook_url }}"
-        location_code="${{ inputs.location_code }}"
-        resource_group="${{ inputs.resource_group }}"
-        environment="${{ inputs.environment }}"
-        branch="${{ inputs.branch }}"
-        # Use env vars for inputs that may contain special characters (backticks, etc.)
-        message="$INPUT_MESSAGE"
-        title="$INPUT_TITLE"
-        deployment_url="${{ inputs.deployment_url }}"
-        change_summary="$INPUT_CHANGE_SUMMARY"
-        deployment_id="${{ inputs.deployment_id }}"
-        artifact_id="${{ inputs.artifact_id }}"
-        run_id="${{ inputs.run_id }}"
-        version="${{ inputs.version }}"
-        author="${{ inputs.author }}"
-        repository="${{ inputs.repository }}"
-        pr_description="$INPUT_PR_DESCRIPTION"
-
-        # Encode tokens
-        encodedGitHubToken=$(echo "${{ inputs.github_token }}" | base64)
-        encodedTeamsToken=$(echo "${{ inputs.teams_token }}" | base64)
-
-        # Construct approval URL using github_logic_app_url input
-        if [ -n "${{ inputs.github_logic_app_url }}" ]; then
-          base_url="${{ inputs.github_logic_app_url }}"
-          # Remove any placeholder tokens if present
-          base_url="${base_url//\{\{approvalUrl\}\}/}"
-          # Determine if a '?' is already in base_url to choose proper connector
-          if [[ "$base_url" == *"?"* ]]; then
-            connector="&"
-          else
-            connector="?"
-          fi
-          # Ensure required parameters for approval URL are provided
-          if [ -z "$deployment_id" ] || [ -z "$artifact_id" ] || [ -z "$run_id" ]; then
-            echo "Error: deployment_id, artifact_id, and run_id are required for constructing approval URL"
-            exit 1
-          fi
-          # URL encode each parameter
-          encoded_token=$(echo "$encodedGitHubToken" | jq -sRr @uri)
-          encoded_changes=$(echo "$change_summary" | jq -sRr @uri)
-          encoded_deployment_id=$(echo "$deployment_id" | jq -sRr @uri)
-          encoded_artifact_id=$(echo "$artifact_id" | jq -sRr @uri)
-          encoded_run_id=$(echo "$run_id" | jq -sRr @uri)
-
-          approval_url="${base_url}${connector}token=${encoded_token}&changes=${encoded_changes}&deploymentId=${encoded_deployment_id}&artifactId=${encoded_artifact_id}&runId=${encoded_run_id}"
-          # Escape ampersands for sed substitution
-          escaped_approval_url=$(printf '%s' "$approval_url" | sed 's/&/\\&/g')
-        else
-          echo "Error: github_logic_app_url is required for approval URL"
-          exit 1
-        fi
-
-        echo "Computed approval URL: $approval_url"
-
-        # Escape special characters in user-provided content for sed and JSON
-        # Function to escape special characters for sed replacement with | delimiter
-        escape_for_sed() {
-          # Use jq to properly escape the string for JSON (handles all control characters)
-          # jq -Rs wraps in quotes and escapes, we remove the surrounding quotes
-          # Then we double backslashes so they survive sed substitution
-          local json_escaped
-          json_escaped=$(printf '%s' "$1" | jq -Rs '.' | sed 's/^"//;s/"$//')
-          # Double the backslashes so they survive sed substitution
-          # Also escape & and | for sed replacement
-          printf '%s' "$json_escaped" | sed -e 's/\\/\\\\/g' -e 's/&/\\&/g' -e 's/|/\\|/g'
-        }
-
-        # Escape user-provided content that may contain special characters
-        escaped_message=$(escape_for_sed "$message")
-        escaped_title=$(escape_for_sed "$title")
-        escaped_pr_description=$(escape_for_sed "$pr_description")
-
-        # Substitute placeholders in the template using sed
-        PAYLOAD=$(echo "$TEMPLATE" | sed \
-          -e "s|{{teamsWebhookUrl}}|${webhook_url}|g" \
-          -e "s|{{locationCode}}|${location_code}|g" \
-          -e "s|{{resourceGroup}}|${resource_group}|g" \
-          -e "s|{{environment}}|${environment}|g" \
-          -e "s|{{branch}}|${branch}|g" \
-          -e "s|{{message}}|${escaped_message}|g" \
-          -e "s|{{title}}|${escaped_title}|g" \
-          -e "s|{{color}}|$color|g" \
-          -e "s|{{deploymentUrl}}|${deployment_url}|g" \
-          -e "s|{{rollbackUrl}}|${{ inputs.rollback_url }}|g" \
-          -e "s|{{encodedToken}}|${encodedGitHubToken}|g" \
-          -e "s|{{encodedTeamsToken}}|${encodedTeamsToken}|g" \
-          -e "s|{{approvalUrl}}|${escaped_approval_url}|g" \
-          -e "s|{{version}}|${version}|g" \
-          -e "s|{{author}}|${author}|g" \
-          -e "s|{{repository}}|${repository}|g" \
-          -e "s|{{pr_description}}|${escaped_pr_description}|g"
-        )
-        echo "Generated Payload:"
-        echo "$PAYLOAD"
-
-        # Write the payload to a temporary file for the next step
-        PAYLOAD_FILE="${RUNNER_TEMP}/payload.json"
-        echo "$PAYLOAD" > "$PAYLOAD_FILE"
-        echo "payload_file=$PAYLOAD_FILE" >> $GITHUB_OUTPUT
-
-    - name: Invoke Logic App HTTP Trigger
-      shell: bash
-      run: |
-        echo "Invoking Logic App via HTTP trigger..."
-        PAYLOAD_FILE="${{ steps.build_payload.outputs.payload_file }}"
-        COMPACT_PAYLOAD=$(jq -c . < "$PAYLOAD_FILE")
-        echo "Payload to be sent:"
-        echo "$COMPACT_PAYLOAD"
-        echo "Logic App URL:"
-        echo "${{ inputs.logic_app_url }}"
-        RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST -H "Content-Type: application/json" \
-          -d "$COMPACT_PAYLOAD" \
-          "${{ inputs.logic_app_url }}")
-        echo "Response from Logic App:"
-        echo "$RESPONSE"
-        # Clean up temporary file
-        rm -f "$PAYLOAD_FILE"
+  using: "node20"
+  main: "index.js"
