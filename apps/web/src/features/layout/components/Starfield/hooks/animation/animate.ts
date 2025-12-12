@@ -456,6 +456,15 @@ export const animate = (
           currentCamera,
         );
 
+        if ((window as any).debugStarfield && (sunHoverResult || props.hoveredSunId)) {
+          logger.debug("Sun hover status:", {
+            found: !!sunHoverResult,
+            foundId: sunHoverResult?.sun?.id,
+            currentId: props.hoveredSunId,
+            mouse: { x: currentMousePosition.x, y: currentMousePosition.y },
+          });
+        }
+
         if (sunHoverResult) {
           // Mouse is over a sun - clear any pending hide timeout and show hover
           refs.lastSunLeaveTimeRef.current = null;
@@ -463,6 +472,7 @@ export const animate = (
 
           // Always update when hovering a different sun (even if over old tooltip)
           // This ensures the hover effect switches properly between suns
+          // Robustness fix: Ensure we reset the tooltip ref even if props.setHoveredSunId thinks it's redundant
           if (props.hoveredSunId !== sunHoverResult.sun.id) {
             if (props.isMouseOverSunTooltipRef) {
               props.isMouseOverSunTooltipRef.current = false;

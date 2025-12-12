@@ -5,6 +5,7 @@ import { SUNS } from "../../cosmos/cosmicHierarchy";
 import { getSunStates, initializeSunStates } from "../../sunSystem";
 import { Camera } from "../../cosmos/types";
 import { SUN_RENDERING_CONFIG } from "../../renderingConfig";
+import { logger } from "@/utils/logger";
 
 /**
  * Encapsulated module state to prevent leakage
@@ -154,9 +155,15 @@ export function checkSunHover(
     const y = sunState.y * height;
 
     // Use exact same size calculation as rendering
-    const baseSize = Math.max(
-      SUN_RENDERING_CONFIG.minSize,
-      Math.min(width, height) * sunState.size * SUN_RENDERING_CONFIG.sizeMultiplier,
+    // Add safety cap of 120px to baseSize to prevent massive hit areas
+    const baseSize = Math.min(
+      120,
+      Math.max(
+        SUN_RENDERING_CONFIG.minSize,
+        Math.min(width, height) *
+          sunState.size *
+          SUN_RENDERING_CONFIG.sizeMultiplier,
+      ),
     );
 
     // Fix: Do not divide by zoomFactor for world-space comparison.
@@ -168,6 +175,21 @@ export function checkSunHover(
     const distance = Math.sqrt(
       Math.pow(worldMouse.x - x, 2) + Math.pow(worldMouse.y - y, 2),
     );
+
+    // Debug log for hover check (throttled/conditional)
+    // Only log if close enough to be relevant (e.g. within 2x radius)
+    if (distance <= hitRadius * 2 && (window as any).debugStarfield) {
+      logger.debug(`Sun Hover Check [${sunState.id}]:`, {
+        mouse: { x: mouseX, y: mouseY },
+        worldMouse,
+        sun: { x, y },
+        baseSize,
+        hitRadius,
+        distance,
+        isHit: distance <= hitRadius,
+      });
+    }
+
     if (distance <= hitRadius) {
       // Find matching sun from SUNS array
       const matchingSun = focusAreaSuns.find((s) => s.id === sunState.id);
