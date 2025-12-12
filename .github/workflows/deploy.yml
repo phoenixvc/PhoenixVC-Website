@@ -26,7 +26,7 @@ permissions:
   actions: read
 
 concurrency:
-  group: ${{ github.workflow }}-staging
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -46,7 +46,6 @@ jobs:
         echo "Static Web App Name: [env]-${LOCATION_CODE}-swa-phoenixvc-website"
         echo "Log repository: ${{ github.repository }}"
         echo "Azure Subscription ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}"
-        echo "Prod deployment token: ${{ secrets.PROD_DEPLOYMENT_TOKEN }}"
 
         if [[ -n "${{ secrets.GITHUB_TOKEN }}" ]]; then
           echo "✅ GITHUB_TOKEN is set."
@@ -62,11 +61,6 @@ jobs:
           echo "✅ AZURE_SUBSCRIPTION_ID is set."
         else
           echo "⚠️ AZURE_SUBSCRIPTION_ID is missing!"
-        fi
-        if [[ -n "${{ secrets.PROD_DEPLOYMENT_TOKEN }}" ]]; then
-          echo "✅ PROD_DEPLOYMENT_TOKEN is set."
-        else
-          echo "⚠️ PROD_DEPLOYMENT_TOKEN is missing!"
         fi
         echo "==========================="
 
@@ -192,28 +186,6 @@ jobs:
           retention-days: 5
           if-no-files-found: error
 
-
-  # ───────────────────────────────────────────────
-  # ✅ SECURITY SCAN
-  # ───────────────────────────────────────────────
-  # security_scan:
-  #   runs-on: ubuntu-latest
-  #   needs: [build_apps]
-  #   if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
-
-  #     - name: Initialize CodeQL
-  #       uses: github/codeql-action/init@v2
-  #       with:
-  #         languages: javascript, typescript
-
-  #     - name: Run CodeQL Analysis
-  #       uses: github/codeql-action/analyze@v2
-  #       with:
-  #         category: "/language:javascript"
-
   # ───────────────────────────────────────────────
   # ✅ STAGING RESOURCE CREATION (Run deploy.sh)
   # ───────────────────────────────────────────────
@@ -253,15 +225,6 @@ jobs:
           repository: ${{ github.repository }}
           token: ${{ github.token }}
 
-      - name: Get Deployment Information
-        id: get_deployment_info
-        run: |
-          DEPLOYMENT_ID="${{ github.run_id }}_${{ github.sha }}"
-          # Generate a unique artifact ID based on timestamp and hash
-          ARTIFACT_ID="phoenixvc_$(date +%Y%m%d)_${{ github.sha }}_${{ github.run_number }}"
-          echo "deployment_id=${DEPLOYMENT_ID}" >> $GITHUB_OUTPUT
-          echo "artifact_id=${ARTIFACT_ID}" >> $GITHUB_OUTPUT
-
   # ───────────────────────────────────────────────
   # ✅ STAGING SITE DEPLOYMENT VIA SWA CLI
   # ───────────────────────────────────────────────
@@ -284,9 +247,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Remove any steps that try to use a stored token from secrets
-      # Instead, let the swa-deploy action retrieve the token directly from Azure
-
       - name: Use SWA Deploy Action for Staging
         id: swa_deploy
         uses: ./.github/actions/swa-deploy
@@ -297,69 +257,321 @@ jobs:
           resource-group: staging-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
           env: staging
           azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
-          # Don't pass any deployment_token here - let the action retrieve it
           github_token: ${{ github.token }}
 
- # ───────────────────────────────────────────────
- # NOTIFY DEPLOYMENT VIA TEAMS (Combined Notification)
- # ───────────────────────────────────────────────
-  notify_deployment:
+  # ───────────────────────────────────────────────
+  # ✅ NOTIFY STAGING DEPLOYMENT
+  # ───────────────────────────────────────────────
+  notify_staging:
     runs-on: ubuntu-latest
-    # For staging, notify if success OR if failure and SEND_STAGING_FAILED is true.
-    # For production, always notify regardless of outcome.
     needs: [build_apps, deploy_resources_staging, swa_deploy_staging, check_relevant_changes]
-    if: always()
+    if: always() && (needs.check_relevant_changes.outputs.resources_changed == 'true' || github.event_name == 'workflow_dispatch')
     steps:
-      - name: Log Required Variables
-        run: |
-          echo "Logging required variables for Teams Notification..."
-          echo "Deployment ID: ${{ needs.swa_deploy_staging.outputs.deployment_id }}"
-          echo "Artifact ID: ${{ needs.build_apps.outputs.web_artifact_id }}"
-          echo "Run ID: ${{ github.run_id }}"
-
-          if [[ -z "${{ needs.swa_deploy_staging.outputs.deployment_id }}" || -z "${{ needs.build_apps.outputs.web_artifact_id }}" || -z "${{ github.run_id }}" ]]; then
-            echo "❌ Missing required values for approval URL!"
-            exit 1
-          fi
-
       - name: Checkout Repository for Notification
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Log Deployment Output Values
-        run: |
-          if [[ "${{ needs.check_relevant_changes.outputs.resources_changed }}" == "false" && "${{ github.event_name }}" != "workflow_dispatch" ]]; then
-            echo "Staging deployment was skipped - no relevant changes detected"
-          else
-            echo "Static Site URL: ${{ needs.deploy_resources_staging.outputs.staticSiteUrl }}"
-            echo "Teams Logic App URL: ${{ needs.deploy_resources_staging.outputs.teamsLogicAppUrl }}"
-            echo "GitHub Logic App URL: ${{ needs.deploy_resources_staging.outputs.githubLogicAppUrl }}"
-          fi
-
       - name: Notify Staging via Teams
-        if: (needs.check_relevant_changes.outputs.resources_changed == 'true' || github.event_name == 'workflow_dispatch') && (needs.swa_deploy_staging.result == 'success' || github.event.inputs.SEND_STAGING_FAILED == 'true')
+        if: (needs.check_relevant_changes.outputs.resources_changed == 'true' || github.event_name == 'workflow_dispatch')
         uses: ./.github/actions/teams-notification
         with:
-          webhook_url: "https://phoenixvc568.webhook.office.com/webhookb2/17b0291f-b70b-4bdd-9266-f212ae03a2bd@7edf4423-ccb3-4275-bc80-64dae3ef0148/IncomingWebhook/3174ffcca3804d34ae923ba2e131f82e/a41dbcc0-67a6-4a23-bdec-b780dcebefa9/V2MOPWeKY7ywC8-iGptxHlSIZpwHVxw2FLAOAMU2N0hmM1"
-          title: "Staging Deployment Complete"
-          message: "The deployment to the STAGING environment has completed successfully. Please review the deployment and take any necessary actions."
-          environment: "staging"
+          webhook_url: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          title: ${{ needs.swa_deploy_staging.result == 'success' && 'Staging Deployment Complete' || 'Staging Deployment Failed' }}
+          message: ${{ needs.swa_deploy_staging.result == 'success' && 'The deployment to the STAGING environment has completed successfully.' || 'The deployment to STAGING has failed.' }}
+          status: ${{ needs.swa_deploy_staging.result == 'success' && 'success' || 'failure' }}
+          environment: "Staging"
           deployment_url: ${{ needs.swa_deploy_staging.outputs.staging_url }}
-          logic_app_url: ${{ needs.deploy_resources_staging.outputs.teamsLogicAppUrl }}
-          github_logic_app_url: ${{ needs.deploy_resources_staging.outputs.githubLogicAppUrl }}
-          branch: ${{ github.ref }}
-          location_code: ${{ env.LOCATION_CODE }}
-          resource_group: staging-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
-          color: "0076D7"
-          approval_url: ${{ needs.deploy_resources_staging.outputs.githubLogicAppUrl }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          teams_token: ${{ secrets.TEAMS_TOKEN }}
-          change_summary: ${{ needs.check_relevant_changes.outputs.change_summary }}
-          deployment_id: ${{ needs.swa_deploy_staging.outputs.deployment_id }}
-          artifact_id: ${{ needs.build_apps.outputs.web_artifact_id }}
           run_id: ${{ github.run_id }}
           version: ${{ needs.build_apps.outputs.web_app_version }}
           author: ${{ needs.build_apps.outputs.web_app_author }}
-          repository: ${{ needs.build_apps.outputs.web_app_repository }}
-          pr_description: ${{ github.event.pull_request.body || 'N/A' }}
+          branch: ${{ github.ref }}
+
+  # ───────────────────────────────────────────────
+  # ✅ DEPLOY PRODUCTION RESOURCES
+  # ───────────────────────────────────────────────
+  deploy_resources_production:
+    runs-on: ubuntu-latest
+    needs: [swa_deploy_staging, build_apps]
+    if: github.ref == 'refs/heads/main' && needs.swa_deploy_staging.result == 'success'
+    environment: production
+    outputs:
+      staticSiteUrl: ${{ steps.deploy_production_resources.outputs.staticSiteUrl }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Deploy Production Resources
+        id: deploy_production_resources
+        uses: ./.github/actions/deploy-azure-resources
+        with:
+          environment: production
+          azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          location_code: ${{ env.LOCATION_CODE }}
+          repository: ${{ github.repository }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          skip_logic_apps: true
+
+  # ───────────────────────────────────────────────
+  # ✅ SWA DEPLOYMENT VIA SWA CLI (PRODUCTION)
+  # ───────────────────────────────────────────────
+  swa_deploy_production:
+    runs-on: ubuntu-latest
+    needs: [deploy_resources_production, build_apps]
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: ${{ steps.swa_deploy.outputs.deployment_url }}
+    outputs:
+      production_url: ${{ steps.swa_deploy.outputs.deployment_url }}
+      deployment_id: ${{ steps.swa_deploy.outputs.deployment_id }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Use SWA Deploy Action for Production
+        id: swa_deploy
+        uses: ./.github/actions/swa-deploy
+        with:
+          artifact-name: web-dist-${{ needs.build_apps.outputs.build_timestamp }}
+          run-id: ${{ github.run_id }}
+          app-name: prod-${{ env.LOCATION_CODE }}-swa-phoenixvc-website
+          resource-group: prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
+          env: production
+          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          deployment_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_PROD }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify SWA Deployment
+        run: |
+          URL="${{ needs.deploy_resources_production.outputs.staticSiteUrl }}"
+
+          if [[ -z "$URL" ]]; then
+            echo "❌ URL is empty. Check your deploy_resources_production outputs."
+            exit 1
+          fi
+
+          MAX_RETRIES=10
+          COUNT=0
+          while [ $COUNT -lt $MAX_RETRIES ]; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL")
+            if [ "$STATUS" == "200" ]; then
+              echo "✅ SWA deployment verified successfully at $URL!"
+              exit 0
+            fi
+            echo "⏳ Waiting for deployment at $URL... (Attempt $((COUNT + 1))/$MAX_RETRIES)"
+            sleep 30
+            COUNT=$((COUNT+1))
+          done
+
+          echo "❌ SWA deployment verification failed at $URL after $MAX_RETRIES attempts"
+          exit 1
+
+      - name: Record Version
+        run: |
+          echo "DEPLOY_VERSION=$(date '+%Y%m%d')_${{ github.run_id }}" >> $GITHUB_ENV
+
+      - name: Create Version Tag
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/prod_${{ env.DEPLOY_VERSION }}',
+              sha: context.sha
+            })
+
+      - name: Azure CLI Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+  # ───────────────────────────────────────────────
+  # ✅ Configure Custom Domain and DNS
+  # ───────────────────────────────────────────────
+  configure_custom_domain_dns:
+    runs-on: ubuntu-latest
+    needs: swa_deploy_production
+    environment:
+      name: production
+    steps:
+      - name: Azure CLI Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Configure Custom Domain & DNS
+        shell: bash
+        run: |
+          RESOURCE_GROUP="prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website"
+          STATIC_WEB_APP_NAME="prod-${{ env.LOCATION_CODE }}-swa-phoenixvc-website"
+          DOMAIN="phoenixvc.tech"
+
+          echo "Checking domain status for $DOMAIN..."
+
+          DOMAIN_STATUS=$(az staticwebapp hostname show \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$STATIC_WEB_APP_NAME" \
+            --hostname "$DOMAIN" \
+            --query "status" -o tsv)
+
+          echo "Domain status: $DOMAIN_STATUS"
+
+          if [[ "$DOMAIN_STATUS" != "Ready" ]]; then
+            echo "Linking custom domain: $DOMAIN"
+
+            az staticwebapp hostname set \
+              --resource-group "$RESOURCE_GROUP" \
+              --name "$STATIC_WEB_APP_NAME" \
+              --hostname "$DOMAIN" \
+              --validation-method dns-txt-token
+
+            echo "Fetching validation token..."
+            sleep 30  # Wait briefly for token availability
+
+            VALIDATION_TOKEN=$(az staticwebapp hostname show \
+              --resource-group "$RESOURCE_GROUP" \
+              --name "$STATIC_WEB_APP_NAME" \
+              --hostname "$DOMAIN" \
+              --query "validationToken" -o tsv)
+
+            if [[ -z "$VALIDATION_TOKEN" ]]; then
+              echo "❌ Validation token retrieval failed."
+              exit 1
+            fi
+
+            echo "Adding TXT record for domain validation"
+            az network dns record-set txt add-record \
+              --resource-group "$RESOURCE_GROUP" \
+              --zone-name "$DOMAIN" \
+              --record-set-name "asuid" \
+              --value "$VALIDATION_TOKEN"
+
+            echo "✅ TXT record created successfully."
+          else
+            echo "✅ Domain already verified. Skipping TXT validation."
+          fi
+
+          echo "Adding or updating CNAME record..."
+
+          DEFAULT_HOSTNAME=$(az staticwebapp show \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$STATIC_WEB_APP_NAME" \
+            --query "defaultHostname" -o tsv)
+
+          az network dns record-set cname set-record \
+            --resource-group "$RESOURCE_GROUP" \
+            --zone-name "$DOMAIN" \
+            --record-set-name "@" \
+            --cname "$DEFAULT_HOSTNAME"
+
+          echo "✅ DNS configuration completed successfully."
+
+  deploy_docs:
+    needs: swa_deploy_production
+    if: needs.swa_deploy_production.result == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      docs_url: ${{ steps.deploy_docs_swa.outputs.static_web_app_url }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          repository: phoenixvc/PhoenixVC-Website
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+          cache: 'pip'
+
+      - name: Install MkDocs
+        run: |
+          python -m pip install --upgrade pip
+          pip install mkdocs mkdocs-material mkdocs-minify-plugin
+
+      - name: Build Docs
+        run: |
+          mkdocs build -f docs/mkdocs.yml -d docs/site
+
+      - name: Azure CLI Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy Docs to Azure Static Web App
+        id: deploy_docs_swa
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.DOCS_DEPLOYMENT_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "docs/site"
+          skip_app_build: true
+          skip_api_build: true
+
+      - name: Configure docs.phoenixvc.tech Custom Domain
+        run: |
+          RESOURCE_GROUP="prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website"
+          DOCS_SWA_NAME="prod-${{ env.LOCATION_CODE }}-swa-phoenixvc-docs"
+          DOMAIN="docs.phoenixvc.tech"
+
+          echo "Configuring custom domain $DOMAIN for docs..."
+
+          # Check if custom domain already exists
+          DOMAIN_STATUS=$(az staticwebapp hostname show \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$DOCS_SWA_NAME" \
+            --hostname "$DOMAIN" \
+            --query "status" -o tsv 2>/dev/null || echo "NotFound")
+
+          if [[ "$DOMAIN_STATUS" == "NotFound" ]]; then
+            echo "Adding custom domain: $DOMAIN"
+            az staticwebapp hostname set \
+              --resource-group "$RESOURCE_GROUP" \
+              --name "$DOCS_SWA_NAME" \
+              --hostname "$DOMAIN" || echo "Domain setup may require manual DNS configuration"
+          else
+            echo "✅ Custom domain $DOMAIN already configured (status: $DOMAIN_STATUS)"
+          fi
+
+  # ───────────────────────────────────────────────
+  # ✅ NOTIFY PRODUCTION DEPLOYMENT
+  # ───────────────────────────────────────────────
+  notify_production:
+    needs: [swa_deploy_production, deploy_docs, configure_custom_domain_dns, deploy_resources_production, build_apps]
+    if: always() && github.ref == 'refs/heads/main' && needs.deploy_resources_production.result != 'skipped'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          repository: phoenixvc/PhoenixVC-Website
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Notify Teams
+        uses: ./.github/actions/teams-notification
+        with:
+          webhook_url: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          title: ${{ needs.swa_deploy_production.result == 'success' && 'Production Deployment Complete' || 'Production Deployment Failed' }}
+          message: ${{ needs.swa_deploy_production.result == 'success' && 'The deployment to PRODUCTION has completed successfully.' || 'The deployment to PRODUCTION has failed. Manual intervention required.' }}
+          status: ${{ needs.swa_deploy_production.result == 'success' && 'success' || 'failure' }}
+          environment: "Production"
+          deployment_url: ${{ needs.swa_deploy_production.outputs.production_url }}
+          run_id: ${{ github.run_id }}
+          version: ${{ needs.build_apps.outputs.web_app_version }}
+          author: ${{ needs.build_apps.outputs.web_app_author }}
+          branch: ${{ github.ref }}
