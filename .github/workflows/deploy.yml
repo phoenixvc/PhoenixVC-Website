@@ -274,7 +274,7 @@ jobs:
   notify_staging:
     runs-on: ubuntu-latest
     needs: [build_apps, deploy_resources_staging, swa_deploy_staging, check_relevant_changes]
-    if: always()
+    if: always() && (needs.check_relevant_changes.outputs.resources_changed == 'true' || github.event_name == 'workflow_dispatch')
     steps:
       - name: Log Required Variables
         run: |
@@ -283,9 +283,11 @@ jobs:
           echo "Artifact ID: ${{ needs.build_apps.outputs.web_artifact_id }}"
           echo "Run ID: ${{ github.run_id }}"
 
-          if [[ -z "${{ needs.swa_deploy_staging.outputs.deployment_id }}" || -z "${{ needs.build_apps.outputs.web_artifact_id }}" || -z "${{ github.run_id }}" ]]; then
-            echo "❌ Missing required values for approval URL!"
-            exit 1
+          if [[ -z "${{ needs.swa_deploy_staging.outputs.deployment_id }}" ]]; then
+            echo "⚠️ Deployment ID is missing (Deployment likely failed or was skipped)."
+          fi
+          if [[ -z "${{ needs.build_apps.outputs.web_artifact_id }}" ]]; then
+             echo "⚠️ Artifact ID is missing (Build likely failed)."
           fi
 
       - name: Checkout Repository for Notification
