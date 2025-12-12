@@ -70,6 +70,11 @@ export const useAnimationLoop = (
   const animationStartTimeRef = useRef<number>(Date.now());
   const animationWatchdogRef = useRef<number | null>(null);
 
+  // Sun/planet hover state refs - per-instance to avoid leaking across remounts
+  const sunHoverClearPendingRef = useRef<boolean>(false);
+  const lastSunLeaveTimeRef = useRef<number | null>(null);
+  const lastPlanetLeaveTimeRef = useRef<number | null>(null);
+
   /* ------------------------------------------------------------------ */
   /* 1. Make sure animate() always sees the **latest** props + settings */
   /* ------------------------------------------------------------------ */
@@ -131,6 +136,10 @@ export const useAnimationLoop = (
     lastDebugModeRef,
     animationStartTimeRef,
     animationWatchdogRef,
+    // Sun/planet hover state refs
+    sunHoverClearPendingRef,
+    lastSunLeaveTimeRef,
+    lastPlanetLeaveTimeRef,
   };
 
   // Restart animation function
