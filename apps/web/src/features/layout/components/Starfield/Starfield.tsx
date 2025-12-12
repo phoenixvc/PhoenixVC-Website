@@ -41,6 +41,7 @@ import {
 import {
   checkSunHover,
   resetAnimationModuleState,
+  resetAnimateModuleCaches,
 } from "./hooks/animation/animate";
 import {
   applyClickRepulsionToSunsCanvas,
@@ -793,6 +794,7 @@ const InteractiveStarfield = forwardRef<
         // This prevents stale state and memory leaks on remount
         resetSunSystem();
         resetAnimationModuleState();
+        resetAnimateModuleCaches();
         resetConnectionStagger();
 
         // Clear any lingering timeouts

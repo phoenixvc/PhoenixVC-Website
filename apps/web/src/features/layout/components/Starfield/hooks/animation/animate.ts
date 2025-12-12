@@ -63,15 +63,23 @@ let cachedFilteredPlanets: Planet[] = [];
 let cachedFocusedSunId: string | null = null;
 let cachedPlanetsLength = 0;
 
-// Sun hover delay tracking - prevents hover effect from disappearing immediately
-let lastSunLeaveTime: number | null = null;
-const SUN_HOVER_HIDE_DELAY_MS = 200; // Same delay as tooltip hide delay
-// Track if we've already initiated hover clear to prevent race condition with React state
-let sunHoverClearPending = false;
+// Delay constants for hover effects
+const SUN_HOVER_HIDE_DELAY_MS = 200; // Delay before hiding sun tooltip
+const PLANET_TOOLTIP_HIDE_DELAY_MS = 200; // Delay before hiding planet tooltip
+// NOTE: State for these delays (lastSunLeaveTime, lastPlanetLeaveTime, sunHoverClearPending)
+// is stored in AnimationRefs to avoid leaking across component remounts
 
-// Planet tooltip delay tracking - prevents tooltip from disappearing immediately
-let lastPlanetLeaveTime: number | null = null;
-const PLANET_TOOLTIP_HIDE_DELAY_MS = 200; // Same delay as tooltip hide delay
+/**
+ * Reset animate module caches - call on component unmount to prevent stale state
+ */
+export function resetAnimateModuleCaches(): void {
+  cachedDefaultMousePosition = null;
+  lastElementCheckFrame = 0;
+  cachedIsOverContentCard = false;
+  cachedFilteredPlanets = [];
+  cachedFocusedSunId = null;
+  cachedPlanetsLength = 0;
+}
 
 export const animate = (
   timestamp: number,
@@ -348,28 +356,28 @@ export const animate = (
         if (!newInfo.show && props.isMouseOverProjectTooltipRef?.current) {
           // Clear any pending leave time when mouse is over the tooltip
           // This prevents stale timers from affecting behavior
-          lastPlanetLeaveTime = null;
+          refs.lastPlanetLeaveTimeRef.current = null;
           return;
         }
 
         // Handle delayed hiding for planet tooltips
         if (!newInfo.show && currentHoverInfo.show) {
           // Mouse has left the planet - start tracking leave time
-          if (lastPlanetLeaveTime === null) {
-            lastPlanetLeaveTime = currentFrameTime;
+          if (refs.lastPlanetLeaveTimeRef.current === null) {
+            refs.lastPlanetLeaveTimeRef.current = currentFrameTime;
           }
-          
+
           // Only hide after delay has passed
-          const timeSinceLeave = currentFrameTime - lastPlanetLeaveTime;
+          const timeSinceLeave = currentFrameTime - refs.lastPlanetLeaveTimeRef.current;
           if (timeSinceLeave >= PLANET_TOOLTIP_HIDE_DELAY_MS) {
             props.setHoverInfo(newInfo);
-            lastPlanetLeaveTime = null; // Reset for next hover
+            refs.lastPlanetLeaveTimeRef.current = null; // Reset for next hover
           }
           // If delay hasn't passed yet, don't hide - keep current state
           return;
         } else if (newInfo.show) {
           // Mouse is over a planet - clear any pending hide and show tooltip
-          lastPlanetLeaveTime = null;
+          refs.lastPlanetLeaveTimeRef.current = null;
         }
 
         // Only update state if it changed significantly
@@ -420,10 +428,10 @@ export const animate = (
       // If a planet tooltip is showing, clear sun hover immediately
       // This prevents both sun and planet hover effects from showing simultaneously
       if (currentHoverInfo.show && props.hoveredSunId !== null) {
-        sunHoverClearPending = true; // Mark as pending to prevent race condition
+        refs.sunHoverClearPendingRef.current = true; // Mark as pending to prevent race condition
         props.setHoveredSunId(null);
         props.setHoveredSun(null);
-        lastSunLeaveTime = null;
+        refs.lastSunLeaveTimeRef.current = null;
         // Reset the tooltip ref since the tooltip will be unmounted
         if (props.isMouseOverSunTooltipRef) {
           props.isMouseOverSunTooltipRef.current = false;
@@ -440,8 +448,8 @@ export const animate = (
 
         if (sunHoverResult) {
           // Mouse is over a sun - clear any pending hide timeout and show hover
-          lastSunLeaveTime = null;
-          sunHoverClearPending = false; // Reset pending clear since we're hovering
+          refs.lastSunLeaveTimeRef.current = null;
+          refs.sunHoverClearPendingRef.current = false; // Reset pending clear since we're hovering
 
           // Always update when hovering a different sun (even if over old tooltip)
           // This ensures the hover effect switches properly between suns
@@ -462,7 +470,7 @@ export const animate = (
               y: currentMousePosition.y,
             });
           }
-        } else if (props.hoveredSunId !== null && !sunHoverClearPending) {
+        } else if (props.hoveredSunId !== null && !refs.sunHoverClearPendingRef.current) {
           // Only process clearing logic if we haven't already initiated a clear
           // This prevents race condition where React state update is pending
           // Mouse has left the sun hit area
@@ -493,23 +501,23 @@ export const animate = (
 
           if (isMouseOverTooltip) {
             // Mouse is over the tooltip - keep hover active
-            lastSunLeaveTime = null;
+            refs.lastSunLeaveTimeRef.current = null;
           } else {
             // Mouse has left both the sun and the tooltip
             // Start tracking leave time if not already tracking
-            if (lastSunLeaveTime === null) {
-              lastSunLeaveTime = currentFrameTime;
+            if (refs.lastSunLeaveTimeRef.current === null) {
+              refs.lastSunLeaveTimeRef.current = currentFrameTime;
             }
 
             // Only clear hover after the delay has passed
-            const timeSinceLeave = currentFrameTime - lastSunLeaveTime;
+            const timeSinceLeave = currentFrameTime - refs.lastSunLeaveTimeRef.current;
             if (timeSinceLeave >= SUN_HOVER_HIDE_DELAY_MS) {
               // Mark clear as pending BEFORE calling setState to prevent re-entry
               // during the async React state update
-              sunHoverClearPending = true;
+              refs.sunHoverClearPendingRef.current = true;
               props.setHoveredSunId(null);
               props.setHoveredSun(null);
-              lastSunLeaveTime = null; // Reset for next hover
+              refs.lastSunLeaveTimeRef.current = null; // Reset for next hover
               // Reset the tooltip ref since the tooltip will be unmounted
               if (props.isMouseOverSunTooltipRef) {
                 props.isMouseOverSunTooltipRef.current = false;
@@ -518,8 +526,8 @@ export const animate = (
           }
         } else if (props.hoveredSunId === null) {
           // React state has caught up - reset the pending flag
-          sunHoverClearPending = false;
-          lastSunLeaveTime = null;
+          refs.sunHoverClearPendingRef.current = false;
+          refs.lastSunLeaveTimeRef.current = null;
           if (props.isMouseOverSunTooltipRef) {
             props.isMouseOverSunTooltipRef.current = false;
           }
@@ -812,3 +820,5 @@ export {
   checkSunHover,
   getCurrentSunPositions,
 };
+
+// Note: resetAnimateModuleCaches is also exported (defined above)
