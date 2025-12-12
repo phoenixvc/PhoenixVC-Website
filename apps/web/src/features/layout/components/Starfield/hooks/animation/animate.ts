@@ -400,6 +400,9 @@ export const animate = (
           props.planetSize,
           currentHoverInfo,
           updateHoverInfoIfChanged,
+          currentCamera,
+          canvas.width,
+          canvas.height,
         );
       }
     }
@@ -429,6 +432,7 @@ export const animate = (
           currentMousePosition.y,
           canvas.width,
           canvas.height,
+          currentCamera,
         );
 
         if (sunHoverResult) {

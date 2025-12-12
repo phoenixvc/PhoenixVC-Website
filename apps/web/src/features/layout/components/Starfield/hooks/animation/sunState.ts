@@ -3,6 +3,7 @@
 
 import { SUNS } from "../../cosmos/cosmicHierarchy";
 import { getSunStates, initializeSunStates } from "../../sunSystem";
+import { Camera } from "../../cosmos/types";
 
 /**
  * Encapsulated module state to prevent leakage
@@ -70,14 +71,58 @@ export function getFocusAreaSuns(): typeof SUNS {
 }
 
 /**
+ * Transform screen coordinates to world coordinates accounting for camera transform
+ * This is the inverse of the canvas transformation applied in animate.ts
+ * @param screenX Mouse X in screen coordinates
+ * @param screenY Mouse Y in screen coordinates
+ * @param camera Current camera state (or undefined if no camera transform)
+ * @param width Canvas width
+ * @param height Canvas height
+ * @returns World coordinates {x, y}
+ */
+function screenToWorldCoords(
+  screenX: number,
+  screenY: number,
+  camera: Camera | undefined,
+  width: number,
+  height: number,
+): { x: number; y: number } {
+  // If no camera or zoom is 1, no transform is applied - coords are the same
+  if (!camera || camera.zoom === 1) {
+    return { x: screenX, y: screenY };
+  }
+
+  // Reverse the canvas transform from animate.ts:
+  // ctx.translate(viewportCenterX, viewportCenterY);
+  // ctx.scale(cameraValues.zoom, cameraValues.zoom);
+  // ctx.translate(-cameraCenterX, -cameraCenterY);
+  const viewportCenterX = width / 2;
+  const viewportCenterY = height / 2;
+  const cameraCenterX = camera.cx * width;
+  const cameraCenterY = camera.cy * height;
+
+  // Reverse: subtract viewport center, divide by zoom, add camera center
+  const worldX = (screenX - viewportCenterX) / camera.zoom + cameraCenterX;
+  const worldY = (screenY - viewportCenterY) / camera.zoom + cameraCenterY;
+
+  return { x: worldX, y: worldY };
+}
+
+/**
  * Check if mouse is hovering over a sun - returns only the CLOSEST sun
  * Uses dynamic sun positions from the sun system
+ * @param mouseX Mouse X in screen coordinates
+ * @param mouseY Mouse Y in screen coordinates
+ * @param width Canvas width
+ * @param height Canvas height
+ * @param camera Optional camera for coordinate transformation
  */
 export function checkSunHover(
   mouseX: number,
   mouseY: number,
   width: number,
   height: number,
+  camera?: Camera,
 ): { sun: (typeof SUNS)[0]; index: number; x: number; y: number } | null {
   const sunStates = getSunStates();
 
@@ -86,6 +131,9 @@ export function checkSunHover(
     initializeSunStates();
     return null;
   }
+
+  // Transform mouse coordinates from screen to world space
+  const worldMouse = screenToWorldCoords(mouseX, mouseY, camera, width, height);
 
   let closestSun: {
     sun: (typeof SUNS)[0];
@@ -100,6 +148,7 @@ export function checkSunHover(
 
   for (let i = 0; i < sunStates.length; i++) {
     const sunState = sunStates[i];
+    // Sun positions are in world coordinates (normalized * canvas dimensions)
     const x = sunState.x * width;
     const y = sunState.y * height;
     const baseSize = Math.max(
@@ -107,10 +156,13 @@ export function checkSunHover(
       Math.min(width, height) * sunState.size * 0.6,
     );
     // Increase hit area for better clickability
-    const hitRadius = baseSize * 3;
+    // Scale hit radius by zoom for consistent hover detection at different zoom levels
+    const zoomFactor = camera?.zoom || 1;
+    const hitRadius = baseSize * 3 / zoomFactor;
 
+    // Compare world mouse coords with world sun coords
     const distance = Math.sqrt(
-      Math.pow(mouseX - x, 2) + Math.pow(mouseY - y, 2),
+      Math.pow(worldMouse.x - x, 2) + Math.pow(worldMouse.y - y, 2),
     );
     if (distance <= hitRadius) {
       // Find matching sun from SUNS array
