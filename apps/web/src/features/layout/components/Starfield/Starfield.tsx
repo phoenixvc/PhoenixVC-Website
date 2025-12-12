@@ -183,10 +183,8 @@ const InteractiveStarfield = forwardRef<
       y: 0,
       show: false,
     });
-    const [pinnedProject, setPinnedProject] = useState<PortfolioProject | null>(
-      null,
-    );
-    const [pinnedPosition, setPinnedPosition] = useState({ x: 0, y: 0 });
+    const [pinnedProjects, setPinnedProjects] = useState<PortfolioProject[]>([]);
+
     // Track if mouse is over the project tooltip to prevent hiding while interacting
     const isMouseOverProjectTooltipRef = useRef(false);
     // Ref for debouncing project tooltip hide
@@ -197,14 +195,23 @@ const InteractiveStarfield = forwardRef<
     const TOOLTIP_HIDE_DELAY_MS = 200;
 
     const handlePinProject = (project: PortfolioProject): void => {
-      setPinnedProject(project);
-      setPinnedPosition({ x: mousePosition.x, y: mousePosition.y });
-      // Hide hover tooltip when pinning
+      setPinnedProjects((prev) => {
+        // Prevent duplicates
+        if (prev.some(p => p.id === project.id)) return prev;
+        // Optional: limit number of pinned projects
+        if (prev.length >= 5) return prev;
+        return [...prev, project];
+      });
+      // Hide the floating tooltip so the user can immediately hover other items
       setHoverInfo({ project: null, x: 0, y: 0, show: false });
     };
 
-    const handleUnpinProject = (): void => {
-      setPinnedProject(null);
+    const handleUnpinProject = (projectId: string): void => {
+      setPinnedProjects((prev) => prev.filter(p => p.id !== projectId));
+    };
+
+    const handleUnpinAll = (): void => {
+      setPinnedProjects([]);
     };
 
     // Handlers for project tooltip mouse enter/leave
@@ -481,19 +488,23 @@ const InteractiveStarfield = forwardRef<
 
     useEffect(() => {
       const handleGlobalClick = (e: MouseEvent): void => {
-        // If we have a pinned project and click is not on tooltip
+        // If we have pinned projects and click is on canvas (background)
         if (
-          pinnedProject &&
+          pinnedProjects.length > 0 &&
           canvasRef.current &&
           e.target === canvasRef.current
         ) {
-          handleUnpinProject();
+          // Optional: close all on background click?
+          // For now, we keep them open as per request "dock" behavior,
+          // or user can close them individually.
+          // If "click background to unpin all" is desired:
+          // handleUnpinAll();
         }
       };
 
       window.addEventListener("click", handleGlobalClick);
       return (): void => window.removeEventListener("click", handleGlobalClick);
-    }, [pinnedProject]);
+    }, [pinnedProjects]);
 
     // Set up canvas and handle resize
     useEffect(() => {
@@ -1304,18 +1315,34 @@ const InteractiveStarfield = forwardRef<
         />
       )}
 
-      {pinnedProject && (
-        <ProjectTooltip
-          project={pinnedProject}
-          x={pinnedPosition.x}
-          y={pinnedPosition.y}
-          isPinned={true}
-          isDarkMode={isDarkMode}
-          onUnpin={handleUnpinProject}
-        />
+      {/* Pinned Projects Dock */}
+      {pinnedProjects.length > 0 && (
+        <div className={styles.pinnedDock} data-starfield-passthrough="true">
+          {pinnedProjects.length > 1 && (
+            <button
+              className={styles.closeAllButton}
+              onClick={handleUnpinAll}
+            >
+              Close All
+            </button>
+          )}
+          {pinnedProjects.map((project) => (
+            <ProjectTooltip
+              key={project.id}
+              project={project}
+              x={0}
+              y={0}
+              isPinned={true}
+              isDocked={true}
+              isDarkMode={isDarkMode}
+              onUnpin={() => handleUnpinProject(project.id)}
+            />
+          ))}
+        </div>
       )}
 
-      {hoverInfo.show && hoverInfo.project && !pinnedProject && (
+      {/* Hover Tooltip - now allowed even if projects are pinned */}
+      {hoverInfo.show && hoverInfo.project && (
         <ProjectTooltip
           project={hoverInfo.project}
           x={hoverInfo.x}
@@ -1328,7 +1355,8 @@ const InteractiveStarfield = forwardRef<
       )}
 
       {/* Sun tooltip when hovering over a focus area sun - only show if no project tooltip is visible */}
-      {hoveredSun && !pinnedProject && !hoverInfo.show && (
+      {/* Removed !pinnedProject check to allow interaction while docked */}
+      {hoveredSun && !hoverInfo.show && (
         <SunTooltip
           ref={sunTooltipElementRef}
           sun={hoveredSun}
