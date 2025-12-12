@@ -283,6 +283,38 @@ export const initPlanets = (
   return planets;
 };
 
+/**
+ * Transform screen coordinates to world coordinates accounting for camera transform
+ * This is the inverse of the canvas transformation applied in animate.ts
+ */
+function screenToWorldCoords(
+  screenX: number,
+  screenY: number,
+  camera: Camera | undefined,
+  width: number,
+  height: number,
+): { x: number; y: number } {
+  // If no camera or zoom is 1, no transform is applied - coords are the same
+  if (!camera || camera.zoom === 1) {
+    return { x: screenX, y: screenY };
+  }
+
+  // Reverse the canvas transform from animate.ts:
+  // ctx.translate(viewportCenterX, viewportCenterY);
+  // ctx.scale(cameraValues.zoom, cameraValues.zoom);
+  // ctx.translate(-cameraCenterX, -cameraCenterY);
+  const viewportCenterX = width / 2;
+  const viewportCenterY = height / 2;
+  const cameraCenterX = camera.cx * width;
+  const cameraCenterY = camera.cy * height;
+
+  // Reverse: subtract viewport center, divide by zoom, add camera center
+  const worldX = (screenX - viewportCenterX) / camera.zoom + cameraCenterX;
+  const worldY = (screenY - viewportCenterY) / camera.zoom + cameraCenterY;
+
+  return { x: worldX, y: worldY };
+}
+
 export const checkPlanetHover = (
   mouseX: number,
   mouseY: number,
@@ -290,17 +322,31 @@ export const checkPlanetHover = (
   planetSize: number,
   currentHoverInfo: HoverInfo,
   setHoverInfo: (_info: HoverInfo) => void,
+  camera?: Camera,
+  canvasWidth?: number,
+  canvasHeight?: number,
 ): boolean => {
   if (!planets || !planets.length) return false;
 
+  // Transform mouse coordinates from screen to world space if camera is provided
+  let worldMouseX = mouseX;
+  let worldMouseY = mouseY;
+  if (camera && canvasWidth && canvasHeight) {
+    const worldCoords = screenToWorldCoords(mouseX, mouseY, camera, canvasWidth, canvasHeight);
+    worldMouseX = worldCoords.x;
+    worldMouseY = worldCoords.y;
+  }
+
   // Shared hover radius constant for consistent detection
-  const hoverRadius = ORBIT_CONFIG.hover.radiusMultiplier * planetSize;
+  // Scale by zoom for consistent hover detection at different zoom levels
+  const zoomFactor = camera?.zoom || 1;
+  const hoverRadius = (ORBIT_CONFIG.hover.radiusMultiplier * planetSize) / zoomFactor;
 
   // Helper function to calculate distance between mouse and planet
   // Uses multiplication instead of Math.pow for better performance
   const getDistanceToPlanet = (planet: Planet): number => {
-    const dx = mouseX - planet.x;
-    const dy = mouseY - planet.y;
+    const dx = worldMouseX - planet.x;
+    const dy = worldMouseY - planet.y;
     return Math.sqrt(dx * dx + dy * dy);
   };
 
