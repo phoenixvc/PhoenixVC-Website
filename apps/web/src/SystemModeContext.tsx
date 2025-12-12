@@ -28,7 +28,7 @@ export const SystemModeProvider: React.FC<{ children: React.ReactNode }> = ({
     }
     return "light"; // Default for SSR
   });
-  const [useSystemMode, setUseSystemMode] = useState(true);
+  const [useSystemMode, setUseSystemMode] = useState(false);
 
   const handleSystemModeChange = useCallback((e: MediaQueryListEvent) => {
     setSystemMode(e.matches ? "dark" : "light");

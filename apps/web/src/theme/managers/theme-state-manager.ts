@@ -39,7 +39,7 @@ export class ThemeStateManager {
   private mediaQuery: MediaQueryList | null = null;
 
   private constructor(
-    config: ThemeConfig = { name: "default", useSystem: true },
+    config: ThemeConfig = { name: "default", useSystem: false },
   ) {
     // Initialize all properties first to avoid undefined errors
     this.listeners = new Set();
