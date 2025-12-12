@@ -454,20 +454,17 @@ export const animate = (
               y: currentMousePosition.y,
             });
           }
-        } else if (props.hoveredSunId !== null && props.isMouseOverSunTooltipRef?.current) {
-          // Mouse is over the tooltip (not over the sun itself)
-          // Clear any pending leave time to prevent hover from clearing while interacting
-          lastSunLeaveTime = null;
         } else if (props.hoveredSunId !== null) {
           // Mouse has left the sun hit area
-          // Check if mouse is over the tooltip using geometric bounds check
+          // Always do geometric bounds check to handle stale ref state
+          // (can happen if tooltip is unmounted while mouse was over it)
           let isMouseOverTooltip = false;
           if (props.sunTooltipElementRef?.current) {
             const tooltipElement = props.sunTooltipElementRef.current;
             const rect = tooltipElement.getBoundingClientRect();
             const mouseX = currentMousePosition.x;
             const mouseY = currentMousePosition.y;
-            
+
             // Check if mouse position is within tooltip bounds
             isMouseOverTooltip = (
               mouseX >= rect.left &&
@@ -476,7 +473,14 @@ export const animate = (
               mouseY <= rect.bottom
             );
           }
-          
+
+          // Also check the ref as a fallback (for when bounds check might fail)
+          if (!isMouseOverTooltip && props.isMouseOverSunTooltipRef?.current) {
+            // Ref says over tooltip but bounds check says no
+            // Trust the bounds check and reset the stale ref
+            props.isMouseOverSunTooltipRef.current = false;
+          }
+
           if (isMouseOverTooltip) {
             // Mouse is over the tooltip - keep hover active
             lastSunLeaveTime = null;
