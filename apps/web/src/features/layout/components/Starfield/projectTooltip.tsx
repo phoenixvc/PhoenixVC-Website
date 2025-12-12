@@ -8,6 +8,7 @@ interface ProjectTooltipProps {
   x: number;
   y: number;
   isPinned?: boolean;
+  isDocked?: boolean;
   isDarkMode?: boolean;
   onPin?: (project: PortfolioProject) => void;
   onUnpin?: () => void;
@@ -20,6 +21,7 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
   x,
   y,
   isPinned = false,
+  isDocked = false,
   isDarkMode = true,
   onPin,
   onUnpin,
@@ -36,11 +38,16 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
   }, []);
 
   // Calculate tooltip position to ensure it stays within viewport
-  const adjustPosition = (): {
-    left: number;
-    top: number;
-    position: "fixed";
-  } => {
+  const adjustPosition = (): React.CSSProperties => {
+    if (isDocked) {
+      return {
+        position: "relative",
+        // No left/top needed, it flows in the container
+        marginBottom: "10px",
+        width: "100%", // Fit to dock
+      };
+    }
+
     const tooltipWidth = 280;
     const tooltipHeight = 250;
     const windowWidth =
@@ -64,11 +71,11 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
     return {
       left: tooltipX,
       top: tooltipY,
-      position: "fixed" as const,
+      position: "fixed",
     };
   };
 
-  const position = adjustPosition();
+  const styleProps = adjustPosition();
 
   // Format status for display
   const formatStatus = (status?: string): string => {
@@ -119,10 +126,11 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
         ${styles.tooltip}
         ${isVisible ? styles.visible : ""}
         ${isPinned ? styles.pinned : ""}
+        ${isDocked ? styles.docked : ""}
         ${!isDarkMode ? styles.lightMode : ""}
       `}
       style={{
-        ...position,
+        ...styleProps,
         opacity: isVisible ? 1 : 0,
         transform: isVisible ? "translateY(0)" : "translateY(10px)",
       }}

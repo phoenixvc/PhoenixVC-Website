@@ -1026,3 +1026,41 @@
   font-weight: 600;
   letter-spacing: 0.01em;
 }
+/* New CSS for docked items */
+.pinnedDock {
+  position: fixed;
+  top: 80px; /* Below header */
+  right: 20px;
+  width: 300px; /* Fixed width for the dock */
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none; /* Let clicks pass through empty space */
+}
+
+/* Ensure children catch events */
+.pinnedDock > * {
+  pointer-events: auto;
+}
+
+.closeAllButton {
+  align-self: flex-end;
+  background: rgba(138, 43, 226, 0.2);
+  border: 1px solid rgba(138, 43, 226, 0.5);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  backdrop-filter: blur(5px);
+  transition: all 0.2s;
+  pointer-events: auto;
+  margin-bottom: 5px;
+}
+
+.closeAllButton:hover {
+  background: rgba(138, 43, 226, 0.4);
+}

@@ -158,7 +158,8 @@ export function checkSunHover(
     // Increase hit area for better clickability
     // Scale hit radius by zoom for consistent hover detection at different zoom levels
     const zoomFactor = camera?.zoom || 1;
-    const hitRadius = baseSize * 3 / zoomFactor;
+    // Reduced hit radius to 1.0 to fix sticky hover persistence
+    const hitRadius = baseSize * 1.0 / zoomFactor;
 
     // Compare world mouse coords with world sun coords
     const distance = Math.sqrt(

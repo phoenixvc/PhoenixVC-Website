@@ -64,7 +64,7 @@ let cachedFocusedSunId: string | null = null;
 let cachedPlanetsLength = 0;
 
 // Delay constants for hover effects
-const SUN_HOVER_HIDE_DELAY_MS = 200; // Delay before hiding sun tooltip
+const SUN_HOVER_HIDE_DELAY_MS = 50; // Delay before hiding sun tooltip
 const PLANET_TOOLTIP_HIDE_DELAY_MS = 200; // Delay before hiding planet tooltip
 // NOTE: State for these delays (lastSunLeaveTime, lastPlanetLeaveTime, sunHoverClearPending)
 // is stored in AnimationRefs to avoid leaking across component remounts
