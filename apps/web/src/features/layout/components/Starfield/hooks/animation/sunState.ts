@@ -3,7 +3,7 @@
 
 import { SUNS } from "../../cosmos/cosmicHierarchy";
 import { getSunStates, initializeSunStates } from "../../sunSystem";
-import { Camera } from "../../cosmos/types";
+import { Camera, CosmicObject } from "../../cosmos/types";
 import { SUN_RENDERING_CONFIG } from "../../renderingConfig";
 
 /**
@@ -124,7 +124,7 @@ export function checkSunHover(
   width: number,
   height: number,
   camera?: Camera,
-): { sun: (typeof SUNS)[0]; index: number; x: number; y: number } | null {
+): { sun: CosmicObject; index: number; x: number; y: number } | null {
   const sunStates = getSunStates();
 
   // Initialize if needed
@@ -137,7 +137,7 @@ export function checkSunHover(
   const worldMouse = screenToWorldCoords(mouseX, mouseY, camera, width, height);
 
   let closestSun: {
-    sun: (typeof SUNS)[0];
+    sun: CosmicObject;
     index: number;
     x: number;
     y: number;
