@@ -1317,7 +1317,7 @@ const InteractiveStarfield = forwardRef<
 
       {/* Pinned Projects Dock */}
       {pinnedProjects.length > 0 && (
-        <div className={styles.pinnedDock}>
+        <div className={styles.pinnedDock} data-starfield-passthrough="true">
           {pinnedProjects.length > 1 && (
             <button
               className={styles.closeAllButton}
