@@ -213,6 +213,7 @@ jobs:
           env: production
           azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
           deployment_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_PROD }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Verify SWA Deployment
         run: |
