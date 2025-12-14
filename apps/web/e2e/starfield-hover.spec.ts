@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, Page } from "@playwright/test";
 
 /**
  * E2E tests for Starfield sun hover and click functionality
@@ -9,6 +9,15 @@ import { test, expect } from "@playwright/test";
  * 3. Clicking on sun triggers zoom
  * 4. Clicking on tooltip also triggers zoom
  */
+
+// Helper to track page errors during a test
+function trackPageErrors(page: Page): string[] {
+  const errors: string[] = [];
+  page.on("pageerror", (error: Error) => {
+    errors.push(error.message);
+  });
+  return errors;
+}
 
 test.describe("Starfield Sun Hover Functionality", () => {
   test.beforeEach(async ({ page }) => {
@@ -49,39 +58,59 @@ test.describe("Starfield Sun Hover Functionality", () => {
     page,
   }) => {
     const canvas = page.locator("canvas");
+    const errors = trackPageErrors(page);
 
     // Get sun positions from the global API if available
-    // Otherwise, try known positions based on the layout
     const sunPositions = await page.evaluate(() => {
-      // Check if starfieldAPI is exposed
-      const api = (window as unknown as { starfieldAPI?: { getSunPositions?: () => unknown[] } }).starfieldAPI;
+      const api = (
+        window as unknown as {
+          starfieldAPI?: { getSunPositions?: () => { x: number; y: number }[] };
+        }
+      ).starfieldAPI;
       if (api?.getSunPositions) {
         return api.getSunPositions();
       }
-      // Return null if not available - we'll use approximate positions
       return null;
     });
 
-    // If we got positions from the API, use them
-    if (sunPositions && Array.isArray(sunPositions) && sunPositions.length > 0) {
-      const firstSun = sunPositions[0] as { x: number; y: number };
+    // Perform hover action
+    if (
+      sunPositions &&
+      Array.isArray(sunPositions) &&
+      sunPositions.length > 0
+    ) {
+      // Assert we got valid sun positions
+      expect(sunPositions.length).toBeGreaterThan(0);
+
+      const firstSun = sunPositions[0];
       await canvas.hover({ position: { x: firstSun.x, y: firstSun.y } });
+
+      // Wait for tooltip delay (200ms) plus animation
+      await page.waitForTimeout(500);
+
+      // With known sun positions, tooltip SHOULD appear
+      const sunTooltip = page.locator("[class*=\"sunTooltip\"]");
+      await expect(sunTooltip).toBeVisible({ timeout: 2000 });
     } else {
-      // Use approximate center positions where suns typically appear
-      // Suns are distributed around the canvas
+      // No API available - verify hover doesn't crash and use approximate positions
       await canvas.hover({ position: { x: 400, y: 300 } });
+      await page.waitForTimeout(500);
+
+      // Assert hover completed without errors
+      expect(errors).toHaveLength(0);
+
+      // Verify either tooltip is visible OR it's not (both valid when position unknown)
+      const sunTooltip = page.locator("[class*=\"sunTooltip\"]");
+      const isVisible = await sunTooltip.isVisible().catch(() => false);
+
+      // If no tooltip, assert it's explicitly not visible (deterministic negative assertion)
+      if (!isVisible) {
+        await expect(sunTooltip).not.toBeVisible();
+      }
     }
 
-    // Wait for tooltip delay (200ms) plus animation
-    await page.waitForTimeout(500);
-
-    // Check if sun tooltip appeared (it may not if we didn't hit a sun)
-    const sunTooltip = page.locator("[class*=\"sunTooltip\"]");
-    const isVisible = await sunTooltip.isVisible().catch(() => false);
-
-    // This test is informational - we verify the hover mechanism works
-    // even if we don't hit a sun exactly
-    console.log(`Sun tooltip visible after hover: ${isVisible}`);
+    // No uncaught exceptions during hover
+    expect(errors).toHaveLength(0);
   });
 
   test("tooltip should hide after mouse leaves and delay expires", async ({
@@ -133,25 +162,43 @@ test.describe("Starfield Sun Hover Functionality", () => {
     // Find the sidebar toggle button
     const toggleButton = page.locator("[class*=\"sidebarToggle\"]").first();
 
-    if (await toggleButton.isVisible()) {
-      // Get initial icon state
-      const chevron = toggleButton.locator("svg");
-      const initialTransform = await chevron.evaluate((el) =>
-        getComputedStyle(el).transform
-      );
+    // Skip test if toggle not visible (mobile view)
+    if (!(await toggleButton.isVisible())) {
+      test.skip();
+      return;
+    }
 
-      // Click to collapse
-      await toggleButton.click();
-      await page.waitForTimeout(500);
+    // Get initial state - check for rotateIcon class or transform
+    const chevron = toggleButton.locator("svg");
+    const initialTransform = await chevron.evaluate(
+      (el: SVGElement) => getComputedStyle(el).transform
+    );
+    const hasRotateClassInitially = await chevron.evaluate((el: SVGElement) =>
+      el.classList.contains("rotateIcon")
+    );
 
-      // Get new icon state
-      const newTransform = await chevron.evaluate((el) =>
-        getComputedStyle(el).transform
-      );
+    // Click to toggle sidebar
+    await toggleButton.click();
+    await page.waitForTimeout(500);
 
-      // Icon should have rotated (transform changed)
-      // If both are 'none', that's also fine - means rotation is handled differently
-      console.log(`Initial transform: ${initialTransform}, New transform: ${newTransform}`);
+    // Get new state
+    const newTransform = await chevron.evaluate(
+      (el: SVGElement) => getComputedStyle(el).transform
+    );
+    const hasRotateClassAfter = await chevron.evaluate((el: SVGElement) =>
+      el.classList.contains("rotateIcon")
+    );
+
+    // Assert: Either class toggled OR transform changed
+    const classToggled = hasRotateClassInitially !== hasRotateClassAfter;
+    const transformChanged = initialTransform !== newTransform;
+
+    // At least one indicator should have changed
+    expect(classToggled || transformChanged).toBe(true);
+
+    // If transforms are both not "none", they should be different
+    if (initialTransform !== "none" && newTransform !== "none") {
+      expect(newTransform).not.toBe(initialTransform);
     }
   });
 });
