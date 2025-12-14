@@ -1062,8 +1062,6 @@ const InteractiveStarfield = forwardRef<
       applyStarfieldRepulsion,
     });
 
-    // NOTE: DOM backup click listener is now handled inside useCanvasClick hook
-
     return (
       <>
         {/* Background elements with positive z-index */}

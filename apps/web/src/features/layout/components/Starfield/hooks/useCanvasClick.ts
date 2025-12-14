@@ -9,7 +9,7 @@
  * All three now call the same core logic.
  */
 
-import { useCallback, useEffect, RefObject, Dispatch, SetStateAction } from "react";
+import { useCallback, RefObject, Dispatch, SetStateAction } from "react";
 import { checkSunHover } from "./animation/sunState";
 import { applyClickRepulsionToSunsCanvas } from "../sunSystem";
 import { applyClickRepulsionToPlanets } from "../Planets";
@@ -115,25 +115,8 @@ export function useCanvasClick(config: CanvasClickConfig): CanvasClickHandlers {
     [canvasRef, config],
   );
 
-  // DOM backup click listener (handles cases where React events might not fire)
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const domClickHandler = (e: MouseEvent): void => {
-      const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-
-      processCanvasClick(x, y, rect.width, rect.height, config);
-    };
-
-    canvas.addEventListener("click", domClickHandler);
-
-    return (): void => {
-      canvas.removeEventListener("click", domClickHandler);
-    };
-  }, [canvasRef, onSunClick, applyStarfieldRepulsion, planetsRef, config]);
+  // NOTE: DOM backup listener removed - React's onClick/onTouchEnd handlers are sufficient
+  // The backup was causing double-firing of click events
 
   return {
     handleCanvasClick,
