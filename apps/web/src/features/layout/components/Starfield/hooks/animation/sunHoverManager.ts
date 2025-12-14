@@ -22,6 +22,7 @@
 
 import { Camera } from "../../cosmos/types";
 import { checkSunHover, SunHoverResult } from "./sunState";
+import { isMouseOverElement, BoundedElement } from "./hoverUtils";
 
 // Configuration
 const TOOLTIP_HIDE_DELAY_MS = 200;
@@ -50,9 +51,8 @@ export interface SunHoverCallbacks {
   setHoveredSun: (sun: SunInfo | null) => void;
 }
 
-export interface TooltipElement {
-  getBoundingClientRect: () => DOMRect;
-}
+// Re-export for backwards compatibility
+export type TooltipElement = BoundedElement;
 
 /**
  * Creates a sun hover manager instance
@@ -195,23 +195,6 @@ export function createSunHoverManager() {
     reset,
     getRenderingHoverId,
   };
-}
-
-/**
- * Check if mouse coordinates are within an element's bounding box
- */
-function isMouseOverElement(
-  mouseX: number,
-  mouseY: number,
-  element: TooltipElement,
-): boolean {
-  const rect = element.getBoundingClientRect();
-  return (
-    mouseX >= rect.left &&
-    mouseX <= rect.right &&
-    mouseY >= rect.top &&
-    mouseY <= rect.bottom
-  );
 }
 
 // Export type for the manager

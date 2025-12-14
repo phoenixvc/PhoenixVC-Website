@@ -12,6 +12,7 @@
 import { Camera } from "../../cosmos/types";
 import { HoverInfo, Planet } from "../../types";
 import { checkPlanetHover } from "../../Planets";
+import { isMouseOverElement, BoundedElement } from "./hoverUtils";
 
 // Configuration
 const TOOLTIP_HIDE_DELAY_MS = 200;
@@ -20,9 +21,8 @@ export interface PlanetHoverCallbacks {
   setHoverInfo: (info: HoverInfo) => void;
 }
 
-export interface TooltipElement {
-  getBoundingClientRect: () => DOMRect;
-}
+// Re-export for backwards compatibility
+export type TooltipElement = BoundedElement;
 
 /**
  * Creates a planet hover manager instance
@@ -161,23 +161,6 @@ export function createPlanetHoverManager() {
     reset,
     isTimerActive,
   };
-}
-
-/**
- * Check if mouse is within element bounds
- */
-function isMouseOverElement(
-  mouseX: number,
-  mouseY: number,
-  element: TooltipElement,
-): boolean {
-  const rect = element.getBoundingClientRect();
-  return (
-    mouseX >= rect.left &&
-    mouseX <= rect.right &&
-    mouseY >= rect.top &&
-    mouseY <= rect.bottom
-  );
 }
 
 export type PlanetHoverManager = ReturnType<typeof createPlanetHoverManager>;

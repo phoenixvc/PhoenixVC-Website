@@ -12,6 +12,7 @@ import { PortfolioProject, HoverInfo, Planet, Satellite } from "./types";
 import { calculateCenter } from "./utils";
 import { logger } from "@/utils/logger";
 import { TWO_PI, fastSin, fastCos } from "./math";
+import { screenToWorldCoords } from "./hooks/animation/hoverUtils";
 
 // Initialize portfolio items as orbiting comets/planets
 export const initPlanets = (
@@ -282,38 +283,6 @@ export const initPlanets = (
 
   return planets;
 };
-
-/**
- * Transform screen coordinates to world coordinates accounting for camera transform
- * This is the inverse of the canvas transformation applied in animate.ts
- */
-function screenToWorldCoords(
-  screenX: number,
-  screenY: number,
-  camera: Camera | undefined,
-  width: number,
-  height: number,
-): { x: number; y: number } {
-  // If no camera or zoom is 1, no transform is applied - coords are the same
-  if (!camera || camera.zoom === 1) {
-    return { x: screenX, y: screenY };
-  }
-
-  // Reverse the canvas transform from animate.ts:
-  // ctx.translate(viewportCenterX, viewportCenterY);
-  // ctx.scale(cameraValues.zoom, cameraValues.zoom);
-  // ctx.translate(-cameraCenterX, -cameraCenterY);
-  const viewportCenterX = width / 2;
-  const viewportCenterY = height / 2;
-  const cameraCenterX = camera.cx * width;
-  const cameraCenterY = camera.cy * height;
-
-  // Reverse: subtract viewport center, divide by zoom, add camera center
-  const worldX = (screenX - viewportCenterX) / camera.zoom + cameraCenterX;
-  const worldY = (screenY - viewportCenterY) / camera.zoom + cameraCenterY;
-
-  return { x: worldX, y: worldY };
-}
 
 export const checkPlanetHover = (
   mouseX: number,

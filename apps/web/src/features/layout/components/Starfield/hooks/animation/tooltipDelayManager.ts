@@ -9,6 +9,8 @@
  * Used by both sun and planet hover systems.
  */
 
+import { isMouseOverElement, BoundedElement } from "./hoverUtils";
+
 // Default delay before hiding tooltip (in milliseconds)
 const DEFAULT_HIDE_DELAY_MS = 200;
 
@@ -16,9 +18,8 @@ export interface TooltipDelayConfig {
   hideDelayMs?: number;
 }
 
-export interface TooltipElement {
-  getBoundingClientRect: () => DOMRect;
-}
+// Re-export for backwards compatibility
+export type TooltipElement = BoundedElement;
 
 /**
  * Create a tooltip delay manager instance
@@ -113,23 +114,6 @@ export function createTooltipDelayManager(config: TooltipDelayConfig = {}) {
     resetTimer,
     isTimerActive,
   };
-}
-
-/**
- * Check if mouse coordinates are within an element's bounding box
- */
-function isMouseOverElement(
-  mouseX: number,
-  mouseY: number,
-  element: TooltipElement,
-): boolean {
-  const rect = element.getBoundingClientRect();
-  return (
-    mouseX >= rect.left &&
-    mouseX <= rect.right &&
-    mouseY >= rect.top &&
-    mouseY <= rect.bottom
-  );
 }
 
 // Export type for the manager

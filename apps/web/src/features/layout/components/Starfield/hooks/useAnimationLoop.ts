@@ -72,30 +72,18 @@ export const useAnimationLoop = (
   const animationStartTimeRef = useRef<number>(Date.now());
   const animationWatchdogRef = useRef<number | null>(null);
 
-  // Sun/planet hover state refs - per-instance to avoid leaking across remounts
-  // NOTE: sunHoverClearPendingRef removed - was dead code (never read)
-  const lastSunLeaveTimeRef = useRef<number | null>(null);
-  const lastPlanetLeaveTimeRef = useRef<number | null>(null);
-
-  // Centralized sun hover manager - handles both rendering and tooltip state
+  // Centralized hover managers - each manages its own internal timer state
+  // NOTE: lastSunLeaveTimeRef and lastPlanetLeaveTimeRef removed -
+  // hover managers now handle delay timers internally
   const sunHoverManagerRef = useRef<SunHoverManager | null>(null);
   if (!sunHoverManagerRef.current) {
     sunHoverManagerRef.current = createSunHoverManager();
   }
 
-  // Centralized planet hover manager - handles tooltip delay logic
   const planetHoverManagerRef = useRef<PlanetHoverManager | null>(null);
   if (!planetHoverManagerRef.current) {
     planetHoverManagerRef.current = createPlanetHoverManager();
   }
-
-  // ASSERTION: Clean up hover refs when hoveredSunId becomes null
-  // This prevents stale timer refs from persisting across hover cycles
-  useEffect(() => {
-    if (props.hoveredSunId === null) {
-      lastSunLeaveTimeRef.current = null;
-    }
-  }, [props.hoveredSunId]);
 
   /* ------------------------------------------------------------------ */
   /* 1. Make sure animate() always sees the **latest** props + settings */
@@ -158,10 +146,7 @@ export const useAnimationLoop = (
     lastDebugModeRef,
     animationStartTimeRef,
     animationWatchdogRef,
-    // Sun/planet hover state refs
-    lastSunLeaveTimeRef,
-    lastPlanetLeaveTimeRef,
-    // Centralized hover managers
+    // Centralized hover managers (handle their own delay timers internally)
     sunHoverManagerRef,
     planetHoverManagerRef,
   };
