@@ -58,13 +58,20 @@ export class ThemeStateManager {
       version: config.version || "1.0.0",
     };
 
-    // Initialize state asynchronously
+    // CRITICAL: Initialize state synchronously with dark mode default FIRST
+    // This ensures dark mode is shown immediately before any async storage reads complete
+    this.initializeState();
+
+    // Then initialize state asynchronously (will update from storage if available)
     this.initializeStateAsync().catch((error) => {
       console.error("[ThemeStateManager] Failed to initialize state:", error);
     });
 
     // Set up browser-specific functionality
     if (typeof window !== "undefined") {
+      // Apply dark mode immediately to prevent flash of light mode
+      this.applyTheme();
+
       this.initializeSystemListener();
       this._initialized = true;
 
