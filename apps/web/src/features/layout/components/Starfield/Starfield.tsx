@@ -10,8 +10,6 @@ import {
 import styles from "./starfield.module.css";
 import { logger } from "@/utils/logger";
 import {
-  PortfolioProject,
-  HoverInfo,
   GameState,
   InteractiveStarfieldProps,
   MousePosition,
@@ -33,6 +31,7 @@ import { useDebugControls } from "./hooks/useDebugControls";
 import { useTooltipRefs } from "./hooks/useTooltipRefs";
 import { useCanvasClick } from "./hooks/useCanvasClick";
 import { usePerformanceTier } from "./hooks/usePerformanceTier";
+import { useProjectHoverState } from "./hooks/useProjectHoverState";
 import DebugControlsOverlay from "./DebugControlsOverlay";
 import PerformanceDebugPanel from "./PerformanceDebugPanel";
 import { useStarInitialization } from "./hooks/useStarInitialization";
@@ -50,7 +49,7 @@ import {
   getSunStates,
   resetSunSystem,
 } from "./sunSystem";
-import SunTooltip, { SunInfo } from "./sunTooltip";
+import SunTooltip from "./sunTooltip";
 import { CAMERA_CONFIG } from "./physicsConfig";
 
 // Define the ref type
@@ -136,22 +135,22 @@ const InteractiveStarfield = forwardRef<
       fpsValuesRef,
     } = usePerformanceTier();
 
-    // Project hover state
-    const [hoverInfo, setHoverInfo] = useState<HoverInfo>({
-      project: null,
-      x: 0,
-      y: 0,
-      show: false,
-    });
-    const [pinnedProjects, setPinnedProjects] = useState<PortfolioProject[]>([]);
-
-    // Sun hover state for focus area suns
-    const [hoveredSun, setHoveredSun] = useState<SunInfo | null>(null);
-    const [hoveredSunId, setHoveredSunId] = useState<string | null>(null);
-
-    // Focused sun state - when user clicks on a focus area, we scope the view
-    const [focusedSunId, setFocusedSunId] = useState<string | null>(null);
-    const focusAnimationRef = useRef<number | null>(null);
+    // Project and sun hover state management
+    const {
+      hoverInfo,
+      setHoverInfo,
+      pinnedProjects,
+      handlePinProject,
+      handleUnpinProject,
+      handleUnpinAll,
+      hoveredSun,
+      setHoveredSun,
+      hoveredSunId,
+      setHoveredSunId,
+      focusedSunId,
+      setFocusedSunId,
+      focusAnimationRef,
+    } = useProjectHoverState();
 
     // Centralized tooltip ref management (prevents stuck refs when tooltips unmount)
     const tooltipRefs = useTooltipRefs({
@@ -159,26 +158,6 @@ const InteractiveStarfield = forwardRef<
       hoverInfo,
       setHoverInfo,
     });
-
-    const handlePinProject = (project: PortfolioProject): void => {
-      setPinnedProjects((prev) => {
-        // Prevent duplicates
-        if (prev.some(p => p.id === project.id)) return prev;
-        // Optional: limit number of pinned projects
-        if (prev.length >= 5) return prev;
-        return [...prev, project];
-      });
-      // Hide the floating tooltip so the user can immediately hover other items
-      setHoverInfo({ project: null, x: 0, y: 0, show: false });
-    };
-
-    const handleUnpinProject = (projectId: string): void => {
-      setPinnedProjects((prev) => prev.filter(p => p.id !== projectId));
-    };
-
-    const handleUnpinAll = (): void => {
-      setPinnedProjects([]);
-    };
 
     // Internal camera state for sun zoom functionality
     const [internalCamera, setInternalCamera] = useState<Camera>({
@@ -417,25 +396,8 @@ const InteractiveStarfield = forwardRef<
       }
     }, [gameMode]);
 
-    useEffect(() => {
-      const handleGlobalClick = (e: MouseEvent): void => {
-        // If we have pinned projects and click is on canvas (background)
-        if (
-          pinnedProjects.length > 0 &&
-          canvasRef.current &&
-          e.target === canvasRef.current
-        ) {
-          // Optional: close all on background click?
-          // For now, we keep them open as per request "dock" behavior,
-          // or user can close them individually.
-          // If "click background to unpin all" is desired:
-          // handleUnpinAll();
-        }
-      };
-
-      window.addEventListener("click", handleGlobalClick);
-      return (): void => window.removeEventListener("click", handleGlobalClick);
-    }, [pinnedProjects]);
+    // NOTE: Global click handler for unpinning on background click was removed
+    // (dead code - was commented out). If needed, add to useProjectHoverState hook.
 
     // Set up canvas and handle resize
     useEffect(() => {
