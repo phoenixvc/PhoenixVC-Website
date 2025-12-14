@@ -429,6 +429,11 @@ export const animate = (
       props.setHoveredSunId &&
       props.setHoveredSun
     ) {
+      // ASSERTION: Timer should never exist without a hovered sun - clean up stale state
+      if (refs.lastSunLeaveTimeRef.current !== null && props.hoveredSunId === null) {
+        refs.lastSunLeaveTimeRef.current = null;
+      }
+
       // Force clear conditions - immediately clear hover state
       const shouldForceClear =
         currentHoverInfo.show || // Planet tooltip showing - clear sun hover
@@ -504,6 +509,13 @@ export const animate = (
                 props.isMouseOverSunTooltipRef.current = false;
               }
             }
+          }
+        } else {
+          // ASSERTION: No hover and no timer - ensure refs are clean
+          // This catches any edge case where state got out of sync
+          refs.lastSunLeaveTimeRef.current = null;
+          if (props.isMouseOverSunTooltipRef) {
+            props.isMouseOverSunTooltipRef.current = false;
           }
         }
       }
