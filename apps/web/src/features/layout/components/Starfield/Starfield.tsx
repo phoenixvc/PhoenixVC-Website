@@ -33,14 +33,12 @@ import { useCanvasClick } from "./hooks/useCanvasClick";
 import { usePerformanceTier } from "./hooks/usePerformanceTier";
 import { useProjectHoverState } from "./hooks/useProjectHoverState";
 import { useCameraAnimation } from "./hooks/useCameraAnimation";
+import { useStarfieldAPI } from "./hooks/useStarfieldAPI";
 import DebugControlsOverlay from "./DebugControlsOverlay";
 import PerformanceDebugPanel from "./PerformanceDebugPanel";
 import { useStarInitialization } from "./hooks/useStarInitialization";
-import {
-  applyClickForce,
-  createClickExplosion,
-  resetConnectionStagger,
-} from "./stars";
+import { resetConnectionStagger } from "./stars";
+// applyClickForce, createClickExplosion moved to useStarfieldAPI hook
 import {
   resetAnimationModuleState,
   resetAnimateModuleCaches,
@@ -300,44 +298,8 @@ const InteractiveStarfield = forwardRef<
       ],
     );
 
-    useEffect(() => {
-      // Create a global API for testing
-      window.starfieldAPI = {
-        applyForce: (
-          x: number,
-          y: number,
-          radius: number,
-          force: number,
-        ): number => {
-          if (starsRef.current && starsRef.current.length > 0) {
-            return applyClickForce(starsRef.current, x, y, radius, force);
-          }
-          return 0;
-        },
-        getStarsCount: (): number => starsRef.current?.length || 0,
-        createExplosion: (x: number, y: number): boolean => {
-          if (canvasRef.current) {
-            const ctx = canvasRef.current.getContext("2d");
-            if (ctx) {
-              createClickExplosion(
-                ctx,
-                x,
-                y,
-                300,
-                "rgba(255, 255, 255, 0.9)",
-                1000,
-              );
-              return true;
-            }
-          }
-          return false;
-        },
-      };
-
-      return (): void => {
-        delete window.starfieldAPI;
-      };
-    }, [starsRef]);
+    // Global starfield API for external interactions (testing, debugging)
+    useStarfieldAPI({ starsRef, canvasRef });
 
     // Initialize elements on mount - intentionally runs once
     useEffect(() => {
@@ -702,14 +664,10 @@ const InteractiveStarfield = forwardRef<
         // Clear any lingering animation frames
         // Note: tooltip timeout cleanup is handled by useTooltipRefs hook
         // Note: camera animation cleanup is handled by useCameraAnimation hook
+        // Note: global API cleanup is handled by useStarfieldAPI hook
         if (cameraAnimationRef.current) {
           cancelAnimationFrame(cameraAnimationRef.current);
           cameraAnimationRef.current = null;
-        }
-
-        // Clean up global API
-        if (window.starfieldAPI) {
-          delete window.starfieldAPI;
         }
       };
     }, []);
