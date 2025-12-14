@@ -71,6 +71,7 @@ export function createSunHoverManager(): {
     isPlanetTooltipShowing: boolean;
     tooltipElement: TooltipElement | null;
     currentTooltipSunId: string | null;
+    isMouseOverTooltipRef: boolean;
     callbacks: SunHoverCallbacks;
     frameTime: number;
   }) => string | null;
@@ -100,6 +101,7 @@ export function createSunHoverManager(): {
     isPlanetTooltipShowing: boolean;
     tooltipElement: TooltipElement | null;
     currentTooltipSunId: string | null;
+    isMouseOverTooltipRef: boolean;
     callbacks: SunHoverCallbacks;
     frameTime: number;
   }): string | null {
@@ -114,6 +116,7 @@ export function createSunHoverManager(): {
       isPlanetTooltipShowing,
       tooltipElement,
       currentTooltipSunId,
+      isMouseOverTooltipRef,
       callbacks,
       frameTime,
     } = params;
@@ -152,7 +155,7 @@ export function createSunHoverManager(): {
     }
 
     // Use shared delay manager for consistent behavior
-    const isMouseOverTooltipRef = false; // Sun tooltip uses element check only
+    // Pass actual isMouseOverTooltipRef from animation loop
     const delayResult = delayManager.processDelay(
       {
         mouseX,
@@ -174,18 +177,19 @@ export function createSunHoverManager(): {
         callbacks.setHoveredSun(null);
       }
     } else if (delayResult.shouldShow && liveHoverResult) {
-      // Show new tooltip (or update existing)
-      if (currentTooltipSunId !== liveHoverResult.sun.id) {
-        callbacks.setHoveredSunId(liveHoverResult.sun.id);
-        callbacks.setHoveredSun({
-          id: liveHoverResult.sun.id,
-          name: liveHoverResult.sun.name ?? "",
-          description: liveHoverResult.sun.description ?? "",
-          color: liveHoverResult.sun.color ?? "#ffffff",
-          x: mouseX,
-          y: mouseY,
-        });
-      }
+      // Always update tooltip state when shouldShow is true
+      // This fixes the race condition where React state hasn't propagated yet
+      // but user re-hovers the same sun - we must always call setters to ensure
+      // the tooltip shows, and update position in case mouse moved
+      callbacks.setHoveredSunId(liveHoverResult.sun.id);
+      callbacks.setHoveredSun({
+        id: liveHoverResult.sun.id,
+        name: liveHoverResult.sun.name ?? "",
+        description: liveHoverResult.sun.description ?? "",
+        color: liveHoverResult.sun.color ?? "#ffffff",
+        x: mouseX,
+        y: mouseY,
+      });
     }
 
     // Return the LIVE hover ID for rendering
