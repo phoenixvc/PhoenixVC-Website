@@ -3,7 +3,7 @@ env:
 
 name: Deploy to Production
 
-# Simple manual trigger - GitHub Environment protection handles approval
+# Manual trigger + callable from staging workflow
 on:
   workflow_dispatch:
     inputs:
@@ -22,6 +22,21 @@ on:
         required: false
       includeDnsUpdate:
         description: 'Include DNS configuration update'
+        type: boolean
+        default: false
+  # Allow staging workflow to call this
+  workflow_call:
+    inputs:
+      artifactSource:
+        type: string
+        default: 'specific'
+      artifactId:
+        type: string
+        required: true
+      runID:
+        type: string
+        required: true
+      includeDnsUpdate:
         type: boolean
         default: false
 
