@@ -40,6 +40,7 @@ import {
   drawSuns,
   resetAnimationModuleState,
   getFocusAreaSuns,
+  checkSunHover,
   getCurrentSunPositions,
 } from "./sunRendering";
 // NOTE: checkSunHover is now used internally by sunHoverManager
