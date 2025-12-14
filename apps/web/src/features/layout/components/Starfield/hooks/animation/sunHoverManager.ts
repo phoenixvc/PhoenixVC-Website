@@ -79,6 +79,8 @@ export function createSunHoverManager(): {
   // Internal state (not React state - these are immediate)
   let lastLeaveTime: number | null = null;
   let currentRenderingHoverId: string | null = null;
+  // Track tooltip state INTERNALLY to avoid React state sync issues
+  let internalTooltipSunId: string | null = null;
 
   /**
    * Process hover state for a single frame
@@ -145,17 +147,19 @@ export function createSunHoverManager(): {
     // - Mouse left the screen
     if (!isMouseOnScreen || isOverContentCard) {
       // Mouse left canvas area - clear tooltip
-      if (currentTooltipSunId !== null) {
+      if (internalTooltipSunId !== null) {
         callbacks.setHoveredSunId(null);
         callbacks.setHoveredSun(null);
+        internalTooltipSunId = null;
       }
       lastLeaveTime = null;
     } else if (isPlanetTooltipShowing) {
       // Planet tooltip takes priority - hide sun tooltip but DON'T reset timer
       // This way if planet tooltip closes, sun tooltip can reappear
-      if (currentTooltipSunId !== null) {
+      if (internalTooltipSunId !== null) {
         callbacks.setHoveredSunId(null);
         callbacks.setHoveredSun(null);
+        internalTooltipSunId = null;
       }
       // Keep lastLeaveTime as-is so delay continues
     } else {
@@ -164,7 +168,9 @@ export function createSunHoverManager(): {
         // Mouse IS over a sun - show/update tooltip
         lastLeaveTime = null; // Cancel any pending hide
 
-        if (currentTooltipSunId !== liveHoverResult.sun.id) {
+        // Use INTERNAL state for comparison to avoid React async issues
+        if (internalTooltipSunId !== liveHoverResult.sun.id) {
+          internalTooltipSunId = liveHoverResult.sun.id;
           callbacks.setHoveredSunId(liveHoverResult.sun.id);
           callbacks.setHoveredSun({
             id: liveHoverResult.sun.id,
@@ -175,7 +181,7 @@ export function createSunHoverManager(): {
             y: mouseY,
           });
         }
-      } else if (currentTooltipSunId !== null) {
+      } else if (internalTooltipSunId !== null) {
         // Mouse NOT over any sun, but tooltip is visible
         // Check if mouse is over the tooltip element (allows clicking)
         const isOverTooltip = tooltipElement
@@ -196,6 +202,7 @@ export function createSunHoverManager(): {
             // Timer expired - hide tooltip
             callbacks.setHoveredSunId(null);
             callbacks.setHoveredSun(null);
+            internalTooltipSunId = null;
             lastLeaveTime = null;
           }
         }
@@ -212,6 +219,7 @@ export function createSunHoverManager(): {
   function reset(): void {
     lastLeaveTime = null;
     currentRenderingHoverId = null;
+    internalTooltipSunId = null;
   }
 
   /**
