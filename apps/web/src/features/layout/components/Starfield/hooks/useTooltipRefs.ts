@@ -81,6 +81,18 @@ export function useTooltipRefs(config: TooltipRefsConfig): TooltipRefs {
     }
   }, [hoverInfo.show]);
 
+  // Cleanup on unmount - clear any pending timeouts
+  useEffect(() => {
+    return () => {
+      if (sunHideTimeoutRef.current) {
+        clearTimeout(sunHideTimeoutRef.current);
+      }
+      if (projectTooltipHideTimeoutRef.current) {
+        clearTimeout(projectTooltipHideTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // === EVENT HANDLERS FOR TOOLTIP COMPONENTS ===
 
   const handleProjectTooltipMouseEnter = useCallback((): void => {

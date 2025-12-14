@@ -115,10 +115,13 @@ export function createSunHoverManager(): {
       frameTime,
     } = params;
 
-    // === STEP 1: Compute LIVE hover state (for rendering) ===
+    // === STEP 1: Compute LIVE hover state (for RENDERING) ===
+    // CRITICAL: Detection should ALWAYS run when mouse is on screen and over canvas.
+    // Do NOT block detection based on planet tooltip state - that's a TOOLTIP concern,
+    // not a RENDERING concern. The hover ring should appear immediately.
     let liveHoverResult: SunHoverResult | null = null;
 
-    if (isMouseOnScreen && !isOverContentCard && !isPlanetTooltipShowing) {
+    if (isMouseOnScreen && !isOverContentCard) {
       liveHoverResult = checkSunHover(
         mouseX,
         mouseY,
@@ -128,28 +131,39 @@ export function createSunHoverManager(): {
       );
     }
 
-    // Update rendering state immediately
+    // Update rendering state immediately - this controls the hover ring
     currentRenderingHoverId = liveHoverResult?.sun.id ?? null;
 
     // === STEP 2: Manage TOOLTIP state (with delay) ===
+    // Tooltip has different rules than rendering:
+    // - Don't show sun tooltip if planet tooltip is active (UI priority)
+    // - Has 200ms grace period for mouse to move to tooltip
 
-    // Force clear conditions - immediately clear tooltip
-    const shouldForceClear =
-      isPlanetTooltipShowing ||
-      isOverContentCard ||
-      !isMouseOnScreen;
-
-    if (shouldForceClear && currentTooltipSunId !== null) {
-      // Immediate clear
-      callbacks.setHoveredSunId(null);
-      callbacks.setHoveredSun(null);
+    // Force clear sun tooltip when:
+    // - Planet tooltip is showing (UI priority - planet wins)
+    // - Mouse is over a content card
+    // - Mouse left the screen
+    if (!isMouseOnScreen || isOverContentCard) {
+      // Mouse left canvas area - clear tooltip
+      if (currentTooltipSunId !== null) {
+        callbacks.setHoveredSunId(null);
+        callbacks.setHoveredSun(null);
+      }
       lastLeaveTime = null;
-    } else if (!shouldForceClear) {
+    } else if (isPlanetTooltipShowing) {
+      // Planet tooltip takes priority - hide sun tooltip but DON'T reset timer
+      // This way if planet tooltip closes, sun tooltip can reappear
+      if (currentTooltipSunId !== null) {
+        callbacks.setHoveredSunId(null);
+        callbacks.setHoveredSun(null);
+      }
+      // Keep lastLeaveTime as-is so delay continues
+    } else {
+      // Normal operation - mouse on screen, no planet tooltip blocking
       if (liveHoverResult) {
-        // Mouse IS over a sun
+        // Mouse IS over a sun - show/update tooltip
         lastLeaveTime = null; // Cancel any pending hide
 
-        // Update tooltip if hovering different sun
         if (currentTooltipSunId !== liveHoverResult.sun.id) {
           callbacks.setHoveredSunId(liveHoverResult.sun.id);
           callbacks.setHoveredSun({
@@ -163,13 +177,13 @@ export function createSunHoverManager(): {
         }
       } else if (currentTooltipSunId !== null) {
         // Mouse NOT over any sun, but tooltip is visible
-        // Check if mouse is over the tooltip element
+        // Check if mouse is over the tooltip element (allows clicking)
         const isOverTooltip = tooltipElement
           ? isMouseOverElement(mouseX, mouseY, tooltipElement)
           : false;
 
         if (isOverTooltip) {
-          // Keep tooltip visible, reset timer
+          // Keep tooltip visible while mouse is over it
           lastLeaveTime = null;
         } else {
           // Start/continue hide timer
