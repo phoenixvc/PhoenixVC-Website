@@ -3,6 +3,7 @@ import { CollisionEffect, GameState } from "../types";
 import { animate } from "./animation/animate";
 import { AnimationProps, AnimationRefs } from "./animation/types";
 import { createSunHoverManager, SunHoverManager } from "./animation/sunHoverManager";
+import { createPlanetHoverManager, PlanetHoverManager } from "./animation/planetHoverManager";
 import { logger } from "@/utils/logger";
 
 export const useAnimationLoop = (
@@ -82,6 +83,12 @@ export const useAnimationLoop = (
     sunHoverManagerRef.current = createSunHoverManager();
   }
 
+  // Centralized planet hover manager - handles tooltip delay logic
+  const planetHoverManagerRef = useRef<PlanetHoverManager | null>(null);
+  if (!planetHoverManagerRef.current) {
+    planetHoverManagerRef.current = createPlanetHoverManager();
+  }
+
   // ASSERTION: Clean up hover refs when hoveredSunId becomes null
   // This prevents stale timer refs from persisting across hover cycles
   useEffect(() => {
@@ -154,8 +161,9 @@ export const useAnimationLoop = (
     // Sun/planet hover state refs
     lastSunLeaveTimeRef,
     lastPlanetLeaveTimeRef,
-    // Centralized hover manager
+    // Centralized hover managers
     sunHoverManagerRef,
+    planetHoverManagerRef,
   };
 
   // Restart animation function

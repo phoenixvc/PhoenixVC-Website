@@ -1,6 +1,5 @@
 // components/Layout/Starfield/hooks/animation/animate.ts
 // Core animation loop - orchestrates all rendering operations
-import { SetStateAction } from "react";
 import { drawBlackHole } from "../../blackHoles";
 import {
   drawConnections,
@@ -26,7 +25,8 @@ import { lerpCamera } from "../../cosmos/camera";
 import { renderCosmicHierarchy } from "../../cosmos/renderCosmicHierarchy";
 import { Camera, CosmicNavigationState } from "../../cosmos/types";
 // Import cosmic hierarchy data
-import { checkPlanetHover, updatePlanets } from "../../Planets";
+// NOTE: checkPlanetHover now called inside planetHoverManager
+import { updatePlanets } from "../../Planets";
 import { drawCosmicNavigation } from "./drawCosmicNavigation";
 // Import centralized utilities
 import { TWO_PI } from "../../math";
@@ -63,10 +63,7 @@ let cachedFilteredPlanets: Planet[] = [];
 let cachedFocusedSunId: string | null = null;
 let cachedPlanetsLength = 0;
 
-// Delay constant for planet hover effects
-// NOTE: Sun hover delays are managed by sunHoverManager
-const PLANET_TOOLTIP_HIDE_DELAY_MS = 200; // Delay before hiding planet tooltip
-// NOTE: State for these delays is stored in AnimationRefs to avoid leaking across component remounts
+// NOTE: Hover delays are now managed by sunHoverManager and planetHoverManager
 
 /**
  * Reset animate module caches - call on component unmount to prevent stale state
@@ -377,79 +374,28 @@ export const animate = (
       cachedIsOverContentCard = isOverContentCard;
     }
 
+    // Planet hover state managed by planetHoverManager
     if (props.enablePlanets && props.enableMouseInteraction) {
-      // Create a wrapper function that matches the expected type
-      const updateHoverInfoIfChanged = (
-        newInfo: SetStateAction<HoverInfo>,
-      ): void => {
-        // If newInfo is a function, we can"t directly compare it
-        if (typeof newInfo === "function") {
-          props.setHoverInfo(newInfo);
-          return;
-        }
-
-        // Don't hide the tooltip if mouse is currently over it (allows clicking links)
-        if (!newInfo.show && props.isMouseOverProjectTooltipRef?.current) {
-          // Clear any pending leave time when mouse is over the tooltip
-          // This prevents stale timers from affecting behavior
-          refs.lastPlanetLeaveTimeRef.current = null;
-          return;
-        }
-
-        // Handle delayed hiding for planet tooltips
-        if (!newInfo.show && currentHoverInfo.show) {
-          // Mouse has left the planet - start tracking leave time
-          if (refs.lastPlanetLeaveTimeRef.current === null) {
-            refs.lastPlanetLeaveTimeRef.current = currentFrameTime;
-          }
-
-          // Only hide after delay has passed
-          const timeSinceLeave = currentFrameTime - refs.lastPlanetLeaveTimeRef.current;
-          if (timeSinceLeave >= PLANET_TOOLTIP_HIDE_DELAY_MS) {
-            props.setHoverInfo(newInfo);
-            refs.lastPlanetLeaveTimeRef.current = null; // Reset for next hover
-          }
-          // If delay hasn't passed yet, don't hide - keep current state
-          return;
-        } else if (newInfo.show) {
-          // Mouse is over a planet - clear any pending hide and show tooltip
-          refs.lastPlanetLeaveTimeRef.current = null;
-        }
-
-        // Only update state if it changed significantly
-        if (
-          newInfo.show !== currentHoverInfo.show ||
-          (newInfo.project &&
-            currentHoverInfo.project &&
-            newInfo.project.id !== currentHoverInfo.project.id) ||
-          (!newInfo.project && currentHoverInfo.project) ||
-          (newInfo.project && !currentHoverInfo.project)
-        ) {
-          props.setHoverInfo(newInfo);
-        }
-      };
-
-      // If over a content card, hide any active tooltip; otherwise check for planet hover
-      if (isOverContentCard) {
-        // Clear hover info if currently showing (but not if mouse is over tooltip)
-        if (
-          currentHoverInfo.show &&
-          !props.isMouseOverProjectTooltipRef?.current
-        ) {
-          props.setHoverInfo({ project: null, x: 0, y: 0, show: false });
-        }
-      } else {
-        checkPlanetHover(
-          currentMousePosition.x,
-          currentMousePosition.y,
-          currentPlanets,
-          props.planetSize,
+      const planetHoverManager = refs.planetHoverManagerRef?.current;
+      if (planetHoverManager) {
+        planetHoverManager.processFrame({
+          mouseX: currentMousePosition.x,
+          mouseY: currentMousePosition.y,
+          canvasWidth: canvas.width,
+          canvasHeight: canvas.height,
+          camera: currentCamera,
+          planets: currentPlanets,
+          planetSize: props.planetSize,
+          isMouseOnScreen: currentMousePosition.isOnScreen,
+          isOverContentCard,
           currentHoverInfo,
-          updateHoverInfoIfChanged,
-          currentCamera,
-          canvas.width,
-          canvas.height,
-        );
+          tooltipElement: props.projectTooltipElementRef?.current ?? null,
+          isMouseOverTooltipRef: props.isMouseOverProjectTooltipRef?.current ?? false,
+          callbacks: {
+            setHoverInfo: props.setHoverInfo,
+          },
+          frameTime: currentFrameTime,
+        });
       }
     }
 
