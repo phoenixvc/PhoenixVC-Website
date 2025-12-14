@@ -333,7 +333,7 @@
 }
 
 .minimized {
-  padding: 0.75rem 2rem 0.75rem 3rem;
+  padding: 0.75rem 1rem;
   max-width: 400px;
 }
 
@@ -341,6 +341,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  /* Add left margin to account for minimize button (28px + 0.75rem gap) */
+  margin-left: calc(28px + 0.5rem);
+  /* Balance with equal right margin for symmetric centering */
+  margin-right: calc(28px + 0.5rem);
 }
 
 .minimizedTitle {
@@ -361,7 +365,13 @@
 
   .minimized {
     max-width: 280px;
-    padding: 0.5rem 1.5rem 0.5rem 2.5rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .minimizedContent {
+    /* Smaller margin on mobile to account for smaller button (24px) */
+    margin-left: calc(24px + 0.5rem);
+    margin-right: calc(24px + 0.5rem);
   }
 
   .minimizedTitle {
