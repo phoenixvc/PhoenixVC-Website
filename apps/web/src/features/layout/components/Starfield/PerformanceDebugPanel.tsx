@@ -98,6 +98,17 @@ const PerformanceDebugPanel: React.FC<PerformanceDebugPanelProps> = ({
     new Set(["rendering", "effects"])
   );
   const [showSectionBreakdown, setShowSectionBreakdown] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = (): void => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return (): void => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   // Update metrics periodically
   useEffect(() => {
@@ -259,7 +270,10 @@ const PerformanceDebugPanel: React.FC<PerformanceDebugPanelProps> = ({
     >
       <div
         className={styles.debugIndicator}
-        style={{ left: `${sidebarWidth + 310}px`, top: "80px" }}
+        style={{
+          left: isMobile ? "10px" : `${sidebarWidth + 310}px`,
+          top: "80px"
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         Performance Debug
@@ -268,10 +282,11 @@ const PerformanceDebugPanel: React.FC<PerformanceDebugPanelProps> = ({
       <div
         className={debugControlsClass}
         style={{
-          left: `${sidebarWidth + 310}px`,
+          left: isMobile ? "10px" : `${sidebarWidth + 310}px`,
+          right: isMobile ? "10px" : "auto",
           top: "110px",
-          maxHeight: "85vh",
-          width: "280px",
+          maxHeight: isMobile ? "70vh" : "85vh",
+          width: isMobile ? "auto" : "280px",
           overflowY: "auto",
         }}
         onClick={(e) => e.stopPropagation()}

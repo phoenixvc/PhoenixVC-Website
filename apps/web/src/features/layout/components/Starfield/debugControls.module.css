@@ -206,3 +206,30 @@
   .debugControlsLight::-webkit-scrollbar-track {
     background-color: #eee;
   }
+
+  /* Mobile responsive styles */
+  @media (max-width: 768px) {
+    .debugControls {
+      left: 10px !important;
+      right: 10px !important;
+      width: auto !important;
+      max-width: calc(100vw - 20px);
+    }
+
+    .debugIndicator {
+      left: 10px !important;
+    }
+
+    .debugInfoGrid {
+      grid-template-columns: 1fr;
+      gap: 2px;
+    }
+
+    .debugButtons {
+      flex-direction: column;
+    }
+
+    .debugButtons button {
+      min-width: auto;
+    }
+  }
