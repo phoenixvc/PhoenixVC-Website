@@ -11,21 +11,22 @@
  *
  * 2. TOOLTIP STATE (delayed)
  *    - Used by React to show/hide tooltip UI
- *    - Has 200ms grace period so user can move mouse to tooltip
+ *    - Uses shared TooltipDelayManager for 200ms grace period
  *    - Uses React state via callbacks
  *
  * SINGLE SOURCE OF TRUTH:
  * - checkSunHover() determines if mouse is over a sun (pure function)
+ * - TooltipDelayManager handles delay logic (DRY - shared with planets)
  * - This module manages the state machine for both rendering and tooltip
- * - All hover-related logic is centralized here
  */
 
 import { Camera } from "../../cosmos/types";
 import { checkSunHover, SunHoverResult } from "./sunState";
-import { isMouseOverElement, BoundedElement } from "./hoverUtils";
-
-// Configuration
-const TOOLTIP_HIDE_DELAY_MS = 200;
+import {
+  createTooltipDelayManager,
+  TooltipElement,
+  TooltipDelayManager,
+} from "./tooltipDelayManager";
 
 // Types
 export interface SunInfo {
@@ -52,7 +53,7 @@ export interface SunHoverCallbacks {
 }
 
 // Re-export for backwards compatibility
-export type TooltipElement = BoundedElement;
+export type { TooltipElement };
 
 /**
  * Creates a sun hover manager instance
@@ -77,8 +78,10 @@ export function createSunHoverManager(): {
   getRenderingHoverId: () => string | null;
 } {
   // Internal state (not React state - these are immediate)
-  let lastLeaveTime: number | null = null;
   let currentRenderingHoverId: string | null = null;
+
+  // Use shared delay manager for consistent behavior with planets
+  const delayManager: TooltipDelayManager = createTooltipDelayManager();
 
   /**
    * Process hover state for a single frame
@@ -134,71 +137,54 @@ export function createSunHoverManager(): {
     // Update rendering state immediately - this controls the hover ring
     currentRenderingHoverId = liveHoverResult?.sun.id ?? null;
 
-    // === STEP 2: Manage TOOLTIP state (with delay) ===
+    // === STEP 2: Manage TOOLTIP state using shared delay manager ===
     // Tooltip has different rules than rendering:
     // - Don't show sun tooltip if planet tooltip is active (UI priority)
-    // - Has 200ms grace period for mouse to move to tooltip
 
-    // Force clear sun tooltip when:
-    // - Planet tooltip is showing (UI priority - planet wins)
-    // - Mouse is over a content card
-    // - Mouse left the screen
-    if (!isMouseOnScreen || isOverContentCard) {
-      // Mouse left canvas area - clear tooltip
+    // Planet tooltip takes priority - clear sun tooltip
+    if (isPlanetTooltipShowing) {
       if (currentTooltipSunId !== null) {
         callbacks.setHoveredSunId(null);
         callbacks.setHoveredSun(null);
       }
-      lastLeaveTime = null;
-    } else if (isPlanetTooltipShowing) {
-      // Planet tooltip takes priority - hide sun tooltip but DON'T reset timer
-      // This way if planet tooltip closes, sun tooltip can reappear
+      // Return rendering state (hover ring still shows)
+      return currentRenderingHoverId;
+    }
+
+    // Use shared delay manager for consistent behavior
+    const isMouseOverTooltipRef = false; // Sun tooltip uses element check only
+    const delayResult = delayManager.processDelay(
+      {
+        mouseX,
+        mouseY,
+        isMouseOnScreen,
+        isOverContentCard,
+        isMouseOverTooltipRef,
+        tooltipElement,
+        currentTooltipId: currentTooltipSunId,
+        frameTime,
+      },
+      liveHoverResult !== null,
+    );
+
+    // Apply delay result
+    if (delayResult.shouldClearImmediately || delayResult.shouldHide) {
       if (currentTooltipSunId !== null) {
         callbacks.setHoveredSunId(null);
         callbacks.setHoveredSun(null);
       }
-      // Keep lastLeaveTime as-is so delay continues
-    } else {
-      // Normal operation - mouse on screen, no planet tooltip blocking
-      if (liveHoverResult) {
-        // Mouse IS over a sun - show/update tooltip
-        lastLeaveTime = null; // Cancel any pending hide
-
-        if (currentTooltipSunId !== liveHoverResult.sun.id) {
-          callbacks.setHoveredSunId(liveHoverResult.sun.id);
-          callbacks.setHoveredSun({
-            id: liveHoverResult.sun.id,
-            name: liveHoverResult.sun.name,
-            description: liveHoverResult.sun.description,
-            color: liveHoverResult.sun.color,
-            x: mouseX,
-            y: mouseY,
-          });
-        }
-      } else if (currentTooltipSunId !== null) {
-        // Mouse NOT over any sun, but tooltip is visible
-        // Check if mouse is over the tooltip element (allows clicking)
-        const isOverTooltip = tooltipElement
-          ? isMouseOverElement(mouseX, mouseY, tooltipElement)
-          : false;
-
-        if (isOverTooltip) {
-          // Keep tooltip visible while mouse is over it
-          lastLeaveTime = null;
-        } else {
-          // Start/continue hide timer
-          if (lastLeaveTime === null) {
-            lastLeaveTime = frameTime;
-          }
-
-          const elapsed = frameTime - lastLeaveTime;
-          if (elapsed >= TOOLTIP_HIDE_DELAY_MS) {
-            // Timer expired - hide tooltip
-            callbacks.setHoveredSunId(null);
-            callbacks.setHoveredSun(null);
-            lastLeaveTime = null;
-          }
-        }
+    } else if (delayResult.shouldShow && liveHoverResult) {
+      // Show new tooltip (or update existing)
+      if (currentTooltipSunId !== liveHoverResult.sun.id) {
+        callbacks.setHoveredSunId(liveHoverResult.sun.id);
+        callbacks.setHoveredSun({
+          id: liveHoverResult.sun.id,
+          name: liveHoverResult.sun.name ?? "",
+          description: liveHoverResult.sun.description ?? "",
+          color: liveHoverResult.sun.color ?? "#ffffff",
+          x: mouseX,
+          y: mouseY,
+        });
       }
     }
 
@@ -210,7 +196,7 @@ export function createSunHoverManager(): {
    * Reset all state (call on unmount or when needed)
    */
   function reset(): void {
-    lastLeaveTime = null;
+    delayManager.reset();
     currentRenderingHoverId = null;
   }
 
