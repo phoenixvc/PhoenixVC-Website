@@ -1,6 +1,5 @@
 // components/Layout/Starfield/hooks/animation/animate.ts
 // Core animation loop - orchestrates all rendering operations
-import { SetStateAction } from "react";
 import { drawBlackHole } from "../../blackHoles";
 import {
   drawConnections,
@@ -26,7 +25,8 @@ import { lerpCamera } from "../../cosmos/camera";
 import { renderCosmicHierarchy } from "../../cosmos/renderCosmicHierarchy";
 import { Camera, CosmicNavigationState } from "../../cosmos/types";
 // Import cosmic hierarchy data
-import { checkPlanetHover, updatePlanets } from "../../Planets";
+// NOTE: checkPlanetHover now called inside planetHoverManager
+import { updatePlanets } from "../../Planets";
 import { drawCosmicNavigation } from "./drawCosmicNavigation";
 // Import centralized utilities
 import { TWO_PI } from "../../math";
@@ -43,6 +43,7 @@ import {
   checkSunHover,
   getCurrentSunPositions,
 } from "./sunRendering";
+// NOTE: checkSunHover is now used internally by sunHoverManager
 // Import performance profiler
 import {
   startTiming,
@@ -63,11 +64,7 @@ let cachedFilteredPlanets: Planet[] = [];
 let cachedFocusedSunId: string | null = null;
 let cachedPlanetsLength = 0;
 
-// Delay constants for hover effects
-const SUN_HOVER_HIDE_DELAY_MS = 50; // Delay before hiding sun tooltip
-const PLANET_TOOLTIP_HIDE_DELAY_MS = 200; // Delay before hiding planet tooltip
-// NOTE: State for these delays (lastSunLeaveTime, lastPlanetLeaveTime, sunHoverClearPending)
-// is stored in AnimationRefs to avoid leaking across component remounts
+// NOTE: Hover delays are now managed by sunHoverManager and planetHoverManager
 
 /**
  * Reset animate module caches - call on component unmount to prevent stale state
@@ -236,27 +233,40 @@ export const animate = (
     // Get planets for sun size calculation - use direct reference to avoid GC pressure
     const currentPlanets: Planet[] = props.planetsRef?.current ?? [];
 
-    // CRITICAL FIX: Compute LIVE hovered sun ID for rendering BEFORE drawing
-    // React state (props.hoveredSunId) can be stale due to async batching
-    // We need the ACTUAL current hover state for correct rendering
+    // Get mouse position and camera for hover calculations
     const earlyMousePos = refs.mousePositionRef.current;
     const earlyCamera = props.cameraRef?.current as Camera | undefined;
-    let liveHoveredSunId: string | null = null;
 
-    // Only compute hover if mouse is on screen and we have interaction enabled
-    if (earlyMousePos?.isOnScreen && props.enableMouseInteraction) {
-      const liveSunHoverResult = checkSunHover(
-        earlyMousePos.x,
-        earlyMousePos.y,
-        canvas.width,
-        canvas.height,
-        earlyCamera,
-      );
-      liveHoveredSunId = liveSunHoverResult?.sun.id ?? null;
+    // Use centralized hover manager to compute LIVE hover state for rendering
+    // The manager handles both immediate rendering state AND delayed tooltip state
+    let liveHoveredSunId: string | null = null;
+    const hoverManager = refs.sunHoverManagerRef?.current;
+
+    if (hoverManager && props.enableMouseInteraction && props.setHoveredSunId && props.setHoveredSun) {
+      // Process hover state through the centralized manager
+      // This returns the LIVE hover ID for rendering (immediate)
+      // It also manages tooltip state internally (with delay for interactivity)
+      liveHoveredSunId = hoverManager.processFrame({
+        mouseX: earlyMousePos?.x ?? 0,
+        mouseY: earlyMousePos?.y ?? 0,
+        canvasWidth: canvas.width,
+        canvasHeight: canvas.height,
+        camera: earlyCamera,
+        isMouseOnScreen: earlyMousePos?.isOnScreen ?? false,
+        isOverContentCard: cachedIsOverContentCard,
+        isPlanetTooltipShowing: refs.hoverInfoRef.current?.show ?? false,
+        tooltipElement: props.sunTooltipElementRef?.current ?? null,
+        currentTooltipSunId: props.hoveredSunId ?? null,
+        callbacks: {
+          setHoveredSunId: props.setHoveredSunId,
+          setHoveredSun: props.setHoveredSun,
+        },
+        frameTime: currentFrameTime,
+      });
     }
 
     // Draw suns (focus area orbital centers) - always visible
-    // Pass LIVE hovered sun id (not stale React state), focused sun id for interactive effects
+    // Pass LIVE hovered sun id (computed by hover manager), not stale React state
     startTiming("drawSuns");
     drawSuns(
       ctx,
@@ -264,7 +274,7 @@ export const animate = (
       canvas.height,
       timestamp,
       props.isDarkMode,
-      liveHoveredSunId, // Use LIVE hover state, not props.hoveredSunId
+      liveHoveredSunId,
       deltaTime,
       props.focusedSunId,
       currentPlanets,
@@ -365,173 +375,36 @@ export const animate = (
       cachedIsOverContentCard = isOverContentCard;
     }
 
+    // Planet hover state managed by planetHoverManager
     if (props.enablePlanets && props.enableMouseInteraction) {
-      // Create a wrapper function that matches the expected type
-      const updateHoverInfoIfChanged = (
-        newInfo: SetStateAction<HoverInfo>,
-      ): void => {
-        // If newInfo is a function, we can"t directly compare it
-        if (typeof newInfo === "function") {
-          props.setHoverInfo(newInfo);
-          return;
-        }
-
-        // Don't hide the tooltip if mouse is currently over it (allows clicking links)
-        if (!newInfo.show && props.isMouseOverProjectTooltipRef?.current) {
-          // Clear any pending leave time when mouse is over the tooltip
-          // This prevents stale timers from affecting behavior
-          refs.lastPlanetLeaveTimeRef.current = null;
-          return;
-        }
-
-        // Handle delayed hiding for planet tooltips
-        if (!newInfo.show && currentHoverInfo.show) {
-          // Mouse has left the planet - start tracking leave time
-          if (refs.lastPlanetLeaveTimeRef.current === null) {
-            refs.lastPlanetLeaveTimeRef.current = currentFrameTime;
-          }
-
-          // Only hide after delay has passed
-          const timeSinceLeave = currentFrameTime - refs.lastPlanetLeaveTimeRef.current;
-          if (timeSinceLeave >= PLANET_TOOLTIP_HIDE_DELAY_MS) {
-            props.setHoverInfo(newInfo);
-            refs.lastPlanetLeaveTimeRef.current = null; // Reset for next hover
-          }
-          // If delay hasn't passed yet, don't hide - keep current state
-          return;
-        } else if (newInfo.show) {
-          // Mouse is over a planet - clear any pending hide and show tooltip
-          refs.lastPlanetLeaveTimeRef.current = null;
-        }
-
-        // Only update state if it changed significantly
-        if (
-          newInfo.show !== currentHoverInfo.show ||
-          (newInfo.project &&
-            currentHoverInfo.project &&
-            newInfo.project.id !== currentHoverInfo.project.id) ||
-          (!newInfo.project && currentHoverInfo.project) ||
-          (newInfo.project && !currentHoverInfo.project)
-        ) {
-          props.setHoverInfo(newInfo);
-        }
-      };
-
-      // If over a content card, hide any active tooltip; otherwise check for planet hover
-      if (isOverContentCard) {
-        // Clear hover info if currently showing (but not if mouse is over tooltip)
-        if (
-          currentHoverInfo.show &&
-          !props.isMouseOverProjectTooltipRef?.current
-        ) {
-          props.setHoverInfo({ project: null, x: 0, y: 0, show: false });
-        }
-      } else {
-        checkPlanetHover(
-          currentMousePosition.x,
-          currentMousePosition.y,
-          currentPlanets,
-          props.planetSize,
+      const planetHoverManager = refs.planetHoverManagerRef?.current;
+      if (planetHoverManager) {
+        planetHoverManager.processFrame({
+          mouseX: currentMousePosition.x,
+          mouseY: currentMousePosition.y,
+          canvasWidth: canvas.width,
+          canvasHeight: canvas.height,
+          camera: currentCamera,
+          planets: currentPlanets,
+          planetSize: props.planetSize,
+          isMouseOnScreen: currentMousePosition.isOnScreen,
+          isOverContentCard,
           currentHoverInfo,
-          updateHoverInfoIfChanged,
-          currentCamera,
-          canvas.width,
-          canvas.height,
-        );
+          tooltipElement: props.projectTooltipElementRef?.current ?? null,
+          isMouseOverTooltipRef: props.isMouseOverProjectTooltipRef?.current ?? false,
+          callbacks: {
+            setHoverInfo: props.setHoverInfo,
+          },
+          frameTime: currentFrameTime,
+        });
       }
     }
 
-    // Check sun hover on every frame for responsive hover effects
-    // SIMPLIFIED: Removed complex pending/timer logic that caused race conditions
-    if (
-      props.enableMouseInteraction &&
-      props.setHoveredSunId &&
-      props.setHoveredSun
-    ) {
-      // ASSERTION: Timer should never exist without a hovered sun - clean up stale state
-      if (refs.lastSunLeaveTimeRef.current !== null && props.hoveredSunId === null) {
-        refs.lastSunLeaveTimeRef.current = null;
-      }
-
-      // Force clear conditions - immediately clear hover state
-      const shouldForceClear =
-        currentHoverInfo.show || // Planet tooltip showing - clear sun hover
-        isOverContentCard || // Over UI content - clear sun hover
-        !currentMousePosition.isOnScreen; // Mouse left window - clear sun hover
-
-      if (shouldForceClear && props.hoveredSunId !== null) {
-        props.setHoveredSunId(null);
-        props.setHoveredSun(null);
-        refs.lastSunLeaveTimeRef.current = null;
-        if (props.isMouseOverSunTooltipRef) {
-          props.isMouseOverSunTooltipRef.current = false;
-        }
-      } else if (!shouldForceClear) {
-        // Check what sun (if any) the mouse is over
-        const sunHoverResult = checkSunHover(
-          currentMousePosition.x,
-          currentMousePosition.y,
-          canvas.width,
-          canvas.height,
-          currentCamera,
-        );
-
-        if (sunHoverResult) {
-          // Mouse IS over a sun - update hover state if needed
-          refs.lastSunLeaveTimeRef.current = null; // Clear any pending leave timer
-
-          if (props.hoveredSunId !== sunHoverResult.sun.id) {
-            // Switching to a different sun - clear old tooltip state first
-            if (props.isMouseOverSunTooltipRef) {
-              props.isMouseOverSunTooltipRef.current = false;
-            }
-            props.setHoveredSunId(sunHoverResult.sun.id);
-            props.setHoveredSun({
-              id: sunHoverResult.sun.id,
-              name: sunHoverResult.sun.name,
-              description: sunHoverResult.sun.description,
-              color: sunHoverResult.sun.color,
-              x: currentMousePosition.x,
-              y: currentMousePosition.y,
-            });
-          }
-        } else if (props.hoveredSunId !== null) {
-          // Mouse is NOT over any sun, but we have a hovered sun
-          // Check if mouse is over the tooltip (allow interaction with tooltip)
-          let isMouseOverTooltip = false;
-
-          if (props.sunTooltipElementRef?.current) {
-            const rect = props.sunTooltipElementRef.current.getBoundingClientRect();
-            isMouseOverTooltip =
-              currentMousePosition.x >= rect.left &&
-              currentMousePosition.x <= rect.right &&
-              currentMousePosition.y >= rect.top &&
-              currentMousePosition.y <= rect.bottom;
-          }
-
-          if (isMouseOverTooltip) {
-            // Mouse is over tooltip - keep hover state
-            refs.lastSunLeaveTimeRef.current = null;
-          } else {
-            // NUCLEAR FIX: Clear hover state IMMEDIATELY when not over sun and not over tooltip
-            // No delay - the delay was causing race conditions with React state updates
-            props.setHoveredSunId(null);
-            props.setHoveredSun(null);
-            refs.lastSunLeaveTimeRef.current = null;
-            if (props.isMouseOverSunTooltipRef) {
-              props.isMouseOverSunTooltipRef.current = false;
-            }
-          }
-        } else {
-          // ASSERTION: No hover and no timer - ensure refs are clean
-          // This catches any edge case where state got out of sync
-          refs.lastSunLeaveTimeRef.current = null;
-          if (props.isMouseOverSunTooltipRef) {
-            props.isMouseOverSunTooltipRef.current = false;
-          }
-        }
-      }
-    }
+    // NOTE: Sun hover state is now managed by sunHoverManager (called earlier in this function)
+    // The hover manager handles:
+    // - Immediate rendering state (for hover ring)
+    // - Delayed tooltip state (for interactivity)
+    // See the processFrame() call near the drawSuns() section
 
     // Draw connections between stars (network effect) - only if not skipping heavy operations
     if (!shouldSkipHeavyOperations) {

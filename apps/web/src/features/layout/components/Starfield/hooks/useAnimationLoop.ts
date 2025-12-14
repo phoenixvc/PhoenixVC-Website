@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { CollisionEffect, GameState } from "../types";
 import { animate } from "./animation/animate";
 import { AnimationProps, AnimationRefs } from "./animation/types";
+import { createSunHoverManager, SunHoverManager } from "./animation/sunHoverManager";
+import { createPlanetHoverManager, PlanetHoverManager } from "./animation/planetHoverManager";
 import { logger } from "@/utils/logger";
 
 export const useAnimationLoop = (
@@ -70,19 +72,18 @@ export const useAnimationLoop = (
   const animationStartTimeRef = useRef<number>(Date.now());
   const animationWatchdogRef = useRef<number | null>(null);
 
-  // Sun/planet hover state refs - per-instance to avoid leaking across remounts
-  const sunHoverClearPendingRef = useRef<boolean>(false);
-  const lastSunLeaveTimeRef = useRef<number | null>(null);
-  const lastPlanetLeaveTimeRef = useRef<number | null>(null);
+  // Centralized hover managers - each manages its own internal timer state
+  // NOTE: lastSunLeaveTimeRef and lastPlanetLeaveTimeRef removed -
+  // hover managers now handle delay timers internally
+  const sunHoverManagerRef = useRef<SunHoverManager | null>(null);
+  if (!sunHoverManagerRef.current) {
+    sunHoverManagerRef.current = createSunHoverManager();
+  }
 
-  // ASSERTION: Clean up hover refs when hoveredSunId becomes null
-  // This prevents stale timer refs from persisting across hover cycles
-  useEffect(() => {
-    if (props.hoveredSunId === null) {
-      lastSunLeaveTimeRef.current = null;
-      sunHoverClearPendingRef.current = false;
-    }
-  }, [props.hoveredSunId]);
+  const planetHoverManagerRef = useRef<PlanetHoverManager | null>(null);
+  if (!planetHoverManagerRef.current) {
+    planetHoverManagerRef.current = createPlanetHoverManager();
+  }
 
   /* ------------------------------------------------------------------ */
   /* 1. Make sure animate() always sees the **latest** props + settings */
@@ -145,10 +146,9 @@ export const useAnimationLoop = (
     lastDebugModeRef,
     animationStartTimeRef,
     animationWatchdogRef,
-    // Sun/planet hover state refs
-    sunHoverClearPendingRef,
-    lastSunLeaveTimeRef,
-    lastPlanetLeaveTimeRef,
+    // Centralized hover managers (handle their own delay timers internally)
+    sunHoverManagerRef,
+    planetHoverManagerRef,
   };
 
   // Restart animation function
