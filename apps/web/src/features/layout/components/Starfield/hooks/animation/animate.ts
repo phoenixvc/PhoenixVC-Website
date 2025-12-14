@@ -236,8 +236,27 @@ export const animate = (
     // Get planets for sun size calculation - use direct reference to avoid GC pressure
     const currentPlanets: Planet[] = props.planetsRef?.current ?? [];
 
+    // CRITICAL FIX: Compute LIVE hovered sun ID for rendering BEFORE drawing
+    // React state (props.hoveredSunId) can be stale due to async batching
+    // We need the ACTUAL current hover state for correct rendering
+    const earlyMousePos = refs.mousePositionRef.current;
+    const earlyCamera = props.cameraRef?.current as Camera | undefined;
+    let liveHoveredSunId: string | null = null;
+
+    // Only compute hover if mouse is on screen and we have interaction enabled
+    if (earlyMousePos?.isOnScreen && props.enableMouseInteraction) {
+      const liveSunHoverResult = checkSunHover(
+        earlyMousePos.x,
+        earlyMousePos.y,
+        canvas.width,
+        canvas.height,
+        earlyCamera,
+      );
+      liveHoveredSunId = liveSunHoverResult?.sun.id ?? null;
+    }
+
     // Draw suns (focus area orbital centers) - always visible
-    // Pass hovered sun id, focused sun id for interactive effects, deltaTime for physics, and planets for size calculation
+    // Pass LIVE hovered sun id (not stale React state), focused sun id for interactive effects
     startTiming("drawSuns");
     drawSuns(
       ctx,
@@ -245,7 +264,7 @@ export const animate = (
       canvas.height,
       timestamp,
       props.isDarkMode,
-      props.hoveredSunId,
+      liveHoveredSunId, // Use LIVE hover state, not props.hoveredSunId
       deltaTime,
       props.focusedSunId,
       currentPlanets,
@@ -491,23 +510,16 @@ export const animate = (
           }
 
           if (isMouseOverTooltip) {
-            // Mouse is over tooltip - keep hover state, cancel any pending clear
+            // Mouse is over tooltip - keep hover state
             refs.lastSunLeaveTimeRef.current = null;
           } else {
-            // Mouse is NOT over sun AND NOT over tooltip - start/check clear timer
-            if (refs.lastSunLeaveTimeRef.current === null) {
-              refs.lastSunLeaveTimeRef.current = currentFrameTime;
-            }
-
-            const timeSinceLeave = currentFrameTime - refs.lastSunLeaveTimeRef.current;
-            if (timeSinceLeave >= SUN_HOVER_HIDE_DELAY_MS) {
-              // Timer expired - clear hover state NOW
-              props.setHoveredSunId(null);
-              props.setHoveredSun(null);
-              refs.lastSunLeaveTimeRef.current = null;
-              if (props.isMouseOverSunTooltipRef) {
-                props.isMouseOverSunTooltipRef.current = false;
-              }
+            // NUCLEAR FIX: Clear hover state IMMEDIATELY when not over sun and not over tooltip
+            // No delay - the delay was causing race conditions with React state updates
+            props.setHoveredSunId(null);
+            props.setHoveredSun(null);
+            refs.lastSunLeaveTimeRef.current = null;
+            if (props.isMouseOverSunTooltipRef) {
+              props.isMouseOverSunTooltipRef.current = false;
             }
           }
         } else {
