@@ -77,7 +77,7 @@ function processCanvasClick(
  * Hook for unified canvas click handling
  */
 export function useCanvasClick(config: CanvasClickConfig): CanvasClickHandlers {
-  const { canvasRef, onSunClick, applyStarfieldRepulsion, planetsRef } = config;
+  const { canvasRef } = config;
 
   // React onClick handler
   const handleCanvasClick = useCallback(

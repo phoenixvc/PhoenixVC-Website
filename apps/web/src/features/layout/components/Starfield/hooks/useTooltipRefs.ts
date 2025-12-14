@@ -83,7 +83,7 @@ export function useTooltipRefs(config: TooltipRefsConfig): TooltipRefs {
 
   // Cleanup on unmount - clear any pending timeouts
   useEffect(() => {
-    return () => {
+    return (): void => {
       if (sunHideTimeoutRef.current) {
         clearTimeout(sunHideTimeoutRef.current);
       }
