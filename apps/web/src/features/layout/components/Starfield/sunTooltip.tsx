@@ -92,6 +92,8 @@ const SunTooltip = forwardRef<HTMLDivElement, SunTooltipProps>(({
       onClick={handleClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      // Touch support for mobile - touchstart acts like mouseenter to keep tooltip visible
+      onTouchStart={onMouseEnter}
     >
       <div
         className={styles.sunGlow}

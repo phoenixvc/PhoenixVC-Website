@@ -136,6 +136,8 @@ const ProjectTooltip = forwardRef<HTMLDivElement, ProjectTooltipProps>(({
       onClick={handleTooltipClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      // Touch support for mobile - touchstart acts like mouseenter to keep tooltip visible
+      onTouchStart={onMouseEnter}
     >
       {isPinned && (
         <div className={styles.tooltipCloseButton} onClick={handleCloseClick}>
