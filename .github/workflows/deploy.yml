@@ -312,6 +312,8 @@ jobs:
     if: always()
     steps:
       - name: Log Required Variables
+        # Only validate when staging actually ran
+        if: needs.check_relevant_changes.outputs.resources_changed == 'true' || github.event_name == 'workflow_dispatch'
         run: |
           echo "Logging required variables for Teams Notification..."
           echo "Deployment ID: ${{ needs.swa_deploy_staging.outputs.deployment_id }}"
@@ -322,6 +324,11 @@ jobs:
             echo "❌ Missing required values for approval URL!"
             exit 1
           fi
+
+      - name: Skip notification - no changes
+        if: needs.check_relevant_changes.outputs.resources_changed == 'false' && github.event_name != 'workflow_dispatch'
+        run: |
+          echo "⏭️ Skipping notification - no relevant changes detected (only workflow files changed)"
 
       - name: Checkout Repository for Notification
         uses: actions/checkout@v4
