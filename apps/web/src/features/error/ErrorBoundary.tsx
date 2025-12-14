@@ -69,7 +69,14 @@ export class ErrorBoundary extends Component<Props, State> {
     // Update state with error info
     this.setState({ errorInfo });
 
-    // Log error locally
+    // Log error to console DIRECTLY so it's always visible
+    console.error("=== ERROR BOUNDARY CAUGHT ERROR ===");
+    console.error("Error:", error.message);
+    console.error("Stack:", error.stack);
+    console.error("Component Stack:", errorInfo.componentStack);
+    console.error("===================================");
+
+    // Also log via logger
     logger.error("ErrorBoundary caught an error:", error, errorInfo);
 
     // Call custom error handler if provided
@@ -110,6 +117,30 @@ export class ErrorBoundary extends Component<Props, State> {
               We encountered an unexpected error. Please try refreshing the page
               or going back to the home page.
             </p>
+            {/* Show error details for debugging */}
+            {this.state.error && (
+              <div style={{
+                marginTop: '20px',
+                padding: '15px',
+                background: 'rgba(255,0,0,0.1)',
+                borderRadius: '8px',
+                textAlign: 'left',
+                maxWidth: '600px',
+                margin: '20px auto',
+                fontSize: '12px',
+                fontFamily: 'monospace',
+                color: '#ff6b6b',
+                overflow: 'auto',
+                maxHeight: '200px'
+              }}>
+                <strong>Error:</strong> {this.state.error.message}
+                {this.state.error.stack && (
+                  <pre style={{ marginTop: '10px', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+                    {this.state.error.stack}
+                  </pre>
+                )}
+              </div>
+            )}
             <div className={styles.actions}>
               <button
                 onClick={() => (window.location.href = "/")}
