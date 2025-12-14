@@ -12,6 +12,8 @@ import {
   Planet,
   Star,
 } from "../../types";
+import type { SunHoverManager } from "./sunHoverManager";
+import type { PlanetHoverManager } from "./planetHoverManager";
 
 // Add this interface for debug settings
 export interface DebugSettings {
@@ -134,8 +136,9 @@ export interface AnimationRefs {
   hoverInfoRef: React.MutableRefObject<HoverInfo>;
   gameStateRef: React.MutableRefObject<GameState>; // Changed from unknown to GameState
   animationErrorCountRef: React.MutableRefObject<number>;
-  // Sun/planet hover state - per-instance to avoid leaking across remounts
-  sunHoverClearPendingRef: MutableRefObject<boolean>;
-  lastSunLeaveTimeRef: MutableRefObject<number | null>;
-  lastPlanetLeaveTimeRef: MutableRefObject<number | null>;
+  // Centralized hover managers for clean separation of rendering vs tooltip state
+  // NOTE: lastSunLeaveTimeRef and lastPlanetLeaveTimeRef removed -
+  // hover managers now handle delay timers internally
+  sunHoverManagerRef: MutableRefObject<SunHoverManager | null>;
+  planetHoverManagerRef: MutableRefObject<PlanetHoverManager | null>;
 }
