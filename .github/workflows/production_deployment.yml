@@ -3,69 +3,42 @@ env:
 
 name: Deploy to Production
 
+# Simple manual trigger - GitHub Environment protection handles approval
 on:
   workflow_dispatch:
     inputs:
-      manualApproval:
-        description: 'Manual approval (bypasses token validation - requires repo admin)'
-        type: boolean
-        default: false
-      deploymentId:
-        description: 'Deployment ID to promote to production'
-        required: false
+      artifactSource:
+        description: 'Artifact source'
+        type: choice
+        options:
+          - 'latest'
+          - 'specific'
+        default: 'latest'
       artifactId:
-        description: 'Artifact ID to deploy (format: web-dist-YYYYMMDD_HHMMSS)'
-        required: false
-      token:
-        description: 'Encoded approval token (not required for manual approval)'
+        description: 'Artifact ID (only if source is "specific", format: web-dist-YYYYMMDD_HHMMSS)'
         required: false
       runID:
-        description: 'Run ID from staging deployment'
+        description: 'Run ID (only if source is "specific")'
         required: false
-      useLatestArtifact:
-        description: 'Use latest successful staging artifact (for manual approval)'
-        type: boolean
-        default: true
       includeDnsUpdate:
         description: 'Include DNS configuration update'
         type: boolean
         default: false
 
 jobs:
-  validate_approval:
+  # ───────────────────────────────────────────────
+  # ✅ RESOLVE ARTIFACT
+  # ───────────────────────────────────────────────
+  resolve_artifact:
     runs-on: ubuntu-latest
     outputs:
-      validation_passed: ${{ steps.validation_check.outputs.passed }}
-      artifact_id: ${{ steps.resolve_artifact.outputs.artifact_id }}
-      run_id: ${{ steps.resolve_artifact.outputs.run_id }}
-      deployment_id: ${{ steps.resolve_artifact.outputs.deployment_id }}
+      artifact_id: ${{ steps.resolve.outputs.artifact_id }}
+      run_id: ${{ steps.resolve.outputs.run_id }}
+      deployment_id: ${{ steps.resolve.outputs.deployment_id }}
     steps:
-      - name: Check Manual Approval Authorization
-        id: check_manual
-        if: github.event.inputs.manualApproval == 'true'
-        run: |
-          echo "🔐 Manual approval requested by: ${{ github.actor }}"
-          echo "Manual approval mode - token validation bypassed"
-          echo "is_manual=true" >> $GITHUB_OUTPUT
-
-      - name: Validate Token (Automated Flow)
-        id: token_validation
-        if: github.event.inputs.manualApproval != 'true'
-        run: |
-          if [[ -z "${{ github.event.inputs.token }}" ]]; then
-            echo "❌ Token is required for automated approval"
-            exit 1
-          fi
-          DECODED_TOKEN=$(echo "${{ github.event.inputs.token }}" | base64 -d)
-          if [[ "$DECODED_TOKEN" != "${{ secrets.PROD_DEPLOYMENT_TOKEN }}" ]]; then
-            echo "❌ Invalid approval token"
-            exit 1
-          fi
-          echo "✅ Token validated successfully"
-
       - name: Find Latest Staging Artifact
         id: find_latest
-        if: github.event.inputs.manualApproval == 'true' && github.event.inputs.useLatestArtifact == 'true'
+        if: github.event.inputs.artifactSource == 'latest'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -103,18 +76,17 @@ jobs:
           echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
 
       - name: Resolve Artifact Details
-        id: resolve_artifact
+        id: resolve
         run: |
-          # Determine artifact ID based on input method
-          if [[ "${{ github.event.inputs.manualApproval }}" == "true" && "${{ github.event.inputs.useLatestArtifact }}" == "true" ]]; then
+          if [[ "${{ github.event.inputs.artifactSource }}" == "latest" ]]; then
             ARTIFACT_ID="${{ steps.find_latest.outputs.artifact_name }}"
             RUN_ID="${{ steps.find_latest.outputs.run_id }}"
-            DEPLOYMENT_ID="manual_${RUN_ID}_${{ github.run_id }}"
           else
             ARTIFACT_ID="${{ github.event.inputs.artifactId }}"
             RUN_ID="${{ github.event.inputs.runID }}"
-            DEPLOYMENT_ID="${{ github.event.inputs.deploymentId }}"
           fi
+
+          DEPLOYMENT_ID="prod_${RUN_ID}_${{ github.run_id }}"
 
           echo "artifact_id=$ARTIFACT_ID" >> $GITHUB_OUTPUT
           echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
@@ -125,9 +97,8 @@ jobs:
           echo "🆔 Deployment ID: $DEPLOYMENT_ID"
 
       - name: Validate Artifact Format
-        id: validation_check
         run: |
-          ARTIFACT_ID="${{ steps.resolve_artifact.outputs.artifact_id }}"
+          ARTIFACT_ID="${{ steps.resolve.outputs.artifact_id }}"
 
           if [[ -z "$ARTIFACT_ID" ]]; then
             echo "❌ Artifact ID is required"
@@ -141,31 +112,31 @@ jobs:
           fi
 
           echo "✅ Artifact format validated: $ARTIFACT_ID"
-          echo "passed=true" >> $GITHUB_OUTPUT
 
   # ───────────────────────────────────────────────
   # ✅ DEPLOY PRODUCTION RESOURCES
   # ───────────────────────────────────────────────
   deploy_resources_production:
     runs-on: ubuntu-latest
-    needs: validate_approval
-    if: needs.validate_approval.outputs.validation_passed == 'true'
+    needs: resolve_artifact
+    # GitHub Environment protection handles approval here
+    environment:
+      name: production
     outputs:
       staticSiteUrl: ${{ steps.deploy_production_resources.outputs.staticSiteUrl }}
       teamsLogicAppUrl: ${{ steps.deploy_production_resources.outputs.teamsLogicAppUrl }}
       githubLogicAppUrl: ${{ steps.deploy_production_resources.outputs.githubLogicAppUrl }}
-      deployment_id: ${{ needs.validate_approval.outputs.deployment_id }}
-      artifact_id: ${{ needs.validate_approval.outputs.artifact_id }}
-      run_id: ${{ needs.validate_approval.outputs.run_id }}
+      deployment_id: ${{ needs.resolve_artifact.outputs.deployment_id }}
+      artifact_id: ${{ needs.resolve_artifact.outputs.artifact_id }}
+      run_id: ${{ needs.resolve_artifact.outputs.run_id }}
     steps:
       - name: Log Deployment Info
         run: |
           echo "🚀 Starting production deployment"
-          echo "📦 Artifact: ${{ needs.validate_approval.outputs.artifact_id }}"
-          echo "🔢 Source Run ID: ${{ needs.validate_approval.outputs.run_id }}"
-          echo "🆔 Deployment ID: ${{ needs.validate_approval.outputs.deployment_id }}"
+          echo "📦 Artifact: ${{ needs.resolve_artifact.outputs.artifact_id }}"
+          echo "🔢 Source Run ID: ${{ needs.resolve_artifact.outputs.run_id }}"
+          echo "🆔 Deployment ID: ${{ needs.resolve_artifact.outputs.deployment_id }}"
           echo "👤 Triggered by: ${{ github.actor }}"
-          echo "🔧 Manual approval: ${{ github.event.inputs.manualApproval }}"
 
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -246,7 +217,7 @@ jobs:
 
       - name: Record Version
         run: |
-          echo "DEPLOY_VERSION=$(date '+%Y%m%d')_${{ github.event.inputs.runId }}" >> $GITHUB_ENV
+          echo "DEPLOY_VERSION=$(date '+%Y%m%d')_${{ needs.deploy_resources_production.outputs.run_id }}" >> $GITHUB_ENV
 
       - name: Create Version Tag
         uses: actions/github-script@v6
@@ -264,31 +235,6 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      #- name: Store Deployment Metadata
-      #  run: |
-      #    cat << EOF > deployment_metadata.json
-      #    {
-      #      "version": "${{ env.DEPLOY_VERSION }}",
-      #      "deploymentId": "${{ github.event.inputs.deploymentId }}",
-      #      "artifactId": "${{ github.event.inputs.artifactId }}",
-      #      "runId": "${{ github.event.inputs.runId }}",
-      #      "timestamp": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-      #    }
-      #    EOF
-      #
-      #    az storage blob upload \
-      #      --account-name ${{ secrets.STORAGE_ACCOUNT_NAME }} \
-      #     --container-name deployments \
-      #     --name "prod_${{ env.DEPLOY_VERSION }}.json" \
-      #     --file deployment_metadata.json
-      #
-      #- name: Create Job Summary
-      #  run: |
-      #    echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
-      #    echo "* Static Site: ${{ steps.deploy_production_resources.outputs.staticSiteUrl }}" >> $GITHUB_STEP_SUMMARY
-      #    echo "* Teams Logic App: ${{ needs.deploy_resources_production.outputs.teamsLogicAppUrl }}" >> $GITHUB_STEP_SUMMARY
-      #   echo "* GitHub Logic App: ${{ needs.deploy_resources_production.outputs.githubLogicAppUrl }}" >> $GITHUB_STEP_SUMMARY
-      #
   trigger_dns_update:
     needs: swa_deploy_production
     if: needs.swa_deploy_production.result == 'success' && github.event.inputs.includeDnsUpdate == 'true'
@@ -355,7 +301,6 @@ jobs:
 
           echo "Configuring custom domain $DOMAIN for docs..."
 
-          # Check if custom domain already exists
           DOMAIN_STATUS=$(az staticwebapp hostname show \
             --resource-group "$RESOURCE_GROUP" \
             --name "$DOCS_SWA_NAME" \
@@ -413,7 +358,7 @@ jobs:
               --validation-method dns-txt-token
 
             echo "Fetching validation token..."
-            sleep 30  # Wait briefly for token availability
+            sleep 30
 
             VALIDATION_TOKEN=$(az staticwebapp hostname show \
               --resource-group "$RESOURCE_GROUP" \
