@@ -75,6 +75,15 @@ export const useAnimationLoop = (
   const lastSunLeaveTimeRef = useRef<number | null>(null);
   const lastPlanetLeaveTimeRef = useRef<number | null>(null);
 
+  // ASSERTION: Clean up hover refs when hoveredSunId becomes null
+  // This prevents stale timer refs from persisting across hover cycles
+  useEffect(() => {
+    if (props.hoveredSunId === null) {
+      lastSunLeaveTimeRef.current = null;
+      sunHoverClearPendingRef.current = false;
+    }
+  }, [props.hoveredSunId]);
+
   /* ------------------------------------------------------------------ */
   /* 1. Make sure animate() always sees the **latest** props + settings */
   /* ------------------------------------------------------------------ */
