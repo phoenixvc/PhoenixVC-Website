@@ -113,7 +113,7 @@ export function createSunHoverManager(): {
       isOverContentCard,
       isPlanetTooltipShowing,
       tooltipElement,
-      currentTooltipSunId: _currentTooltipSunId, // Unused - we use internal state now
+      currentTooltipSunId,
       callbacks,
       frameTime,
     } = params;
