@@ -9,7 +9,7 @@
     "deployBudget": { "value": false },
     "deployKeyVault": { "value": false },
     "deployLogicApp": { "value": false },
-    "deployAcsEmail": { "value": true },
+    "deployAcsEmail": { "value": false },
     "contactEmailRecipient": { "value": "eben@phoenixvc.tech" }
   }
 }
