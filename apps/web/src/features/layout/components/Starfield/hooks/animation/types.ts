@@ -107,7 +107,7 @@ export interface AnimationProps {
   setCamera?: (camera: Camera) => void;
   navigationState?: CosmicNavigationState;
   hoveredObjectId?: string | null;
-  hoveredSunId?: string | null;
+  hoveredSunIdRef?: MutableRefObject<string | null>; // Ref for synchronous hoveredSunId access
   focusedSunId?: string | null;
   debugSettings?: DebugSettings; // Add debug settings
   isMouseOverProjectTooltipRef?: MutableRefObject<boolean>; // Track if mouse is over project tooltip

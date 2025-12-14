@@ -256,7 +256,7 @@ export const animate = (
         isOverContentCard: cachedIsOverContentCard,
         isPlanetTooltipShowing: refs.hoverInfoRef.current?.show ?? false,
         tooltipElement: props.sunTooltipElementRef?.current ?? null,
-        currentTooltipSunId: props.hoveredSunId ?? null,
+        currentTooltipSunId: props.hoveredSunIdRef?.current ?? null,
         isMouseOverTooltipRef: props.isMouseOverSunTooltipRef?.current ?? false,
         callbacks: {
           setHoveredSunId: props.setHoveredSunId,

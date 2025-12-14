@@ -562,6 +562,7 @@ const InteractiveStarfield = forwardRef<
     const gameStateRef = useRef(gameState);
     const clickBurstsRefLocal = useRef(clickBursts);
     const collisionEffectsRef = useRef(collisionEffects);
+    const hoveredSunIdRef = useRef(hoveredSunId);
 
     // Keep refs in sync with state (but don't trigger useMemo recalculation)
     useEffect(() => {
@@ -576,6 +577,9 @@ const InteractiveStarfield = forwardRef<
     useEffect(() => {
       collisionEffectsRef.current = collisionEffects;
     }, [collisionEffects]);
+    useEffect(() => {
+      hoveredSunIdRef.current = hoveredSunId;
+    }, [hoveredSunId]);
 
     // Memoize animation loop parameters to prevent unnecessary re-renders
     // PERFORMANCE: Only include STATIC dependencies that rarely change
@@ -629,7 +633,7 @@ const InteractiveStarfield = forwardRef<
         ensureStarsExist,
         updateFpsData,
         fpsValuesRef,
-        hoveredSunId,
+        hoveredSunIdRef, // Use ref for synchronous access in animation loop
         focusedSunId,
         camera: internalCamera,
         setCamera: setInternalCamera,
@@ -665,7 +669,7 @@ const InteractiveStarfield = forwardRef<
         mouseEffectColor,
         isDarkMode,
         starSize,
-        hoveredSunId,
+        // hoveredSunId removed - now uses ref for synchronous access
         focusedSunId,
         sidebarWidth,
         performanceTier, // Add performance tier as dep
