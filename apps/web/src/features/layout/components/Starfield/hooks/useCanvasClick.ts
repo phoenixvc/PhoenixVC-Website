@@ -18,6 +18,10 @@ import { Camera } from "../cosmos/types";
 import { logger } from "@/utils/logger";
 import { screenToWorldCoords } from "./animation/hoverUtils";
 import { ORBIT_CONFIG } from "../renderingConfig";
+import { SIZE_CONFIG } from "../physicsConfig";
+
+// Mobile detection breakpoint (matches common responsive design breakpoint)
+const MOBILE_BREAKPOINT_WIDTH = 768;
 
 export interface CanvasClickConfig {
   canvasRef: RefObject<HTMLCanvasElement | null>;
@@ -46,7 +50,7 @@ function isMobileDevice(): boolean {
   const isMobileUA = mobilePattern.test(navigator.userAgent);
   
   // Consider it mobile if it has touch AND matches mobile UA, or if screen is small with touch
-  return (hasTouch && isMobileUA) || (hasTouch && window.innerWidth < 768);
+  return (hasTouch && isMobileUA) || (hasTouch && window.innerWidth < MOBILE_BREAKPOINT_WIDTH);
 }
 
 /**
@@ -124,9 +128,8 @@ function processCanvasClick(
   if (isTouchEvent && isMobileDevice() && config.onPlanetClick) {
     const planets = config.planetsRef.current;
     if (planets && planets.length > 0) {
-      // Use a reasonable planet size for click detection (matches rendering)
-      const planetSize = 8; // Default planet size from rendering
-      const clickedProject = checkPlanetClick(x, y, width, height, planets, camera, planetSize);
+      // Use planetBaseSize from SIZE_CONFIG (matches actual rendering)
+      const clickedProject = checkPlanetClick(x, y, width, height, planets, camera, SIZE_CONFIG.planetBaseSize);
       
       if (clickedProject) {
         // Auto-pin the project on mobile
