@@ -58,7 +58,24 @@ export type TooltipElement = BoundedElement;
  * Creates a sun hover manager instance
  * Call this once in useAnimationLoop and pass the manager to animate()
  */
-export function createSunHoverManager() {
+export function createSunHoverManager(): {
+  processFrame: (params: {
+    mouseX: number;
+    mouseY: number;
+    canvasWidth: number;
+    canvasHeight: number;
+    camera: Camera | undefined;
+    isMouseOnScreen: boolean;
+    isOverContentCard: boolean;
+    isPlanetTooltipShowing: boolean;
+    tooltipElement: TooltipElement | null;
+    currentTooltipSunId: string | null;
+    callbacks: SunHoverCallbacks;
+    frameTime: number;
+  }) => string | null;
+  reset: () => void;
+  getRenderingHoverId: () => string | null;
+} {
   // Internal state (not React state - these are immediate)
   let lastLeaveTime: number | null = null;
   let currentRenderingHoverId: string | null = null;
@@ -178,7 +195,7 @@ export function createSunHoverManager() {
   /**
    * Reset all state (call on unmount or when needed)
    */
-  function reset() {
+  function reset(): void {
     lastLeaveTime = null;
     currentRenderingHoverId = null;
   }

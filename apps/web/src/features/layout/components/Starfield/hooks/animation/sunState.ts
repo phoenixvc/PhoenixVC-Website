@@ -9,6 +9,16 @@ import { logger } from "@/utils/logger";
 import { screenToWorldCoords } from "./hoverUtils";
 
 /**
+ * Result type for sun hover detection
+ */
+export type SunHoverResult = {
+  sun: CosmicObject;
+  index: number;
+  x: number;
+  y: number;
+};
+
+/**
  * Encapsulated module state to prevent leakage
  * Using an object allows for cleaner reset and testing
  */
@@ -88,7 +98,7 @@ export function checkSunHover(
   width: number,
   height: number,
   camera?: Camera,
-): { sun: CosmicObject; index: number; x: number; y: number } | null {
+): SunHoverResult | null {
   const sunStates = getSunStates();
 
   // Initialize if needed

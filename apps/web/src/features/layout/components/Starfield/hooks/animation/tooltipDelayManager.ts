@@ -24,7 +24,23 @@ export type TooltipElement = BoundedElement;
 /**
  * Create a tooltip delay manager instance
  */
-export function createTooltipDelayManager(config: TooltipDelayConfig = {}) {
+export function createTooltipDelayManager(config: TooltipDelayConfig = {}): {
+  checkShouldHideTooltip: (params: {
+    isHoveringTarget: boolean;
+    isTooltipCurrentlyShown: boolean;
+    mouseX: number;
+    mouseY: number;
+    tooltipElement: TooltipElement | null;
+    isMouseOverTooltipRef: boolean;
+    frameTime: number;
+  }) => {
+    shouldHide: boolean;
+    shouldShow: boolean;
+    shouldKeepCurrent: boolean;
+  };
+  resetTimer: () => void;
+  isTimerActive: () => boolean;
+} {
   const hideDelayMs = config.hideDelayMs ?? DEFAULT_HIDE_DELAY_MS;
   let lastLeaveTime: number | null = null;
 
@@ -98,7 +114,7 @@ export function createTooltipDelayManager(config: TooltipDelayConfig = {}) {
   /**
    * Force reset the delay timer
    */
-  function resetTimer() {
+  function resetTimer(): void {
     lastLeaveTime = null;
   }
 

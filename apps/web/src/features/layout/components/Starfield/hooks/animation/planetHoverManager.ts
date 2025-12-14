@@ -27,7 +27,26 @@ export type TooltipElement = BoundedElement;
 /**
  * Creates a planet hover manager instance
  */
-export function createPlanetHoverManager() {
+export function createPlanetHoverManager(): {
+  processFrame: (params: {
+    mouseX: number;
+    mouseY: number;
+    canvasWidth: number;
+    canvasHeight: number;
+    camera: Camera | undefined;
+    planets: Planet[];
+    planetSize: number;
+    isMouseOnScreen: boolean;
+    isOverContentCard: boolean;
+    currentHoverInfo: HoverInfo;
+    tooltipElement: TooltipElement | null;
+    isMouseOverTooltipRef: boolean;
+    callbacks: PlanetHoverCallbacks;
+    frameTime: number;
+  }) => boolean;
+  reset: () => void;
+  isTimerActive: () => boolean;
+} {
   let lastLeaveTime: number | null = null;
 
   /**
@@ -145,7 +164,7 @@ export function createPlanetHoverManager() {
   /**
    * Reset state
    */
-  function reset() {
+  function reset(): void {
     lastLeaveTime = null;
   }
 
