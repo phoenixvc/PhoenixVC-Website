@@ -178,7 +178,10 @@ export function checkSunHover(
 
     // Debug log for hover check (throttled/conditional)
     // Only log if close enough to be relevant (e.g. within 2x radius)
-    if (distance <= hitRadius * 2 && (window as any).debugStarfield) {
+    if (
+      distance <= hitRadius * 2 &&
+      (window as unknown as { debugStarfield?: boolean }).debugStarfield
+    ) {
       logger.debug(`Sun Hover Check [${sunState.id}]:`, {
         mouse: { x: mouseX, y: mouseY },
         worldMouse,
