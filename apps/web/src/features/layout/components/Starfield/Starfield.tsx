@@ -31,6 +31,7 @@ import { useMouseInteraction } from "./hooks/useMouseInteraction";
 import { useParticleEffects } from "./hooks/useParticleEffects";
 import { useDebugControls } from "./hooks/useDebugControls";
 import { useTooltipRefs } from "./hooks/useTooltipRefs";
+import { useCanvasClick } from "./hooks/useCanvasClick";
 import DebugControlsOverlay from "./DebugControlsOverlay";
 import PerformanceDebugPanel from "./PerformanceDebugPanel";
 import { useStarInitialization } from "./hooks/useStarInitialization";
@@ -40,17 +41,14 @@ import {
   resetConnectionStagger,
 } from "./stars";
 import {
-  checkSunHover,
   resetAnimationModuleState,
   resetAnimateModuleCaches,
 } from "./hooks/animation/animate";
 import {
-  applyClickRepulsionToSunsCanvas,
   getSunPosition,
   getSunStates,
   resetSunSystem,
 } from "./sunSystem";
-import { applyClickRepulsionToPlanets } from "./Planets";
 import SunTooltip, { SunInfo } from "./sunTooltip";
 import { EFFECT_TIMING, CAMERA_CONFIG } from "./physicsConfig";
 
@@ -1055,100 +1053,16 @@ const InteractiveStarfield = forwardRef<
 
     // NOTE: _scrollToFocusArea removed - was legacy wrapper, use zoomToSun() directly
 
-    // Update the click handler to use this unified function:
-    const handleCanvasClick = useCallback(
-      (event: React.MouseEvent<HTMLCanvasElement>): void => {
-        if (!canvasRef.current) {
-          logger.warn(
-            "[Starfield] Click handler called but canvas ref is null",
-          );
-          return;
-        }
+    // Unified canvas click/touch handling via dedicated hook
+    const { handleCanvasClick, handleTouchEnd } = useCanvasClick({
+      canvasRef,
+      planetsRef: employeeStarsRef,
+      setMousePosition,
+      onSunClick: zoomToSun,
+      applyStarfieldRepulsion,
+    });
 
-        // Get click coordinates relative to canvas
-        const rect = canvasRef.current.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
-
-        // First check if we clicked on a focus area sun BEFORE applying any repulsion
-        // This ensures the sun position is checked before any physics are applied
-        const sunHoverResult = checkSunHover(x, y, rect.width, rect.height);
-
-        if (sunHoverResult) {
-          // Clicked on a sun - zoom to focus on that area
-          zoomToSun(sunHoverResult.sun.id);
-          return;
-        }
-
-        // Only apply repulsion effects if we didn't click on a sun
-        // Apply repulsive force to suns (this stacks up with multiple clicks)
-        applyClickRepulsionToSunsCanvas(x, y, rect.width, rect.height);
-
-        // Apply repulsive force to planets/comets (orbiting portfolio items)
-        if (employeeStarsRef.current && employeeStarsRef.current.length > 0) {
-          applyClickRepulsionToPlanets(employeeStarsRef.current, x, y);
-        }
-
-        // Use the unified function for regular click repulsion
-        applyStarfieldRepulsion(x, y);
-
-        // Update mouse position state
-        if (setMousePosition) {
-          setMousePosition((prev) => ({
-            ...prev,
-            x: x,
-            y: y,
-            isClicked: false,
-            clickTime: Date.now(),
-          }));
-        }
-      },
-      [
-        canvasRef,
-        setMousePosition,
-        applyStarfieldRepulsion,
-        zoomToSun,
-        employeeStarsRef,
-      ],
-    );
-
-    useEffect(() => {
-      if (canvasRef.current) {
-        // Add a direct DOM event listener as a backup
-        const canvas = canvasRef.current;
-        const clickHandler = (e: MouseEvent): void => {
-          // Get click coordinates relative to canvas
-          const rect = canvas.getBoundingClientRect();
-          const x = e.clientX - rect.left;
-          const y = e.clientY - rect.top;
-
-          // First check if we clicked on a focus area sun BEFORE applying any repulsion
-          const sunHoverResult = checkSunHover(x, y, rect.width, rect.height);
-
-          if (sunHoverResult) {
-            // Clicked on a sun - zoom to focus on that area
-            zoomToSun(sunHoverResult.sun.id);
-            return;
-          }
-
-          // Only apply repulsion effects if we didn't click on a sun
-          applyClickRepulsionToSunsCanvas(x, y, rect.width, rect.height);
-
-          // Apply repulsion to planets/comets
-          if (employeeStarsRef.current && employeeStarsRef.current.length > 0) {
-            applyClickRepulsionToPlanets(employeeStarsRef.current, x, y);
-          }
-
-          applyStarfieldRepulsion(x, y);
-        };
-
-        canvas.addEventListener("click", clickHandler);
-
-        return (): void => {
-          canvas.removeEventListener("click", clickHandler);
-        };
-      }
-    }, [canvasRef, applyStarfieldRepulsion, zoomToSun, employeeStarsRef]);
+    // NOTE: DOM backup click listener is now handled inside useCanvasClick hook
 
     return (
       <>
@@ -1173,57 +1087,15 @@ const InteractiveStarfield = forwardRef<
             className={`${styles.starfieldCanvas} ${isStarfieldReady ? styles.starfieldReady : styles.starfieldInitializing}`}
             aria-hidden="true"
             onClick={(e): void => {
-              e.stopPropagation(); // Stop event propagation
+              e.stopPropagation();
               handleCanvasClick(e);
             }}
             onTouchStart={(e): void => {
-              // Prevent default to avoid issues on touch
               e.stopPropagation();
             }}
             onTouchEnd={(e): void => {
-              // Convert touch to click for mobile support
-              if (e.changedTouches.length > 0) {
-                const touch = e.changedTouches[0];
-                const rect = canvasRef.current?.getBoundingClientRect();
-                if (rect) {
-                  const x = touch.clientX - rect.left;
-                  const y = touch.clientY - rect.top;
-
-                  // First check if we touched a sun BEFORE applying any repulsion
-                  const sunHoverResult = checkSunHover(
-                    x,
-                    y,
-                    rect.width,
-                    rect.height,
-                  );
-
-                  if (sunHoverResult) {
-                    zoomToSun(sunHoverResult.sun.id);
-                  } else {
-                    // Only apply repulsion if we didn't touch a sun
-                    applyClickRepulsionToSunsCanvas(
-                      x,
-                      y,
-                      rect.width,
-                      rect.height,
-                    );
-
-                    // Apply repulsion to planets/comets
-                    if (
-                      employeeStarsRef.current &&
-                      employeeStarsRef.current.length > 0
-                    ) {
-                      applyClickRepulsionToPlanets(
-                        employeeStarsRef.current,
-                        x,
-                        y,
-                      );
-                    }
-
-                    applyStarfieldRepulsion(x, y);
-                  }
-                }
-              }
+              e.stopPropagation();
+              handleTouchEnd(e);
             }}
         />
       </div>
@@ -1285,6 +1157,7 @@ const InteractiveStarfield = forwardRef<
       {/* Hover Tooltip - now allowed even if projects are pinned */}
       {hoverInfo.show && hoverInfo.project && (
         <ProjectTooltip
+          ref={tooltipRefs.projectTooltipElementRef}
           project={hoverInfo.project}
           x={hoverInfo.x}
           y={hoverInfo.y}

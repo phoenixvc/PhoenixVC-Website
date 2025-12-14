@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, forwardRef } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./projectTooltip.module.css";
 import { PortfolioProject } from "./types";
@@ -16,7 +16,7 @@ interface ProjectTooltipProps {
   onMouseLeave?: () => void;
 }
 
-const ProjectTooltip: FC<ProjectTooltipProps> = ({
+const ProjectTooltip = forwardRef<HTMLDivElement, ProjectTooltipProps>(({
   project,
   x,
   y,
@@ -27,9 +27,8 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
   onUnpin,
   onMouseEnter,
   onMouseLeave,
-}) => {
+}, ref) => {
   const [isVisible, setIsVisible] = useState(false);
-  const tooltipRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -121,7 +120,7 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
 
   return (
     <div
-      ref={tooltipRef}
+      ref={ref}
       className={`
         ${styles.tooltip}
         ${isVisible ? styles.visible : ""}
@@ -274,7 +273,9 @@ const ProjectTooltip: FC<ProjectTooltipProps> = ({
       </div>
     </div>
   );
-};
+});
+
+ProjectTooltip.displayName = "ProjectTooltip";
 
 // Export with both names for backward compatibility
 export default ProjectTooltip;
