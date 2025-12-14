@@ -95,12 +95,15 @@ export const useMouseInteraction = (
   const handlePointerDown = useCallback(
     (clientX: number, clientY: number): void => {
       // Update mouse position
+      // Also set isOnScreen: true for mobile touch support - without this,
+      // hover detection won't run on touch because it checks isMouseOnScreen
       setMousePosition((prev) => ({
         ...prev,
         x: clientX,
         y: clientY,
         isClicked: true,
         clickTime: Date.now(),
+        isOnScreen: true,
       }));
 
       logger.debug("Pointer down:", { clientX, clientY });
