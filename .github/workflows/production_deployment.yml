@@ -53,7 +53,7 @@ jobs:
     steps:
       - name: Find Latest Staging Artifact
         id: find_latest
-        if: github.event.inputs.artifactSource == 'latest'
+        if: inputs.artifactSource == 'latest'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -93,12 +93,12 @@ jobs:
       - name: Resolve Artifact Details
         id: resolve
         run: |
-          if [[ "${{ github.event.inputs.artifactSource }}" == "latest" ]]; then
+          if [[ "${{ inputs.artifactSource }}" == "latest" ]]; then
             ARTIFACT_ID="${{ steps.find_latest.outputs.artifact_name }}"
             RUN_ID="${{ steps.find_latest.outputs.run_id }}"
           else
-            ARTIFACT_ID="${{ github.event.inputs.artifactId }}"
-            RUN_ID="${{ github.event.inputs.runID }}"
+            ARTIFACT_ID="${{ inputs.artifactId }}"
+            RUN_ID="${{ inputs.runID }}"
           fi
 
           DEPLOYMENT_ID="prod_${RUN_ID}_${{ github.run_id }}"
@@ -252,7 +252,7 @@ jobs:
 
   trigger_dns_update:
     needs: swa_deploy_production
-    if: needs.swa_deploy_production.result == 'success' && github.event.inputs.includeDnsUpdate == 'true'
+    if: needs.swa_deploy_production.result == 'success' && inputs.includeDnsUpdate == true
     runs-on: ubuntu-latest
     steps:
       - name: Trigger DNS Configuration
