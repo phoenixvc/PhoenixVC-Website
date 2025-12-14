@@ -23,6 +23,9 @@ import { SIZE_CONFIG } from "../physicsConfig";
 // Mobile detection breakpoint (matches common responsive design breakpoint)
 const MOBILE_BREAKPOINT_WIDTH = 768;
 
+// Memoized mobile detection result
+let isMobileDeviceCached: boolean | null = null;
+
 export interface CanvasClickConfig {
   canvasRef: RefObject<HTMLCanvasElement | null>;
   planetsRef: RefObject<Planet[]>;
@@ -40,8 +43,14 @@ export interface CanvasClickHandlers {
 
 /**
  * Detect if mobile device based on touch support and user agent
+ * Result is memoized to avoid repeated computation on every touch event
  */
 function isMobileDevice(): boolean {
+  // Return cached result if available
+  if (isMobileDeviceCached !== null) {
+    return isMobileDeviceCached;
+  }
+  
   // Check for touch support
   const hasTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
   
@@ -50,7 +59,9 @@ function isMobileDevice(): boolean {
   const isMobileUA = mobilePattern.test(navigator.userAgent);
   
   // Consider it mobile if it has touch AND matches mobile UA, or if screen is small with touch
-  return (hasTouch && isMobileUA) || (hasTouch && window.innerWidth < MOBILE_BREAKPOINT_WIDTH);
+  isMobileDeviceCached = (hasTouch && isMobileUA) || (hasTouch && window.innerWidth < MOBILE_BREAKPOINT_WIDTH);
+  
+  return isMobileDeviceCached;
 }
 
 /**
