@@ -248,6 +248,18 @@ const InteractiveStarfield = forwardRef<
     const [focusedSunId, setFocusedSunId] = useState<string | null>(null);
     const focusAnimationRef = useRef<number | null>(null);
 
+    // ASSERTION: Clean up tooltip refs when hoveredSunId becomes null
+    // This ensures no stale refs persist that could cause stuck hover states
+    useEffect(() => {
+      if (hoveredSunId === null) {
+        isMouseOverSunTooltipRef.current = false;
+        if (sunHideTimeoutRef.current) {
+          clearTimeout(sunHideTimeoutRef.current);
+          sunHideTimeoutRef.current = null;
+        }
+      }
+    }, [hoveredSunId]);
+
     // Internal camera state for sun zoom functionality
     const [internalCamera, setInternalCamera] = useState<Camera>({
       cx: CAMERA_CONFIG.defaultCenterX,

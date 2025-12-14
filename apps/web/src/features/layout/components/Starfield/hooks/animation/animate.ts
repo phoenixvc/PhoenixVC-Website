@@ -423,31 +423,32 @@ export const animate = (
     }
 
     // Check sun hover on every frame for responsive hover effects
-    // Unlike elementFromPoint which is expensive, checkSunHover is a cheap calculation
+    // SIMPLIFIED: Removed complex pending/timer logic that caused race conditions
     if (
       props.enableMouseInteraction &&
       props.setHoveredSunId &&
       props.setHoveredSun
     ) {
-      const shouldForceClear =
-        (currentHoverInfo.show && props.hoveredSunId !== null) || // Planet tooltip showing
-        (isOverContentCard && props.hoveredSunId !== null) || // Over UI content
-        (!currentMousePosition.isOnScreen && props.hoveredSunId !== null); // Mouse left window
+      // ASSERTION: Timer should never exist without a hovered sun - clean up stale state
+      if (refs.lastSunLeaveTimeRef.current !== null && props.hoveredSunId === null) {
+        refs.lastSunLeaveTimeRef.current = null;
+      }
 
-      if (shouldForceClear) {
-        refs.sunHoverClearPendingRef.current = true; // Mark as pending to prevent race condition
+      // Force clear conditions - immediately clear hover state
+      const shouldForceClear =
+        currentHoverInfo.show || // Planet tooltip showing - clear sun hover
+        isOverContentCard || // Over UI content - clear sun hover
+        !currentMousePosition.isOnScreen; // Mouse left window - clear sun hover
+
+      if (shouldForceClear && props.hoveredSunId !== null) {
         props.setHoveredSunId(null);
         props.setHoveredSun(null);
         refs.lastSunLeaveTimeRef.current = null;
         if (props.isMouseOverSunTooltipRef) {
           props.isMouseOverSunTooltipRef.current = false;
         }
-      } else if (
-        !currentHoverInfo.show &&
-        !isOverContentCard &&
-        currentMousePosition.isOnScreen
-      ) {
-        // Only check sun hover when no planet tooltip is showing, not blocked by content, and mouse is on screen
+      } else if (!shouldForceClear) {
+        // Check what sun (if any) the mouse is over
         const sunHoverResult = checkSunHover(
           currentMousePosition.x,
           currentMousePosition.y,
@@ -456,24 +457,12 @@ export const animate = (
           currentCamera,
         );
 
-        if ((window as any).debugStarfield && (sunHoverResult || props.hoveredSunId)) {
-          logger.debug("Sun hover status:", {
-            found: !!sunHoverResult,
-            foundId: sunHoverResult?.sun?.id,
-            currentId: props.hoveredSunId,
-            mouse: { x: currentMousePosition.x, y: currentMousePosition.y },
-          });
-        }
-
         if (sunHoverResult) {
-          // Mouse is over a sun - clear any pending hide timeout and show hover
-          refs.lastSunLeaveTimeRef.current = null;
-          refs.sunHoverClearPendingRef.current = false; // Reset pending clear since we're hovering
+          // Mouse IS over a sun - update hover state if needed
+          refs.lastSunLeaveTimeRef.current = null; // Clear any pending leave timer
 
-          // Always update when hovering a different sun (even if over old tooltip)
-          // This ensures the hover effect switches properly between suns
-          // Robustness fix: Ensure we reset the tooltip ref even if props.setHoveredSunId thinks it's redundant
           if (props.hoveredSunId !== sunHoverResult.sun.id) {
+            // Switching to a different sun - clear old tooltip state first
             if (props.isMouseOverSunTooltipRef) {
               props.isMouseOverSunTooltipRef.current = false;
             }
@@ -487,76 +476,46 @@ export const animate = (
               y: currentMousePosition.y,
             });
           }
-        } else {
-          // NOT on a sun. Check if we are allowed to keep hovering (e.g. over tooltip)
+        } else if (props.hoveredSunId !== null) {
+          // Mouse is NOT over any sun, but we have a hovered sun
+          // Check if mouse is over the tooltip (allow interaction with tooltip)
           let isMouseOverTooltip = false;
 
-          if (props.hoveredSunId !== null) {
-            // Check bounding rect if available
-            if (props.sunTooltipElementRef?.current) {
-              const rect =
-                props.sunTooltipElementRef.current.getBoundingClientRect();
-              const mouseX = currentMousePosition.x;
-              const mouseY = currentMousePosition.y;
-
-              isMouseOverTooltip =
-                mouseX >= rect.left &&
-                mouseX <= rect.right &&
-                mouseY >= rect.top &&
-                mouseY <= rect.bottom;
-            }
-
-            // Fallback to ref if bounds check failed/not available
-            if (
-              !isMouseOverTooltip &&
-              props.isMouseOverSunTooltipRef?.current
-            ) {
-              // But trust bounds check if it WAS available (implicit in logic above? No.)
-              // If element exists, bounds check is authoritative.
-              // If element doesn't exist, ref is stale.
-              // So: if element exists, result is isMouseOverTooltip.
-              // If element doesn't exist, isMouseOverTooltip is false.
-              // Reset ref to match reality.
-              props.isMouseOverSunTooltipRef.current = false;
-            }
+          if (props.sunTooltipElementRef?.current) {
+            const rect = props.sunTooltipElementRef.current.getBoundingClientRect();
+            isMouseOverTooltip =
+              currentMousePosition.x >= rect.left &&
+              currentMousePosition.x <= rect.right &&
+              currentMousePosition.y >= rect.top &&
+              currentMousePosition.y <= rect.bottom;
           }
 
           if (isMouseOverTooltip) {
-            // Mouse is validly over the tooltip - cancel clearing
+            // Mouse is over tooltip - keep hover state, cancel any pending clear
             refs.lastSunLeaveTimeRef.current = null;
-            refs.sunHoverClearPendingRef.current = false;
           } else {
-            // Mouse is NOT on sun and NOT on tooltip.
-            // We must clear.
-
-            // If we are already pending clear, do nothing (wait for React to update props)
-            // UNLESS props.hoveredSunId is null, in which case we are done.
-            if (refs.sunHoverClearPendingRef.current) {
-              if (props.hoveredSunId === null) {
-                refs.sunHoverClearPendingRef.current = false;
-              }
-            } else if (props.hoveredSunId !== null) {
-              // Start/Check timer
-              if (refs.lastSunLeaveTimeRef.current === null) {
-                refs.lastSunLeaveTimeRef.current = currentFrameTime;
-              }
-
-              const timeSinceLeave =
-                currentFrameTime - refs.lastSunLeaveTimeRef.current;
-              if (timeSinceLeave >= SUN_HOVER_HIDE_DELAY_MS) {
-                refs.sunHoverClearPendingRef.current = true;
-                props.setHoveredSunId(null);
-                props.setHoveredSun(null);
-                refs.lastSunLeaveTimeRef.current = null;
-                if (props.isMouseOverSunTooltipRef) {
-                  props.isMouseOverSunTooltipRef.current = false;
-                }
-              }
-            } else {
-              // hoveredSunId is null, pending is false. Just ensure cleanup.
-              refs.lastSunLeaveTimeRef.current = null;
-              refs.sunHoverClearPendingRef.current = false;
+            // Mouse is NOT over sun AND NOT over tooltip - start/check clear timer
+            if (refs.lastSunLeaveTimeRef.current === null) {
+              refs.lastSunLeaveTimeRef.current = currentFrameTime;
             }
+
+            const timeSinceLeave = currentFrameTime - refs.lastSunLeaveTimeRef.current;
+            if (timeSinceLeave >= SUN_HOVER_HIDE_DELAY_MS) {
+              // Timer expired - clear hover state NOW
+              props.setHoveredSunId(null);
+              props.setHoveredSun(null);
+              refs.lastSunLeaveTimeRef.current = null;
+              if (props.isMouseOverSunTooltipRef) {
+                props.isMouseOverSunTooltipRef.current = false;
+              }
+            }
+          }
+        } else {
+          // ASSERTION: No hover and no timer - ensure refs are clean
+          // This catches any edge case where state got out of sync
+          refs.lastSunLeaveTimeRef.current = null;
+          if (props.isMouseOverSunTooltipRef) {
+            props.isMouseOverSunTooltipRef.current = false;
           }
         }
       }
