@@ -32,6 +32,7 @@ import { useParticleEffects } from "./hooks/useParticleEffects";
 import { useDebugControls } from "./hooks/useDebugControls";
 import { useTooltipRefs } from "./hooks/useTooltipRefs";
 import { useCanvasClick } from "./hooks/useCanvasClick";
+import { usePerformanceTier } from "./hooks/usePerformanceTier";
 import DebugControlsOverlay from "./DebugControlsOverlay";
 import PerformanceDebugPanel from "./PerformanceDebugPanel";
 import { useStarInitialization } from "./hooks/useStarInitialization";
@@ -50,7 +51,7 @@ import {
   resetSunSystem,
 } from "./sunSystem";
 import SunTooltip, { SunInfo } from "./sunTooltip";
-import { EFFECT_TIMING, CAMERA_CONFIG } from "./physicsConfig";
+import { CAMERA_CONFIG } from "./physicsConfig";
 
 // Define the ref type
 export type StarfieldRef = {
@@ -60,7 +61,7 @@ export type StarfieldRef = {
   ) => void;
 };
 
-type PerformanceTier = "low" | "medium" | "high";
+// PerformanceTier type is imported from usePerformanceTier hook
 
 // Convert to forwardRef
 const InteractiveStarfield = forwardRef<
@@ -123,57 +124,17 @@ const InteractiveStarfield = forwardRef<
       restartAnimation: () => {},
     });
 
-    // Performance Tier State - Start Low
-    const [performanceTier, setPerformanceTier] = useState<PerformanceTier>("low");
-    const stableFpsCountRef = useRef(0);
-    const lowFpsCountRef = useRef(0);
-
-    // Track if starfield initialization is complete (hide initial positioning animation)
-    const [isStarfieldReady, setIsStarfieldReady] = useState(false);
-    const initializationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
-      null,
-    );
-
-    // FPS tracking state
-    const [currentFps, setCurrentFps] = useState<number>(0);
-    const [timestamp, setTimestamp] = useState<number>(0);
-    const fpsValuesRef = useRef<number[]>([]);
-
-    // Performance panel state
-    const [showPerformancePanel, setShowPerformancePanel] = useState<boolean>(false);
-
-    const updateFpsData = useCallback(
-      (fps: number, currentTimestamp: number): void => {
-        setCurrentFps(fps);
-        setTimestamp(currentTimestamp);
-
-        // Adaptive Performance Logic
-        if (fps > 55) {
-          stableFpsCountRef.current++;
-          lowFpsCountRef.current = 0;
-          if (stableFpsCountRef.current > 60) { // Stable for ~1s
-             setPerformanceTier(prev => {
-                if (prev === "low") return "medium";
-                if (prev === "medium") return "high";
-                return prev;
-             });
-             stableFpsCountRef.current = 0;
-          }
-        } else if (fps < 30) {
-          lowFpsCountRef.current++;
-          stableFpsCountRef.current = 0;
-          if (lowFpsCountRef.current > 30) { // Laggy for ~0.5s
-             setPerformanceTier(prev => {
-                if (prev === "high") return "medium";
-                if (prev === "medium") return "low";
-                return prev;
-             });
-             lowFpsCountRef.current = 0;
-          }
-        }
-      },
-      [],
-    );
+    // Performance tier management (adaptive FPS-based quality)
+    const {
+      performanceTier,
+      currentFps,
+      timestamp,
+      isStarfieldReady,
+      showPerformancePanel,
+      setShowPerformancePanel,
+      updateFpsData,
+      fpsValuesRef,
+    } = usePerformanceTier();
 
     // Project hover state
     const [hoverInfo, setHoverInfo] = useState<HoverInfo>({
@@ -797,27 +758,7 @@ const InteractiveStarfield = forwardRef<
       };
     }, []);
 
-    // Delay showing starfield until initialization is complete
-    // This prevents users from seeing the initial movement to designated positions
-    useEffect(() => {
-      // Clear any existing timer
-      if (initializationTimerRef.current) {
-        clearTimeout(initializationTimerRef.current);
-      }
-
-      // Wait for stars, planets, and suns to reach their initial positions
-      // The delay allows the physics engine to position elements before showing
-      initializationTimerRef.current = setTimeout((): void => {
-        setIsStarfieldReady(true);
-      }, EFFECT_TIMING.starfieldInitializationDelay);
-
-      return (): void => {
-        if (initializationTimerRef.current) {
-          clearTimeout(initializationTimerRef.current);
-        }
-      };
-    }, []); // Run once on mount
-
+    // NOTE: Starfield initialization delay is now handled by usePerformanceTier hook
     // NOTE: _handleEmployeeOrbitSpeedChange removed - unused debug handler
 
     const applyStarfieldRepulsion = useCallback(
