@@ -1057,6 +1057,7 @@ const InteractiveStarfield = forwardRef<
     const { handleCanvasClick, handleTouchEnd } = useCanvasClick({
       canvasRef,
       planetsRef: employeeStarsRef,
+      cameraRef: cameraStateRef,
       setMousePosition,
       onSunClick: zoomToSun,
       applyStarfieldRepulsion,
@@ -1202,7 +1203,7 @@ const InteractiveStarfield = forwardRef<
           className={`${styles.zoomOutButton} ${!isDarkMode ? styles.zoomOutButtonLight : ""}`}
           onClick={(): void => zoomToSun(focusedSunId)}
           style={{
-            left: "50%"
+            left: `calc(50% + ${sidebarWidth / 2}px)`
           }}
         >
           <span className={styles.zoomOutIcon}>←</span>

@@ -36,7 +36,7 @@ const Hero: FC<ExtendedHeroProps> = memo(
     colorScheme = "purple",
     accentColor,
     enableMouseTracking = false,
-    _sidebarWidth = 0,
+    sidebarWidth = 0,
   }): React.ReactElement => {
     const { themeMode } = useTheme();
     const isDarkMode = themeMode === "dark";
@@ -344,7 +344,7 @@ const Hero: FC<ExtendedHeroProps> = memo(
                 y: { repeat: Infinity, duration: 1.5 },
               }}
               style={{
-                left: "50%"
+                left: `calc(50% + ${sidebarWidth / 2}px)`
               }}
               onClick={() => scrollTo("focus-areas")}
               aria-label="Scroll to explore content"

@@ -14,11 +14,13 @@ import { checkSunHover } from "./animation/sunState";
 import { applyClickRepulsionToSunsCanvas } from "../sunSystem";
 import { applyClickRepulsionToPlanets } from "../Planets";
 import { MousePosition, Planet } from "../types";
+import { Camera } from "../cosmos/types";
 import { logger } from "@/utils/logger";
 
 export interface CanvasClickConfig {
   canvasRef: RefObject<HTMLCanvasElement | null>;
   planetsRef: RefObject<Planet[]>;
+  cameraRef?: RefObject<Camera | undefined>;
   setMousePosition?: Dispatch<SetStateAction<MousePosition>>;
   onSunClick: (sunId: string) => void;
   applyStarfieldRepulsion: (x: number, y: number) => void;
@@ -39,8 +41,12 @@ function processCanvasClick(
   height: number,
   config: CanvasClickConfig,
 ): void {
+  // Get current camera state for coordinate transformation (matches hover detection)
+  const camera = config.cameraRef?.current;
+
   // 1. Check if click was on a sun FIRST (before any physics)
-  const sunHoverResult = checkSunHover(x, y, width, height);
+  // Pass camera to ensure click detection uses same coords as hover detection
+  const sunHoverResult = checkSunHover(x, y, width, height, camera);
 
   if (sunHoverResult) {
     // Clicked on a sun - zoom to focus on that area

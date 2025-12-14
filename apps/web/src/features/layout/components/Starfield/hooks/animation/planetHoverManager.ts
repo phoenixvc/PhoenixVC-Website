@@ -1,28 +1,32 @@
 /**
  * PlanetHoverManager - Centralized hover state management for planets
  *
+ * ARCHITECTURE:
  * Similar to SunHoverManager, this separates:
  * 1. RENDERING STATE - Planet objects have `isHovered` property (mutable)
  * 2. TOOLTIP STATE - React state with 200ms delay for interactivity
  *
- * Unlike suns, planets mutate their own state via checkPlanetHover(),
- * so this manager primarily handles the tooltip delay logic.
+ * SINGLE SOURCE OF TRUTH:
+ * - checkPlanetHover() determines if mouse is over a planet and mutates state
+ * - TooltipDelayManager handles delay logic (DRY - shared with suns)
+ * - This module manages the state machine for tooltip
  */
 
 import { Camera } from "../../cosmos/types";
 import { HoverInfo, Planet } from "../../types";
 import { checkPlanetHover } from "../../Planets";
-import { isMouseOverElement, BoundedElement } from "./hoverUtils";
-
-// Configuration
-const TOOLTIP_HIDE_DELAY_MS = 200;
+import {
+  createTooltipDelayManager,
+  TooltipElement,
+  TooltipDelayManager,
+} from "./tooltipDelayManager";
 
 export interface PlanetHoverCallbacks {
   setHoverInfo: (info: HoverInfo) => void;
 }
 
 // Re-export for backwards compatibility
-export type TooltipElement = BoundedElement;
+export type { TooltipElement };
 
 /**
  * Creates a planet hover manager instance
@@ -47,9 +51,11 @@ export function createPlanetHoverManager(): {
   reset: () => void;
   isTimerActive: () => boolean;
 } {
-  let lastLeaveTime: number | null = null;
-  // Track tooltip state INTERNALLY to avoid React state sync issues
-  let internalTooltipProjectId: string | null = null;
+  // Use shared delay manager for consistent behavior with suns
+  const delayManager: TooltipDelayManager = createTooltipDelayManager();
+
+  // Track pending hover info for delay processing
+  let pendingHoverInfo: HoverInfo | null = null;
 
   /**
    * Process planet hover state for a single frame
@@ -88,98 +94,85 @@ export function createPlanetHoverManager(): {
       frameTime,
     } = params;
 
-    // Force clear when mouse leaves screen - ALWAYS clear
-    if (!isMouseOnScreen) {
-      if (internalTooltipProjectId !== null) {
-        callbacks.setHoverInfo({ project: null, x: 0, y: 0, show: false });
-        internalTooltipProjectId = null;
-        lastLeaveTime = null;
-      }
-      return false;
-    }
+    // === STEP 1: Check live hover state (for RENDERING) ===
+    // checkPlanetHover mutates planet.isHovered directly for rendering
+    // We capture the hover info via callback for tooltip processing
+    // Use object wrapper to make TypeScript understand mutation
+    const captured: { info: HoverInfo | null } = { info: null };
 
-    // When over content card, clear tooltip
-    if (isOverContentCard) {
-      if (internalTooltipProjectId !== null) {
-        callbacks.setHoverInfo({ project: null, x: 0, y: 0, show: false });
-        internalTooltipProjectId = null;
-        lastLeaveTime = null;
-      }
-      return false;
-    }
-
-    // Check if mouse is over tooltip element (allows clicking on tooltip)
-    const isOverTooltip = tooltipElement
-      ? isMouseOverElement(mouseX, mouseY, tooltipElement)
-      : false;
-
-    // Create wrapper that handles delay logic with INTERNAL state tracking
-    const setHoverInfoWithDelay = (newInfo: HoverInfo): void => {
-      if (newInfo.show && newInfo.project) {
-        // Showing tooltip - update immediately
-        lastLeaveTime = null;
-        if (internalTooltipProjectId !== newInfo.project.id) {
-          internalTooltipProjectId = newInfo.project.id;
-          callbacks.setHoverInfo(newInfo);
-        }
-      } else if (!newInfo.show && internalTooltipProjectId !== null) {
-        // Hiding tooltip - check if over tooltip element first
-        if (isOverTooltip || isMouseOverTooltipRef) {
-          lastLeaveTime = null;
-          return; // Keep showing, mouse is over tooltip
-        }
-
-        // Start/continue delay timer
-        if (lastLeaveTime === null) {
-          lastLeaveTime = frameTime;
-        }
-
-        const elapsed = frameTime - lastLeaveTime;
-        if (elapsed >= TOOLTIP_HIDE_DELAY_MS) {
-          callbacks.setHoverInfo(newInfo);
-          internalTooltipProjectId = null;
-          lastLeaveTime = null;
-        }
-        // If delay not expired, don't hide yet
-      }
+    const captureCallback = (info: HoverInfo): void => {
+      captured.info = info;
     };
 
-    // ALWAYS run checkPlanetHover - don't skip based on tooltip state
-    // This ensures we properly detect when mouse leaves a planet
-    const isHovering = checkPlanetHover(
+    // Always call checkPlanetHover to update planet.isHovered states
+    const isHoveringPlanet = checkPlanetHover(
       mouseX,
       mouseY,
       planets,
       planetSize,
       currentHoverInfo,
-      setHoverInfoWithDelay,
+      captureCallback,
       camera,
       canvasWidth,
       canvasHeight,
     );
 
-    // If mouse is over tooltip, keep showing
-    if (internalTooltipProjectId !== null && (isOverTooltip || isMouseOverTooltipRef)) {
-      lastLeaveTime = null;
-      return true;
+    // Store pending info for potential show
+    if (captured.info?.show) {
+      pendingHoverInfo = captured.info;
     }
 
-    return isHovering;
+    // === STEP 2: Manage TOOLTIP state using shared delay manager ===
+    const currentTooltipId = currentHoverInfo.show
+      ? currentHoverInfo.project?.id ?? null
+      : null;
+
+    const delayResult = delayManager.processDelay(
+      {
+        mouseX,
+        mouseY,
+        isMouseOnScreen,
+        isOverContentCard,
+        isMouseOverTooltipRef,
+        tooltipElement,
+        currentTooltipId,
+        frameTime,
+      },
+      isHoveringPlanet,
+    );
+
+    // Apply delay result
+    if (delayResult.shouldClearImmediately || delayResult.shouldHide) {
+      if (currentHoverInfo.show) {
+        callbacks.setHoverInfo({ project: null, x: 0, y: 0, show: false });
+      }
+      pendingHoverInfo = null;
+    } else if (delayResult.shouldShow && pendingHoverInfo) {
+      // Show new tooltip (or update existing)
+      const newId = pendingHoverInfo.project?.id;
+      const currentId = currentHoverInfo.project?.id;
+
+      if (pendingHoverInfo.show && newId !== currentId) {
+        callbacks.setHoverInfo(pendingHoverInfo);
+      }
+    }
+
+    return isHoveringPlanet;
   }
 
   /**
    * Reset state
    */
   function reset(): void {
-    lastLeaveTime = null;
-    internalTooltipProjectId = null;
+    delayManager.reset();
+    pendingHoverInfo = null;
   }
 
   /**
    * Check if delay timer is active
    */
   function isTimerActive(): boolean {
-    return lastLeaveTime !== null;
+    return delayManager.isDelayActive();
   }
 
   return {

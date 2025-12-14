@@ -2,6 +2,8 @@
 import { useRef } from "react";
 import { AnimationLoopProps, CollisionEffect } from "../../types";
 import { AnimationRefs } from "./types";
+import type { SunHoverManager } from "./sunHoverManager";
+import type { PlanetHoverManager } from "./planetHoverManager";
 
 export const useAnimationRefs = (props: AnimationLoopProps): AnimationRefs => {
   const animationRef = useRef<number>(0);
@@ -28,6 +30,10 @@ export const useAnimationRefs = (props: AnimationLoopProps): AnimationRefs => {
   const hoverInfoRef = useRef(props.hoverInfo);
   const gameStateRef = useRef(props.gameState);
 
+  // Centralized hover managers (created by useAnimationLoop, stored here)
+  const sunHoverManagerRef = useRef<SunHoverManager | null>(null);
+  const planetHoverManagerRef = useRef<PlanetHoverManager | null>(null);
+
   return {
     animationRef,
     lastTimeRef,
@@ -45,5 +51,7 @@ export const useAnimationRefs = (props: AnimationLoopProps): AnimationRefs => {
     mousePositionRef,
     hoverInfoRef,
     gameStateRef,
+    sunHoverManagerRef,
+    planetHoverManagerRef,
   };
 };
