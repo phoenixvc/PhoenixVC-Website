@@ -234,9 +234,9 @@
   --container-bg: rgba(249, 250, 251, 0.95);
 }
 
-/* Light theme specific overrides - use these classes directly */
-.light .starfieldBackground {
-  background-color: var(--background-color);
+/* Light theme specific overrides - combined class selectors (both classes on same element) */
+.starfieldBackground.light {
+  background-color: #f0f4f8;
   background-image:
     radial-gradient(rgba(30,64,175,.3), rgba(30,64,175,.1) 2px, transparent 40px),
     radial-gradient(rgba(30,64,175,.25), rgba(30,64,175,.08) 1px, transparent 30px),
@@ -244,18 +244,18 @@
     radial-gradient(rgba(30,64,175,.15), rgba(30,64,175,.03) 2px, transparent 30px);
 }
 
-.light .nebulaOverlay {
+.nebulaOverlay.light {
   background-image:
-    radial-gradient(circle at 20% 80%, var(--nebula-primary) 0%, transparent 40%),
-    radial-gradient(circle at 80% 10%, var(--nebula-secondary) 0%, transparent 35%),
-    radial-gradient(circle at 60% 60%, var(--nebula-tertiary) 0%, transparent 45%);
+    radial-gradient(circle at 20% 80%, rgba(111, 0, 255, 0.03) 0%, transparent 40%),
+    radial-gradient(circle at 80% 10%, rgba(0, 183, 255, 0.025) 0%, transparent 35%),
+    radial-gradient(circle at 60% 60%, rgba(255, 0, 128, 0.02) 0%, transparent 45%);
 }
 
-.light .frontierAccent {
-  background: radial-gradient(ellipse at center, var(--frontier-glow) 0%, transparent 70%);
+.frontierAccent.light {
+  background: radial-gradient(ellipse at center, rgba(72, 61, 139, 0.04) 0%, transparent 70%);
 }
 
-.light .purpleAccent {
+.purpleAccent.light {
   background: radial-gradient(ellipse at center, rgba(138, 43, 226, 0.02) 0%, transparent 70%);
 }
 

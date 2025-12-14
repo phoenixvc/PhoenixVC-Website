@@ -164,8 +164,15 @@ export const useMouseInteraction = (
   }, [handlePointerUp]);
 
   const handleTouchEnd = useCallback((): void => {
-    handlePointerUp();
-  }, [handlePointerUp]);
+    // On mobile, touch end is equivalent to mouse leave + mouse up
+    // Clear both isClicked AND isOnScreen since finger has left the screen
+    setMousePosition((prev) => ({
+      ...prev,
+      isClicked: false,
+      isOnScreen: false,
+    }));
+    logger.debug("Touch ended - cleared hover state");
+  }, []);
 
   const handleMouseLeave = useCallback((): void => {
     setMousePosition((prev) => ({
