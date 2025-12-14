@@ -103,7 +103,7 @@ Environment variables:
     DOMAIN                   DNS zone name (e.g., phoenixvc.tech)
     EXPECTED_APEX_IPS        (Optional) Space-delimited list of expected apex A record IPs
     DESIGN_SWA_NAME          (Optional) Static Web App name for the design site
-EOF
+EOFAC
 }
 
 show_version() {
@@ -229,6 +229,14 @@ configure_apex() {
 
 configure_www() {
     info "Configuring www subdomain..."
+    
+    # Check if CNAME record already exists
+    if az network dns record-set cname show --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --name "www" >/dev/null 2>&1; then
+        info "CNAME record for www already exists. Deleting it first..."
+        retry az network dns record-set cname delete --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --name "www" --yes || warn "Failed to delete existing www CNAME record"
+    fi
+    
+    # Create the CNAME record
     retry az network dns record-set cname set-record --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --record-set-name "www" --cname "$SWA_NAME.azurestaticapps.net" --ttl 3600 || error "Failed to configure www subdomain"
     log "www subdomain configured."
 }
@@ -252,6 +260,14 @@ configure_design() {
         fi
         info "DESIGN_SWA_NAME was not provided. Inferred DESIGN_SWA_NAME as: ${DESIGN_SWA_NAME}"
     fi
+    
+    # Check if CNAME record already exists
+    if az network dns record-set cname show --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --name "design" >/dev/null 2>&1; then
+        info "CNAME record for design already exists. Deleting it first..."
+        retry az network dns record-set cname delete --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --name "design" --yes || warn "Failed to delete existing design CNAME record"
+    fi
+    
+    # Create the CNAME record
     retry az network dns record-set cname set-record --resource-group "$RESOURCE_GROUP" --zone-name "$DOMAIN" --record-set-name "design" --cname "${DESIGN_SWA_NAME}.azurestaticapps.net" --ttl 3600 || error "Failed to configure design subdomain"
     log "Design subdomain configured (CNAME -> ${DESIGN_SWA_NAME}.azurestaticapps.net)."
 }
