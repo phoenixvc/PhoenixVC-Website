@@ -30,6 +30,8 @@ import { useAnimationLoop } from "./hooks/useAnimationLoop";
 import { useMouseInteraction } from "./hooks/useMouseInteraction";
 import { useParticleEffects } from "./hooks/useParticleEffects";
 import { useDebugControls } from "./hooks/useDebugControls";
+import { useTooltipRefs } from "./hooks/useTooltipRefs";
+import { useCanvasClick } from "./hooks/useCanvasClick";
 import DebugControlsOverlay from "./DebugControlsOverlay";
 import PerformanceDebugPanel from "./PerformanceDebugPanel";
 import { useStarInitialization } from "./hooks/useStarInitialization";
@@ -185,14 +187,20 @@ const InteractiveStarfield = forwardRef<
     });
     const [pinnedProjects, setPinnedProjects] = useState<PortfolioProject[]>([]);
 
-    // Track if mouse is over the project tooltip to prevent hiding while interacting
-    const isMouseOverProjectTooltipRef = useRef(false);
-    // Ref for debouncing project tooltip hide
-    const projectTooltipHideTimeoutRef = useRef<ReturnType<
-      typeof setTimeout
-    > | null>(null);
-    // Delay in ms before hiding tooltip after mouse leaves (allows time to move to tooltip)
-    const TOOLTIP_HIDE_DELAY_MS = 200;
+    // Sun hover state for focus area suns
+    const [hoveredSun, setHoveredSun] = useState<SunInfo | null>(null);
+    const [hoveredSunId, setHoveredSunId] = useState<string | null>(null);
+
+    // Focused sun state - when user clicks on a focus area, we scope the view
+    const [focusedSunId, setFocusedSunId] = useState<string | null>(null);
+    const focusAnimationRef = useRef<number | null>(null);
+
+    // Centralized tooltip ref management (prevents stuck refs when tooltips unmount)
+    const tooltipRefs = useTooltipRefs({
+      hoveredSunId,
+      hoverInfo,
+      setHoverInfo,
+    });
 
     const handlePinProject = (project: PortfolioProject): void => {
       setPinnedProjects((prev) => {
@@ -213,64 +221,6 @@ const InteractiveStarfield = forwardRef<
     const handleUnpinAll = (): void => {
       setPinnedProjects([]);
     };
-
-    // Handlers for project tooltip mouse enter/leave
-    const handleProjectTooltipMouseEnter = (): void => {
-      // Clear any pending hide timeout when mouse enters tooltip
-      if (projectTooltipHideTimeoutRef.current) {
-        clearTimeout(projectTooltipHideTimeoutRef.current);
-        projectTooltipHideTimeoutRef.current = null;
-      }
-      isMouseOverProjectTooltipRef.current = true;
-    };
-
-    const handleProjectTooltipMouseLeave = (): void => {
-      isMouseOverProjectTooltipRef.current = false;
-      // Start hide timeout when mouse leaves tooltip
-      projectTooltipHideTimeoutRef.current = setTimeout(() => {
-        setHoverInfo((prev) => ({ ...prev, show: false }));
-      }, TOOLTIP_HIDE_DELAY_MS);
-    };
-
-    // Sun hover state for focus area suns
-    const [hoveredSun, setHoveredSun] = useState<SunInfo | null>(null);
-    const [hoveredSunId, setHoveredSunId] = useState<string | null>(null);
-    // Ref to the sun tooltip DOM element for accurate hover detection
-    const sunTooltipElementRef = useRef<HTMLDivElement | null>(null);
-    // Track if mouse is over the sun tooltip to prevent hiding while interacting
-    const isMouseOverSunTooltipRef = useRef(false);
-    // Ref for debouncing sun tooltip hide
-    const sunHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-      null,
-    );
-
-    // Focused sun state - when user clicks on a focus area, we scope the view
-    const [focusedSunId, setFocusedSunId] = useState<string | null>(null);
-    const focusAnimationRef = useRef<number | null>(null);
-
-    // ASSERTION: Clean up tooltip refs when hoveredSunId becomes null
-    // This ensures no stale refs persist that could cause stuck hover states
-    useEffect(() => {
-      if (hoveredSunId === null) {
-        isMouseOverSunTooltipRef.current = false;
-        if (sunHideTimeoutRef.current) {
-          clearTimeout(sunHideTimeoutRef.current);
-          sunHideTimeoutRef.current = null;
-        }
-      }
-    }, [hoveredSunId]);
-
-    // ASSERTION: Clean up project tooltip ref when tooltip hides
-    // This prevents stale ref if tooltip unmounts before mouseLeave fires
-    useEffect(() => {
-      if (!hoverInfo.show) {
-        isMouseOverProjectTooltipRef.current = false;
-        if (projectTooltipHideTimeoutRef.current) {
-          clearTimeout(projectTooltipHideTimeoutRef.current);
-          projectTooltipHideTimeoutRef.current = null;
-        }
-      }
-    }, [hoverInfo.show]);
 
     // Internal camera state for sun zoom functionality
     const [internalCamera, setInternalCamera] = useState<Camera>({
@@ -763,13 +713,14 @@ const InteractiveStarfield = forwardRef<
         focusedSunId,
         camera: internalCamera,
         setCamera: setInternalCamera,
-        isMouseOverProjectTooltipRef,
-        isMouseOverSunTooltipRef,
+        isMouseOverProjectTooltipRef: tooltipRefs.isMouseOverProjectTooltipRef,
+        isMouseOverSunTooltipRef: tooltipRefs.isMouseOverSunTooltipRef,
         setHoveredSunId,
         setHoveredSun,
         cameraRef: cameraStateRef,
         sidebarWidth,
-        sunTooltipElementRef,
+        sunTooltipElementRef: tooltipRefs.sunTooltipElementRef,
+        projectTooltipElementRef: tooltipRefs.projectTooltipElementRef,
       }),
       // eslint-disable-next-line react-hooks/exhaustive-deps
       [
@@ -1347,32 +1298,20 @@ const InteractiveStarfield = forwardRef<
           y={hoverInfo.y}
           isDarkMode={isDarkMode}
           onPin={handlePinProject}
-          onMouseEnter={handleProjectTooltipMouseEnter}
-          onMouseLeave={handleProjectTooltipMouseLeave}
+          onMouseEnter={tooltipRefs.handleProjectTooltipMouseEnter}
+          onMouseLeave={tooltipRefs.handleProjectTooltipMouseLeave}
         />
       )}
 
       {/* Sun tooltip when hovering over a focus area sun - only show if no project tooltip is visible */}
-      {/* Removed !pinnedProject check to allow interaction while docked */}
       {hoveredSun && !hoverInfo.show && (
         <SunTooltip
-          ref={sunTooltipElementRef}
+          ref={tooltipRefs.sunTooltipElementRef}
           sun={hoveredSun}
           isDarkMode={isDarkMode}
           onClick={(sunId): void => zoomToSun(sunId)}
-          onMouseEnter={(): void => {
-            // Clear any pending hide timeout when mouse enters tooltip
-            if (sunHideTimeoutRef.current) {
-              clearTimeout(sunHideTimeoutRef.current);
-              sunHideTimeoutRef.current = null;
-            }
-            isMouseOverSunTooltipRef.current = true;
-          }}
-          onMouseLeave={(): void => {
-            // Just set the ref to false - the animation loop handles clearing the hover
-            // based on whether the mouse is still in the sun's hit area
-            isMouseOverSunTooltipRef.current = false;
-          }}
+          onMouseEnter={tooltipRefs.handleSunTooltipMouseEnter}
+          onMouseLeave={tooltipRefs.handleSunTooltipMouseLeave}
         />
       )}
 
