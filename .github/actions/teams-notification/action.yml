@@ -46,8 +46,9 @@ inputs:
     description: "Teams token to be encoded and passed along"
     required: true
   github_logic_app_url:
-    description: "GitHub Logic App URL (used to build the approvalUrl)"
-    required: true
+    description: "GitHub Logic App URL (used to build the approvalUrl) - optional for production notifications"
+    required: false
+    default: ""
   title:
     description: "Title for the notification"
     required: true
@@ -139,7 +140,7 @@ runs:
         encodedGitHubToken=$(echo "${{ inputs.github_token }}" | base64)
         encodedTeamsToken=$(echo "${{ inputs.teams_token }}" | base64)
 
-        # Construct approval URL using github_logic_app_url input
+        # Construct approval URL using github_logic_app_url input (optional for production)
         if [ -n "${{ inputs.github_logic_app_url }}" ]; then
           base_url="${{ inputs.github_logic_app_url }}"
           # Remove any placeholder tokens if present
@@ -152,22 +153,26 @@ runs:
           fi
           # Ensure required parameters for approval URL are provided
           if [ -z "$deployment_id" ] || [ -z "$artifact_id" ] || [ -z "$run_id" ]; then
-            echo "Error: deployment_id, artifact_id, and run_id are required for constructing approval URL"
-            exit 1
-          fi
-          # URL encode each parameter
-          encoded_token=$(echo "$encodedGitHubToken" | jq -sRr @uri)
-          encoded_changes=$(echo "$change_summary" | jq -sRr @uri)
-          encoded_deployment_id=$(echo "$deployment_id" | jq -sRr @uri)
-          encoded_artifact_id=$(echo "$artifact_id" | jq -sRr @uri)
-          encoded_run_id=$(echo "$run_id" | jq -sRr @uri)
+            echo "Warning: deployment_id, artifact_id, or run_id missing - approval URL will be empty"
+            approval_url=""
+            escaped_approval_url=""
+          else
+            # URL encode each parameter
+            encoded_token=$(echo "$encodedGitHubToken" | jq -sRr @uri)
+            encoded_changes=$(echo "$change_summary" | jq -sRr @uri)
+            encoded_deployment_id=$(echo "$deployment_id" | jq -sRr @uri)
+            encoded_artifact_id=$(echo "$artifact_id" | jq -sRr @uri)
+            encoded_run_id=$(echo "$run_id" | jq -sRr @uri)
 
-          approval_url="${base_url}${connector}token=${encoded_token}&changes=${encoded_changes}&deploymentId=${encoded_deployment_id}&artifactId=${encoded_artifact_id}&runId=${encoded_run_id}"
-          # Escape ampersands for sed substitution
-          escaped_approval_url=$(printf '%s' "$approval_url" | sed 's/&/\\&/g')
+            approval_url="${base_url}${connector}token=${encoded_token}&changes=${encoded_changes}&deploymentId=${encoded_deployment_id}&artifactId=${encoded_artifact_id}&runId=${encoded_run_id}"
+            # Escape ampersands for sed substitution
+            escaped_approval_url=$(printf '%s' "$approval_url" | sed 's/&/\\&/g')
+          fi
         else
-          echo "Error: github_logic_app_url is required for approval URL"
-          exit 1
+          # No approval URL for production notifications
+          echo "Note: github_logic_app_url not provided - skipping approval URL (normal for production)"
+          approval_url=""
+          escaped_approval_url=""
         fi
 
         echo "Computed approval URL: $approval_url"
