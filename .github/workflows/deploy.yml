@@ -368,8 +368,7 @@ jobs:
   # ───────────────────────────────────────────────
   # ✅ AUTO-TRIGGER PRODUCTION DEPLOYMENT
   # ───────────────────────────────────────────────
-  trigger_production:
-    runs-on: ubuntu-latest
+  deploy_production:
     needs: [build_apps, swa_deploy_staging, check_relevant_changes]
     # Only trigger production on push to main (not PRs) when staging succeeds
     if: >
@@ -377,21 +376,10 @@ jobs:
       github.event_name == 'push' &&
       needs.swa_deploy_staging.result == 'success' &&
       needs.check_relevant_changes.outputs.resources_changed == 'true'
-    steps:
-      - name: Trigger Production Deployment
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "🚀 Triggering production deployment..."
-          echo "Artifact: ${{ needs.build_apps.outputs.web_artifact_name }}"
-          echo "Run ID: ${{ github.run_id }}"
-
-          # Trigger the production deployment workflow
-          gh workflow run production_deployment.yml \
-            --repo ${{ github.repository }} \
-            --field artifactSource=specific \
-            --field artifactId=${{ needs.build_apps.outputs.web_artifact_name }} \
-            --field runID=${{ github.run_id }} \
-            --field includeDnsUpdate=false
-
-          echo "✅ Production deployment triggered! Approval required via GitHub Environment protection."
+    uses: ./.github/workflows/production_deployment.yml
+    with:
+      artifactSource: 'specific'
+      artifactId: ${{ needs.build_apps.outputs.web_artifact_name }}
+      runID: ${{ github.run_id }}
+      includeDnsUpdate: false
+    secrets: inherit
