@@ -64,9 +64,31 @@
     <!-- ScrollReveal Library - loaded async for performance -->
     <script src="https://unpkg.com/scrollreveal" defer></script>
 
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://unpkg.com; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; connect-src 'self' https:;">
+    <!-- Inline script to prevent flash of wrong theme - defaults to dark mode -->
+    <script>
+      (function() {
+        // Check localStorage for user's explicit mode preference
+        // The key format is "my-app-theme:theme_mode" based on the app's storage config
+        var storedMode = null;
+        try {
+          var raw = localStorage.getItem('my-app-theme:theme_mode');
+          if (raw) {
+            storedMode = JSON.parse(raw);
+          }
+        } catch (e) {}
+
+        // Default to dark mode unless user explicitly chose light mode
+        var mode = (storedMode === 'light') ? 'light' : 'dark';
+
+        // Apply the mode class immediately to prevent flash
+        document.documentElement.classList.add(mode);
+        document.documentElement.setAttribute('data-mode', mode);
+      })();
+    </script>
+
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; connect-src 'self' https:;">
   </head>
-  <body>
+  <body class="dark">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
