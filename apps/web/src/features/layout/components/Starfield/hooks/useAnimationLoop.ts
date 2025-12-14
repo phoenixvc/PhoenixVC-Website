@@ -72,7 +72,7 @@ export const useAnimationLoop = (
   const animationWatchdogRef = useRef<number | null>(null);
 
   // Sun/planet hover state refs - per-instance to avoid leaking across remounts
-  const sunHoverClearPendingRef = useRef<boolean>(false);
+  // NOTE: sunHoverClearPendingRef removed - was dead code (never read)
   const lastSunLeaveTimeRef = useRef<number | null>(null);
   const lastPlanetLeaveTimeRef = useRef<number | null>(null);
 
@@ -87,7 +87,6 @@ export const useAnimationLoop = (
   useEffect(() => {
     if (props.hoveredSunId === null) {
       lastSunLeaveTimeRef.current = null;
-      sunHoverClearPendingRef.current = false;
     }
   }, [props.hoveredSunId]);
 
@@ -153,7 +152,6 @@ export const useAnimationLoop = (
     animationStartTimeRef,
     animationWatchdogRef,
     // Sun/planet hover state refs
-    sunHoverClearPendingRef,
     lastSunLeaveTimeRef,
     lastPlanetLeaveTimeRef,
     // Centralized hover manager

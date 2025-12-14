@@ -322,9 +322,8 @@ const InteractiveStarfield = forwardRef<
     const {
       stars,
       starsRef,
-      blackHoles: _blackHoles,
+      // blackHoles and employeeStars values not used, only refs needed
       blackHolesRef,
-      employeeStars: _employeeStars,
       employeeStarsRef,
       initializeElements,
       ensureStarsExist,
@@ -866,25 +865,7 @@ const InteractiveStarfield = forwardRef<
       };
     }, []); // Run once on mount
 
-    // Update employee stars when orbit speed changes
-    const _handleEmployeeOrbitSpeedChange = (
-      e: React.ChangeEvent<HTMLInputElement>,
-    ): void => {
-      const newSpeed = parseFloat(e.target.value);
-      updateDebugSetting("employeeOrbitSpeed", newSpeed);
-
-      // Update employee stars with new orbit speed
-      if (employeeStarsRef.current.length > 0) {
-        const updatedEmployeeStars = employeeStarsRef.current.map(
-          (empStar) => ({
-            ...empStar,
-            orbitSpeed: newSpeed,
-          }),
-        );
-
-        employeeStarsRef.current = updatedEmployeeStars;
-      }
-    };
+    // NOTE: _handleEmployeeOrbitSpeedChange removed - unused debug handler
 
     const applyStarfieldRepulsion = useCallback(
       (
@@ -1117,14 +1098,7 @@ const InteractiveStarfield = forwardRef<
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [targetKey]);
 
-    // Legacy function kept for backward compatibility
-    const _scrollToFocusArea = useCallback(
-      (sunId: string, _sunX: number, _sunY: number): void => {
-        // Now just delegates to the camera zoom function
-        zoomToSun(sunId);
-      },
-      [zoomToSun],
-    );
+    // NOTE: _scrollToFocusArea removed - was legacy wrapper, use zoomToSun() directly
 
     // Update the click handler to use this unified function:
     const handleCanvasClick = useCallback(

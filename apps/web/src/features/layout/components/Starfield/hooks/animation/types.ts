@@ -136,7 +136,7 @@ export interface AnimationRefs {
   gameStateRef: React.MutableRefObject<GameState>; // Changed from unknown to GameState
   animationErrorCountRef: React.MutableRefObject<number>;
   // Sun/planet hover state - per-instance to avoid leaking across remounts
-  sunHoverClearPendingRef: MutableRefObject<boolean>;
+  // NOTE: sunHoverClearPendingRef removed - was dead code (never read)
   lastSunLeaveTimeRef: MutableRefObject<number | null>;
   lastPlanetLeaveTimeRef: MutableRefObject<number | null>;
   // Centralized hover manager for clean separation of rendering vs tooltip state
