@@ -11,6 +11,25 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     @apply antialiased transition-colors duration-300 ease-in-out;
+    /* Extend background to safe areas (notch, home indicator) */
+    background-color: #13151a;
+  }
+
+  /* Handle iOS safe areas - ensure content doesn't go under the notch */
+  body {
+    /* Safe area padding for iOS devices with notches */
+    padding-top: env(safe-area-inset-top, 0);
+    padding-left: env(safe-area-inset-left, 0);
+    padding-right: env(safe-area-inset-right, 0);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    /* Match background for seamless appearance */
+    background-color: #13151a;
+  }
+
+  /* Light mode safe area background */
+  :root:not(.dark) html,
+  :root:not(.dark) body {
+    background-color: #f5f5f5;
   }
 
   /* Base (Classic) Theme - Light */
