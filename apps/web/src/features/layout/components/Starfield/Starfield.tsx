@@ -260,6 +260,18 @@ const InteractiveStarfield = forwardRef<
       }
     }, [hoveredSunId]);
 
+    // ASSERTION: Clean up project tooltip ref when tooltip hides
+    // This prevents stale ref if tooltip unmounts before mouseLeave fires
+    useEffect(() => {
+      if (!hoverInfo.show) {
+        isMouseOverProjectTooltipRef.current = false;
+        if (projectTooltipHideTimeoutRef.current) {
+          clearTimeout(projectTooltipHideTimeoutRef.current);
+          projectTooltipHideTimeoutRef.current = null;
+        }
+      }
+    }, [hoverInfo.show]);
+
     // Internal camera state for sun zoom functionality
     const [internalCamera, setInternalCamera] = useState<Camera>({
       cx: CAMERA_CONFIG.defaultCenterX,
