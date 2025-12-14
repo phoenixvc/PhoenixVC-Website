@@ -117,25 +117,46 @@ export class ErrorBoundary extends Component<Props, State> {
               We encountered an unexpected error. Please try refreshing the page
               or going back to the home page.
             </p>
-            {/* Show error details for debugging */}
+            {/* Show error details for debugging - BIG AND OBVIOUS */}
             {this.state.error && (
               <div style={{
-                marginTop: '20px',
-                padding: '15px',
-                background: 'rgba(255,0,0,0.1)',
-                borderRadius: '8px',
+                marginTop: '30px',
+                padding: '20px',
+                background: '#2a1515',
+                border: '2px solid #ff4444',
+                borderRadius: '12px',
                 textAlign: 'left',
-                maxWidth: '600px',
-                margin: '20px auto',
-                fontSize: '12px',
+                maxWidth: '800px',
+                margin: '30px auto',
+                fontSize: '14px',
                 fontFamily: 'monospace',
-                color: '#ff6b6b',
-                overflow: 'auto',
-                maxHeight: '200px'
               }}>
-                <strong>Error:</strong> {this.state.error.message}
+                <div style={{
+                  color: '#ff6b6b',
+                  fontSize: '18px',
+                  fontWeight: 'bold',
+                  marginBottom: '15px',
+                  borderBottom: '1px solid #ff4444',
+                  paddingBottom: '10px'
+                }}>
+                  DEBUG INFO (share this with developer):
+                </div>
+                <div style={{ color: '#ffaaaa', marginBottom: '10px' }}>
+                  <strong style={{ color: '#ff6b6b' }}>Error:</strong> {this.state.error.message}
+                </div>
                 {this.state.error.stack && (
-                  <pre style={{ marginTop: '10px', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+                  <pre style={{
+                    marginTop: '10px',
+                    whiteSpace: 'pre-wrap',
+                    wordBreak: 'break-all',
+                    color: '#cc8888',
+                    fontSize: '11px',
+                    maxHeight: '300px',
+                    overflow: 'auto',
+                    background: '#1a0a0a',
+                    padding: '10px',
+                    borderRadius: '6px'
+                  }}>
                     {this.state.error.stack}
                   </pre>
                 )}
