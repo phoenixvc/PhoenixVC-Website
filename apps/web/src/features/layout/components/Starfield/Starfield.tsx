@@ -728,6 +728,7 @@ const InteractiveStarfield = forwardRef<
       cameraRef: cameraStateRef,
       setMousePosition,
       onSunClick: zoomToSun,
+      onPlanetClick: handlePinProject, // Auto-pin on mobile planet click
       applyStarfieldRepulsion,
     });
 
