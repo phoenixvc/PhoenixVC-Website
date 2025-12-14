@@ -38,5 +38,5 @@ export function lerpCamera(
   };
 }
 
-// NOTE: screenToWorld and pickObject functions removed -
-// Use the versions in cosmicNavigation.ts instead
+// NOTE: screenToWorld removed - use screenToWorldCoords in hoverUtils.ts
+// NOTE: pickObject removed - use version in cosmicNavigation.ts
