@@ -12,6 +12,7 @@ import {
   Planet,
   Star,
 } from "../../types";
+import type { SunHoverManager } from "./sunHoverManager";
 
 // Add this interface for debug settings
 export interface DebugSettings {
@@ -138,4 +139,6 @@ export interface AnimationRefs {
   sunHoverClearPendingRef: MutableRefObject<boolean>;
   lastSunLeaveTimeRef: MutableRefObject<number | null>;
   lastPlanetLeaveTimeRef: MutableRefObject<number | null>;
+  // Centralized hover manager for clean separation of rendering vs tooltip state
+  sunHoverManagerRef: MutableRefObject<SunHoverManager | null>;
 }

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { CollisionEffect, GameState } from "../types";
 import { animate } from "./animation/animate";
 import { AnimationProps, AnimationRefs } from "./animation/types";
+import { createSunHoverManager, SunHoverManager } from "./animation/sunHoverManager";
 import { logger } from "@/utils/logger";
 
 export const useAnimationLoop = (
@@ -74,6 +75,12 @@ export const useAnimationLoop = (
   const sunHoverClearPendingRef = useRef<boolean>(false);
   const lastSunLeaveTimeRef = useRef<number | null>(null);
   const lastPlanetLeaveTimeRef = useRef<number | null>(null);
+
+  // Centralized sun hover manager - handles both rendering and tooltip state
+  const sunHoverManagerRef = useRef<SunHoverManager | null>(null);
+  if (!sunHoverManagerRef.current) {
+    sunHoverManagerRef.current = createSunHoverManager();
+  }
 
   // ASSERTION: Clean up hover refs when hoveredSunId becomes null
   // This prevents stale timer refs from persisting across hover cycles
@@ -149,6 +156,8 @@ export const useAnimationLoop = (
     sunHoverClearPendingRef,
     lastSunLeaveTimeRef,
     lastPlanetLeaveTimeRef,
+    // Centralized hover manager
+    sunHoverManagerRef,
   };
 
   // Restart animation function
