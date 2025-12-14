@@ -64,7 +64,7 @@ let cachedFocusedSunId: string | null = null;
 let cachedPlanetsLength = 0;
 
 // Delay constants for hover effects
-const SUN_HOVER_HIDE_DELAY_MS = 50; // Delay before hiding sun tooltip
+const SUN_HOVER_HIDE_DELAY_MS = 200; // Delay before hiding sun tooltip (enough time to move to tooltip)
 const PLANET_TOOLTIP_HIDE_DELAY_MS = 200; // Delay before hiding planet tooltip
 // NOTE: State for these delays (lastSunLeaveTime, lastPlanetLeaveTime, sunHoverClearPending)
 // is stored in AnimationRefs to avoid leaking across component remounts
@@ -513,13 +513,22 @@ export const animate = (
             // Mouse is over tooltip - keep hover state
             refs.lastSunLeaveTimeRef.current = null;
           } else {
-            // NUCLEAR FIX: Clear hover state IMMEDIATELY when not over sun and not over tooltip
-            // No delay - the delay was causing race conditions with React state updates
-            props.setHoveredSunId(null);
-            props.setHoveredSun(null);
-            refs.lastSunLeaveTimeRef.current = null;
-            if (props.isMouseOverSunTooltipRef) {
-              props.isMouseOverSunTooltipRef.current = false;
+            // Mouse not over sun or tooltip - use delay for React state (tooltip visibility)
+            // NOTE: Rendering uses live hover state, so hover ring clears immediately
+            // But we delay the React state clear so tooltip stays visible long enough to click
+            if (refs.lastSunLeaveTimeRef.current === null) {
+              refs.lastSunLeaveTimeRef.current = currentFrameTime;
+            }
+
+            const timeSinceLeave = currentFrameTime - refs.lastSunLeaveTimeRef.current;
+            if (timeSinceLeave >= SUN_HOVER_HIDE_DELAY_MS) {
+              // Timer expired - clear React state (tooltip will hide)
+              props.setHoveredSunId(null);
+              props.setHoveredSun(null);
+              refs.lastSunLeaveTimeRef.current = null;
+              if (props.isMouseOverSunTooltipRef) {
+                props.isMouseOverSunTooltipRef.current = false;
+              }
             }
           }
         } else {
