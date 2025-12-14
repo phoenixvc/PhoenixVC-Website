@@ -7,14 +7,14 @@ on:
     branches: [ "main", "release/*", "staging/*" ]
   workflow_dispatch:
     inputs:
-      SEND_STAGING_FAILED:
-        description: 'Set to "true" to notify stakeholders if staging deployment fails'
-        required: false
-        default: "true"
-        type: choice
-        options:
-          - "true"
-          - "false"
+      notifyOnFailure:
+        description: 'Send Teams notification if deployment fails'
+        type: boolean
+        default: true
+      deployToProd:
+        description: 'Also deploy to production after staging succeeds'
+        type: boolean
+        default: false
 
 env:
   LOCATION_CODE: 'euw'  # Default to Europe West
@@ -306,7 +306,7 @@ jobs:
  # ───────────────────────────────────────────────
   notify_deployment:
     runs-on: ubuntu-latest
-    # For staging, notify if success OR if failure and SEND_STAGING_FAILED is true.
+    # Notify on success, or on failure if notifyOnFailure is enabled
     # For production, always notify regardless of outcome.
     needs: [build_apps, deploy_resources_staging, swa_deploy_staging, check_relevant_changes]
     if: always()
@@ -346,7 +346,7 @@ jobs:
           fi
 
       - name: Notify Staging via Teams
-        if: (needs.check_relevant_changes.outputs.resources_changed == 'true' || github.event_name == 'workflow_dispatch') && (needs.swa_deploy_staging.result == 'success' || github.event.inputs.SEND_STAGING_FAILED == 'true')
+        if: (needs.check_relevant_changes.outputs.resources_changed == 'true' || github.event_name == 'workflow_dispatch') && (needs.swa_deploy_staging.result == 'success' || inputs.notifyOnFailure == true)
         uses: ./.github/actions/teams-notification
         with:
           webhook_url: "https://phoenixvc568.webhook.office.com/webhookb2/17b0291f-b70b-4bdd-9266-f212ae03a2bd@7edf4423-ccb3-4275-bc80-64dae3ef0148/IncomingWebhook/3174ffcca3804d34ae923ba2e131f82e/a41dbcc0-67a6-4a23-bdec-b780dcebefa9/V2MOPWeKY7ywC8-iGptxHlSIZpwHVxw2FLAOAMU2N0hmM1"
@@ -373,16 +373,19 @@ jobs:
           pr_description: ${{ github.event.pull_request.body || 'N/A' }}
 
   # ───────────────────────────────────────────────
-  # ✅ AUTO-TRIGGER PRODUCTION DEPLOYMENT
+  # ✅ PRODUCTION DEPLOYMENT (auto on main push, or manual with checkbox)
   # ───────────────────────────────────────────────
   deploy_production:
     needs: [build_apps, swa_deploy_staging, check_relevant_changes]
-    # Only trigger production on push to main (not PRs) when staging succeeds
+    # Trigger production when:
+    # 1. Auto: push to main + staging success + relevant changes, OR
+    # 2. Manual: workflow_dispatch + deployToProd checked + staging success
     if: >
-      github.ref == 'refs/heads/main' &&
-      github.event_name == 'push' &&
       needs.swa_deploy_staging.result == 'success' &&
-      needs.check_relevant_changes.outputs.resources_changed == 'true'
+      (
+        (github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.check_relevant_changes.outputs.resources_changed == 'true') ||
+        (github.event_name == 'workflow_dispatch' && inputs.deployToProd == true)
+      )
     uses: ./.github/workflows/production_deployment.yml
     with:
       artifactSource: 'specific'
