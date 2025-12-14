@@ -264,6 +264,12 @@ export const animate = (
         },
         frameTime: currentFrameTime,
       });
+
+      // When hovering a sun, immediately clear planet tooltip to avoid 200ms delay blocking sun tooltip
+      // This fixes the issue where planet tooltip stays open too long when moving to hover a sun
+      if (liveHoveredSunId !== null && refs.hoverInfoRef.current?.show) {
+        props.setHoverInfo({ project: null, x: 0, y: 0, show: false });
+      }
     }
 
     // Draw suns (focus area orbital centers) - always visible
