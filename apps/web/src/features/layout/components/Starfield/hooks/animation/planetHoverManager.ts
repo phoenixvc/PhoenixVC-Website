@@ -86,8 +86,18 @@ export function createPlanetHoverManager(): {
       frameTime,
     } = params;
 
-    // Force clear conditions
-    if (!isMouseOnScreen || isOverContentCard) {
+    // Force clear when mouse leaves screen - ALWAYS clear, ignore stuck refs
+    // This is a safety valve to prevent permanently stuck tooltips
+    if (!isMouseOnScreen) {
+      if (currentHoverInfo.show) {
+        callbacks.setHoverInfo({ project: null, x: 0, y: 0, show: false });
+        lastLeaveTime = null;
+      }
+      return false;
+    }
+
+    // When over content card, only clear if not hovering tooltip
+    if (isOverContentCard) {
       if (currentHoverInfo.show && !isMouseOverTooltipRef) {
         callbacks.setHoverInfo({ project: null, x: 0, y: 0, show: false });
         lastLeaveTime = null;
