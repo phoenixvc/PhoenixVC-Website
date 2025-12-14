@@ -15,7 +15,7 @@ import {
   MousePosition,
   DebugSettings,
 } from "./types";
-import { Camera } from "./cosmos/types";
+// Camera type is used internally by useCameraAnimation hook
 import { ProjectTooltip } from "./projectTooltip";
 import {
   fetchIpAddress,
@@ -32,6 +32,7 @@ import { useTooltipRefs } from "./hooks/useTooltipRefs";
 import { useCanvasClick } from "./hooks/useCanvasClick";
 import { usePerformanceTier } from "./hooks/usePerformanceTier";
 import { useProjectHoverState } from "./hooks/useProjectHoverState";
+import { useCameraAnimation } from "./hooks/useCameraAnimation";
 import DebugControlsOverlay from "./DebugControlsOverlay";
 import PerformanceDebugPanel from "./PerformanceDebugPanel";
 import { useStarInitialization } from "./hooks/useStarInitialization";
@@ -44,13 +45,9 @@ import {
   resetAnimationModuleState,
   resetAnimateModuleCaches,
 } from "./hooks/animation/animate";
-import {
-  getSunPosition,
-  getSunStates,
-  resetSunSystem,
-} from "./sunSystem";
+import { getSunStates, resetSunSystem } from "./sunSystem";
 import SunTooltip from "./sunTooltip";
-import { CAMERA_CONFIG } from "./physicsConfig";
+// CAMERA_CONFIG is used internally by useCameraAnimation hook
 
 // Define the ref type
 export type StarfieldRef = {
@@ -149,7 +146,6 @@ const InteractiveStarfield = forwardRef<
       setHoveredSunId,
       focusedSunId,
       setFocusedSunId,
-      focusAnimationRef,
     } = useProjectHoverState();
 
     // Centralized tooltip ref management (prevents stuck refs when tooltips unmount)
@@ -157,23 +153,6 @@ const InteractiveStarfield = forwardRef<
       hoveredSunId,
       hoverInfo,
       setHoverInfo,
-    });
-
-    // Internal camera state for sun zoom functionality
-    const [internalCamera, setInternalCamera] = useState<Camera>({
-      cx: CAMERA_CONFIG.defaultCenterX,
-      cy: CAMERA_CONFIG.defaultCenterY,
-      zoom: CAMERA_CONFIG.defaultZoom,
-      target: undefined,
-    });
-    const cameraAnimationRef = useRef<number | null>(null);
-
-    // Store current camera state in a ref for animation loop access
-    // This ref holds the ANIMATED camera position (not the target)
-    const cameraStateRef = useRef({
-      cx: CAMERA_CONFIG.defaultCenterX,
-      cy: CAMERA_CONFIG.defaultCenterY,
-      zoom: CAMERA_CONFIG.defaultZoom,
     });
 
     // Game state
@@ -244,6 +223,20 @@ const InteractiveStarfield = forwardRef<
       employeeStarSize,
       debugSettings,
       cancelAnimation: () => cancelAnimationRef.current(),
+    });
+
+    // Camera zoom animation management
+    const {
+      camera: internalCamera,
+      setCamera: setInternalCamera,
+      cameraStateRef,
+      cameraAnimationRef,
+      zoomToSun,
+    } = useCameraAnimation({
+      focusedSunId,
+      setFocusedSunId,
+      employeeStarsRef,
+      dimensionsRef,
     });
 
     const mousePositionRef = useRef<MousePosition>({
@@ -708,13 +701,10 @@ const InteractiveStarfield = forwardRef<
 
         // Clear any lingering animation frames
         // Note: tooltip timeout cleanup is handled by useTooltipRefs hook
+        // Note: camera animation cleanup is handled by useCameraAnimation hook
         if (cameraAnimationRef.current) {
           cancelAnimationFrame(cameraAnimationRef.current);
           cameraAnimationRef.current = null;
-        }
-        if (focusAnimationRef.current) {
-          cancelAnimationFrame(focusAnimationRef.current);
-          focusAnimationRef.current = null;
         }
 
         // Clean up global API
@@ -759,206 +749,7 @@ const InteractiveStarfield = forwardRef<
       [],
     );
 
-    // Function to zoom the camera to focus on a specific sun
-    const zoomToSun = useCallback(
-      (sunId: string): void => {
-        // Cancel any existing camera animation
-        if (cameraAnimationRef.current) {
-          cancelAnimationFrame(cameraAnimationRef.current);
-        }
-
-        // If clicking on the same sun, toggle off (zoom out)
-        if (focusedSunId === sunId) {
-          setFocusedSunId(null);
-
-          // Set camera target to zoom out
-          setInternalCamera((prev) => ({
-            ...prev,
-            target: {
-              cx: 0.5,
-              cy: 0.5,
-              zoom: 1,
-            },
-          }));
-          return;
-        }
-
-        // Get the sun's current position
-        const sunPosition = getSunPosition(sunId);
-        if (!sunPosition) {
-          logger.warn(`[Starfield] Could not find sun with id: ${sunId}`);
-          return;
-        }
-
-        setFocusedSunId(sunId);
-
-        // Calculate the maximum orbit radius of planets around this sun
-        // This helps determine the optimal zoom level
-        const planetsForSun = employeeStarsRef.current.filter(
-          (planet) => planet.orbitParentId === sunId,
-        );
-
-        let maxOrbitRadius = 0;
-        if (planetsForSun.length > 0) {
-          planetsForSun.forEach((planet) => {
-            if (planet.orbitRadius) {
-              maxOrbitRadius = Math.max(maxOrbitRadius, planet.orbitRadius);
-            }
-          });
-        }
-
-        // Calculate zoom level based on orbit size
-        // Default to sunFocusZoom if no planets, otherwise calculate dynamically
-        // Base zoom is 2.5, but we reduce it if planets orbit far from the sun
-        // Normalized maxOrbitRadius (typical range: 50-200 pixels on a 1000px canvas)
-        const canvasSize = dimensionsRef.current
-          ? Math.min(dimensionsRef.current.width, dimensionsRef.current.height)
-          : 1000; // Default fallback size
-        const normalizedOrbitRadius = maxOrbitRadius / canvasSize;
-
-        // Calculate zoom: larger orbits = less zoom to fit everything in view
-        // Zoom range: minSunFocusZoom to maxSunFocusZoom depending on orbit size
-        const calculatedZoom =
-          normalizedOrbitRadius > 0
-            ? Math.max(
-                CAMERA_CONFIG.minSunFocusZoom,
-                Math.min(
-                  CAMERA_CONFIG.maxSunFocusZoom,
-                  CAMERA_CONFIG.sunFocusZoomDivisor /
-                    (1 +
-                      normalizedOrbitRadius *
-                        CAMERA_CONFIG.sunFocusOrbitMultiplier),
-                ),
-              )
-            : CAMERA_CONFIG.sunFocusZoom;
-
-        // Set camera target to zoom in on the sun
-        // Sun position is normalized (0-1), camera uses same coordinates
-        setInternalCamera((prev) => ({
-          ...prev,
-          target: {
-            cx: sunPosition.x,
-            cy: sunPosition.y,
-            zoom: calculatedZoom,
-          },
-        }));
-      },
-      [focusedSunId, employeeStarsRef, dimensionsRef],
-    );
-
-    // Smooth camera lerp animation - only runs when there's an active target
-    // Use a serialized target key to detect when target changes
-    const targetKey = internalCamera.target
-      ? `${internalCamera.target.cx}-${internalCamera.target.cy}-${internalCamera.target.zoom}`
-      : null;
-
-    useEffect(() => {
-      // Helper function to sync cameraStateRef with current internalCamera position
-      const syncCameraStateRef = (): void => {
-        cameraStateRef.current = {
-          cx: internalCamera.cx,
-          cy: internalCamera.cy,
-          zoom: internalCamera.zoom,
-        };
-      };
-
-      // Only start animation if there's an active target
-      if (!internalCamera.target) {
-        // No target, ensure any running animation is stopped
-        if (cameraAnimationRef.current) {
-          cancelAnimationFrame(cameraAnimationRef.current);
-          cameraAnimationRef.current = null;
-        }
-        // Sync cameraStateRef with current camera position when no target
-        syncCameraStateRef();
-        return;
-      }
-
-      // Cancel any existing animation before starting a new one
-      // This handles switching between different zoom targets
-      if (cameraAnimationRef.current) {
-        cancelAnimationFrame(cameraAnimationRef.current);
-        cameraAnimationRef.current = null;
-      }
-
-      // Sync cameraStateRef with current camera position before starting new animation
-      // This ensures the animation starts from the current visible position
-      syncCameraStateRef();
-
-      // Store the target for this animation cycle
-      const targetCx = internalCamera.target.cx;
-      const targetCy = internalCamera.target.cy;
-      const targetZoom = internalCamera.target.zoom;
-
-      const animateCamera = (): void => {
-        // Read the current animated position from ref (updated each frame)
-        const {
-          cx: currentCx,
-          cy: currentCy,
-          zoom: currentZoom,
-        } = cameraStateRef.current;
-
-        const smoothing = CAMERA_CONFIG.cameraSmoothingFactor;
-        const newCx = currentCx + (targetCx - currentCx) * smoothing;
-        const newCy = currentCy + (targetCy - currentCy) * smoothing;
-        const newZoom = currentZoom + (targetZoom - currentZoom) * smoothing;
-
-        // Update the ref with the new animated position (for next frame)
-        cameraStateRef.current = { cx: newCx, cy: newCy, zoom: newZoom };
-
-        // Check if we're close enough to target
-        const isCloseEnough =
-          Math.abs(newCx - targetCx) <
-            CAMERA_CONFIG.positionConvergenceThreshold &&
-          Math.abs(newCy - targetCy) <
-            CAMERA_CONFIG.positionConvergenceThreshold &&
-          Math.abs(newZoom - targetZoom) <
-            CAMERA_CONFIG.zoomConvergenceThreshold;
-
-        if (isCloseEnough) {
-          // Reached target, set final values and clear target
-          cameraStateRef.current = {
-            cx: targetCx,
-            cy: targetCy,
-            zoom: targetZoom,
-          };
-          setInternalCamera({
-            cx: targetCx,
-            cy: targetCy,
-            zoom: targetZoom,
-            target: undefined,
-          });
-          cameraAnimationRef.current = null;
-          return;
-        }
-
-        // Update React state to trigger re-render for visual updates
-        // (The animation loop reads from cameraStateRef, not React state)
-        setInternalCamera((prev) => ({
-          cx: newCx,
-          cy: newCy,
-          zoom: newZoom,
-          target: prev.target, // Keep the target
-        }));
-
-        // Continue animation for next frame
-        cameraAnimationRef.current = requestAnimationFrame(animateCamera);
-      };
-
-      // Start the animation
-      cameraAnimationRef.current = requestAnimationFrame(animateCamera);
-
-      return (): void => {
-        if (cameraAnimationRef.current) {
-          cancelAnimationFrame(cameraAnimationRef.current);
-          cameraAnimationRef.current = null;
-        }
-      };
-      // targetKey is a stable serialized key derived from internalCamera.target
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [targetKey]);
-
-    // NOTE: _scrollToFocusArea removed - was legacy wrapper, use zoomToSun() directly
+    // NOTE: zoomToSun and camera animation now handled by useCameraAnimation hook
 
     // Unified canvas click/touch handling via dedicated hook
     const { handleCanvasClick, handleTouchEnd } = useCanvasClick({

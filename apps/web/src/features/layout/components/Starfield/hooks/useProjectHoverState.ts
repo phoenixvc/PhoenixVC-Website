@@ -13,11 +13,9 @@
 
 import {
   useState,
-  useRef,
   useCallback,
   Dispatch,
   SetStateAction,
-  MutableRefObject,
 } from "react";
 import { HoverInfo, PortfolioProject } from "../types";
 import { SunInfo } from "../sunTooltip";
@@ -47,7 +45,6 @@ export interface ProjectHoverStateResult {
   // Focused sun (zoom target)
   focusedSunId: string | null;
   setFocusedSunId: Dispatch<SetStateAction<string | null>>;
-  focusAnimationRef: MutableRefObject<number | null>;
 }
 
 const DEFAULT_CONFIG: Required<ProjectHoverStateConfig> = {
@@ -77,7 +74,6 @@ export function useProjectHoverState(
 
   // Focused sun state - when user clicks on a focus area, we scope the view
   const [focusedSunId, setFocusedSunId] = useState<string | null>(null);
-  const focusAnimationRef = useRef<number | null>(null);
 
   /**
    * Pin a project to the dock (max limit enforced)
@@ -129,6 +125,5 @@ export function useProjectHoverState(
     // Focus state
     focusedSunId,
     setFocusedSunId,
-    focusAnimationRef,
   };
 }
