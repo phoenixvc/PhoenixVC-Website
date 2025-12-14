@@ -237,6 +237,18 @@ const InteractiveStarfield = forwardRef<
       dimensionsRef,
     });
 
+    // Reset sun hover state when zooming out (focusedSunId becomes null)
+    // This prevents the sun tooltip from staying visible after zoom out
+    const prevFocusedSunIdRef = useRef<string | null>(focusedSunId);
+    useEffect(() => {
+      // Detect transition from focused to unfocused (zoom out)
+      if (prevFocusedSunIdRef.current !== null && focusedSunId === null) {
+        setHoveredSunId(null);
+        setHoveredSun(null);
+      }
+      prevFocusedSunIdRef.current = focusedSunId;
+    }, [focusedSunId, setHoveredSunId, setHoveredSun]);
+
     const mousePositionRef = useRef<MousePosition>({
       x: 0,
       y: 0,
