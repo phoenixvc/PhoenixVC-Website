@@ -135,6 +135,7 @@ jobs:
       (github.event_name == 'workflow_dispatch' || needs.check_relevant_changes.outputs.resources_changed == 'true')
     outputs:
       web_artifact_id: ${{ steps.upload_web.outputs.artifact-id }}
+      web_artifact_name: web-dist-${{ steps.set_timestamp.outputs.timestamp }}
       design_system_artifact_id: ${{ steps.upload_design.outputs.artifact-id }}
       build_timestamp: ${{ steps.set_timestamp.outputs.timestamp }}
       web_app_version: ${{ steps.build_web.outputs.version }}
@@ -314,10 +315,10 @@ jobs:
         run: |
           echo "Logging required variables for Teams Notification..."
           echo "Deployment ID: ${{ needs.swa_deploy_staging.outputs.deployment_id }}"
-          echo "Artifact ID: ${{ needs.build_apps.outputs.web_artifact_id }}"
+          echo "Artifact Name: ${{ needs.build_apps.outputs.web_artifact_name }}"
           echo "Run ID: ${{ github.run_id }}"
 
-          if [[ -z "${{ needs.swa_deploy_staging.outputs.deployment_id }}" || -z "${{ needs.build_apps.outputs.web_artifact_id }}" || -z "${{ github.run_id }}" ]]; then
+          if [[ -z "${{ needs.swa_deploy_staging.outputs.deployment_id }}" || -z "${{ needs.build_apps.outputs.web_artifact_name }}" || -z "${{ github.run_id }}" ]]; then
             echo "❌ Missing required values for approval URL!"
             exit 1
           fi
@@ -357,7 +358,7 @@ jobs:
           teams_token: ${{ secrets.TEAMS_TOKEN }}
           change_summary: ${{ needs.check_relevant_changes.outputs.change_summary }}
           deployment_id: ${{ needs.swa_deploy_staging.outputs.deployment_id }}
-          artifact_id: ${{ needs.build_apps.outputs.web_artifact_id }}
+          artifact_id: ${{ needs.build_apps.outputs.web_artifact_name }}
           run_id: ${{ github.run_id }}
           version: ${{ needs.build_apps.outputs.web_app_version }}
           author: ${{ needs.build_apps.outputs.web_app_author }}
