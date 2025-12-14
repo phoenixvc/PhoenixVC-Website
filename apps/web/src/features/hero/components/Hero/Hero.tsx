@@ -336,8 +336,8 @@ const Hero: FC<ExtendedHeroProps> = memo(
           {showScrollIndicator && (
             <motion.button
               className={styles.scrollIndicator}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1, y: [0, 10, 0] }}
+              initial={{ opacity: 0, x: "-50%" }}
+              animate={{ opacity: 1, x: "-50%", y: [0, 10, 0] }}
               exit={{ opacity: 0 }}
               transition={{
                 opacity: { duration: 0.5 },
