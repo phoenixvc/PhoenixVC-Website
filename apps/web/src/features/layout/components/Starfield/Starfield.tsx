@@ -31,7 +31,6 @@ import { useMouseInteraction } from "./hooks/useMouseInteraction";
 import { useParticleEffects } from "./hooks/useParticleEffects";
 import { useDebugControls } from "./hooks/useDebugControls";
 import { useTooltipRefs } from "./hooks/useTooltipRefs";
-import { useCanvasClick } from "./hooks/useCanvasClick";
 import DebugControlsOverlay from "./DebugControlsOverlay";
 import PerformanceDebugPanel from "./PerformanceDebugPanel";
 import { useStarInitialization } from "./hooks/useStarInitialization";
@@ -782,15 +781,8 @@ const InteractiveStarfield = forwardRef<
         resetAnimateModuleCaches();
         resetConnectionStagger();
 
-        // Clear any lingering timeouts
-        if (sunHideTimeoutRef.current) {
-          clearTimeout(sunHideTimeoutRef.current);
-          sunHideTimeoutRef.current = null;
-        }
-        if (projectTooltipHideTimeoutRef.current) {
-          clearTimeout(projectTooltipHideTimeoutRef.current);
-          projectTooltipHideTimeoutRef.current = null;
-        }
+        // Clear any lingering animation frames
+        // Note: tooltip timeout cleanup is handled by useTooltipRefs hook
         if (cameraAnimationRef.current) {
           cancelAnimationFrame(cameraAnimationRef.current);
           cameraAnimationRef.current = null;
