@@ -6,18 +6,26 @@ name: Deploy to Production
 on:
   workflow_dispatch:
     inputs:
+      manualApproval:
+        description: 'Manual approval (bypasses token validation - requires repo admin)'
+        type: boolean
+        default: false
       deploymentId:
         description: 'Deployment ID to promote to production'
-        required: true
+        required: false
       artifactId:
-        description: 'Artifact ID to deploy to production'
-        required: true
+        description: 'Artifact ID to deploy (format: web-dist-YYYYMMDD_HHMMSS)'
+        required: false
       token:
-        description: 'Encoded approval token'
-        required: true
+        description: 'Encoded approval token (not required for manual approval)'
+        required: false
       runID:
-        description: 'Run ID'
-        required: true
+        description: 'Run ID from staging deployment'
+        required: false
+      useLatestArtifact:
+        description: 'Use latest successful staging artifact (for manual approval)'
+        type: boolean
+        default: true
       includeDnsUpdate:
         description: 'Include DNS configuration update'
         type: boolean
@@ -28,23 +36,111 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       validation_passed: ${{ steps.validation_check.outputs.passed }}
+      artifact_id: ${{ steps.resolve_artifact.outputs.artifact_id }}
+      run_id: ${{ steps.resolve_artifact.outputs.run_id }}
+      deployment_id: ${{ steps.resolve_artifact.outputs.deployment_id }}
     steps:
-      - name: Validate Token
-        id: token_validation
+      - name: Check Manual Approval Authorization
+        id: check_manual
+        if: github.event.inputs.manualApproval == 'true'
         run: |
+          echo "🔐 Manual approval requested by: ${{ github.actor }}"
+          echo "Manual approval mode - token validation bypassed"
+          echo "is_manual=true" >> $GITHUB_OUTPUT
+
+      - name: Validate Token (Automated Flow)
+        id: token_validation
+        if: github.event.inputs.manualApproval != 'true'
+        run: |
+          if [[ -z "${{ github.event.inputs.token }}" ]]; then
+            echo "❌ Token is required for automated approval"
+            exit 1
+          fi
           DECODED_TOKEN=$(echo "${{ github.event.inputs.token }}" | base64 -d)
           if [[ "$DECODED_TOKEN" != "${{ secrets.PROD_DEPLOYMENT_TOKEN }}" ]]; then
-            echo "Invalid approval token"
+            echo "❌ Invalid approval token"
+            exit 1
+          fi
+          echo "✅ Token validated successfully"
+
+      - name: Find Latest Staging Artifact
+        id: find_latest
+        if: github.event.inputs.manualApproval == 'true' && github.event.inputs.useLatestArtifact == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "🔍 Finding latest successful staging deployment..."
+
+          # Get the latest successful staging workflow run
+          LATEST_RUN=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${{ github.repository }}/actions/workflows/deploy.yml/runs?status=success&per_page=5" \
+            --jq '.workflow_runs[0]')
+
+          if [[ -z "$LATEST_RUN" || "$LATEST_RUN" == "null" ]]; then
+            echo "❌ No successful staging deployments found"
             exit 1
           fi
 
-      - name: Check Deployment and Artifact
-        id: validation_check
-        run: |
-          if [[ ! "${{ github.event.inputs.artifactId }}" =~ ^web-dist-[0-9]{8}_[0-9]{6}$ ]]; then
-            echo "Invalid artifact ID format"
+          RUN_ID=$(echo "$LATEST_RUN" | jq -r '.id')
+          echo "Found staging run: $RUN_ID"
+
+          # Get artifacts from that run
+          ARTIFACTS=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${{ github.repository }}/actions/runs/$RUN_ID/artifacts" \
+            --jq '.artifacts[] | select(.name | startswith("web-dist-"))')
+
+          ARTIFACT_NAME=$(echo "$ARTIFACTS" | jq -r '.name' | head -1)
+
+          if [[ -z "$ARTIFACT_NAME" || "$ARTIFACT_NAME" == "null" ]]; then
+            echo "❌ No web-dist artifact found in run $RUN_ID"
             exit 1
           fi
+
+          echo "✅ Found artifact: $ARTIFACT_NAME from run: $RUN_ID"
+          echo "artifact_name=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
+          echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
+
+      - name: Resolve Artifact Details
+        id: resolve_artifact
+        run: |
+          # Determine artifact ID based on input method
+          if [[ "${{ github.event.inputs.manualApproval }}" == "true" && "${{ github.event.inputs.useLatestArtifact }}" == "true" ]]; then
+            ARTIFACT_ID="${{ steps.find_latest.outputs.artifact_name }}"
+            RUN_ID="${{ steps.find_latest.outputs.run_id }}"
+            DEPLOYMENT_ID="manual_${RUN_ID}_${{ github.run_id }}"
+          else
+            ARTIFACT_ID="${{ github.event.inputs.artifactId }}"
+            RUN_ID="${{ github.event.inputs.runID }}"
+            DEPLOYMENT_ID="${{ github.event.inputs.deploymentId }}"
+          fi
+
+          echo "artifact_id=$ARTIFACT_ID" >> $GITHUB_OUTPUT
+          echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
+          echo "deployment_id=$DEPLOYMENT_ID" >> $GITHUB_OUTPUT
+
+          echo "📦 Artifact: $ARTIFACT_ID"
+          echo "🔢 Run ID: $RUN_ID"
+          echo "🆔 Deployment ID: $DEPLOYMENT_ID"
+
+      - name: Validate Artifact Format
+        id: validation_check
+        run: |
+          ARTIFACT_ID="${{ steps.resolve_artifact.outputs.artifact_id }}"
+
+          if [[ -z "$ARTIFACT_ID" ]]; then
+            echo "❌ Artifact ID is required"
+            exit 1
+          fi
+
+          if [[ ! "$ARTIFACT_ID" =~ ^web-dist-[0-9]{8}_[0-9]{6}$ ]]; then
+            echo "❌ Invalid artifact ID format: $ARTIFACT_ID"
+            echo "Expected format: web-dist-YYYYMMDD_HHMMSS"
+            exit 1
+          fi
+
+          echo "✅ Artifact format validated: $ARTIFACT_ID"
           echo "passed=true" >> $GITHUB_OUTPUT
 
   # ───────────────────────────────────────────────
@@ -58,10 +154,19 @@ jobs:
       staticSiteUrl: ${{ steps.deploy_production_resources.outputs.staticSiteUrl }}
       teamsLogicAppUrl: ${{ steps.deploy_production_resources.outputs.teamsLogicAppUrl }}
       githubLogicAppUrl: ${{ steps.deploy_production_resources.outputs.githubLogicAppUrl }}
-      deployment_id: ${{ steps.get_deployment_info.outputs.deployment_id }}
-      artifact_id: ${{ steps.get_deployment_info.outputs.artifact_id }}
-      run_id: ${{ github.run_id }}
+      deployment_id: ${{ needs.validate_approval.outputs.deployment_id }}
+      artifact_id: ${{ needs.validate_approval.outputs.artifact_id }}
+      run_id: ${{ needs.validate_approval.outputs.run_id }}
     steps:
+      - name: Log Deployment Info
+        run: |
+          echo "🚀 Starting production deployment"
+          echo "📦 Artifact: ${{ needs.validate_approval.outputs.artifact_id }}"
+          echo "🔢 Source Run ID: ${{ needs.validate_approval.outputs.run_id }}"
+          echo "🆔 Deployment ID: ${{ needs.validate_approval.outputs.deployment_id }}"
+          echo "👤 Triggered by: ${{ github.actor }}"
+          echo "🔧 Manual approval: ${{ github.event.inputs.manualApproval }}"
+
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
@@ -80,15 +185,6 @@ jobs:
           repository: phoenixvc/PhoenixVC-Website
           token: ${{ secrets.GITHUB_TOKEN }}
           skip_logic_apps: true
-
-      - name: Get Deployment Information
-        id: get_deployment_info
-        run: |
-          echo "deployment_id=${{ github.event.inputs.deploymentId }}" >> $GITHUB_OUTPUT
-          echo "artifact_id=${{ github.event.inputs.artifactId }}" >> $GITHUB_OUTPUT
-          echo "run_id=${{ github.event.inputs.runID }}" >> $GITHUB_OUTPUT
-          echo "commit_sha=${{ github.sha }}" >> $GITHUB_OUTPUT
-          echo "timestamp=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
 
   # ───────────────────────────────────────────────
   # ✅ SWA DEPLOYMENT VIA SWA CLI
@@ -116,7 +212,7 @@ jobs:
         uses: ./.github/actions/swa-deploy
         with:
           artifact-name: ${{ needs.deploy_resources_production.outputs.artifact_id }}
-          run-id: ${{ github.event.inputs.runID }}
+          run-id: ${{ needs.deploy_resources_production.outputs.run_id }}
           app-name: prod-${{ env.LOCATION_CODE }}-swa-phoenixvc-website
           resource-group: prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
           env: production
@@ -386,6 +482,6 @@ jobs:
           location_code: ${{ env.LOCATION_CODE }}
           resource_group: prod-${{ env.LOCATION_CODE }}-rg-phoenixvc-website
           color: ${{ needs.swa_deploy_production.result == 'success' && '00A300' || 'FF0000' }}
-          deployment_id: ${{ github.event.inputs.deploymentId }}
-          artifact_id: ${{ github.event.inputs.artifactId }}
-          run_id: ${{ github.event.inputs.runId }}
+          deployment_id: ${{ needs.deploy_resources_production.outputs.deployment_id }}
+          artifact_id: ${{ needs.deploy_resources_production.outputs.artifact_id }}
+          run_id: ${{ needs.deploy_resources_production.outputs.run_id }}

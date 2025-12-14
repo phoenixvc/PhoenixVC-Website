@@ -30,10 +30,6 @@ export interface CameraAnimationConfig {
   focusedSunId: string | null;
   /** Setter for focused sun ID */
   setFocusedSunId: (id: string | null) => void;
-  /** Setter for hovered sun ID (to reset on zoom out) */
-  setHoveredSunId: (id: string | null) => void;
-  /** Setter for hovered sun (to reset on zoom out) */
-  setHoveredSun: (sun: unknown) => void;
   /** Ref to employee stars (planets) for orbit radius calculation */
   employeeStarsRef: MutableRefObject<Planet[]>;
   /** Ref to canvas dimensions for zoom calculation */
@@ -59,8 +55,6 @@ export interface CameraAnimationResult {
 export function useCameraAnimation({
   focusedSunId,
   setFocusedSunId,
-  setHoveredSunId,
-  setHoveredSun,
   employeeStarsRef,
   dimensionsRef,
 }: CameraAnimationConfig): CameraAnimationResult {
@@ -97,9 +91,6 @@ export function useCameraAnimation({
       // If clicking on the same sun, toggle off (zoom out)
       if (focusedSunId === sunId) {
         setFocusedSunId(null);
-        // Reset hover state when zooming out
-        setHoveredSunId(null);
-        setHoveredSun(null);
 
         // Set camera target to zoom out
         setInternalCamera((prev) => ({
@@ -168,7 +159,7 @@ export function useCameraAnimation({
         },
       }));
     },
-    [focusedSunId, setFocusedSunId, setHoveredSunId, setHoveredSun, employeeStarsRef, dimensionsRef],
+    [focusedSunId, setFocusedSunId, employeeStarsRef, dimensionsRef],
   );
 
   // Smooth camera lerp animation - only runs when there's an active target

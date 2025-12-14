@@ -233,8 +233,6 @@ const InteractiveStarfield = forwardRef<
     } = useCameraAnimation({
       focusedSunId,
       setFocusedSunId,
-      setHoveredSunId,
-      setHoveredSun,
       employeeStarsRef,
       dimensionsRef,
     });
