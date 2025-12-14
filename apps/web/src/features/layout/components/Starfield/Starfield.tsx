@@ -1057,6 +1057,7 @@ const InteractiveStarfield = forwardRef<
     const { handleCanvasClick, handleTouchEnd } = useCanvasClick({
       canvasRef,
       planetsRef: employeeStarsRef,
+      cameraRef: cameraStateRef,
       setMousePosition,
       onSunClick: zoomToSun,
       applyStarfieldRepulsion,

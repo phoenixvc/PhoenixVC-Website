@@ -264,7 +264,7 @@
 
 .sidebarCollapsed .sidebarToggle {
   margin: 0;
-  transform: rotate(180deg);
+  /* Icon rotation handled by .rotateIcon class on ChevronLeft - don't double rotate */
 }
 
 /* Mobile styles */
