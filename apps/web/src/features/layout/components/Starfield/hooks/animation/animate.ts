@@ -243,6 +243,26 @@ export const animate = (
     const hoverManager = refs.sunHoverManagerRef?.current;
 
     if (hoverManager && props.enableMouseInteraction && props.setHoveredSunId && props.setHoveredSun) {
+      // CRITICAL: Check sun hover detection BEFORE processing hover manager
+      // This allows us to clear planet tooltip immediately if mouse is over a sun
+      const earlySunHoverCheck = checkSunHover(
+        earlyMousePos?.x ?? 0,
+        earlyMousePos?.y ?? 0,
+        canvas.width,
+        canvas.height,
+        earlyCamera,
+      );
+
+      // When hovering a sun, immediately clear planet tooltip ref AND state
+      // This MUST happen BEFORE processFrame to prevent race condition where
+      // isPlanetTooltipShowing blocks the sun tooltip from appearing
+      if (earlySunHoverCheck !== null && refs.hoverInfoRef.current?.show) {
+        // Clear ref immediately (synchronous)
+        refs.hoverInfoRef.current = { project: null, x: 0, y: 0, show: false };
+        // Also clear React state (will propagate next frame)
+        props.setHoverInfo({ project: null, x: 0, y: 0, show: false });
+      }
+
       // Process hover state through the centralized manager
       // This returns the LIVE hover ID for rendering (immediate)
       // It also manages tooltip state internally (with delay for interactivity)
@@ -264,12 +284,6 @@ export const animate = (
         },
         frameTime: currentFrameTime,
       });
-
-      // When hovering a sun, immediately clear planet tooltip to avoid 200ms delay blocking sun tooltip
-      // This fixes the issue where planet tooltip stays open too long when moving to hover a sun
-      if (liveHoveredSunId !== null && refs.hoverInfoRef.current?.show) {
-        props.setHoverInfo({ project: null, x: 0, y: 0, show: false });
-      }
     }
 
     // Draw suns (focus area orbital centers) - always visible
