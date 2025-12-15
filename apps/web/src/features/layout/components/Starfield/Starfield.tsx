@@ -262,6 +262,9 @@ const InteractiveStarfield = forwardRef<
     });
 
     // Get mouse interaction hooks
+    // Pass mousePositionRef for synchronous updates on touch/mouse leave events
+    // This prevents the "stuck hover" bug where animation frames run before
+    // the async React state/useEffect flow propagates isOnScreen: false
     const { mousePosition, setMousePosition, handleMouseEvents } =
       useMouseInteraction(
         enableMouseInteraction,
@@ -270,6 +273,7 @@ const InteractiveStarfield = forwardRef<
         gameMode,
         gameState,
         setGameState,
+        mousePositionRef, // Pass ref for synchronous updates
       );
 
     useEffect(() => {
