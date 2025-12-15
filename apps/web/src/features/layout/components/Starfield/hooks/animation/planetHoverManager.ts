@@ -147,14 +147,11 @@ export function createPlanetHoverManager(): {
         callbacks.setHoverInfo({ project: null, x: 0, y: 0, show: false });
       }
       pendingHoverInfo = null;
-    } else if (delayResult.shouldShow && pendingHoverInfo) {
-      // Show new tooltip (or update existing)
-      const newId = pendingHoverInfo.project?.id;
-      const currentId = currentHoverInfo.project?.id;
-
-      if (pendingHoverInfo.show && newId !== currentId) {
-        callbacks.setHoverInfo(pendingHoverInfo);
-      }
+    } else if (delayResult.shouldShow && pendingHoverInfo?.show) {
+      // Always update tooltip state when shouldShow is true
+      // This ensures immediate updates when switching between planets
+      // (matching sunHoverManager behavior for consistency)
+      callbacks.setHoverInfo(pendingHoverInfo);
     }
 
     return isHoveringPlanet;
