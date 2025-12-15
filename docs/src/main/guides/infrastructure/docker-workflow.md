@@ -47,6 +47,6 @@ And ensure your application’s `.env` or environment variable references the ne
 ## Additional Resources {: #additional-resources}
 
 - [Development Setup](./development/development-setup.md)
-- [Infrastructure Docs](./readme.md)
+- [Infrastructure Docs](./README.md)
 - [Bicep Templates](./bicep-templates.md)
 - [Azure Deployment Guide](./deployment/deployment.md)
