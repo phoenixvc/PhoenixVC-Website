@@ -58,3 +58,4 @@ __pycache__/
 
 *storybook.log
 storybook-static
+test-results/
