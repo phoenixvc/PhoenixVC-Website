@@ -256,7 +256,8 @@ export const animate = (
       // When hovering a sun, immediately clear planet tooltip ref AND state
       // This MUST happen BEFORE processFrame to prevent race condition where
       // isPlanetTooltipShowing blocks the sun tooltip from appearing
-      if (earlySunHoverCheck !== null && refs.hoverInfoRef.current?.show) {
+      const shouldClearPlanetTooltip = earlySunHoverCheck !== null && refs.hoverInfoRef.current?.show;
+      if (shouldClearPlanetTooltip) {
         // Clear ref immediately (synchronous)
         refs.hoverInfoRef.current = { project: null, x: 0, y: 0, show: false };
         // Also clear React state (will propagate next frame)
