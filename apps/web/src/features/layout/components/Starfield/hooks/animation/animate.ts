@@ -386,7 +386,7 @@ export const animate = (
     if (props.enablePlanets && props.enableMouseInteraction) {
       const planetHoverManager = refs.planetHoverManagerRef?.current;
       if (planetHoverManager) {
-        planetHoverManager.processFrame({
+        const isHoveringPlanet = planetHoverManager.processFrame({
           mouseX: currentMousePosition.x,
           mouseY: currentMousePosition.y,
           canvasWidth: canvas.width,
@@ -404,6 +404,12 @@ export const animate = (
           },
           frameTime: currentFrameTime,
         });
+
+        // When hovering a planet, immediately clear sun tooltip to avoid stale tooltips
+        if (isHoveringPlanet && props.hoveredSunIdRef?.current !== null && props.setHoveredSunId && props.setHoveredSun) {
+          props.setHoveredSunId(null);
+          props.setHoveredSun(null);
+        }
       }
     }
 
