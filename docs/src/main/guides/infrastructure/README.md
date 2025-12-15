@@ -17,11 +17,11 @@ This repository contains comprehensive documentation for Phoenix VC's cloud infr
 ## Documentation Structure {: #documentation-structure}
 ```mermaid
 graph TD
-  README[README.md] --> ARCH[ARCHITECTURE.md]
-  README --> BICEP[BICEP_TEMPLATES.md]
+  README[README.md] --> ARCH[architecture.md]
+  README --> BICEP[bicep-templates.md]
   README --> SEC[SECURITY.md]
-  README --> MON[MONITORING.md]
-  README --> DR[DISASTER_RECOVERY.md]
+  README --> MON[monitoring.md]
+  README --> DR[disaster-recovery.md]
 
   BICEP --> SEC
   BICEP --> MON
@@ -34,11 +34,11 @@ graph TD
 ### Core Documents {: #core-documents}
 | Document | Purpose | Primary Audience | Content |
 |----------|---------|-----------------|---------|
-| 📐 [ARCHITECTURE.md](./ARCHITECTURE.md) | System design and components | Architects, Engineers | System architecture, Component relationships, Network design |
-| 🏗️ [BICEP_TEMPLATES.md](./BICEP_TEMPLATES.md) | IaC deployment templates | DevOps Team | Infrastructure code, Deployment procedures, Configurations |
+| 📐 [architecture.md](./architecture.md) | System design and components | Architects, Engineers | System architecture, Component relationships, Network design |
+| 🏗️ [bicep-templates.md](./bicep-templates.md) | IaC deployment templates | DevOps Team | Infrastructure code, Deployment procedures, Configurations |
 | 🔒 [SECURITY.md](./SECURITY.md) | Security configurations | Security Team | Access control, Network security, Key management |
-| 📊 [MONITORING.md](./MONITORING.md) | Monitoring setup | Operations Team | Logging, Alerts, Performance metrics |
-| 🔄 [DISASTER_RECOVERY.md](./DISASTER_RECOVERY.md) | DR procedures | Platform Team | Backup, Recovery, Business continuity |
+| 📊 [monitoring.md](./monitoring.md) | Monitoring setup | Operations Team | Logging, Alerts, Performance metrics |
+| 🔄 [disaster-recovery.md](./disaster-recovery.md) | DR procedures | Platform Team | Backup, Recovery, Business continuity |
 
 ## Quick Start {: #quick-start}
 ### Prerequisites {: #prerequisites}
@@ -155,8 +155,8 @@ graph LR
 ## Cost Management {: #cost-management}
 ### Monitoring and Controls {: #monitoring-and-controls}
 - [Cost Management Portal](https://portal.azure.com/#blade/Microsoft_Azure_CostManagement)
-- [Budget Alerts Configuration](./MONITORING.md#budget-alerts)
-- [Resource Optimization Guidelines](./ARCHITECTURE.md#optimization)
+- [Budget Alerts Configuration](./monitoring.md#budget-alerts)
+- [Resource Optimization Guidelines](./architecture.md#optimization)
 
 ### Cost Optimization Best Practices {: #cost-optimization-best-practices}
 - Use auto-scaling for dynamic workloads
