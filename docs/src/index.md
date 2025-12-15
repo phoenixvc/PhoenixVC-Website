@@ -44,10 +44,10 @@ Information on deploying and managing our applications:
 
 Details about our infrastructure architecture and management:
 
-- [Architecture Overview](./main/guides/infrastructure/ARCHITECTURE.md)
+- [Architecture Overview](./main/guides/infrastructure/architecture.md)
 - [Security](./main/guides/infrastructure/SECURITY.md)
-- [Monitoring](./main/guides/infrastructure/MONITORING.md)
-- [Disaster Recovery](./main/guides/infrastructure/DISASTER_RECOVERY.md)
+- [Monitoring](./main/guides/infrastructure/monitoring.md)
+- [Disaster Recovery](./main/guides/infrastructure/disaster-recovery.md)
 
 ### Compliance & Policies
 
