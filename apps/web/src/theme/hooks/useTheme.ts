@@ -1,11 +1,11 @@
 // theme/hooks/useTheme.ts
 import { useContext } from "react";
 import { TypographyScale } from "../mappings";
-import { ThemeContext, ThemeContextType } from "../types";
+import { ThemeContext, ThemeContextType, ThemeName } from "../types";
 
 export function useTheme(): ThemeContextType & {
   themeName: string;
-  setThemeName: (name: string) => void;
+  setThemeName: (name: ThemeName) => void;
   typography: {
     get: (element: string) => TypographyScale | undefined;
     getComponentTypography: (
@@ -32,7 +32,7 @@ export function useTheme(): ThemeContextType & {
 
     // Theme name getter and setter
     themeName: theme.themeName || "cosmic-frontier", // Default to cosmic-frontier if not set
-    setThemeName: (name: string): void => {
+    setThemeName: (name: ThemeName): void => {
       if (theme.setTheme) {
         theme.setTheme(name);
       } else {
