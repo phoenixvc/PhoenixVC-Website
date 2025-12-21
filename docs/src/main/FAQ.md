@@ -73,7 +73,7 @@ See our [Compliance Framework](./policies/compliance/policy-framework.md) for de
 1. Check this FAQ first
 2. Search the [documentation](./search.md)
 3. Review the [Documentation Map](./meta/documentation-map.md)
-4. [Contact Support](./mailto:support@phoenixvc.za)
+4. [Contact Support](mailto:support@phoenixvc.za)
 
 ### What do I do if I encounter deployment issues? {: #what-do-i-do-if-i-encounter-deployment-issues}
 Check our [Troubleshooting Guide](./guides/deployment/troubleshooting.md) for common issues and solutions.
@@ -83,4 +83,4 @@ Submit feature requests through our [GitHub repository](https://github.com/phoen
 
 ---
 
-If you have additional questions or need further assistance, please contact our support team at [support@phoenixvc.za](./mailto:support@phoenixvc.za).
+If you have additional questions or need further assistance, please contact our support team at [support@phoenixvc.za](mailto:support@phoenixvc.za).

@@ -12,6 +12,8 @@ import {
   Planet,
   Star,
 } from "../../types";
+import type { SunHoverManager } from "./sunHoverManager";
+import type { PlanetHoverManager } from "./planetHoverManager";
 
 // Add this interface for debug settings
 export interface DebugSettings {
@@ -105,11 +107,12 @@ export interface AnimationProps {
   setCamera?: (camera: Camera) => void;
   navigationState?: CosmicNavigationState;
   hoveredObjectId?: string | null;
-  hoveredSunId?: string | null;
+  hoveredSunIdRef?: MutableRefObject<string | null>; // Ref for synchronous hoveredSunId access
   focusedSunId?: string | null;
   debugSettings?: DebugSettings; // Add debug settings
   isMouseOverProjectTooltipRef?: MutableRefObject<boolean>; // Track if mouse is over project tooltip
   isMouseOverSunTooltipRef?: MutableRefObject<boolean>; // Track if mouse is over sun tooltip
+  projectTooltipElementRef?: MutableRefObject<HTMLDivElement | null>; // Ref to the project tooltip DOM element for accurate position checking
   sunTooltipElementRef?: MutableRefObject<HTMLDivElement | null>; // Ref to the sun tooltip DOM element for accurate position checking
   setHoveredSunId?: (sunId: string | null) => void; // Callback to update hovered sun ID
   setHoveredSun?: (sun: { id: string; name: string; description?: string; color: string; x: number; y: number } | null) => void; // Callback to update hovered sun info
@@ -134,8 +137,9 @@ export interface AnimationRefs {
   hoverInfoRef: React.MutableRefObject<HoverInfo>;
   gameStateRef: React.MutableRefObject<GameState>; // Changed from unknown to GameState
   animationErrorCountRef: React.MutableRefObject<number>;
-  // Sun/planet hover state - per-instance to avoid leaking across remounts
-  sunHoverClearPendingRef: MutableRefObject<boolean>;
-  lastSunLeaveTimeRef: MutableRefObject<number | null>;
-  lastPlanetLeaveTimeRef: MutableRefObject<number | null>;
+  // Centralized hover managers for clean separation of rendering vs tooltip state
+  // NOTE: lastSunLeaveTimeRef and lastPlanetLeaveTimeRef removed -
+  // hover managers now handle delay timers internally
+  sunHoverManagerRef: MutableRefObject<SunHoverManager | null>;
+  planetHoverManagerRef: MutableRefObject<PlanetHoverManager | null>;
 }

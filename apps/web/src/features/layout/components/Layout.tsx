@@ -8,6 +8,7 @@ import Starfield, { StarfieldRef } from "./Starfield/Starfield";
 import { CosmicNavigationState, Star } from "./Starfield/types";
 import { logger } from "@/utils/logger";
 import Disclaimer from "@/components/ui/Disclaimer";
+import { useTheme } from "@/theme";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -28,9 +29,12 @@ const loadDebugModeFromStorage = (): boolean => {
 };
 
 const Layout = ({ children }: LayoutProps): React.ReactElement => {
+  // Use theme context for dark mode - defaults to dark, only light if user explicitly chose it
+  const { themeMode, toggleMode } = useTheme();
+  const isDarkMode = themeMode === "dark";
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(220);
   const [gameMode, setGameMode] = useState(false);
@@ -91,13 +95,8 @@ const Layout = ({ children }: LayoutProps): React.ReactElement => {
     }
   }, [isCollapsed, isMobile]);
 
-  // Check for system preference on initial load
-  useEffect(() => {
-    const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)",
-    ).matches;
-    setIsDarkMode(prefersDark);
-  }, []);
+  // Dark mode is now controlled by the theme context (useTheme hook)
+  // No need for system preference check - theme context handles it
 
   const toggleSidebar = (): void => {
     if (isMobile) {
@@ -109,10 +108,6 @@ const Layout = ({ children }: LayoutProps): React.ReactElement => {
       setIsCollapsed((prev: boolean): boolean => !prev);
       setSidebarWidth(isCollapsed ? 220 : 60);
     }
-  };
-
-  const toggleTheme = (): void => {
-    setIsDarkMode((prev: boolean): boolean => !prev);
   };
 
   // Separate function for sidebar collapse (used by sidebar component)
@@ -275,7 +270,7 @@ const Layout = ({ children }: LayoutProps): React.ReactElement => {
         <Header
           onMenuClick={toggleSidebar}
           isDarkMode={isDarkMode}
-          onThemeToggle={toggleTheme}
+          onThemeToggle={toggleMode}
           isSidebarCollapsed={isCollapsed}
           isSidebarOpen={isSidebarOpen}
           sidebarWidth={sidebarWidth}

@@ -10,14 +10,12 @@ import {
 import styles from "./starfield.module.css";
 import { logger } from "@/utils/logger";
 import {
-  PortfolioProject,
-  HoverInfo,
   GameState,
   InteractiveStarfieldProps,
   MousePosition,
   DebugSettings,
 } from "./types";
-import { Camera } from "./cosmos/types";
+// Camera type is used internally by useCameraAnimation hook
 import { ProjectTooltip } from "./projectTooltip";
 import {
   fetchIpAddress,
@@ -30,28 +28,24 @@ import { useAnimationLoop } from "./hooks/useAnimationLoop";
 import { useMouseInteraction } from "./hooks/useMouseInteraction";
 import { useParticleEffects } from "./hooks/useParticleEffects";
 import { useDebugControls } from "./hooks/useDebugControls";
+import { useTooltipRefs } from "./hooks/useTooltipRefs";
+import { useCanvasClick } from "./hooks/useCanvasClick";
+import { usePerformanceTier } from "./hooks/usePerformanceTier";
+import { useProjectHoverState } from "./hooks/useProjectHoverState";
+import { useCameraAnimation } from "./hooks/useCameraAnimation";
+import { useStarfieldAPI } from "./hooks/useStarfieldAPI";
 import DebugControlsOverlay from "./DebugControlsOverlay";
 import PerformanceDebugPanel from "./PerformanceDebugPanel";
 import { useStarInitialization } from "./hooks/useStarInitialization";
+import { resetConnectionStagger } from "./stars";
+// applyClickForce, createClickExplosion moved to useStarfieldAPI hook
 import {
-  applyClickForce,
-  createClickExplosion,
-  resetConnectionStagger,
-} from "./stars";
-import {
-  checkSunHover,
   resetAnimationModuleState,
   resetAnimateModuleCaches,
 } from "./hooks/animation/animate";
-import {
-  applyClickRepulsionToSunsCanvas,
-  getSunPosition,
-  getSunStates,
-  resetSunSystem,
-} from "./sunSystem";
-import { applyClickRepulsionToPlanets } from "./Planets";
-import SunTooltip, { SunInfo } from "./sunTooltip";
-import { EFFECT_TIMING, CAMERA_CONFIG } from "./physicsConfig";
+import { getSunStates, resetSunSystem } from "./sunSystem";
+import SunTooltip from "./sunTooltip";
+// CAMERA_CONFIG is used internally by useCameraAnimation hook
 
 // Define the ref type
 export type StarfieldRef = {
@@ -61,7 +55,7 @@ export type StarfieldRef = {
   ) => void;
 };
 
-type PerformanceTier = "low" | "medium" | "high";
+// PerformanceTier type is imported from usePerformanceTier hook
 
 // Convert to forwardRef
 const InteractiveStarfield = forwardRef<
@@ -124,145 +118,39 @@ const InteractiveStarfield = forwardRef<
       restartAnimation: () => {},
     });
 
-    // Performance Tier State - Start Low
-    const [performanceTier, setPerformanceTier] = useState<PerformanceTier>("low");
-    const stableFpsCountRef = useRef(0);
-    const lowFpsCountRef = useRef(0);
+    // Performance tier management (adaptive FPS-based quality)
+    const {
+      performanceTier,
+      currentFps,
+      timestamp,
+      isStarfieldReady,
+      showPerformancePanel,
+      setShowPerformancePanel,
+      updateFpsData,
+      fpsValuesRef,
+    } = usePerformanceTier();
 
-    // Track if starfield initialization is complete (hide initial positioning animation)
-    const [isStarfieldReady, setIsStarfieldReady] = useState(false);
-    const initializationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
-      null,
-    );
+    // Project and sun hover state management
+    const {
+      hoverInfo,
+      setHoverInfo,
+      pinnedProjects,
+      handlePinProject,
+      handleUnpinProject,
+      handleUnpinAll,
+      hoveredSun,
+      setHoveredSun,
+      hoveredSunId,
+      setHoveredSunId,
+      focusedSunId,
+      setFocusedSunId,
+    } = useProjectHoverState();
 
-    // FPS tracking state
-    const [currentFps, setCurrentFps] = useState<number>(0);
-    const [timestamp, setTimestamp] = useState<number>(0);
-    const fpsValuesRef = useRef<number[]>([]);
-
-    // Performance panel state
-    const [showPerformancePanel, setShowPerformancePanel] = useState<boolean>(false);
-
-    const updateFpsData = useCallback(
-      (fps: number, currentTimestamp: number): void => {
-        setCurrentFps(fps);
-        setTimestamp(currentTimestamp);
-
-        // Adaptive Performance Logic
-        if (fps > 55) {
-          stableFpsCountRef.current++;
-          lowFpsCountRef.current = 0;
-          if (stableFpsCountRef.current > 60) { // Stable for ~1s
-             setPerformanceTier(prev => {
-                if (prev === "low") return "medium";
-                if (prev === "medium") return "high";
-                return prev;
-             });
-             stableFpsCountRef.current = 0;
-          }
-        } else if (fps < 30) {
-          lowFpsCountRef.current++;
-          stableFpsCountRef.current = 0;
-          if (lowFpsCountRef.current > 30) { // Laggy for ~0.5s
-             setPerformanceTier(prev => {
-                if (prev === "high") return "medium";
-                if (prev === "medium") return "low";
-                return prev;
-             });
-             lowFpsCountRef.current = 0;
-          }
-        }
-      },
-      [],
-    );
-
-    // Project hover state
-    const [hoverInfo, setHoverInfo] = useState<HoverInfo>({
-      project: null,
-      x: 0,
-      y: 0,
-      show: false,
-    });
-    const [pinnedProjects, setPinnedProjects] = useState<PortfolioProject[]>([]);
-
-    // Track if mouse is over the project tooltip to prevent hiding while interacting
-    const isMouseOverProjectTooltipRef = useRef(false);
-    // Ref for debouncing project tooltip hide
-    const projectTooltipHideTimeoutRef = useRef<ReturnType<
-      typeof setTimeout
-    > | null>(null);
-    // Delay in ms before hiding tooltip after mouse leaves (allows time to move to tooltip)
-    const TOOLTIP_HIDE_DELAY_MS = 200;
-
-    const handlePinProject = (project: PortfolioProject): void => {
-      setPinnedProjects((prev) => {
-        // Prevent duplicates
-        if (prev.some(p => p.id === project.id)) return prev;
-        // Optional: limit number of pinned projects
-        if (prev.length >= 5) return prev;
-        return [...prev, project];
-      });
-      // Hide the floating tooltip so the user can immediately hover other items
-      setHoverInfo({ project: null, x: 0, y: 0, show: false });
-    };
-
-    const handleUnpinProject = (projectId: string): void => {
-      setPinnedProjects((prev) => prev.filter(p => p.id !== projectId));
-    };
-
-    const handleUnpinAll = (): void => {
-      setPinnedProjects([]);
-    };
-
-    // Handlers for project tooltip mouse enter/leave
-    const handleProjectTooltipMouseEnter = (): void => {
-      // Clear any pending hide timeout when mouse enters tooltip
-      if (projectTooltipHideTimeoutRef.current) {
-        clearTimeout(projectTooltipHideTimeoutRef.current);
-        projectTooltipHideTimeoutRef.current = null;
-      }
-      isMouseOverProjectTooltipRef.current = true;
-    };
-
-    const handleProjectTooltipMouseLeave = (): void => {
-      isMouseOverProjectTooltipRef.current = false;
-      // Start hide timeout when mouse leaves tooltip
-      projectTooltipHideTimeoutRef.current = setTimeout(() => {
-        setHoverInfo((prev) => ({ ...prev, show: false }));
-      }, TOOLTIP_HIDE_DELAY_MS);
-    };
-
-    // Sun hover state for focus area suns
-    const [hoveredSun, setHoveredSun] = useState<SunInfo | null>(null);
-    const [hoveredSunId, setHoveredSunId] = useState<string | null>(null);
-    // Ref to the sun tooltip DOM element for accurate hover detection
-    const sunTooltipElementRef = useRef<HTMLDivElement | null>(null);
-    // Track if mouse is over the sun tooltip to prevent hiding while interacting
-    const isMouseOverSunTooltipRef = useRef(false);
-    // Ref for debouncing sun tooltip hide
-    const sunHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-      null,
-    );
-
-    // Focused sun state - when user clicks on a focus area, we scope the view
-    const [focusedSunId, setFocusedSunId] = useState<string | null>(null);
-    const focusAnimationRef = useRef<number | null>(null);
-
-    // Internal camera state for sun zoom functionality
-    const [internalCamera, setInternalCamera] = useState<Camera>({
-      cx: CAMERA_CONFIG.defaultCenterX,
-      cy: CAMERA_CONFIG.defaultCenterY,
-      zoom: CAMERA_CONFIG.defaultZoom,
-      target: undefined,
-    });
-    const cameraAnimationRef = useRef<number | null>(null);
-
-    // Store current camera state in a ref for animation loop access
-    // This ref holds the ANIMATED camera position (not the target)
-    const cameraStateRef = useRef({
-      cx: CAMERA_CONFIG.defaultCenterX,
-      cy: CAMERA_CONFIG.defaultCenterY,
-      zoom: CAMERA_CONFIG.defaultZoom,
+    // Centralized tooltip ref management (prevents stuck refs when tooltips unmount)
+    const tooltipRefs = useTooltipRefs({
+      hoveredSunId,
+      hoverInfo,
+      setHoverInfo,
     });
 
     // Game state
@@ -310,9 +198,8 @@ const InteractiveStarfield = forwardRef<
     const {
       stars,
       starsRef,
-      blackHoles: _blackHoles,
+      // blackHoles and employeeStars values not used, only refs needed
       blackHolesRef,
-      employeeStars: _employeeStars,
       employeeStarsRef,
       initializeElements,
       ensureStarsExist,
@@ -336,6 +223,32 @@ const InteractiveStarfield = forwardRef<
       cancelAnimation: () => cancelAnimationRef.current(),
     });
 
+    // Camera zoom animation management
+    const {
+      camera: internalCamera,
+      setCamera: setInternalCamera,
+      cameraStateRef,
+      cameraAnimationRef,
+      zoomToSun,
+    } = useCameraAnimation({
+      focusedSunId,
+      setFocusedSunId,
+      employeeStarsRef,
+      dimensionsRef,
+    });
+
+    // Reset sun hover state when zoom state changes (both zoom in and zoom out)
+    // This prevents the sun tooltip from staying visible during camera transitions
+    const prevFocusedSunIdRef = useRef<string | null>(focusedSunId);
+    useEffect(() => {
+      // Clear hover on any zoom transition (in or out)
+      if (prevFocusedSunIdRef.current !== focusedSunId) {
+        setHoveredSunId(null);
+        setHoveredSun(null);
+      }
+      prevFocusedSunIdRef.current = focusedSunId;
+    }, [focusedSunId, setHoveredSunId, setHoveredSun]);
+
     const mousePositionRef = useRef<MousePosition>({
       x: 0,
       y: 0,
@@ -349,6 +262,9 @@ const InteractiveStarfield = forwardRef<
     });
 
     // Get mouse interaction hooks
+    // Pass mousePositionRef for synchronous updates on touch/mouse leave events
+    // This prevents the "stuck hover" bug where animation frames run before
+    // the async React state/useEffect flow propagates isOnScreen: false
     const { mousePosition, setMousePosition, handleMouseEvents } =
       useMouseInteraction(
         enableMouseInteraction,
@@ -357,6 +273,7 @@ const InteractiveStarfield = forwardRef<
         gameMode,
         gameState,
         setGameState,
+        mousePositionRef, // Pass ref for synchronous updates
       );
 
     useEffect(() => {
@@ -397,44 +314,8 @@ const InteractiveStarfield = forwardRef<
       ],
     );
 
-    useEffect(() => {
-      // Create a global API for testing
-      window.starfieldAPI = {
-        applyForce: (
-          x: number,
-          y: number,
-          radius: number,
-          force: number,
-        ): number => {
-          if (starsRef.current && starsRef.current.length > 0) {
-            return applyClickForce(starsRef.current, x, y, radius, force);
-          }
-          return 0;
-        },
-        getStarsCount: (): number => starsRef.current?.length || 0,
-        createExplosion: (x: number, y: number): boolean => {
-          if (canvasRef.current) {
-            const ctx = canvasRef.current.getContext("2d");
-            if (ctx) {
-              createClickExplosion(
-                ctx,
-                x,
-                y,
-                300,
-                "rgba(255, 255, 255, 0.9)",
-                1000,
-              );
-              return true;
-            }
-          }
-          return false;
-        },
-      };
-
-      return (): void => {
-        delete window.starfieldAPI;
-      };
-    }, [starsRef]);
+    // Global starfield API for external interactions (testing, debugging)
+    useStarfieldAPI({ starsRef, canvasRef });
 
     // Initialize elements on mount - intentionally runs once
     useEffect(() => {
@@ -486,25 +367,8 @@ const InteractiveStarfield = forwardRef<
       }
     }, [gameMode]);
 
-    useEffect(() => {
-      const handleGlobalClick = (e: MouseEvent): void => {
-        // If we have pinned projects and click is on canvas (background)
-        if (
-          pinnedProjects.length > 0 &&
-          canvasRef.current &&
-          e.target === canvasRef.current
-        ) {
-          // Optional: close all on background click?
-          // For now, we keep them open as per request "dock" behavior,
-          // or user can close them individually.
-          // If "click background to unpin all" is desired:
-          // handleUnpinAll();
-        }
-      };
-
-      window.addEventListener("click", handleGlobalClick);
-      return (): void => window.removeEventListener("click", handleGlobalClick);
-    }, [pinnedProjects]);
+    // NOTE: Global click handler for unpinning on background click was removed
+    // (dead code - was commented out). If needed, add to useProjectHoverState hook.
 
     // Set up canvas and handle resize
     useEffect(() => {
@@ -669,6 +533,7 @@ const InteractiveStarfield = forwardRef<
     const gameStateRef = useRef(gameState);
     const clickBurstsRefLocal = useRef(clickBursts);
     const collisionEffectsRef = useRef(collisionEffects);
+    const hoveredSunIdRef = useRef(hoveredSunId);
 
     // Keep refs in sync with state (but don't trigger useMemo recalculation)
     useEffect(() => {
@@ -683,6 +548,9 @@ const InteractiveStarfield = forwardRef<
     useEffect(() => {
       collisionEffectsRef.current = collisionEffects;
     }, [collisionEffects]);
+    useEffect(() => {
+      hoveredSunIdRef.current = hoveredSunId;
+    }, [hoveredSunId]);
 
     // Memoize animation loop parameters to prevent unnecessary re-renders
     // PERFORMANCE: Only include STATIC dependencies that rarely change
@@ -736,17 +604,18 @@ const InteractiveStarfield = forwardRef<
         ensureStarsExist,
         updateFpsData,
         fpsValuesRef,
-        hoveredSunId,
+        hoveredSunIdRef, // Use ref for synchronous access in animation loop
         focusedSunId,
         camera: internalCamera,
         setCamera: setInternalCamera,
-        isMouseOverProjectTooltipRef,
-        isMouseOverSunTooltipRef,
+        isMouseOverProjectTooltipRef: tooltipRefs.isMouseOverProjectTooltipRef,
+        isMouseOverSunTooltipRef: tooltipRefs.isMouseOverSunTooltipRef,
         setHoveredSunId,
         setHoveredSun,
         cameraRef: cameraStateRef,
         sidebarWidth,
-        sunTooltipElementRef,
+        sunTooltipElementRef: tooltipRefs.sunTooltipElementRef,
+        projectTooltipElementRef: tooltipRefs.projectTooltipElementRef,
       }),
       // eslint-disable-next-line react-hooks/exhaustive-deps
       [
@@ -771,7 +640,7 @@ const InteractiveStarfield = forwardRef<
         mouseEffectColor,
         isDarkMode,
         starSize,
-        hoveredSunId,
+        // hoveredSunId removed - now uses ref for synchronous access
         focusedSunId,
         sidebarWidth,
         performanceTier, // Add performance tier as dep
@@ -808,71 +677,19 @@ const InteractiveStarfield = forwardRef<
         resetAnimateModuleCaches();
         resetConnectionStagger();
 
-        // Clear any lingering timeouts
-        if (sunHideTimeoutRef.current) {
-          clearTimeout(sunHideTimeoutRef.current);
-          sunHideTimeoutRef.current = null;
-        }
-        if (projectTooltipHideTimeoutRef.current) {
-          clearTimeout(projectTooltipHideTimeoutRef.current);
-          projectTooltipHideTimeoutRef.current = null;
-        }
+        // Clear any lingering animation frames
+        // Note: tooltip timeout cleanup is handled by useTooltipRefs hook
+        // Note: camera animation cleanup is handled by useCameraAnimation hook
+        // Note: global API cleanup is handled by useStarfieldAPI hook
         if (cameraAnimationRef.current) {
           cancelAnimationFrame(cameraAnimationRef.current);
           cameraAnimationRef.current = null;
         }
-        if (focusAnimationRef.current) {
-          cancelAnimationFrame(focusAnimationRef.current);
-          focusAnimationRef.current = null;
-        }
-
-        // Clean up global API
-        if (window.starfieldAPI) {
-          delete window.starfieldAPI;
-        }
       };
     }, []);
 
-    // Delay showing starfield until initialization is complete
-    // This prevents users from seeing the initial movement to designated positions
-    useEffect(() => {
-      // Clear any existing timer
-      if (initializationTimerRef.current) {
-        clearTimeout(initializationTimerRef.current);
-      }
-
-      // Wait for stars, planets, and suns to reach their initial positions
-      // The delay allows the physics engine to position elements before showing
-      initializationTimerRef.current = setTimeout((): void => {
-        setIsStarfieldReady(true);
-      }, EFFECT_TIMING.starfieldInitializationDelay);
-
-      return (): void => {
-        if (initializationTimerRef.current) {
-          clearTimeout(initializationTimerRef.current);
-        }
-      };
-    }, []); // Run once on mount
-
-    // Update employee stars when orbit speed changes
-    const _handleEmployeeOrbitSpeedChange = (
-      e: React.ChangeEvent<HTMLInputElement>,
-    ): void => {
-      const newSpeed = parseFloat(e.target.value);
-      updateDebugSetting("employeeOrbitSpeed", newSpeed);
-
-      // Update employee stars with new orbit speed
-      if (employeeStarsRef.current.length > 0) {
-        const updatedEmployeeStars = employeeStarsRef.current.map(
-          (empStar) => ({
-            ...empStar,
-            orbitSpeed: newSpeed,
-          }),
-        );
-
-        employeeStarsRef.current = updatedEmployeeStars;
-      }
-    };
+    // NOTE: Starfield initialization delay is now handled by usePerformanceTier hook
+    // NOTE: _handleEmployeeOrbitSpeedChange removed - unused debug handler
 
     const applyStarfieldRepulsion = useCallback(
       (
@@ -906,308 +723,18 @@ const InteractiveStarfield = forwardRef<
       [],
     );
 
-    // Function to zoom the camera to focus on a specific sun
-    const zoomToSun = useCallback(
-      (sunId: string): void => {
-        // Cancel any existing camera animation
-        if (cameraAnimationRef.current) {
-          cancelAnimationFrame(cameraAnimationRef.current);
-        }
+    // NOTE: zoomToSun and camera animation now handled by useCameraAnimation hook
 
-        // If clicking on the same sun, toggle off (zoom out)
-        if (focusedSunId === sunId) {
-          setFocusedSunId(null);
-
-          // Set camera target to zoom out
-          setInternalCamera((prev) => ({
-            ...prev,
-            target: {
-              cx: 0.5,
-              cy: 0.5,
-              zoom: 1,
-            },
-          }));
-          return;
-        }
-
-        // Get the sun's current position
-        const sunPosition = getSunPosition(sunId);
-        if (!sunPosition) {
-          logger.warn(`[Starfield] Could not find sun with id: ${sunId}`);
-          return;
-        }
-
-        setFocusedSunId(sunId);
-
-        // Calculate the maximum orbit radius of planets around this sun
-        // This helps determine the optimal zoom level
-        const planetsForSun = employeeStarsRef.current.filter(
-          (planet) => planet.orbitParentId === sunId,
-        );
-
-        let maxOrbitRadius = 0;
-        if (planetsForSun.length > 0) {
-          planetsForSun.forEach((planet) => {
-            if (planet.orbitRadius) {
-              maxOrbitRadius = Math.max(maxOrbitRadius, planet.orbitRadius);
-            }
-          });
-        }
-
-        // Calculate zoom level based on orbit size
-        // Default to sunFocusZoom if no planets, otherwise calculate dynamically
-        // Base zoom is 2.5, but we reduce it if planets orbit far from the sun
-        // Normalized maxOrbitRadius (typical range: 50-200 pixels on a 1000px canvas)
-        const canvasSize = dimensionsRef.current
-          ? Math.min(dimensionsRef.current.width, dimensionsRef.current.height)
-          : 1000; // Default fallback size
-        const normalizedOrbitRadius = maxOrbitRadius / canvasSize;
-
-        // Calculate zoom: larger orbits = less zoom to fit everything in view
-        // Zoom range: minSunFocusZoom to maxSunFocusZoom depending on orbit size
-        const calculatedZoom =
-          normalizedOrbitRadius > 0
-            ? Math.max(
-                CAMERA_CONFIG.minSunFocusZoom,
-                Math.min(
-                  CAMERA_CONFIG.maxSunFocusZoom,
-                  CAMERA_CONFIG.sunFocusZoomDivisor /
-                    (1 +
-                      normalizedOrbitRadius *
-                        CAMERA_CONFIG.sunFocusOrbitMultiplier),
-                ),
-              )
-            : CAMERA_CONFIG.sunFocusZoom;
-
-        // Set camera target to zoom in on the sun
-        // Sun position is normalized (0-1), camera uses same coordinates
-        setInternalCamera((prev) => ({
-          ...prev,
-          target: {
-            cx: sunPosition.x,
-            cy: sunPosition.y,
-            zoom: calculatedZoom,
-          },
-        }));
-      },
-      [focusedSunId, employeeStarsRef, dimensionsRef],
-    );
-
-    // Smooth camera lerp animation - only runs when there's an active target
-    // Use a serialized target key to detect when target changes
-    const targetKey = internalCamera.target
-      ? `${internalCamera.target.cx}-${internalCamera.target.cy}-${internalCamera.target.zoom}`
-      : null;
-
-    useEffect(() => {
-      // Helper function to sync cameraStateRef with current internalCamera position
-      const syncCameraStateRef = (): void => {
-        cameraStateRef.current = {
-          cx: internalCamera.cx,
-          cy: internalCamera.cy,
-          zoom: internalCamera.zoom,
-        };
-      };
-
-      // Only start animation if there's an active target
-      if (!internalCamera.target) {
-        // No target, ensure any running animation is stopped
-        if (cameraAnimationRef.current) {
-          cancelAnimationFrame(cameraAnimationRef.current);
-          cameraAnimationRef.current = null;
-        }
-        // Sync cameraStateRef with current camera position when no target
-        syncCameraStateRef();
-        return;
-      }
-
-      // Cancel any existing animation before starting a new one
-      // This handles switching between different zoom targets
-      if (cameraAnimationRef.current) {
-        cancelAnimationFrame(cameraAnimationRef.current);
-        cameraAnimationRef.current = null;
-      }
-
-      // Sync cameraStateRef with current camera position before starting new animation
-      // This ensures the animation starts from the current visible position
-      syncCameraStateRef();
-
-      // Store the target for this animation cycle
-      const targetCx = internalCamera.target.cx;
-      const targetCy = internalCamera.target.cy;
-      const targetZoom = internalCamera.target.zoom;
-
-      const animateCamera = (): void => {
-        // Read the current animated position from ref (updated each frame)
-        const {
-          cx: currentCx,
-          cy: currentCy,
-          zoom: currentZoom,
-        } = cameraStateRef.current;
-
-        const smoothing = CAMERA_CONFIG.cameraSmoothingFactor;
-        const newCx = currentCx + (targetCx - currentCx) * smoothing;
-        const newCy = currentCy + (targetCy - currentCy) * smoothing;
-        const newZoom = currentZoom + (targetZoom - currentZoom) * smoothing;
-
-        // Update the ref with the new animated position (for next frame)
-        cameraStateRef.current = { cx: newCx, cy: newCy, zoom: newZoom };
-
-        // Check if we're close enough to target
-        const isCloseEnough =
-          Math.abs(newCx - targetCx) <
-            CAMERA_CONFIG.positionConvergenceThreshold &&
-          Math.abs(newCy - targetCy) <
-            CAMERA_CONFIG.positionConvergenceThreshold &&
-          Math.abs(newZoom - targetZoom) <
-            CAMERA_CONFIG.zoomConvergenceThreshold;
-
-        if (isCloseEnough) {
-          // Reached target, set final values and clear target
-          cameraStateRef.current = {
-            cx: targetCx,
-            cy: targetCy,
-            zoom: targetZoom,
-          };
-          setInternalCamera({
-            cx: targetCx,
-            cy: targetCy,
-            zoom: targetZoom,
-            target: undefined,
-          });
-          cameraAnimationRef.current = null;
-          return;
-        }
-
-        // Update React state to trigger re-render for visual updates
-        // (The animation loop reads from cameraStateRef, not React state)
-        setInternalCamera((prev) => ({
-          cx: newCx,
-          cy: newCy,
-          zoom: newZoom,
-          target: prev.target, // Keep the target
-        }));
-
-        // Continue animation for next frame
-        cameraAnimationRef.current = requestAnimationFrame(animateCamera);
-      };
-
-      // Start the animation
-      cameraAnimationRef.current = requestAnimationFrame(animateCamera);
-
-      return (): void => {
-        if (cameraAnimationRef.current) {
-          cancelAnimationFrame(cameraAnimationRef.current);
-          cameraAnimationRef.current = null;
-        }
-      };
-      // targetKey is a stable serialized key derived from internalCamera.target
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [targetKey]);
-
-    // Legacy function kept for backward compatibility
-    const _scrollToFocusArea = useCallback(
-      (sunId: string, _sunX: number, _sunY: number): void => {
-        // Now just delegates to the camera zoom function
-        zoomToSun(sunId);
-      },
-      [zoomToSun],
-    );
-
-    // Update the click handler to use this unified function:
-    const handleCanvasClick = useCallback(
-      (event: React.MouseEvent<HTMLCanvasElement>): void => {
-        if (!canvasRef.current) {
-          logger.warn(
-            "[Starfield] Click handler called but canvas ref is null",
-          );
-          return;
-        }
-
-        // Get click coordinates relative to canvas
-        const rect = canvasRef.current.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
-
-        // First check if we clicked on a focus area sun BEFORE applying any repulsion
-        // This ensures the sun position is checked before any physics are applied
-        const sunHoverResult = checkSunHover(x, y, rect.width, rect.height);
-
-        if (sunHoverResult) {
-          // Clicked on a sun - zoom to focus on that area
-          zoomToSun(sunHoverResult.sun.id);
-          return;
-        }
-
-        // Only apply repulsion effects if we didn't click on a sun
-        // Apply repulsive force to suns (this stacks up with multiple clicks)
-        applyClickRepulsionToSunsCanvas(x, y, rect.width, rect.height);
-
-        // Apply repulsive force to planets/comets (orbiting portfolio items)
-        if (employeeStarsRef.current && employeeStarsRef.current.length > 0) {
-          applyClickRepulsionToPlanets(employeeStarsRef.current, x, y);
-        }
-
-        // Use the unified function for regular click repulsion
-        applyStarfieldRepulsion(x, y);
-
-        // Update mouse position state
-        if (setMousePosition) {
-          setMousePosition((prev) => ({
-            ...prev,
-            x: x,
-            y: y,
-            isClicked: false,
-            clickTime: Date.now(),
-          }));
-        }
-      },
-      [
-        canvasRef,
-        setMousePosition,
-        applyStarfieldRepulsion,
-        zoomToSun,
-        employeeStarsRef,
-      ],
-    );
-
-    useEffect(() => {
-      if (canvasRef.current) {
-        // Add a direct DOM event listener as a backup
-        const canvas = canvasRef.current;
-        const clickHandler = (e: MouseEvent): void => {
-          // Get click coordinates relative to canvas
-          const rect = canvas.getBoundingClientRect();
-          const x = e.clientX - rect.left;
-          const y = e.clientY - rect.top;
-
-          // First check if we clicked on a focus area sun BEFORE applying any repulsion
-          const sunHoverResult = checkSunHover(x, y, rect.width, rect.height);
-
-          if (sunHoverResult) {
-            // Clicked on a sun - zoom to focus on that area
-            zoomToSun(sunHoverResult.sun.id);
-            return;
-          }
-
-          // Only apply repulsion effects if we didn't click on a sun
-          applyClickRepulsionToSunsCanvas(x, y, rect.width, rect.height);
-
-          // Apply repulsion to planets/comets
-          if (employeeStarsRef.current && employeeStarsRef.current.length > 0) {
-            applyClickRepulsionToPlanets(employeeStarsRef.current, x, y);
-          }
-
-          applyStarfieldRepulsion(x, y);
-        };
-
-        canvas.addEventListener("click", clickHandler);
-
-        return (): void => {
-          canvas.removeEventListener("click", clickHandler);
-        };
-      }
-    }, [canvasRef, applyStarfieldRepulsion, zoomToSun, employeeStarsRef]);
+    // Unified canvas click/touch handling via dedicated hook
+    const { handleCanvasClick, handleTouchEnd } = useCanvasClick({
+      canvasRef,
+      planetsRef: employeeStarsRef,
+      cameraRef: cameraStateRef,
+      setMousePosition,
+      onSunClick: zoomToSun,
+      onPlanetClick: handlePinProject, // Auto-pin on mobile planet click
+      applyStarfieldRepulsion,
+    });
 
     return (
       <>
@@ -1232,57 +759,15 @@ const InteractiveStarfield = forwardRef<
             className={`${styles.starfieldCanvas} ${isStarfieldReady ? styles.starfieldReady : styles.starfieldInitializing}`}
             aria-hidden="true"
             onClick={(e): void => {
-              e.stopPropagation(); // Stop event propagation
+              e.stopPropagation();
               handleCanvasClick(e);
             }}
             onTouchStart={(e): void => {
-              // Prevent default to avoid issues on touch
               e.stopPropagation();
             }}
             onTouchEnd={(e): void => {
-              // Convert touch to click for mobile support
-              if (e.changedTouches.length > 0) {
-                const touch = e.changedTouches[0];
-                const rect = canvasRef.current?.getBoundingClientRect();
-                if (rect) {
-                  const x = touch.clientX - rect.left;
-                  const y = touch.clientY - rect.top;
-
-                  // First check if we touched a sun BEFORE applying any repulsion
-                  const sunHoverResult = checkSunHover(
-                    x,
-                    y,
-                    rect.width,
-                    rect.height,
-                  );
-
-                  if (sunHoverResult) {
-                    zoomToSun(sunHoverResult.sun.id);
-                  } else {
-                    // Only apply repulsion if we didn't touch a sun
-                    applyClickRepulsionToSunsCanvas(
-                      x,
-                      y,
-                      rect.width,
-                      rect.height,
-                    );
-
-                    // Apply repulsion to planets/comets
-                    if (
-                      employeeStarsRef.current &&
-                      employeeStarsRef.current.length > 0
-                    ) {
-                      applyClickRepulsionToPlanets(
-                        employeeStarsRef.current,
-                        x,
-                        y,
-                      );
-                    }
-
-                    applyStarfieldRepulsion(x, y);
-                  }
-                }
-              }
+              e.stopPropagation();
+              handleTouchEnd(e);
             }}
         />
       </div>
@@ -1344,37 +829,26 @@ const InteractiveStarfield = forwardRef<
       {/* Hover Tooltip - now allowed even if projects are pinned */}
       {hoverInfo.show && hoverInfo.project && (
         <ProjectTooltip
+          ref={tooltipRefs.projectTooltipElementRef}
           project={hoverInfo.project}
           x={hoverInfo.x}
           y={hoverInfo.y}
           isDarkMode={isDarkMode}
           onPin={handlePinProject}
-          onMouseEnter={handleProjectTooltipMouseEnter}
-          onMouseLeave={handleProjectTooltipMouseLeave}
+          onMouseEnter={tooltipRefs.handleProjectTooltipMouseEnter}
+          onMouseLeave={tooltipRefs.handleProjectTooltipMouseLeave}
         />
       )}
 
       {/* Sun tooltip when hovering over a focus area sun - only show if no project tooltip is visible */}
-      {/* Removed !pinnedProject check to allow interaction while docked */}
       {hoveredSun && !hoverInfo.show && (
         <SunTooltip
-          ref={sunTooltipElementRef}
+          ref={tooltipRefs.sunTooltipElementRef}
           sun={hoveredSun}
           isDarkMode={isDarkMode}
           onClick={(sunId): void => zoomToSun(sunId)}
-          onMouseEnter={(): void => {
-            // Clear any pending hide timeout when mouse enters tooltip
-            if (sunHideTimeoutRef.current) {
-              clearTimeout(sunHideTimeoutRef.current);
-              sunHideTimeoutRef.current = null;
-            }
-            isMouseOverSunTooltipRef.current = true;
-          }}
-          onMouseLeave={(): void => {
-            // Just set the ref to false - the animation loop handles clearing the hover
-            // based on whether the mouse is still in the sun's hit area
-            isMouseOverSunTooltipRef.current = false;
-          }}
+          onMouseEnter={tooltipRefs.handleSunTooltipMouseEnter}
+          onMouseLeave={tooltipRefs.handleSunTooltipMouseLeave}
         />
       )}
 
@@ -1402,7 +876,7 @@ const InteractiveStarfield = forwardRef<
           className={`${styles.zoomOutButton} ${!isDarkMode ? styles.zoomOutButtonLight : ""}`}
           onClick={(): void => zoomToSun(focusedSunId)}
           style={{
-            left: "50%"
+            left: `calc(50% + ${sidebarWidth / 2}px)`
           }}
         >
           <span className={styles.zoomOutIcon}>←</span>

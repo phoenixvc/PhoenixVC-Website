@@ -100,6 +100,13 @@ export function drawSuns(
 
   const sunStates = getSunStates();
 
+  // ASSERTION: If hoveredSunId is set, it must match a valid sun
+  // If it doesn't, the hover state is stale and should be ignored
+  const validHoveredSunId =
+    hoveredSunId && sunStates.some((s) => s.id === hoveredSunId)
+      ? hoveredSunId
+      : null;
+
   ctx.save();
 
   // Enable smooth rendering
@@ -121,9 +128,14 @@ export function drawSuns(
     );
 
     // Check if this sun is hovered or focused
-    const isHovered = hoveredSunId === sunState.id;
+    const isHovered = validHoveredSunId === sunState.id;
     const isFocused = focusedSunId === sunState.id;
-    const isHighlighted = isHovered || isFocused;
+    // ASSERTION: Only ONE sun should show hover ring at a time
+    // If any sun is hovered, only that sun gets highlighted (not the focused sun)
+    // If no sun is hovered, the focused sun can show highlight
+    const isHighlighted = validHoveredSunId
+      ? isHovered // When hovering, only hovered sun is highlighted
+      : isFocused; // When not hovering, focused sun is highlighted
 
     // Check if sun is in propel mode (avoiding collision)
     const isPropelling = sunState.isPropelling;

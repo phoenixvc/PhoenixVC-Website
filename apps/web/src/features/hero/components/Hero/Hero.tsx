@@ -36,7 +36,7 @@ const Hero: FC<ExtendedHeroProps> = memo(
     colorScheme = "purple",
     accentColor,
     enableMouseTracking = false,
-    _sidebarWidth = 0,
+    sidebarWidth = 0,
   }): React.ReactElement => {
     const { themeMode } = useTheme();
     const isDarkMode = themeMode === "dark";
@@ -336,15 +336,15 @@ const Hero: FC<ExtendedHeroProps> = memo(
           {showScrollIndicator && (
             <motion.button
               className={styles.scrollIndicator}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1, y: [0, 10, 0] }}
+              initial={{ opacity: 0, x: "-50%" }}
+              animate={{ opacity: 1, x: "-50%", y: [0, 10, 0] }}
               exit={{ opacity: 0 }}
               transition={{
                 opacity: { duration: 0.5 },
                 y: { repeat: Infinity, duration: 1.5 },
               }}
               style={{
-                left: "50%"
+                left: `calc(50% + ${sidebarWidth / 2}px)`
               }}
               onClick={() => scrollTo("focus-areas")}
               aria-label="Scroll to explore content"

@@ -1,5 +1,5 @@
 // components/Layout/Starfield/hooks/useMouseInteraction.ts
-import { useState, useRef, useCallback, useMemo } from "react";
+import { useState, useRef, useCallback, useMemo, MutableRefObject } from "react";
 import { MousePosition, Star, GameState } from "../types";
 import { applyClickForce } from "../stars";
 import { logger } from "@/utils/logger";
@@ -11,6 +11,8 @@ export const useMouseInteraction = (
   gameMode: boolean,
   gameState: GameState,
   setGameState: React.Dispatch<React.SetStateAction<GameState>>,
+  // Optional: external ref to sync for immediate updates (e.g., for animation loop)
+  externalMousePositionRef?: MutableRefObject<MousePosition>,
 ): {
   mousePosition: MousePosition;
   setMousePosition: React.Dispatch<React.SetStateAction<MousePosition>>;
@@ -56,6 +58,21 @@ export const useMouseInteraction = (
       if (now - lastMoveTimeRef.current < 16) return; // ~60fps
       lastMoveTimeRef.current = now;
 
+      // Update external ref SYNCHRONOUSLY for immediate animation loop access
+      if (externalMousePositionRef) {
+        const prev = externalMousePositionRef.current;
+        externalMousePositionRef.current = {
+          ...prev,
+          x: clientX,
+          y: clientY,
+          lastX: prev.x,
+          lastY: prev.y,
+          speedX: clientX - prev.x,
+          speedY: clientY - prev.y,
+          isOnScreen: true,
+        };
+      }
+
       setMousePosition((prev) => ({
         ...prev,
         x: clientX,
@@ -67,7 +84,7 @@ export const useMouseInteraction = (
         isOnScreen: true,
       }));
     },
-    [],
+    [externalMousePositionRef],
   );
 
   // Throttled mouse move handler
@@ -94,13 +111,31 @@ export const useMouseInteraction = (
   // Uses refs for game-related values to maintain stable callback identity
   const handlePointerDown = useCallback(
     (clientX: number, clientY: number): void => {
+      const clickTime = Date.now();
+
+      // CRITICAL FIX: Update external ref SYNCHRONOUSLY before React state update
+      // This ensures the animation loop sees isOnScreen: true immediately for touch
+      if (externalMousePositionRef) {
+        externalMousePositionRef.current = {
+          ...externalMousePositionRef.current,
+          x: clientX,
+          y: clientY,
+          isClicked: true,
+          clickTime,
+          isOnScreen: true,
+        };
+      }
+
       // Update mouse position
+      // Also set isOnScreen: true for mobile touch support - without this,
+      // hover detection won't run on touch because it checks isMouseOnScreen
       setMousePosition((prev) => ({
         ...prev,
         x: clientX,
         y: clientY,
         isClicked: true,
-        clickTime: Date.now(),
+        clickTime,
+        isOnScreen: true,
       }));
 
       logger.debug("Pointer down:", { clientX, clientY });
@@ -127,7 +162,7 @@ export const useMouseInteraction = (
         }));
       }
     },
-    [], // Empty deps - all values accessed via refs
+    [externalMousePositionRef], // Only externalMousePositionRef - other values accessed via refs
   );
 
   const handleMouseDown = useCallback(
@@ -161,17 +196,47 @@ export const useMouseInteraction = (
   }, [handlePointerUp]);
 
   const handleTouchEnd = useCallback((): void => {
-    handlePointerUp();
-  }, [handlePointerUp]);
+    // On mobile, touch end is equivalent to mouse leave + mouse up
+    // Clear both isClicked AND isOnScreen since finger has left the screen
+
+    // CRITICAL FIX: Update external ref SYNCHRONOUSLY before React state update
+    // This ensures the animation loop sees isOnScreen: false immediately,
+    // preventing the "stuck hover" bug where the sun hover ring persists
+    // because animation frames ran before the async state/useEffect propagated
+    if (externalMousePositionRef) {
+      externalMousePositionRef.current = {
+        ...externalMousePositionRef.current,
+        isClicked: false,
+        isOnScreen: false,
+      };
+    }
+
+    setMousePosition((prev) => ({
+      ...prev,
+      isClicked: false,
+      isOnScreen: false,
+    }));
+    logger.debug("Touch ended - cleared hover state");
+  }, [externalMousePositionRef]);
 
   const handleMouseLeave = useCallback((): void => {
+    // CRITICAL FIX: Update external ref SYNCHRONOUSLY before React state update
+    // Same rationale as handleTouchEnd - prevents stuck hover states
+    if (externalMousePositionRef) {
+      externalMousePositionRef.current = {
+        ...externalMousePositionRef.current,
+        isOnScreen: false,
+        isClicked: false,
+      };
+    }
+
     setMousePosition((prev) => ({
       ...prev,
       isOnScreen: false,
       isClicked: false, // Ensure click is released when leaving screen
     }));
     logger.debug("Mouse left screen");
-  }, []);
+  }, [externalMousePositionRef]);
 
   // Event handlers object - memoized to prevent unstable identity causing
   // useEffect cleanup/setup cycles that remove event listeners permanently

@@ -7,14 +7,14 @@ on:
     branches: [ "main", "release/*", "staging/*" ]
   workflow_dispatch:
     inputs:
-      SEND_STAGING_FAILED:
-        description: 'Set to "true" to notify stakeholders if staging deployment fails'
-        required: false
-        default: "true"
-        type: choice
-        options:
-          - "true"
-          - "false"
+      notifyOnFailure:
+        description: 'Send Teams notification if deployment fails'
+        type: boolean
+        default: true
+      deployToProd:
+        description: 'Also deploy to production after staging succeeds'
+        type: boolean
+        default: false
 
 env:
   LOCATION_CODE: 'euw'  # Default to Europe West
@@ -135,6 +135,7 @@ jobs:
       (github.event_name == 'workflow_dispatch' || needs.check_relevant_changes.outputs.resources_changed == 'true')
     outputs:
       web_artifact_id: ${{ steps.upload_web.outputs.artifact-id }}
+      web_artifact_name: web-dist-${{ steps.set_timestamp.outputs.timestamp }}
       design_system_artifact_id: ${{ steps.upload_design.outputs.artifact-id }}
       build_timestamp: ${{ steps.set_timestamp.outputs.timestamp }}
       web_app_version: ${{ steps.build_web.outputs.version }}
@@ -305,22 +306,29 @@ jobs:
  # ───────────────────────────────────────────────
   notify_deployment:
     runs-on: ubuntu-latest
-    # For staging, notify if success OR if failure and SEND_STAGING_FAILED is true.
+    # Notify on success, or on failure if notifyOnFailure is enabled
     # For production, always notify regardless of outcome.
     needs: [build_apps, deploy_resources_staging, swa_deploy_staging, check_relevant_changes]
     if: always()
     steps:
       - name: Log Required Variables
+        # Only validate when staging actually ran
+        if: needs.check_relevant_changes.outputs.resources_changed == 'true' || github.event_name == 'workflow_dispatch'
         run: |
           echo "Logging required variables for Teams Notification..."
           echo "Deployment ID: ${{ needs.swa_deploy_staging.outputs.deployment_id }}"
-          echo "Artifact ID: ${{ needs.build_apps.outputs.web_artifact_id }}"
+          echo "Artifact Name: ${{ needs.build_apps.outputs.web_artifact_name }}"
           echo "Run ID: ${{ github.run_id }}"
 
-          if [[ -z "${{ needs.swa_deploy_staging.outputs.deployment_id }}" || -z "${{ needs.build_apps.outputs.web_artifact_id }}" || -z "${{ github.run_id }}" ]]; then
+          if [[ -z "${{ needs.swa_deploy_staging.outputs.deployment_id }}" || -z "${{ needs.build_apps.outputs.web_artifact_name }}" || -z "${{ github.run_id }}" ]]; then
             echo "❌ Missing required values for approval URL!"
             exit 1
           fi
+
+      - name: Skip notification - no changes
+        if: needs.check_relevant_changes.outputs.resources_changed == 'false' && github.event_name != 'workflow_dispatch'
+        run: |
+          echo "⏭️ Skipping notification - no relevant changes detected (only workflow files changed)"
 
       - name: Checkout Repository for Notification
         uses: actions/checkout@v4
@@ -338,7 +346,7 @@ jobs:
           fi
 
       - name: Notify Staging via Teams
-        if: (needs.check_relevant_changes.outputs.resources_changed == 'true' || github.event_name == 'workflow_dispatch') && (needs.swa_deploy_staging.result == 'success' || github.event.inputs.SEND_STAGING_FAILED == 'true')
+        if: (needs.check_relevant_changes.outputs.resources_changed == 'true' || github.event_name == 'workflow_dispatch') && (needs.swa_deploy_staging.result == 'success' || inputs.notifyOnFailure == true)
         uses: ./.github/actions/teams-notification
         with:
           webhook_url: "https://phoenixvc568.webhook.office.com/webhookb2/17b0291f-b70b-4bdd-9266-f212ae03a2bd@7edf4423-ccb3-4275-bc80-64dae3ef0148/IncomingWebhook/3174ffcca3804d34ae923ba2e131f82e/a41dbcc0-67a6-4a23-bdec-b780dcebefa9/V2MOPWeKY7ywC8-iGptxHlSIZpwHVxw2FLAOAMU2N0hmM1"
@@ -357,9 +365,31 @@ jobs:
           teams_token: ${{ secrets.TEAMS_TOKEN }}
           change_summary: ${{ needs.check_relevant_changes.outputs.change_summary }}
           deployment_id: ${{ needs.swa_deploy_staging.outputs.deployment_id }}
-          artifact_id: ${{ needs.build_apps.outputs.web_artifact_id }}
+          artifact_id: ${{ needs.build_apps.outputs.web_artifact_name }}
           run_id: ${{ github.run_id }}
           version: ${{ needs.build_apps.outputs.web_app_version }}
           author: ${{ needs.build_apps.outputs.web_app_author }}
           repository: ${{ needs.build_apps.outputs.web_app_repository }}
           pr_description: ${{ github.event.pull_request.body || 'N/A' }}
+
+  # ───────────────────────────────────────────────
+  # ✅ PRODUCTION DEPLOYMENT (auto on main push, or manual with checkbox)
+  # ───────────────────────────────────────────────
+  deploy_production:
+    needs: [build_apps, swa_deploy_staging, check_relevant_changes]
+    # Trigger production when:
+    # 1. Auto: push to main + staging success + relevant changes, OR
+    # 2. Manual: workflow_dispatch + deployToProd checked + staging success
+    if: >
+      needs.swa_deploy_staging.result == 'success' &&
+      (
+        (github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.check_relevant_changes.outputs.resources_changed == 'true') ||
+        (github.event_name == 'workflow_dispatch' && inputs.deployToProd == true)
+      )
+    uses: ./.github/workflows/production_deployment.yml
+    with:
+      artifactSource: 'specific'
+      artifactId: ${{ needs.build_apps.outputs.web_artifact_name }}
+      runID: ${{ github.run_id }}
+      includeDnsUpdate: false
+    secrets: inherit

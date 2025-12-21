@@ -1,7 +1,11 @@
 // apps/web/src/features/layout/components/Starfield/cosmos/camera.ts
-import { Camera, CosmicObject } from "./types";
+import { Camera } from "./types";
 import { CAMERA_CONFIG } from "../physicsConfig";
 
+/**
+ * Smoothly interpolate camera towards its target position/zoom.
+ * Returns the updated camera state.
+ */
 export function lerpCamera(
   camera: Camera,
   smoothingFactor = CAMERA_CONFIG.cameraSmoothingFactor,
@@ -34,50 +38,5 @@ export function lerpCamera(
   };
 }
 
-export function screenToWorld(
-  mouseX: number,
-  mouseY: number,
-  camera: Camera,
-  canvasWidth: number,
-  canvasHeight: number,
-): { x: number; y: number } {
-  // Convert screen coordinates to normalized coordinates (-1 to 1)
-  const normalizedX = (mouseX - canvasWidth / 2) / (canvasWidth / 2);
-  const normalizedY = -(mouseY - canvasHeight / 2) / (canvasHeight / 2);
-
-  // Apply camera transform to get world coordinates
-  return {
-    x: camera.cx + normalizedX / camera.zoom,
-    y: camera.cy + normalizedY / camera.zoom,
-  };
-}
-
-export function pickObject(
-  worldX: number,
-  worldY: number,
-  objects: CosmicObject[],
-  currentLevel: string,
-): CosmicObject | null {
-  // Filter objects by level if needed
-  const visibleObjects =
-    currentLevel === "universe"
-      ? objects.filter((o) => o.level === "galaxy")
-      : objects.filter((o) => o.parentId === currentLevel);
-
-  // Find the closest object
-  let closestObject = null;
-  let closestDistance = Infinity;
-
-  for (const obj of visibleObjects) {
-    const dx = worldX - obj.position.x;
-    const dy = worldY - obj.position.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-
-    if (distance < obj.size && distance < closestDistance) {
-      closestObject = obj;
-      closestDistance = distance;
-    }
-  }
-
-  return closestObject;
-}
+// NOTE: screenToWorld removed - use screenToWorldCoords in hoverUtils.ts
+// NOTE: pickObject removed - use version in cosmicNavigation.ts

@@ -69,7 +69,14 @@ export class ErrorBoundary extends Component<Props, State> {
     // Update state with error info
     this.setState({ errorInfo });
 
-    // Log error locally
+    // Log error to console DIRECTLY so it's always visible
+    console.error("=== ERROR BOUNDARY CAUGHT ERROR ===");
+    console.error("Error:", error.message);
+    console.error("Stack:", error.stack);
+    console.error("Component Stack:", errorInfo.componentStack);
+    console.error("===================================");
+
+    // Also log via logger
     logger.error("ErrorBoundary caught an error:", error, errorInfo);
 
     // Call custom error handler if provided
@@ -110,6 +117,51 @@ export class ErrorBoundary extends Component<Props, State> {
               We encountered an unexpected error. Please try refreshing the page
               or going back to the home page.
             </p>
+            {/* Show error details for debugging - BIG AND OBVIOUS */}
+            {this.state.error && (
+              <div style={{
+                marginTop: "30px",
+                padding: "20px",
+                background: "#2a1515",
+                border: "2px solid #ff4444",
+                borderRadius: "12px",
+                textAlign: "left",
+                maxWidth: "800px",
+                margin: "30px auto",
+                fontSize: "14px",
+                fontFamily: "monospace",
+              }}>
+                <div style={{
+                  color: "#ff6b6b",
+                  fontSize: "18px",
+                  fontWeight: "bold",
+                  marginBottom: "15px",
+                  borderBottom: "1px solid #ff4444",
+                  paddingBottom: "10px"
+                }}>
+                  DEBUG INFO (share this with developer):
+                </div>
+                <div style={{ color: "#ffaaaa", marginBottom: "10px" }}>
+                  <strong style={{ color: "#ff6b6b" }}>Error:</strong> {this.state.error.message}
+                </div>
+                {this.state.error.stack && (
+                  <pre style={{
+                    marginTop: "10px",
+                    whiteSpace: "pre-wrap",
+                    wordBreak: "break-all",
+                    color: "#cc8888",
+                    fontSize: "11px",
+                    maxHeight: "300px",
+                    overflow: "auto",
+                    background: "#1a0a0a",
+                    padding: "10px",
+                    borderRadius: "6px"
+                  }}>
+                    {this.state.error.stack}
+                  </pre>
+                )}
+              </div>
+            )}
             <div className={styles.actions}>
               <button
                 onClick={() => (window.location.href = "/")}
