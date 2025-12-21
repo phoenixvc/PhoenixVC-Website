@@ -693,7 +693,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
       useSystemMode: state.useSystem,
       getThemeClassNames,
       getSpecificClass: (suffix): string =>
-        getSpecificClass(state.themeName, suffix) as string,
+        getSpecificClass(state.themeName, suffix),
       replaceThemeClasses: (currentClasses, newScheme): string =>
         replaceThemeClasses(currentClasses, newScheme, state.mode),
       setTheme: setThemeClasses,
