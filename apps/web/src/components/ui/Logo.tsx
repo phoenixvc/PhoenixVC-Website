@@ -21,7 +21,7 @@ export const Logo: React.FC<LogoProps> = ({
   const style = themeContext.getComponentStyle?.(component, variant) || {};
 
   // Get specific class for the text if you prefer class-based styling
-  const textClass = (themeContext.getSpecificClass?.("text") as string) || "";
+  const textClass = themeContext.getSpecificClass?.("text") || "";
 
   // Get CSS variable for specific properties if needed
   const logoColor = themeContext.getCssVariable("theme-logo-color");
