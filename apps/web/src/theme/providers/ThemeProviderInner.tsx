@@ -35,8 +35,8 @@ import { logger } from "@/utils/logger";
 const defaultState: ThemeState = {
   name: "Default Theme",
   themeName: "classic",
-  mode: "light",
-  useSystem: true,
+  mode: "dark",
+  useSystem: false,
   systemMode: "light",
   initialized: false,
   timestamp: Date.now(),
@@ -693,10 +693,10 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
       useSystemMode: state.useSystem,
       getThemeClassNames,
       getSpecificClass: (suffix): string =>
-        getSpecificClass(state.themeName, suffix),
+        getSpecificClass(state.themeName, suffix) as string,
       replaceThemeClasses: (currentClasses, newScheme): string =>
         replaceThemeClasses(currentClasses, newScheme, state.mode),
-      setThemeClasses,
+      setTheme: setThemeClasses,
       setMode,
       toggleMode,
       setUseSystemMode,

@@ -88,7 +88,7 @@ export interface ThemeContextType {
   getThemeClassNames: (scheme: ThemeName) => Record<string, string>;
   getSpecificClass: (suffix: ThemeClassSuffix) => string | unknown;
   replaceThemeClasses: (currentClasses: string, newScheme: ThemeName) => string;
-  setTheme: (name: string) => void;
+  setTheme: (name: ThemeName) => void;
   setMode: (mode: ThemeMode) => void;
   toggleMode: () => void;
   setUseSystemMode: (useSystem: boolean) => void;
