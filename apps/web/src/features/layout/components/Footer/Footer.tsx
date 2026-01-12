@@ -94,6 +94,27 @@ export const Footer: React.FC<FooterProps> = ({ isDarkMode = true }) => {
               </motion.li>
             </ul>
           </motion.div>
+
+          {/* Contact section */}
+          <motion.div variants={itemVariants} className={styles.linksSection}>
+            <h4 className={styles.sectionTitle}>Contact</h4>
+            <ul className={styles.linkList}>
+              <motion.li variants={itemVariants}>
+                <a href="mailto:info@phoenixvc.tech" className={styles.link}>
+                  info@phoenixvc.tech
+                </a>
+              </motion.li>
+              <motion.li variants={itemVariants}>
+                <span className={styles.address}>
+                  43 Andringa Street
+                  <br />
+                  Stellenbosch, Western Cape
+                  <br />
+                  7600
+                </span>
+              </motion.li>
+            </ul>
+          </motion.div>
         </div>
 
         {/* Footer bottom with cosmic particles */}

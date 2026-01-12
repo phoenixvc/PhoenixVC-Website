@@ -79,7 +79,7 @@
 
 @media (min-width: 768px) {
   .gridContainer {
-    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
     gap: 2rem;
   }
 }
@@ -242,6 +242,17 @@
 .link:hover::before {
   width: 8px;
   opacity: 1;
+}
+
+.address {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  display: block;
+}
+
+.light .address {
+  color: rgba(13, 14, 30, 0.7);
 }
 
 .footerBottom {

@@ -20,8 +20,20 @@
   z-index: 2;
 }
 
-/* Add dark/light mode variants */
-:root:not(.dark) .heading {
+/* Dark mode heading - uses component class */
+.darkHeading {
+  background: linear-gradient(
+    135deg,
+    hsl(270, 70%, 60%),  /* Bright purple */
+    hsl(250, 90%, 65%)   /* Vibrant violet */
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  text-shadow: 0 0 30px hsla(270, 70%, 60%, 0.3);
+}
+
+/* Light mode heading - uses component class */
+.lightHeading {
   background: linear-gradient(
     135deg,
     hsl(270, 60%, 45%),  /* Darker purple for light mode */

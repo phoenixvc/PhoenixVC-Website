@@ -103,12 +103,13 @@
 .label {
   font-size: 0.875rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(20, 18, 40, 0.8);
   transition: color 0.2s ease;
 }
 
-:root:not(.dark) .label {
-  color: rgba(20, 18, 40, 0.8);
+/* Dark mode labels - must use .dark selector to match component usage */
+.dark .label {
+  color: rgba(255, 255, 255, 0.9);
 }
 
 /* Required indicator */
