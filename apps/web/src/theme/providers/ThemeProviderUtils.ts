@@ -1,5 +1,4 @@
-import { ThemeName, ThemeMode, ThemeClassSuffix } from "@/theme/types";
-import { Theme } from "../core/theme";
+import { ThemeName, ThemeMode, ThemeClassSuffix, Theme } from "@/theme/types";
 import { ThemeCore } from "../core/theme-core";
 
 export const getThemeClassNames = (
@@ -11,7 +10,7 @@ export const getThemeClassNames = (
 export const getSpecificClass = (
   themeName: ThemeName,
   suffix: ThemeClassSuffix,
-): string | unknown => {
+): string => {
   const classes = getThemeClassNames(themeName);
   return classes[suffix] || classes.base;
 };

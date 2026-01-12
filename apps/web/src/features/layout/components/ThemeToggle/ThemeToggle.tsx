@@ -40,7 +40,7 @@ const ThemeToggle: React.FC = () => {
     useSystemMode,
     themeName,
     setMode,
-    setThemeClasses,
+    setTheme: setThemeClasses,
     setUseSystemMode,
   } = useTheme();
 

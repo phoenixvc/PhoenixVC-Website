@@ -696,7 +696,7 @@ const ThemeProviderInner: React.FC<ThemeProviderProps> = ({
         getSpecificClass(state.themeName, suffix),
       replaceThemeClasses: (currentClasses, newScheme): string =>
         replaceThemeClasses(currentClasses, newScheme, state.mode),
-      setThemeClasses,
+      setTheme: setThemeClasses,
       setMode,
       toggleMode,
       setUseSystemMode,
