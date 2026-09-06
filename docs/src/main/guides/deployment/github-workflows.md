@@ -53,17 +53,16 @@ workflow_dispatch:
     ENVIRONMENT: prod
 ```
 
-### 3. DNS Backup (activation pending)
+### 3. Weekly DNS Backup
 **File:** `dns-backup.yml`
 
-The replacement design exports the complete `phoenixvc.tech` Azure DNS zone,
-verifies that the export contains an SOA record, and retains the resulting
-artifact for 90 days.
+Every Sunday at 00:00 UTC, the workflow exports the complete `phoenixvc.tech`
+Azure DNS zone, verifies that the export contains an SOA record, and retains the
+resulting artifact for 90 days. It can also be dispatched manually.
 
-The workflow is intentionally disabled in GitHub and contains only a manual
-trigger while it is reviewed. It has no schedule. Enabling it, adding a
-schedule, changing Azure identity or RBAC, and writing DNS all require separate
-approval.
+Azure authentication uses GitHub Actions workload identity federation bound to
+the `production` environment. The dedicated principal has `Reader` only on the
+`phoenixvc.tech` DNS zone, so this backup workflow cannot modify DNS records.
 
 #### Features:
 - Backup-only Azure DNS zone export
@@ -99,7 +98,7 @@ graph TD
   C --> D[SWA Deployment]
   D --> E[DNS Configuration]
   D --> F[Teams Notification]
-  G[Manual DNS Backup - activation pending] --> H[Backup Storage]
+  G[Weekly DNS Backup] --> H[Backup Artifact]
 ```
 
 ## Best Practices
