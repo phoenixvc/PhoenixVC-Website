@@ -99,7 +99,7 @@ graph TD
   C --> D[SWA Deployment]
   D --> E[DNS Configuration]
   D --> F[Teams Notification]
-  G[Weekly DNS Backup] --> H[Backup Storage]
+  G[Manual DNS Backup - activation pending] --> H[Backup Storage]
 ```
 
 ## Best Practices

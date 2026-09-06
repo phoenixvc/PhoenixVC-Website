@@ -42,7 +42,17 @@ jobs:
             --file-name "$backup_file"
 
           test -s "$backup_file"
-          grep -q '[[:space:]]SOA[[:space:]]' "$backup_file"
+          awk '
+            {
+              sub(/;.*/, "")
+              for (field = 2; field <= NF; field++) {
+                if (toupper($(field - 1)) == "IN" && toupper($field) == "SOA") {
+                  found = 1
+                }
+              }
+            }
+            END { exit !found }
+          ' "$backup_file"
           echo "backup_file=$backup_file" >> "$GITHUB_OUTPUT"
 
       - name: Upload DNS backup
