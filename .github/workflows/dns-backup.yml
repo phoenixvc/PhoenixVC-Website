@@ -1,29 +1,59 @@
-name: Weekly DNS Backup
+name: DNS Backup (Activation Pending)
 
+# This workflow is intentionally manual-only while the replacement is reviewed.
+# Adding a schedule, enabling the workflow, or changing Azure identity/RBAC each
+# require separate owner approval.
 on:
-  schedule:
-    - cron: '0 0 * * 0'  # Every Sunday at midnight
-  workflow_dispatch:  # Manual trigger
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: dns-backup
+  cancel-in-progress: false
 
 jobs:
   backup:
+    name: Export phoenixvc.tech zone
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     environment: production
+
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Configure Azure
-        uses: ./.github/actions/setup-azure-deployment
+      - name: Sign in to Azure
+        uses: azure/login@v2
         with:
-          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
-          
-      - name: Create DNS Backup
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Export DNS zone
+        id: export
+        shell: bash
         run: |
-          ./scripts/deployment/configure-dns.sh --backup --ENVIRONMENT prod
-          
-      - name: Upload Backup
-        uses: actions/upload-artifact@v3
+          set -euo pipefail
+
+          timestamp="$(date -u +'%Y%m%dT%H%M%SZ')"
+          backup_dir="dns_backups"
+          backup_file="${backup_dir}/phoenixvc-tech-${timestamp}.zone"
+
+          mkdir -p "$backup_dir"
+          az network dns zone export \
+            --resource-group mys-global-shared-rg \
+            --name phoenixvc.tech \
+            --file-name "$backup_file"
+
+          test -s "$backup_file"
+          grep -q '[[:space:]]SOA[[:space:]]' "$backup_file"
+          echo "backup_file=$backup_file" >> "$GITHUB_OUTPUT"
+
+      - name: Upload DNS backup
+        uses: actions/upload-artifact@v4
         with:
-          name: dns-backup-$(date +%Y%m%d)
-          path: ./dns_backups/
+          name: phoenixvc-tech-dns-backup-${{ github.run_id }}
+          path: ${{ steps.export.outputs.backup_file }}
+          if-no-files-found: error
           retention-days: 90
+
+      - name: Sign out of Azure
+        if: always()
+        shell: bash
+        run: az logout

@@ -5,11 +5,13 @@ This repository contains several GitHub Workflows that handle the automated depl
 ## Core Workflows
 
 ### 1. Phoenix VC Deployment Pipeline
+
 **File:** `deploy.yml`
 
 The main deployment pipeline that handles both staging and production deployments.
 
 #### Key Features:
+
 - Dual-environment deployment (staging/production)
 - Automated builds of Vite applications
 - Azure Static Web Apps deployment
@@ -18,11 +20,13 @@ The main deployment pipeline that handles both staging and production deployment
 - Documentation deployment
 
 #### Workflow Inputs:
+
 - `APPROVAL_STATE`: Controls production deployment approval
 - `INCLUDE_DNS_UPDATE`: Toggles DNS update inclusion
 - `SEND_STAGING_FAILED`: Controls staging failure notifications
 
 #### Usage:
+
 ```yaml
 # Manual trigger with production approval
 name: Deploy to Production
@@ -34,16 +38,19 @@ workflow_dispatch:
 ```
 
 ### 2. DNS Configuration
+
 **File:** `configure_dns.yml`
 
 Handles DNS configuration for both staging and production environments.
 
 #### Key Features:
+
 - Environment-specific DNS configuration
 - Azure DNS zone management
 - Backup functionality
 
 #### Usage:
+
 ```yaml
 # Manual trigger for production DNS configuration
 name: Configure Production DNS
@@ -53,14 +60,24 @@ workflow_dispatch:
     ENVIRONMENT: prod
 ```
 
-### 3. Weekly DNS Backup
-**File:** `weekly_dns_backup.yml`
+### 3. DNS Backup (activation pending)
 
-Automated weekly backup of DNS configurations.
+**File:** `dns-backup.yml`
+
+The replacement design exports the complete `phoenixvc.tech` Azure DNS zone,
+verifies that the export contains an SOA record, and retains the resulting
+artifact for 90 days.
+
+The workflow is intentionally disabled in GitHub and contains only a manual
+trigger while it is reviewed. It has no schedule. Enabling it, adding a
+schedule, changing Azure identity or RBAC, and writing DNS all require separate
+approval.
 
 #### Features:
-- Scheduled weekly backups
-- Manual trigger option
+
+- Backup-only Azure DNS zone export
+- Non-empty and SOA validation before upload
+- Unique artifact per workflow run
 - 90-day retention policy
 
 ## Environment Variables
@@ -69,7 +86,7 @@ Common environment variables used across workflows:
 
 ```yaml
 env:
-LOCATION_CODE: 'euw'  # Europe West location code
+LOCATION_CODE: "euw" # Europe West location code
 ```
 
 ## Required Secrets
@@ -97,34 +114,40 @@ graph TD
 ## Best Practices
 
 1. **Concurrency Management**
- - Workflows use concurrency groups to prevent parallel deployments
- - Production deployments take precedence
+
+- Workflows use concurrency groups to prevent parallel deployments
+- Production deployments take precedence
 
 2. **Error Handling**
- - Comprehensive error checking in deployment scripts
- - Automatic notifications for failures
+
+- Comprehensive error checking in deployment scripts
+- Automatic notifications for failures
 
 3. **Security**
- - Minimal permission scope for tokens
- - Secure secret handling
+
+- Minimal permission scope for tokens
+- Secure secret handling
 
 ## Troubleshooting
 
 Common issues and solutions:
 
 1. **DNS Configuration Failures**
- ```bash
- # Verify DNS configuration
- ./scripts/deployment/configure-dns.sh --verify --ENVIRONMENT prod
- ```
+
+```bash
+# Verify DNS configuration
+./scripts/deployment/configure-dns.sh --verify --ENVIRONMENT prod
+```
 
 2. **Deployment Token Issues**
- - Ensure SWA tokens are properly configured
- - Verify token permissions in Azure
+
+- Ensure SWA tokens are properly configured
+- Verify token permissions in Azure
 
 3. **Build Failures**
- - Check Node.js version compatibility
- - Verify package-lock.json integrity
+
+- Check Node.js version compatibility
+- Verify package-lock.json integrity
 
 ## Additional Resources
 
