@@ -46,12 +46,12 @@ jobs:
 
           test -s "$backup_file"
           awk '
+            /^[[:space:]]*;/ || /^[[:space:]]*$/ { next }
             {
               sub(/;.*/, "")
-              for (field = 2; field <= NF; field++) {
-                if (toupper($(field - 1)) == "IN" && toupper($field) == "SOA") {
-                  found = 1
-                }
+              if ((toupper($2) == "IN" && toupper($3) == "SOA") ||
+                  (toupper($3) == "IN" && toupper($4) == "SOA")) {
+                found = 1
               }
             }
             END { exit !found }
