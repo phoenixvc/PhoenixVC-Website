@@ -54,13 +54,20 @@ workflow_dispatch:
 ```
 
 ### 3. Weekly DNS Backup
-**File:** `weekly_dns_backup.yml`
+**File:** `dns-backup.yml`
 
-Automated weekly backup of DNS configurations.
+Every Sunday at 00:00 UTC, the workflow exports the complete `phoenixvc.tech`
+Azure DNS zone, verifies that the export contains an SOA record, and retains the
+resulting artifact for 90 days. It can also be dispatched manually.
+
+Azure authentication uses GitHub Actions workload identity federation bound to
+the `production` environment. The dedicated principal has `Reader` only on the
+`phoenixvc.tech` DNS zone, so this backup workflow cannot modify DNS records.
 
 #### Features:
-- Scheduled weekly backups
-- Manual trigger option
+- Backup-only Azure DNS zone export
+- Non-empty and SOA validation before upload
+- Unique artifact per workflow run
 - 90-day retention policy
 
 ## Environment Variables
@@ -91,7 +98,7 @@ graph TD
   C --> D[SWA Deployment]
   D --> E[DNS Configuration]
   D --> F[Teams Notification]
-  G[Weekly DNS Backup] --> H[Backup Storage]
+  G[Weekly DNS Backup] --> H[Backup Artifact]
 ```
 
 ## Best Practices
