@@ -7,6 +7,7 @@ interface SEOProps {
   description?: string;
   keywords?: string;
   ogImage?: string;
+  ogImageAlt?: string;
   ogType?: "website" | "article";
   canonicalUrl?: string;
   noIndex?: boolean;
@@ -28,6 +29,7 @@ const SEO: FC<SEOProps> = ({
   description = DEFAULT_DESCRIPTION,
   keywords,
   ogImage = DEFAULT_OG_IMAGE,
+  ogImageAlt = DEFAULT_OG_IMAGE_ALT,
   ogType = "website",
   canonicalUrl,
   noIndex = false,
@@ -74,7 +76,7 @@ const SEO: FC<SEOProps> = ({
     updateMeta("og:type", ogType, true);
     updateMeta("og:image", ogImage, true);
     updateMeta("og:image:secure_url", ogImage, true);
-    updateMeta("og:image:alt", DEFAULT_OG_IMAGE_ALT, true);
+    updateMeta("og:image:alt", ogImageAlt, true);
     updateMeta("og:url", canonicalUrl || window.location.href, true);
     updateMeta("og:site_name", "Phoenix VC", true);
 
@@ -83,7 +85,7 @@ const SEO: FC<SEOProps> = ({
     updateMeta("twitter:title", fullTitle);
     updateMeta("twitter:description", description);
     updateMeta("twitter:image", ogImage);
-    updateMeta("twitter:image:alt", DEFAULT_OG_IMAGE_ALT);
+    updateMeta("twitter:image:alt", ogImageAlt);
 
     // Canonical URL
     let canonical = document.querySelector(
@@ -105,6 +107,7 @@ const SEO: FC<SEOProps> = ({
     description,
     keywords,
     ogImage,
+    ogImageAlt,
     ogType,
     canonicalUrl,
     noIndex,
