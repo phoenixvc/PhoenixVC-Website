@@ -20,6 +20,17 @@ const DEFAULT_OG_IMAGE = "https://phoenixvc.tech/LOGO_V3_Primary_darkbg.png";
 const DEFAULT_OG_IMAGE_ALT = "Phoenix VC logo";
 const SITE_URL = "https://phoenixvc.tech";
 
+const resolveSocialImage = (image: string): string => {
+  try {
+    const resolvedImage = new URL(image, SITE_URL);
+    return resolvedImage.protocol === "https:"
+      ? resolvedImage.href
+      : DEFAULT_OG_IMAGE;
+  } catch {
+    return DEFAULT_OG_IMAGE;
+  }
+};
+
 /**
  * SEO component for managing page-level meta tags
  * Updates document head with page-specific metadata
@@ -35,6 +46,11 @@ const SEO: FC<SEOProps> = ({
   noIndex = false,
 }) => {
   const fullTitle = title ? `${title} | Phoenix VC` : DEFAULT_TITLE;
+  const resolvedOgImage = resolveSocialImage(ogImage);
+  const resolvedOgImageAlt =
+    resolvedOgImage === DEFAULT_OG_IMAGE && ogImage !== DEFAULT_OG_IMAGE
+      ? DEFAULT_OG_IMAGE_ALT
+      : ogImageAlt;
 
   useEffect(() => {
     // Update document title
@@ -74,9 +90,9 @@ const SEO: FC<SEOProps> = ({
     updateMeta("og:title", fullTitle, true);
     updateMeta("og:description", description, true);
     updateMeta("og:type", ogType, true);
-    updateMeta("og:image", ogImage, true);
-    updateMeta("og:image:secure_url", ogImage, true);
-    updateMeta("og:image:alt", ogImageAlt, true);
+    updateMeta("og:image", resolvedOgImage, true);
+    updateMeta("og:image:secure_url", resolvedOgImage, true);
+    updateMeta("og:image:alt", resolvedOgImageAlt, true);
     updateMeta("og:url", canonicalUrl || window.location.href, true);
     updateMeta("og:site_name", "Phoenix VC", true);
 
@@ -84,8 +100,8 @@ const SEO: FC<SEOProps> = ({
     updateMeta("twitter:card", "summary_large_image");
     updateMeta("twitter:title", fullTitle);
     updateMeta("twitter:description", description);
-    updateMeta("twitter:image", ogImage);
-    updateMeta("twitter:image:alt", ogImageAlt);
+    updateMeta("twitter:image", resolvedOgImage);
+    updateMeta("twitter:image:alt", resolvedOgImageAlt);
 
     // Canonical URL
     let canonical = document.querySelector(
@@ -106,8 +122,8 @@ const SEO: FC<SEOProps> = ({
     fullTitle,
     description,
     keywords,
-    ogImage,
-    ogImageAlt,
+    resolvedOgImage,
+    resolvedOgImageAlt,
     ogType,
     canonicalUrl,
     noIndex,
