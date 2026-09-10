@@ -7,6 +7,7 @@ interface SEOProps {
   description?: string;
   keywords?: string;
   ogImage?: string;
+  ogImageAlt?: string;
   ogType?: "website" | "article";
   canonicalUrl?: string;
   noIndex?: boolean;
@@ -15,8 +16,20 @@ interface SEOProps {
 const DEFAULT_TITLE = "Phoenix VC | Shaping Tomorrow's Technology";
 const DEFAULT_DESCRIPTION =
   "Strategic investments and partnerships empowering innovation across the globe. Phoenix VC invests in visionary founders building transformative technology.";
-const DEFAULT_OG_IMAGE = "https://phoenixvc.tech/og-image.png";
+const DEFAULT_OG_IMAGE = "https://phoenixvc.tech/LOGO_V3_Primary_darkbg.png";
+const DEFAULT_OG_IMAGE_ALT = "Phoenix VC logo";
 const SITE_URL = "https://phoenixvc.tech";
+
+const resolveSocialImage = (image: string): string => {
+  try {
+    const resolvedImage = new URL(image, SITE_URL);
+    return resolvedImage.protocol === "https:"
+      ? resolvedImage.href
+      : DEFAULT_OG_IMAGE;
+  } catch {
+    return DEFAULT_OG_IMAGE;
+  }
+};
 
 /**
  * SEO component for managing page-level meta tags
@@ -27,11 +40,17 @@ const SEO: FC<SEOProps> = ({
   description = DEFAULT_DESCRIPTION,
   keywords,
   ogImage = DEFAULT_OG_IMAGE,
+  ogImageAlt = DEFAULT_OG_IMAGE_ALT,
   ogType = "website",
   canonicalUrl,
   noIndex = false,
 }) => {
   const fullTitle = title ? `${title} | Phoenix VC` : DEFAULT_TITLE;
+  const resolvedOgImage = resolveSocialImage(ogImage);
+  const resolvedOgImageAlt =
+    resolvedOgImage === DEFAULT_OG_IMAGE && ogImage !== DEFAULT_OG_IMAGE
+      ? DEFAULT_OG_IMAGE_ALT
+      : ogImageAlt;
 
   useEffect(() => {
     // Update document title
@@ -56,6 +75,11 @@ const SEO: FC<SEOProps> = ({
       meta.content = content;
     };
 
+    const removeMeta = (name: string, isProperty = false): void => {
+      const attr = isProperty ? "property" : "name";
+      document.querySelector(`meta[${attr}="${name}"]`)?.remove();
+    };
+
     // Update description
     updateMeta("description", description);
 
@@ -71,7 +95,18 @@ const SEO: FC<SEOProps> = ({
     updateMeta("og:title", fullTitle, true);
     updateMeta("og:description", description, true);
     updateMeta("og:type", ogType, true);
-    updateMeta("og:image", ogImage, true);
+    updateMeta("og:image", resolvedOgImage, true);
+    updateMeta("og:image:secure_url", resolvedOgImage, true);
+    updateMeta("og:image:alt", resolvedOgImageAlt, true);
+    if (resolvedOgImage === DEFAULT_OG_IMAGE) {
+      updateMeta("og:image:type", "image/png", true);
+      updateMeta("og:image:width", "2835", true);
+      updateMeta("og:image:height", "2835", true);
+    } else {
+      removeMeta("og:image:type", true);
+      removeMeta("og:image:width", true);
+      removeMeta("og:image:height", true);
+    }
     updateMeta("og:url", canonicalUrl || window.location.href, true);
     updateMeta("og:site_name", "Phoenix VC", true);
 
@@ -79,7 +114,8 @@ const SEO: FC<SEOProps> = ({
     updateMeta("twitter:card", "summary_large_image");
     updateMeta("twitter:title", fullTitle);
     updateMeta("twitter:description", description);
-    updateMeta("twitter:image", ogImage);
+    updateMeta("twitter:image", resolvedOgImage);
+    updateMeta("twitter:image:alt", resolvedOgImageAlt);
 
     // Canonical URL
     let canonical = document.querySelector(
@@ -100,7 +136,8 @@ const SEO: FC<SEOProps> = ({
     fullTitle,
     description,
     keywords,
-    ogImage,
+    resolvedOgImage,
+    resolvedOgImageAlt,
     ogType,
     canonicalUrl,
     noIndex,
