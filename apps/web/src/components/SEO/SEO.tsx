@@ -15,7 +15,8 @@ interface SEOProps {
 const DEFAULT_TITLE = "Phoenix VC | Shaping Tomorrow's Technology";
 const DEFAULT_DESCRIPTION =
   "Strategic investments and partnerships empowering innovation across the globe. Phoenix VC invests in visionary founders building transformative technology.";
-const DEFAULT_OG_IMAGE = "https://phoenixvc.tech/og-image.png";
+const DEFAULT_OG_IMAGE = "https://phoenixvc.tech/LOGO_V3_Primary_darkbg.png";
+const DEFAULT_OG_IMAGE_ALT = "Phoenix VC logo";
 const SITE_URL = "https://phoenixvc.tech";
 
 /**
@@ -72,6 +73,8 @@ const SEO: FC<SEOProps> = ({
     updateMeta("og:description", description, true);
     updateMeta("og:type", ogType, true);
     updateMeta("og:image", ogImage, true);
+    updateMeta("og:image:secure_url", ogImage, true);
+    updateMeta("og:image:alt", DEFAULT_OG_IMAGE_ALT, true);
     updateMeta("og:url", canonicalUrl || window.location.href, true);
     updateMeta("og:site_name", "Phoenix VC", true);
 
@@ -80,6 +83,7 @@ const SEO: FC<SEOProps> = ({
     updateMeta("twitter:title", fullTitle);
     updateMeta("twitter:description", description);
     updateMeta("twitter:image", ogImage);
+    updateMeta("twitter:image:alt", DEFAULT_OG_IMAGE_ALT);
 
     // Canonical URL
     let canonical = document.querySelector(
