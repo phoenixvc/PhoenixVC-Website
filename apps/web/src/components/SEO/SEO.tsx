@@ -75,6 +75,11 @@ const SEO: FC<SEOProps> = ({
       meta.content = content;
     };
 
+    const removeMeta = (name: string, isProperty = false): void => {
+      const attr = isProperty ? "property" : "name";
+      document.querySelector(`meta[${attr}="${name}"]`)?.remove();
+    };
+
     // Update description
     updateMeta("description", description);
 
@@ -93,6 +98,15 @@ const SEO: FC<SEOProps> = ({
     updateMeta("og:image", resolvedOgImage, true);
     updateMeta("og:image:secure_url", resolvedOgImage, true);
     updateMeta("og:image:alt", resolvedOgImageAlt, true);
+    if (resolvedOgImage === DEFAULT_OG_IMAGE) {
+      updateMeta("og:image:type", "image/png", true);
+      updateMeta("og:image:width", "2835", true);
+      updateMeta("og:image:height", "2835", true);
+    } else {
+      removeMeta("og:image:type", true);
+      removeMeta("og:image:width", true);
+      removeMeta("og:image:height", true);
+    }
     updateMeta("og:url", canonicalUrl || window.location.href, true);
     updateMeta("og:site_name", "Phoenix VC", true);
 
