@@ -110,6 +110,11 @@ export const ProjectDetail = (): React.ReactElement => {
         description={project.bio || project.title}
         keywords={skills.join(", ")}
         ogImage={project.image || undefined}
+        ogImageAlt={
+          project.image
+            ? `${project.fullName || project.name} logo`
+            : undefined
+        }
         ogType="article"
         canonicalUrl={`https://phoenixvc.tech/portfolio/${project.id}`}
       />

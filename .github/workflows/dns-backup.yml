@@ -2,28 +2,71 @@ name: Weekly DNS Backup
 
 on:
   schedule:
-    - cron: '0 0 * * 0'  # Every Sunday at midnight
-  workflow_dispatch:  # Manual trigger
+    - cron: "0 0 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: dns-backup
+  cancel-in-progress: false
 
 jobs:
   backup:
+    name: Export phoenixvc.tech zone
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     environment: production
+
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Configure Azure
-        uses: ./.github/actions/setup-azure-deployment
+      - name: Sign in to Azure
+        uses: azure/login@v3
         with:
-          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
-          
-      - name: Create DNS Backup
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Export DNS zone
+        id: export
+        shell: bash
         run: |
-          ./scripts/deployment/configure-dns.sh --backup --ENVIRONMENT prod
-          
-      - name: Upload Backup
-        uses: actions/upload-artifact@v3
+          set -euo pipefail
+
+          timestamp="$(date -u +'%Y%m%dT%H%M%SZ')"
+          backup_dir="dns_backups"
+          backup_file="${backup_dir}/phoenixvc-tech-${timestamp}.zone"
+
+          mkdir -p "$backup_dir"
+          az network dns zone export \
+            --resource-group mys-global-shared-rg \
+            --name phoenixvc.tech \
+            --file-name "$backup_file"
+
+          test -s "$backup_file"
+          awk '
+            /^[[:space:]]*;/ || /^[[:space:]]*$/ { next }
+            {
+              sub(/;.*/, "")
+              if ((toupper($2) == "IN" && toupper($3) == "SOA") ||
+                  (toupper($3) == "IN" && toupper($4) == "SOA")) {
+                found = 1
+              }
+            }
+            END { exit !found }
+          ' "$backup_file"
+          echo "backup_file=$backup_file" >> "$GITHUB_OUTPUT"
+
+      - name: Upload DNS backup
+        uses: actions/upload-artifact@v4
         with:
-          name: dns-backup-$(date +%Y%m%d)
-          path: ./dns_backups/
+          name: phoenixvc-tech-dns-backup-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.export.outputs.backup_file }}
+          if-no-files-found: error
           retention-days: 90
+
+      - name: Sign out of Azure
+        if: always()
+        shell: bash
+        run: az logout
